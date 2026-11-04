@@ -1957,38 +1957,38 @@ function drawPerson(x,y,o,now){
     parts([[-2-sw,-12+bob,2,6,tn]],OL);
     parts([[-2-st,-5,3,5-lB,gl?pD:skin]],OL);boots(-2-st,-5,5-lB);
     parts([[-1+st,-5,3,5-lA,gl?pc:skin]],OL);if(gl)R(-1+st,-5,1,3-lA,pH);boots(-1+st,-5,5-lA);
-    parts([[-2,-13+bob,4,1,tn],[-3,-12+bob,6,5,tn],[-2,-7+bob,4,2,tn]],OL);R(-2,-12+bob,4,1,tl);if(gb)R(-3,-7+bob,6,2,td);
+    parts([[-3,-13+bob,6,8,tn]],OL);R(-3,-13+bob,6,2,tl);if(gb)R(-3,-7+bob,6,2,td);
     if(gb){R(-3,-13+bob,6,1,gb.H)}
     if(!gl){R(-3,-6+bob,6,3,'#29242e');R(-3,-6+bob,6,1,'#413846');R(-2,-3+bob,2,1,'#1d1923');R(1,-3+bob,2,1,'#1d1923')}
     if(gb){R(-3,-7+bob,6,2,'#3a2522');R(-1,-7+bob,2,2,'#c0c5c8')}
     if(o.apron){R(-2,-9+bob,6,5,'#f2ead2');R(-2,-9+bob,6,1,'#fff')}
-    parts([[-3,-22+hy0,7,1,skin],[-4,-21+hy0,9,6,skin],[-3,-15+hy0,7,2,skin]],OL);R(-3,-14+hy0,7,1,skD);R(5,-18+hy0,1,2,skin);
+    parts([[-4,-22+hy0,9,9,skin]],OL);R(-4,-14+hy0,9,1,skD);R(5,-18+hy0,1,2,skin);
     if(!gh){
-      parts([[-4,-25+hy0,8,2,hair],[-6,-23+hy0,11,4,hair],[-7,-21+hy0,4,5,hair],[-1,-26+hy0,4,2,hair],[3,-24+hy0,3,3,hair],[-4,-19+hy0,3,4,hair]],OL);R(0,-20+hy0,4,2,hair);R(-4,-24+hy0,3,1,'#544858');R(0,-25+hy0,2,1,'#544858');
+      parts([[-5,-24+hy0,10,5,hair],[-6,-22+hy0,4,7,hair],[-1,-26+hy0,4,3,hair],[3,-24+hy0,3,4,hair]],OL);R(0,-20+hy0,4,2,hair);R(-4,-24+hy0,3,1,'#544858');R(0,-25+hy0,2,1,'#544858');R(-5,-17+hy0,1,3,'rgba(0,0,0,.2)');
     }
     R(2,-17+hy0,1,2,eye);R(4,-16+hy0,1,1,'#b0705c');R(3,-14+hy0,2,1,'#b0705c');
     if(gh)helm(-1,hy0,gh,g[0],true);
     if(gs){parts([[0,-12+bob,5,8,gs.M]],OL);R(0,-12+bob,5,1,gs.H);R(1,-11+bob,1,5,gs.H);R(0,-5+bob,5,1,gs.D)}
   }else{
     const back=dv==='u';
-    parts([[-6,-12+bob+sw,3,2,tn],[-7,-10+bob+sw,3,3,tn],[-6,-7+bob+sw,3,1,tn],[4,-12+bob-sw,3,2,tn],[5,-10+bob-sw,3,3,tn],[4,-7+bob-sw,3,1,tn]],OL);
+    parts([[-7,-12+bob+sw,3,6,tn],[4,-12+bob-sw,3,6,tn]],OL);
     parts([[-3,-5,3,5-lA,gl?pc:skin],[0,-5,3,5-lB,gl?pc:skin]],OL);if(gl){R(-3,-5,1,3-lA,pH);R(0,-5,1,3-lB,pH)}boots(-3,-5,5-lA);boots(0,-5,5-lB);
-    parts([[-3,-13+bob,6,1,tn],[-4,-12+bob,8,5,tn],[-3,-7+bob,6,2,tn]],OL);R(-3,-12+bob,6,1,tl);if(gb){R(-4,-7+bob,8,2,td);R(-4,-6+bob,8,1,'#5a3a1c');R(-1,-6+bob,2,1,'#e8c860')}
+    parts([[-4,-13+bob,8,8,tn]],OL);R(-4,-13+bob,8,2,tl);if(gb){R(-4,-7+bob,8,2,td);R(-4,-6+bob,8,1,'#5a3a1c');R(-1,-6+bob,2,1,'#e8c860')}
     if(!gl){R(-4,-6+bob,8,3,'#29242e');R(-4,-6+bob,8,1,'#413846');R(-3,-3+bob,3,1,'#1d1923');R(1,-3+bob,3,1,'#1d1923')}
     if(gb){R(-4,-13+bob,8,1,gb.H);R(-6,-12+bob+sw,2,2,gb.H);R(4,-12+bob-sw,2,2,gb.H)}
     if(gb){R(-3,-12+bob,2,5,'#493027');R(-3,-12+bob,1,4,'#9a7044');R(-4,-7+bob,8,2,'#3a2522');R(-1,-7+bob,2,2,'#c0c5c8')}
     if(!back)R(-1,-13+bob,2,1,skD);
-    R(-6,-7+bob+sw,3,2,skin);R(4,-7+bob-sw,3,2,skin);
+    R(-7,-7+bob+sw,3,2,skin);R(4,-7+bob-sw,3,2,skin);
     if(o.apron&&!back){R(-3,-9+bob,6,5,'#f2ead2');R(-3,-9+bob,6,1,'#fff')}
     if(gs){parts([[-11,-13+bob,6,9,gs.M]],OL);R(-11,-13+bob,6,1,gs.H);R(-10,-12+bob,1,5,gs.H);R(-11,-5+bob,6,1,gs.D);R(-9,-10+bob,2,2,gs.D)}
-    parts([[-4,-22+hy0,8,1,back?hair:skin],[-5,-21+hy0,10,6,back?hair:skin],[-4,-15+hy0,8,2,back?hair:skin]],OL);
+    parts([[-5,-22+hy0,10,9,back?hair:skin]],OL);
     if(back){R(-5,-14+hy0,10,1,'rgba(0,0,0,.22)');R(-3,-23+hy0,3,1,'#544858');R(-1,-17+hy0,1,3,'rgba(0,0,0,.18)')}
     else{
       R(-5,-14+hy0,10,1,skD);
-      if(!gh){parts([[-4,-25+hy0,8,1,hair],[-6,-24+hy0,12,3,hair],[-7,-21+hy0,3,3,hair],[4,-21+hy0,3,3,hair],[-5,-26+hy0,3,2,hair],[-2,-27+hy0,3,3,hair],[2,-26+hy0,3,2,hair],[-5,-20+hy0,3,4,hair],[3,-20+hy0,3,4,hair]],OL);R(-3,-20+hy0,3,2,hair);R(1,-20+hy0,3,2,hair);R(-4,-24+hy0,3,1,'#514958');R(1,-25+hy0,3,1,'#514958');R(-3,-23+hy0,2,1,'#625467')}
+      if(!gh){parts([[-6,-24+hy0,12,5,hair],[-6,-20+hy0,3,5,hair],[4,-20+hy0,2,5,hair],[-5,-26+hy0,3,3,hair],[-2,-27+hy0,4,4,hair],[2,-26+hy0,3,3,hair]],OL);R(-4,-19+hy0,3,2,hair);R(2,-20+hy0,3,2,hair);R(0,-20+hy0,1,2,hair);R(-4,-25+hy0,3,1,'#514958');R(1,-25+hy0,3,1,'#514958');R(-3,-24+hy0,3,1,'#625467')}
       R(-2,-17+hy0,1,2,eye);R(1,-17+hy0,1,2,eye);R(-1,-14+hy0,2,1,'#b0705c');
     }
-    if(back&&!gh){parts([[-4,-25+hy0,8,1,hair],[-6,-24+hy0,12,4,hair],[-7,-21+hy0,3,3,hair],[4,-21+hy0,3,3,hair],[-5,-26+hy0,3,2,hair],[2,-26+hy0,3,2,hair]],OL);R(-3,-25+hy0,3,1,'#514958')}
+    if(back&&!gh){parts([[-6,-24+hy0,12,5,hair],[-5,-26+hy0,3,3,hair],[2,-26+hy0,3,3,hair]],OL);R(-3,-25+hy0,3,1,'#514958')}
     if(gh)helm(0,hy0,gh,g[0],!back);
   }
   const age=now-o.swingAt,swinging=age>=0&&age<320,holding=o.tool&&o.tool!=='fist'&&(swinging||now<o.hold);
