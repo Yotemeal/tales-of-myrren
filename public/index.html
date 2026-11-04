@@ -710,6 +710,7 @@ function openModal(t){if(!tab)gpIdx=-1;tab=t;if(t!=='shop'&&t!=='settings'&&t!==
 function closeModal(){tab='';sel=null;renderModal()}
 function renderModal(){
   modal.hidden=!tab;
+  modal.style.display=tab?'flex':'none';
   if(!tab)return;
   $('mTabs').hidden=(tab==='settings');
   const st=mBody.scrollTop;
@@ -1327,7 +1328,9 @@ function sendPresence(){
 /* ---------- start ---------- */
 function start(){
   save.name=$('nick').value.trim().slice(0,14)||save.name||'Wanderer';
-  $('intro').hidden=true;$('hud').hidden=false;$('chat').hidden=false;$('pad').hidden=false;$('acts').hidden=false;
+  $('intro').hidden=true;$('intro').style.display='none';
+  $('modal').hidden=true;$('modal').style.display='none';
+  $('hud').hidden=false;$('chat').hidden=false;$('pad').hidden=false;$('acts').hidden=false;
   started=true;uiHud();refreshActionButtons();
   say('Welcome to Myrren, '+save.name+'.');
   if(!(eqDef('weapon')&&eqDef('weapon').tool)&&!save.bag.some(id=>DEFS[id].tool))say('Buy a hatchet or pickaxe in town and equip it as your weapon. Face a tree or rock and press the tool button. Hold the sword button to fight. The lake is east of town.','gold');
