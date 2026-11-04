@@ -1946,31 +1946,20 @@ function drawPerson(x,y,o,now){
   const hurtAge=o.isMe?now-(me.hurtAt||-99999):9999,hurt=hurtAge>=0&&hurtAge<260;
   const hair=o.isMe?'#292631':(o.hair||HAIRS[Math.floor((o.hue||0)/72)%5]),hue=o.hue||0;
   const bob=mv?[0,-1,0,-1][ph]:0,hb=(!mv&&Math.floor(now/520)%2)?1:0,hy0=bob+hb;
-  const tn=gb?gb.M:'hsl('+hue+',55%,46%)',tl=gb?gb.H:'hsl('+hue+',55%,60%)',td=gb?gb.D:'hsl('+hue+',55%,32%)';
-  const pc=gl?gl.M:'#4a4660',pH=gl?gl.H:'#62607e',pD=gl?gl.D:'#322e44',bc=gt?gt.M:'#6a4426',bD=gt?gt.D:'#46301c';
+  const tn=gb?gb.M:skin,tl=gb?gb.H:'#ffd8b1',td=gb?gb.D:skD;
+  const pc=gl?gl.M:'#29242e',pH=gl?gl.H:'#39313e',pD=gl?gl.D:'#1d1923',bc=gt?gt.M:skin,bD=gt?gt.D:skD;
   const sw=mv?[0,1,0,-1][ph]:0,lA=mv&&ph===1?2:0,lB=mv&&ph===3?2:0;
   shadowE(x+1,y,7,2,.3);
   ctx.save();ctx.translate(x-(hurt?f:0),y);ctx.scale(f,1);
-  /* Signature Myrren hero: flowing crimson mantle, layered leather and a fuller silhouette. */
-  if(dv==='s'){
-    parts([[-10,-20,5,12,'#672b3a'],[-12,-15,3,8,'#8f3b4b'],[-9,-8,4,3,'#4b202d']],OL);
-    R(-10,-19,3,2,'#b34b58');R(-11,-12,2,4,'#a64250');R(-8,-6,3,1,'#311a24');
-  }else{
-    parts([[-6,-17,12,12,'#672b3a'],[-7,-13,3,9,'#8f3b4b'],[4,-13,3,9,'#8f3b4b'],[-5,-18,10,3,'#a64250']],OL);
-    R(-5,-14,2,7,'#b34b58');R(3,-13,2,6,'#9d3c4a');R(-4,-5,3,1,'#311a24');R(2,-5,3,1,'#311a24');
-  }
-  const boots=(lx,ly,len)=>{R(lx,ly+len-2,3,2,bc);R(lx,ly+len-1,3,1,bD);if(gt)R(lx,ly+len-2,3,1,gt.H)};
+  const boots=(lx,ly,len)=>{if(!gt){R(lx,ly+len-2,3,2,skin);R(lx,ly+len-1,3,1,skD);return}R(lx,ly+len-2,3,2,bc);R(lx,ly+len-1,3,1,bD);R(lx,ly+len-2,3,1,gt.H)};
   if(dv==='s'){
     const st=mv?[0,2,0,-2][ph]:0;
-    parts([[-2-sw,-12+bob,2,6,td]],OL);
-    parts([[-2-st,-5,3,5-lB,pD]],OL);boots(-2-st,-5,5-lB);
-    parts([[-1+st,-5,3,5-lA,pc]],OL);R(-1+st,-5,1,3-lA,pH);boots(-1+st,-5,5-lA);
-    parts([[-3,-13+bob,6,8,tn]],OL);R(-3,-13+bob,6,2,tl);R(-3,-7+bob,6,2,td);R(-3,-6+bob,6,1,'#5a3a1c');
+    parts([[-2-sw,-12+bob,2,6,tn]],OL);
+    parts([[-2-st,-5,3,5-lB,gl?pD:skin]],OL);boots(-2-st,-5,5-lB);
+    parts([[-1+st,-5,3,5-lA,gl?pc:skin]],OL);if(gl)R(-1+st,-5,1,3-lA,pH);boots(-1+st,-5,5-lA);
+    parts([[-3,-13+bob,6,8,tn]],OL);R(-3,-13+bob,6,2,tl);if(gb)R(-3,-7+bob,6,2,td);
     if(gb){R(-3,-13+bob,6,1,gb.H)}
-    /* Crimson scarf collar and a small silver clasp. */
-    R(-4,-14+bob,8,2,'#8f3545');R(-3,-14+bob,5,1,'#c15a61');R(2,-14+bob,2,2,'#d0c5b2');
-    /* Leather belt and steel buckle remain visible across armour tiers. */
-    R(-3,-7+bob,6,2,'#3a2522');R(-2,-7+bob,4,1,'#9a7044');R(-1,-7+bob,2,2,'#c0c5c8');R(-1,-7+bob,1,1,'#e4d9c4');
+    if(gb){R(-3,-7+bob,6,2,'#3a2522');R(-1,-7+bob,2,2,'#c0c5c8')}
     if(o.apron){R(-2,-9+bob,6,5,'#f2ead2');R(-2,-9+bob,6,1,'#fff')}
     parts([[-3,-21+hy0,7,8,skin]],OL);R(-3,-14+hy0,7,1,skD);R(4,-18+hy0,1,2,skin);
     if(!gh){
@@ -1981,15 +1970,11 @@ function drawPerson(x,y,o,now){
     if(gs){parts([[0,-12+bob,5,8,gs.M]],OL);R(0,-12+bob,5,1,gs.H);R(1,-11+bob,1,5,gs.H);R(0,-5+bob,5,1,gs.D)}
   }else{
     const back=dv==='u';
-    parts([[-6,-12+bob+sw,2,6,td],[4,-12+bob-sw,2,6,td]],OL);
-    parts([[-3,-5,3,5-lA,pc],[0,-5,3,5-lB,pc]],OL);R(-3,-5,1,3-lA,pH);R(0,-5,1,3-lB,pH);boots(-3,-5,5-lA);boots(0,-5,5-lB);
-    parts([[-4,-13+bob,8,8,tn]],OL);R(-4,-13+bob,8,2,tl);R(-4,-7+bob,8,2,td);R(-4,-6+bob,8,1,'#5a3a1c');R(-1,-6+bob,2,1,'#e8c860');
+    parts([[-6,-12+bob+sw,2,6,tn],[4,-12+bob-sw,2,6,tn]],OL);
+    parts([[-3,-5,3,5-lA,gl?pc:skin],[0,-5,3,5-lB,gl?pc:skin]],OL);if(gl){R(-3,-5,1,3-lA,pH);R(0,-5,1,3-lB,pH)}boots(-3,-5,5-lA);boots(0,-5,5-lB);
+    parts([[-4,-13+bob,8,8,tn]],OL);R(-4,-13+bob,8,2,tl);if(gb){R(-4,-7+bob,8,2,td);R(-4,-6+bob,8,1,'#5a3a1c');R(-1,-6+bob,2,1,'#e8c860')}
     if(gb){R(-4,-13+bob,8,1,gb.H);R(-6,-12+bob+sw,2,2,gb.H);R(4,-12+bob-sw,2,2,gb.H)}
-    /* Scarf wraps the shoulders; its short tail trails behind the hero. */
-    R(-5,-14+bob,10,2,'#8f3545');R(-4,-14+bob,6,1,'#c15a61');R(-7,-15+bob,3,3,'#a64250');R(-7,-14+bob,2,2,'#c15a61');
-    /* Cross-body leather strap, brass stitching and a steel fastening. */
-    R(-3,-12+bob,2,5,'#493027');R(-3,-12+bob,1,4,'#9a7044');R(-2,-9+bob,2,2,'#c0c5c8');
-    R(-4,-7+bob,8,2,'#3a2522');R(-3,-7+bob,6,1,'#9a7044');R(-1,-7+bob,2,2,'#c0c5c8');
+    if(gb){R(-3,-12+bob,2,5,'#493027');R(-3,-12+bob,1,4,'#9a7044');R(-4,-7+bob,8,2,'#3a2522');R(-1,-7+bob,2,2,'#c0c5c8')}
     if(!back)R(-1,-13+bob,2,1,skD);
     R(-6,-7+bob+sw,2,2,skin);R(4,-7+bob-sw,2,2,skin);
     if(o.apron&&!back){R(-3,-9+bob,6,5,'#f2ead2');R(-3,-9+bob,6,1,'#fff')}
