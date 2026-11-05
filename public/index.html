@@ -1945,6 +1945,9 @@ MYRREN_V31.onload = () => { myrrenV31Ready = MYRREN_V31.naturalWidth === 128 && 
 MYRREN_V31.onerror = () => { myrrenV31Ready = false; };
 MYRREN_V31.src = '/hero_32x40_v31.png';
 function drawApprovedPlayer(x,y,o,now){
+  // Emergency visual fallback: add ?classicSprite=1 to the game URL.
+  // This changes only character rendering; saves and game state are untouched.
+  if(new URLSearchParams(location.search).get('classicSprite')==='1')return false;
   if(!myrrenV31Ready)return false;
   // Until equipment overlays exist, keep the original renderer for equipped armour.
   // This preserves visible helmets, chest pieces, leg armour and boots.
