@@ -53,12 +53,12 @@ const V31Equipment = (() => {
         const span=side?profiles[row][row<4?0:frame]:null;
         const center=side?Math.round((span[0]+span[1])/2):(row===4&&frame===1?17:16);
         for(let y=top;y<=31;y++){
-          let left=side?(y<29?span[0]:span[2]):center-2;
-          let right=side?(y<29?span[1]:span[3]):center+2;
-          // Short tapered hem meets the original waist without painting a
-          // wide belt across it. It never reaches the approved leg artwork.
-          if(y>=29&&!side){left++;right--;}
-          if(y===31){left++;right--;}
+          // Fitted torso: inset collar/arm openings, full rib coverage and a
+          // short five-pixel hem. Do not funnel the abdomen to a one-pixel bib.
+          const half=(y===top||y>=30)?2:3;
+          let left=side?(y<29?span[0]:span[2]):center-half;
+          let right=side?(y<29?span[1]:span[3]):center+half;
+          if(y===31&&side){left++;right--;}
           for(let x=left;x<=right;x++){
             if(!alpha(x,y,row,frame))continue;
             const dx=x-center,dy=y-top;

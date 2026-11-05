@@ -63,7 +63,8 @@ and all six tiers are visible on the same page.
 
 ## Chest fit refinement
 
-Front/back chest panels are five native pixels wide instead of seven. The
-lower panel tapers to three pixels at rows 29–30 and one pixel at row 31.
-Shoulder caps are 2×1 pixels instead of 3×2. Profile art, head/neck and the
-approved boots/legs are unchanged.
+Front/back chest art follows a shaped torso: five pixels across at the collar,
+seven across the ribs, and a short five-pixel hem at rows 30–31. This restores
+abdomen coverage and avoids the narrow bib shape of the preceding taper.
+The shoulder caps remain compact at 2×1 pixels. Profile art, head/neck and all
+approved boots/legs remain unchanged.
