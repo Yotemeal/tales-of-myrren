@@ -2383,6 +2383,55 @@ function drawWoodlandShrub(x,y,seed){
   blob(x,y-8,5,moss[2]);blob(x-4,y-6,3,moss[2]);blob(x+4,y-7,3,moss[3]);
   for(let k=0;k<5;k++){const px=x-7+((seed*11+k*7)%15),py=y-9+((seed+k*3)%6);R(px,py,2,1,moss[3])}
 }
+// Decorative brook, falls and timber footbridge, placed east of the town services.
+// Water is scenery in this pass; no new impassable collision or save-coordinate changes.
+function drawVillageFalls(cx,cy,now){
+  const X=v=>Math.round(v-cx),Y=v=>Math.round(v-cy);
+  const x=CX+250,y=CY+112,t=Math.floor(now/160);
+  // Rock terraces surrounding the stream.
+  for(let i=0;i<14;i++){
+    const yy=y-92+i*15,xx=x+Math.round(Math.sin(i*.68)*17);
+    R(X(xx-31),Y(yy),12,9,'#292f2a');R(X(xx-29),Y(yy-2),9,4,'#72796a');
+    R(X(xx+20),Y(yy+3),15,10,'#28342e');R(X(xx+22),Y(yy+1),10,4,'#647b66');
+    R(X(xx-26),Y(yy-5),5,3,'#668453');
+  }
+  // Dark turquoise flowing stream, visibly tiered at the falls.
+  for(let i=0;i<21;i++){
+    const yy=y-104+i*12,xx=x+Math.round(Math.sin(i*.44)*14),wide=i<9?25:33;
+    R(X(xx-wide/2),Y(yy),wide,13,i%3===0?'#204c50':'#28636a');
+    R(X(xx-wide/2+3+(t+i*3)%11),Y(yy+4),8,2,'#6ba6a3');
+    if(i%4===0)R(X(xx+wide/2-8),Y(yy+9),6,2,'#b4d5c6');
+  }
+  for(const yy of [y-36,y+36]){
+    R(X(x-23),Y(yy),46,11,'#192e32');
+    for(let k=0;k<9;k++){
+      const xx=x-20+k*5;
+      R(X(xx),Y(yy+1),3,9,'#7ac5c8');
+      R(X(xx+1),Y(yy+6+(t+k)%3),2,3,'#d1e9db');
+    }
+    R(X(x-28),Y(yy+11),56,3,'#c5d9cd');
+  }
+  // Raised timber bridge crosses the upper stream, with rope-and-post rails.
+  const by=y-63;
+  R(X(x-51),Y(by-11),102,25,'#1b2923');
+  R(X(x-49),Y(by-9),98,20,'#594633');
+  for(let k=0;k<12;k++){
+    const xx=x-47+k*8;
+    R(X(xx),Y(by-8),7,17,k%2?'#8b6b46':'#9c7850');
+    R(X(xx),Y(by+6),7,2,'#4b3c2c');
+  }
+  for(const rail of [-13,12]){
+    R(X(x-51),Y(by+rail),102,3,'#3e3125');
+    R(X(x-51),Y(by+rail-2),102,1,'#bb9869');
+    for(let k=0;k<6;k++)R(X(x-49+k*19),Y(by+rail-8),4,12,'#624b33');
+  }
+  // Ferns and spray on the banks.
+  for(let k=0;k<12;k++){
+    const yy=y-97+k*18,xx=x+(k%2?-40:39);
+    R(X(xx),Y(yy),2,9,'#294d38');
+    R(X(xx-5),Y(yy+2),6,2,'#63885a');R(X(xx+1),Y(yy+4),6,2,'#77976a');
+  }
+}
 function drawBuilding(b,x,y,now){
   // Woodland architecture: all five services share a coherent native-pixel
   // timber, stone, bark-shingle and moss palette. Preserve doorway positions.
@@ -2485,6 +2534,13 @@ function drawBuilding(b,x,y,now){
       R(wx+3,y-17,1,5,'#684e32');
       R(wx+1,y-15,5,1,'#684e32');
     }
+  }
+  // Every occupied workshop and cottage has a real smoking chimney.
+  if(!forge){
+    const chimneyX=x+hw-13;
+    brick(chimneyX-5,top-15,11,22,'#706b5c','#45483f','#a29d87');
+    R(chimneyX-7,top-16,15,3,'#393d35');
+    smoke(chimneyX,top-20,now,'#c3c5ba');
   }
   // A consistent hanging sign rather than five unrelated facades.
   R(x-hw+4,y-27,2,9,dark);
@@ -2625,6 +2681,8 @@ function drawOutdoor(cx,cy,now){
       }
     }
   }
+  // Water and bridge sit below actors and trees in the world depth list.
+  if(CX+250>cx-150&&CX+250<cx+cv.width+150&&CY+112>cy-240&&CY+112<cy+cv.height+240)drawVillageFalls(cx,cy,now);
   for(const tree of VILLAGE_GROVE)if(tree.x>cx-100&&tree.x<cx+cv.width+100&&tree.y>cy-25&&tree.y<cy+cv.height+160)list.push({y:tree.y,f:()=>drawAncientTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
   for(let i=0;i<46;i++){
     const a=i*2.3999632297,r=160+(i%6)*20;
