@@ -51,7 +51,9 @@ const V31Equipment = (() => {
         const dir=row%4,back=dir===3,side=dir===1||dir===2;
         const ox=frame*32,oy=row*40,top=back?26:25;
         const span=side?profiles[row][row<4?0:frame]:null;
-        const center=side?Math.round((span[0]+span[1])/2):(row===4&&frame===1?17:16);
+        // Rear torso anchors follow the approved idle and walking poses.
+        const rearCenter=row===7?[15,16,15,16][frame]:15;
+        const center=side?Math.round((span[0]+span[1])/2):back?rearCenter:(row===4&&frame===1?17:16);
         for(let y=top;y<=31;y++){
           // Fitted torso: inset collar/arm openings, full rib coverage and a
           // short five-pixel hem. Do not funnel the abdomen to a one-pixel bib.
@@ -210,3 +212,4 @@ const V31Equipment = (() => {
   }
   return {make,materials};
 })();
+

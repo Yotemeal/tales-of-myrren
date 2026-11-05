@@ -68,3 +68,10 @@ seven across the ribs, and a short five-pixel hem at rows 30–31. This restores
 abdomen coverage and avoids the narrow bib shape of the preceding taper.
 The shoulder caps remain compact at 2×1 pixels. Profile art, head/neck and all
 approved boots/legs remain unchanged.
+
+
+## Rear chest alignment
+
+The rear panel uses x=15 for idle, and x=15,16,15,16 for walking frames,
+following the torso rather than the front-view anchor. Every front/profile
+frame and all approved head/neck, boot and leg pixels are unchanged.
