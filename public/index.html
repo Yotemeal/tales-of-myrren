@@ -1726,6 +1726,49 @@ function nodeTip(n,x,y,now){
   label(nt.name+' (Lv '+nt.req+')',x,y-(TREEK.includes(n.k)?(n.k==='tree'?42:52):n.k.startsWith('spot')?12:20),'#ffffff');
   ctx.globalAlpha=1;
 }
+// Monumental, non-harvestable ancient rainforest trees. Native-pixel art, not scaled resource trees.
+function drawAncientTree(n,x,y,now){
+  const seed=(n.x*13+n.y*7)|0;
+  shadowE(x+6,y+1,36,9,.37);
+  // Wide buttress roots anchor a towering, hollow old-growth trunk.
+  for(const side of [-1,1]){
+    R(x+side*10-(side<0?17:0),y-11,17,7,'#182b24');
+    R(x+side*12-(side<0?13:0),y-9,13,5,'#514635');
+    R(x+side*15-(side<0?8:0),y-6,8,3,'#756247');
+  }
+  R(x-13,y-75,27,76,'#172820');
+  R(x-11,y-73,22,71,'#4a3c2c');
+  R(x-8,y-72,5,67,'#796348');R(x+3,y-69,5,65,'#302f26');
+  R(x-3,y-47,7,25,'#172a22');R(x-1,y-43,3,18,'#0c1d1a');
+  for(let k=0;k<11;k++){
+    const yy=y-69+k*6,xx=x-10+((k*7+seed)%18);
+    R(xx,yy,2,4,k%2?'#7a694b':'#263e30');
+  }
+  // Four distinct canopy masses, over 100 pixels across and 120 tall.
+  const crown=[
+    [-30,-101,23],[-7,-117,27],[25,-108,25],
+    [-43,-83,23],[-14,-89,30],[18,-88,31],[44,-83,22],
+    [-28,-69,24],[5,-70,28],[32,-68,21]
+  ];
+  for(const [dx,dy,r] of crown)blob(x+dx,y+dy,r+3,'#10271f');
+  for(const [dx,dy,r] of crown)blob(x+dx,y+dy,r,'#214a32');
+  for(const [dx,dy,r] of crown){
+    blob(x+dx-3,y+dy-4,r-5,'#376b45');
+    blob(x+dx-7,y+dy-9,Math.max(5,r-12),'#56865a');
+    R(x+dx-9,y+dy-12,7,2,'#74966a');
+  }
+  // Heavy hanging vines and pale moss strands.
+  for(let k=0;k<13;k++){
+    const xx=x-53+k*9,yy=y-84-((k*11+seed)%23),len=15+((k*13+seed)&19);
+    R(xx,yy,2,len,'#173b2c');
+    R(xx+1,yy+len-8,1,9,'#6c8d61');
+    if(k%3===0){R(xx-2,yy+len-5,5,2,'#427c4b');R(xx+1,yy+len-2,4,2,'#5a9357')}
+  }
+  for(let k=0;k<7;k++){
+    const xx=x-8+k*3;
+    R(xx,y-60+(k%3)*6,2,7,'#4f7951');
+  }
+}
 function drawTree(n,x,y,now){
   if(now<n.back){R(x-6,y-5,12,7,OUT);R(x-5,y-6,10,5,'#c9a064');R(x-5,y-6,10,1,'#e4c488');R(x-3,y-5,6,3,'#a87c46');R(x-1,y-4,2,1,'#8a6a3a');R(x-5,y-1,10,2,'#8a6a3a');return}
   const oak=n.k!=='tree',sd=(n.x*7+n.y)|0;
@@ -2316,12 +2359,12 @@ function smoke(x,y,now,col){const t=now/800;for(let i=0;i<3;i++){const k=(t+i*.3
 function flagAt(x,y,col,now){const f=Math.floor(now/250)%2;R(x,y-9,1,10,'#3a2410');R(x+1,y-9,5+f,3,col);R(x+1,y-6,3+f,1,col)}
 // Ancient village-side trees are scenery only: no resource or collision changes.
 const VILLAGE_GROVE=[];
-for(let j=0;j<88;j++){
-  const a=j*2.3999632297,r=195+(j%5)*24+((j*17)%13);
+for(let j=0;j<32;j++){
+  const a=j*2.3999632297,r=205+(j%4)*36+((j*17)%13);
   const gx=CX+Math.cos(a)*r,gy=CY+Math.sin(a)*r*.69;
   if(Math.abs(gx-CX)<255&&gy>CY-105&&gy<CY+100)continue;
   if(gx<EDGE+65||gx>WW-EDGE-65||gy<EDGE+65||gy>WH-EDGE-65)continue;
-  VILLAGE_GROVE.push({x:Math.round(gx),y:Math.round(gy),k:'forest',back:0});
+  VILLAGE_GROVE.push({x:Math.round(gx),y:Math.round(gy),k:'ancient',back:0});
 }
 function drawWoodlandShrub(x,y,seed){
   const moss=['#203d30','#315b3c','#49724a','#63865a'];
@@ -2572,7 +2615,7 @@ function drawOutdoor(cx,cy,now){
       }
     }
   }
-  for(const tree of VILLAGE_GROVE)if(vis(tree.x,tree.y))list.push({y:tree.y,f:()=>drawTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
+  for(const tree of VILLAGE_GROVE)if(tree.x>cx-100&&tree.x<cx+cv.width+100&&tree.y>cy-25&&tree.y<cy+cv.height+160)list.push({y:tree.y,f:()=>drawAncientTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
   for(let i=0;i<46;i++){
     const a=i*2.3999632297,r=160+(i%6)*20;
     const gx=CX+Math.cos(a)*r,gy=CY+Math.sin(a)*r*.72;
