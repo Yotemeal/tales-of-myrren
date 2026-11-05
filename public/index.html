@@ -276,7 +276,7 @@ button{font-family:inherit;font-size:inherit;color:inherit}
 <script src="/myrren-world.js?v=3"></script>
 <script src="/myrren-environment.js?v=3"></script>
 <script src="/v31-feet.js?v=1"></script>
-<script src="/v31-equipment.js?v=5"></script>
+<script src="/v31-equipment.js?v=6"></script>
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
@@ -416,7 +416,7 @@ const SMELT=[
 const FORGE={axe:3,pick:3,sword:4,shield:5,helm:4,gloves:4,boots:4,legs:5,body:6};
 /* economy: shop price of forgeable gear = 2x its ingot value, so smelting+forging always beats buying and coins are a sink */
 for(const id in DEFS){const d=DEFS[id];if(FORGE[d.kind]&&d.mat>=2){const ik='ing_'+MATS[d.mat].k;if(SELL[ik])d.price=Math.round(2*FORGE[d.kind]*SELL[ik])}}
-const gearSvg=(d,s)=>{const m=MATS[d.mat];return svg(d.art,s,{M:m.M,H:m.H,D:m.D,S:m.H})};
+const gearSvg=(d,s)=>{const m=MATS[d.mat];if((d.kind==='helm'||d.kind==='shield')&&myrrenV31Equipment)return myrrenV31Equipment.icon(d.kind,d.mat,s);return svg(d.art,s,{M:m.M,H:m.H,D:m.D,S:m.H})};
 
 /* ---------- rules ---------- */
 const NAMES={melee:'Combat',woodcutting:'Forestry',mining:'Delving',fishing:'Fishing',cooking:'Cooking'};
@@ -2012,17 +2012,17 @@ function drawApprovedPlayer(x,y,o,now){
   // This changes only character rendering; saves and game state are untouched.
   if(new URLSearchParams(location.search).get('classicSprite')==='1')return false;
   if(!myrrenV31Ready)return false;
-  // Design B chest, leg and boot layers retain the native V31 character.
-  // Helmets and shields keep their existing renderer until their art is ready.
+  // All five equipment layers use the approved native V31 atlas.
   const gear=o.g||[0,0,0,0,0];
-  if(gear[0]||gear[4])return false;
-  if((gear[1]||gear[2]||gear[3])&&!myrrenV31Equipment)return false;
+  if(gear.some(t=>t>0)&&!myrrenV31Equipment)return false;
+  const age=now-(o.swingAt||-99999),swinging=age>=0&&age<320;
+  const action=swinging?(age<90?1:age<200?2:3):0;
   const sprite=myrrenV31Equipment
-    ? myrrenV31Equipment.get(gear[2],gear[3],o.dye!=null?DYES[o.dye]:null,gear[1])
+    ? myrrenV31Equipment.get(gear[2],gear[3],o.dye!=null?DYES[o.dye]:null,gear[1],gear[0],gear[4],action)
     : myrrenV31FeetAtlas;
   const direction = o.dv==='u' ? 3 : o.dv==='s' ? (o.f<0?1:2) : 0;
   const row = direction + (o.moving ? 4 : 0);
-  const frame = o.moving ? Math.floor(now/140)%4 : 0;
+  const frame = o.moving ? Math.floor(now/140)%4 : (gear[0]||gear[4])?Math.floor(now/280)%4:0;
   // Native V31 resolution: one atlas pixel equals one world-render pixel.
   const w=32,h=40;
   shadowE(x+1,y,7,2,.3);
@@ -2031,19 +2031,18 @@ function drawApprovedPlayer(x,y,o,now){
   ctx.drawImage(sprite,frame*32,row*40,32,40,
                 Math.round(x-w/2),Math.round(y-h),w,h);
   ctx.restore();
-  const age=now-(o.swingAt||-99999),swinging=age>=0&&age<320;
   const holding=o.tool&&o.tool!=='fist'&&(swinging||now<o.hold);
   const f=o.f||1,hx=x+f*7,hy=y-11;
   if(o.tool==='fist'&&swinging){const d=Math.round(Math.sin(age/320*Math.PI)*6);ctx.save();ctx.translate(hx+f*d,hy);rrect(-1,-2,3,3,'#f0c49c','#2a1c18');ctx.restore()}
   else if(holding){drawTool(o.tool,o.mat,hx,hy,f,swinging?swingAng(age):-.35);ctx.save();ctx.translate(hx,hy);rrect(-1,-1,3,3,'#f0c49c','#2a1c18');ctx.restore()}
-  const hurtAge=now-(me.hurtAt||-99999);
+  const hurtAge=o.isMe?now-(me.hurtAt||-99999):9999;
   if(hurtAge>=0&&hurtAge<260){ctx.globalAlpha=.24;R(x-11,y-38,22,36,'#fff');ctx.globalAlpha=1}
   label(o.name,x,y-42,o.col||'#ffffff');
   if(o.waving)label('*waves*',x,y-54,'#ffffff');
   return true;
 }
 function drawPerson(x,y,o,now){
-  if(o.isMe && drawApprovedPlayer(x,y,o,now)) return;
+  if(!o.apron && drawApprovedPlayer(x,y,o,now)) return;
   const f=o.f,mv=!!o.moving,ph=Math.floor(now/110)%4,g=o.g||[0,0,0,0,0],dv=o.dv||'d';
   let gh=MATS[g[0]],gb=MATS[g[1]],gl=MATS[g[2]],gt=MATS[g[3]],gs=MATS[g[4]];
   if(o.dye!=null&&DYES[o.dye]){const dp=DYES[o.dye],dz=(m,t)=>(m&&t>=4)?dp:m;gh=dz(gh,g[0]);gb=dz(gb,g[1]);gl=dz(gl,g[2]);gt=dz(gt,g[3]);gs=dz(gs,g[4])}
@@ -2490,6 +2489,7 @@ requestAnimationFrame(frame);
 })();
 </script>
 <!-- Cloudflare automatic-deployment test: 2026-11-04 -->
+
 
 
 
