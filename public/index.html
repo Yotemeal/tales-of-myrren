@@ -273,6 +273,7 @@ button{font-family:inherit;font-size:inherit;color:inherit}
   </div>
 </div>
 
+<script src="/myrren-environment.js?v=1"></script>
 <script src="/v31-feet.js?v=1"></script>
 <script src="/v31-equipment.js?v=5"></script>
 <script>
@@ -1712,14 +1713,7 @@ function treeTile(px,py,v){
   R(px,py+14,T,2,'#566c18');
   if(v%5===0)R(px+11,py+2,2,2,'#d6b240');
 }
-function drawBush(x,y,gold){
-  const O=gold?'#6a4a1a':'#3f4e10',A=gold?'#d4a238':'#6f8c22',B=gold?'#b07c24':'#566e18',C=gold?'#f0cc5c':'#a0b83c';
-  shadowE(x+3,y,8,2,.22);
-  blob(x,y-5,6,O);blob(x-4,y-4,4,O);blob(x+4,y-4,4,O);
-  blob(x,y-5,5,A);blob(x-4,y-4,3,A);blob(x+4,y-4,3,A);
-  blob(x+1,y-3,3,B);R(x-3,y-1,8,2,B);
-  R(x-3,y-8,3,2,C);R(x+2,y-7,3,1,C);R(x-6,y-5,2,1,C);R(x+4,y-5,1,1,C);
-}
+function drawBush(x,y,gold){MyrrenEnvironment.fern(ctx,x,y,gold?2:0)}
 function nodeTip(n,x,y,now){
   if(!n.tipAt)return;const age=now-n.tipAt;if(age>2600){n.tipAt=0;return}
   const nt=NT[n.k];ctx.globalAlpha=age<1800?1:1-(age-1800)/800;
@@ -1728,109 +1722,9 @@ function nodeTip(n,x,y,now){
 }
 // Monumental, non-harvestable ancient rainforest trees. Native-pixel art, not scaled resource trees.
 // Cathedral-canopy strangler figs: distinct scenic art, not harvestable trees.
-function drawAncientTree(n,x,y,now){
-  const seed=Math.abs((n.x*13+n.y*7)|0),variant=seed%3;
-  const bark='#473e32',deep='#1a2923',warm='#796b50',moss='#5e8057';
-  shadowE(x+4,y+1,40,10,.36);
-  // Exposed radial roots spread from the base; keep the central path readable.
-  for(const side of [-1,1]){
-    for(let k=0;k<3;k++){
-      const end=x+side*(24+k*9),rootY=y-3+k*2;
-      R(Math.min(x+side*6,end),rootY,Math.abs(end-(x+side*6))+3,4,deep);
-      R(Math.min(x+side*8,end),rootY+1,Math.abs(end-(x+side*8))+1,2,k===1?'#665943':warm);
-    }
-  }
-  // Three fused vertical columns and braided strangler-fig roots.
-  R(x-16,y-87,33,86,deep);R(x-13,y-85,27,82,bark);
-  R(x-10,y-82,6,78,warm);R(x+5,y-81,5,76,'#292f28');
-  for(let k=0;k<5;k++){
-    const dx=-12+k*6,lean=(k%2?4:-4);
-    for(let j=0;j<12;j++){
-      const yy=y-80+j*6,xx=x+dx+Math.round(Math.sin(j*.62+k)*lean);
-      R(xx,yy,2,7,k%2?'#8a7858':'#2b4936');
-    }
-  }
-  // Hollow shadow between the interlocking roots.
-  R(x-4,y-37,9,27,'#101d1a');R(x-2,y-35,5,23,'#182b24');
-  // Massive layered horizontal canopy: cathedral vault silhouette.
-  const crowns=[
-    [-42,-107,23],[-22,-124,25],[5,-133,27],[30,-123,27],[49,-106,22],
-    [-53,-91,21],[-29,-96,28],[0,-103,31],[31,-96,29],[54,-89,19],
-    [-34,-78,23],[-6,-82,28],[23,-79,25]
-  ];
-  const shift=variant-1;
-  for(const [dx,dy,r] of crowns)blob(x+dx+shift*3,y+dy,r+3,'#10271f');
-  for(const [dx,dy,r] of crowns)blob(x+dx+shift*3,y+dy,r,'#244b35');
-  for(const [dx,dy,r] of crowns){
-    blob(x+dx-3+shift*3,y+dy-5,r-5,'#36684a');
-    blob(x+dx-7+shift*3,y+dy-10,Math.max(4,r-12),'#558361');
-    R(x+dx-9,y+dy-13,7,2,'#78936d');
-    R(x+dx+7,y+dy+Math.floor(r*.5),9,2,'#193a2c');
-  }
-  // Mossy hanging curtains, a characteristic fig silhouette.
-  for(let k=0;k<16;k++){
-    const xx=x-61+k*8,yy=y-92-((k*11+seed)%25),len=14+((k*13+seed)%23);
-    R(xx,yy,2,len,'#193c2e');
-    R(xx+1,yy+len-8,1,8,k%3===0?'#92a67b':'#5b855d');
-    if(k%4===0){R(xx-2,yy+len-5,5,2,moss);R(xx+1,yy+len-2,4,2,'#6c9767')}
-  }
-  for(let k=0;k<8;k++){
-    const xx=x-12+k*3,yy=y-67+(k%3)*7;
-    R(xx,yy,2,6,k%2?'#54784d':'#314f39');
-  }
-}
-function drawTree(n,x,y,now){
-  if(now<n.back){R(x-6,y-5,12,7,OUT);R(x-5,y-6,10,5,'#c9a064');R(x-5,y-6,10,1,'#e4c488');R(x-3,y-5,6,3,'#a87c46');R(x-1,y-4,2,1,'#8a6a3a');R(x-5,y-1,10,2,'#8a6a3a');return}
-  const oak=n.k!=='tree',sd=(n.x*7+n.y)|0;
-  shadowE(x+7,y,oak?17:13,3,.24);
-  let cl,Ob,Ba,Sh,Li,Hi;
-  if(!oak){
-    R(x-3,y-19,6,20,OUT);R(x-2,y-19,4,19,'#ece6d2');R(x,y-19,2,19,'#c9c2aa');
-    R(x-2,y-14,3,1,'#4a4034');R(x,y-9,2,1,'#4a4034');R(x-2,y-5,2,1,'#4a4034');R(x,y-17,1,1,'#4a4034');
-    R(x-5,y-1,10,2,OUT);R(x-4,y-1,8,1,'#c9c2aa');
-    cl=[[0,-29,11],[-11,-25,9],[11,-25,9],[0,-20,10],[-6,-37,8],[7,-36,8]];
-    Ob='#1b382b';Ba='#305e3e';Sh='#254b36';Li='#4f8050';Hi='#8fa26a';
-  }else{
-    R(x-6,y-18,12,19,OUT);R(x-5,y-18,10,18,'#8a7a5c');R(x-5,y-18,4,18,'#a89878');R(x+1,y-18,4,18,'#6e5e44');
-    R(x-8,y-2,5,3,OUT);R(x+3,y-2,5,3,OUT);R(x-7,y-2,4,2,'#8a7a5c');R(x+3,y-2,4,2,'#6e5e44');
-    cl=[[0,-33,13],[-13,-26,9],[13,-26,9],[0,-23,12],[-8,-42,8],[8,-41,8]];
-    Ob='#1e342a';Ba='#416548';Sh='#304e39';Li='#66865b';Hi='#9aab78';
-  }
-  const TC={maple:['#5a1a14','#c4442c','#982a1c','#e8744a','#f8a070'],elder:['#1a3a4a','#2a8a9a','#1c6070','#4ab8c0','#8ae0d8'],myrren:['#2a1a4a','#7a4ac4','#5a2a98','#a87ae8','#d8b8ff']};
-  if(n.k==='forest')[Ob,Ba,Sh,Li,Hi]=['#193d2b','#376844','#285537','#548657','#81a16a'];
-  if(TC[n.k])[Ob,Ba,Sh,Li,Hi]=TC[n.k];
-  for(const [dx,dy,r] of cl)blob(x+dx,y+dy,r+1,Ob);
-  for(const [dx,dy,r] of cl)blob(x+dx,y+dy,r,Ba);
-  for(const [dx,dy,r] of cl)blob(x+dx+1,y+dy+2,Math.max(1,r-2),Sh);
-  for(const [dx,dy,r] of cl)blob(x+dx-1,y+dy-2,Math.max(1,r-3),Li);
-  for(let i=0;i<22;i++){const h=H2(sd,i),c=cl[h%cl.length],lx=x+c[0]+((h>>>4)%(c[2]*2))-c[2],ly=y+c[1]+((h>>>9)%(c[2]*2))-c[2];R(lx,ly,2,1,(h&1)?Hi:Ob)}
-  // Drooping boughs and bark lichens distinguish harvestable forest trees.
-  for(let k=0;k<4;k++){
-    const xx=x-12+k*8,yy=y-23-(k%2)*7;
-    R(xx,yy,2,7,'#274b35');R(xx+1,yy+5,1,4,'#749468');
-  }
-  R(x-3,y-13,2,4,'#537754');R(x+2,y-7,2,3,'#76916a');
-}
-function drawRock(n,x,y,now){
-  const live=now>=n.back,ore=n.k;
-  shadowE(x+3,y+1,15,4,.28);
-  // Broken strata and weathered boulders, rather than a flat grey oval.
-  const outline='#1b2725',base=live?'#626b66':'#4b544f',light='#a4a99a';
-  R(x-15,y-3,29,6,outline);R(x-12,y-12,24,13,outline);
-  R(x-13,y-5,27,7,'#343d39');R(x-10,y-12,21,12,base);
-  R(x-9,y-11,10,3,light);R(x+3,y-9,7,2,'#858f82');
-  R(x-14,y-4,7,3,'#51654d');R(x+8,y-4,5,3,'#3f5843');
-  R(x-6,y-8,2,5,'#303c38');R(x+3,y-10,2,5,'#303c38');
-  if(live){
-    const colors={copper:['#a9522f','#e8a46a'],tin:['#9eaeb0','#d8e5de'],iron:['#5d7891','#a6bdc8'],coal:['#1a2026','#69727b'],cobalt:['#2255a5','#78bbf3'],aether:['#7846aa','#d6b3ff']};
-    const c=colors[ore]||colors.iron;
-    for(const [dx,dy,w,h] of [[-7,-7,5,6],[2,-11,5,8],[8,-5,3,4]]){
-      R(x+dx-1,y+dy-1,w+2,h+2,'#25312f');
-      R(x+dx,y+dy,w,h,c[0]);R(x+dx+1,y+dy+1,Math.max(1,w-2),2,c[1]);
-      R(x+dx+w-2,y+dy+h-2,2,2,'#34453f');
-    }
-  }
-}
+function drawAncientTree(n,x,y,now){MyrrenEnvironment.tree(ctx,n,x,y,now,true)}
+function drawTree(n,x,y,now){ctx.save();if(Math.abs(me.x-n.x)<31&&me.y<n.y&&me.y>n.y-90)ctx.globalAlpha=.48;MyrrenEnvironment.tree(ctx,n,x,y,now);ctx.restore()}
+function drawRock(n,x,y,now){MyrrenEnvironment.rock(ctx,n,x,y,now)}
 function parts(list,O){
   for(const p of list)R(p[0]-1,p[1]-1,p[2]+2,p[3]+2,O);
   for(const p of list)R(p[0],p[1],p[2],p[3],p[4]);
@@ -2305,73 +2199,26 @@ function drawPet(p,x,y,now){
   else if(p.sk==='fishing')drawTerrapin(p,x,y,now);
   else drawMole(p,x,y,now);
 }
-function drawLamp(x,y,now){
-  // Warm lantern halo against the deep woodland canopy.
-  const flicker=Math.floor(now/170)%3;
-  ctx.save();
-  ctx.globalAlpha=.10+(flicker===1?.04:0);
-  ctx.fillStyle='#ffbc59';ctx.beginPath();ctx.arc(x+8,y-16,26,0,Math.PI*2);ctx.fill();
-  ctx.restore();
-  
-  const fl=Math.floor(now/110)%3;
-  shadowE(x+3,y,5,2,.25);
-  R(x-2,y-19,4,20,OUT);R(x-1,y-19,2,19,'#a87c46');R(x,y-19,1,19,'#c89a5c');
-  R(x-1,y-21,10,3,OUT);R(x,y-20,8,1,'#a87c46');
-  R(x+5,y-19,6,8,OUT);R(x+6,y-18,4,6,fl===1?'#ffe08a':'#ffcc5a');R(x+7,y-17,2,3,'#fff4c0');R(x+5,y-12,6,1,OUT);
-  ctx.globalAlpha=.17;ctx.fillStyle='#ffc050';ctx.beginPath();ctx.arc(x+8,y-15,14+fl,0,6.283);ctx.fill();ctx.globalAlpha=1;
-}
+function drawLamp(x,y,now){MyrrenEnvironment.prop(ctx,'lamp',x,y,null,null,now)}
 function drawSupply(x,y){
   drawCrate(x-6,y);drawCrate(x+7,y);drawCrate(x,y-11);
   R(x-5,y-26,10,5,OUT);R(x-4,y-25,8,3,'#d8c890');R(x-2,y-24,4,1,'#6a5a3a');
   if(Math.hypot(me.x-SPOTS.crate.x,me.y-SPOTS.crate.y)<64)label('Supply Crate',x,y-30,'#ffffff');
 }
 function drawBoard(x,y){
-  shadowE(x+6,y,15,3,.24);
-  R(x-14,y-28,3,29,OUT);R(x+11,y-28,3,29,OUT);R(x-13,y-28,1,28,'#a8783e');R(x+12,y-28,1,28,'#a8783e');
-  R(x-15,y-32,30,4,OUT);R(x-14,y-31,28,2,'#7a3a2a');R(x-14,y-31,28,1,'#a85a40');
-  R(x-12,y-27,24,16,OUT);R(x-11,y-26,22,14,'#8a5a30');R(x-11,y-26,22,1,'#b88a4c');
-  R(x-9,y-24,6,7,'#efe6c8');R(x-8,y-22,4,1,'#6a5a3a');R(x-8,y-20,3,1,'#6a5a3a');
-  R(x-1,y-23,6,8,'#e8dcb0');R(x,y-21,4,1,'#6a5a3a');R(x,y-19,4,1,'#6a5a3a');R(x,y-17,3,1,'#6a5a3a');
-  R(x+6,y-24,4,6,'#efe6c8');R(x+7,y-22,2,1,'#6a5a3a');
-  R(x-7,y-25,1,1,'#d83a2a');R(x+1,y-24,1,1,'#d83a2a');R(x+8,y-25,1,1,'#d83a2a');
-  if(save.jobs.some(j=>j.done)){R(x-1,y-44,3,7,'#ffe14a');R(x-1,y-36,3,2,'#ffe14a')}
-  if(Math.hypot(me.x-BOARD.x,me.y-BOARD.y)<60)label('Job Board',x,y-36,'#ffffff');
+ MyrrenEnvironment.prop(ctx,'board',x,y);
+ if(save.jobs.some(j=>j.done)){R(x-1,y-52,3,7,'#e5c97d');R(x-1,y-44,3,2,'#e5c97d')}
+ if(Math.hypot(me.x-BOARD.x,me.y-BOARD.y)<60)label('Job Board',x,y-46,'#e4dfc3');
 }
-function drawWell(x,y){
-  shadowE(x+5,y,13,3,.24);
-  R(x-11,y-9,22,11,OUT);R(x-10,y-8,20,9,'#a8a498');R(x-10,y-8,20,2,'#cbc7b9');
-  for(let r=0;r<2;r++)for(let c=(r&1)?3:0;c<20;c+=6)R(x-10+c,y-6+r*4,1,4,'#7e7a6e');
-  R(x-10,y-2,20,1,'#7e7a6e');R(x-7,y-8,14,3,'#2f8c98');R(x-7,y-8,14,1,'#7acfd0');
-  R(x-9,y-25,3,17,OUT);R(x+6,y-25,3,17,OUT);R(x-8,y-25,1,17,'#c89a5c');R(x+7,y-25,1,17,'#c89a5c');
-  R(x-12,y-34,24,11,'#3a2c24');
-  for(let r=0;r<3;r++)for(let c=(r&1)?4:0;c<24;c+=8){const hh=H2(r,c)%3;R(x-12+c,y-33+r*3,Math.min(8,24-c),3,['#7a7874','#8c8a86','#9a9894'][hh]);R(x-12+c,y-33+r*3,Math.min(8,24-c),1,'#b4b2ac');R(x-12+c,y-31+r*3,Math.min(8,24-c),1,'#4a3a30')}
-  R(x-12,y-35,24,2,'#4a3a30');R(x-11,y-35,22,1,'#b4b2ac');R(x,y-22,1,9,'#c8b888');R(x-2,y-14,5,5,OUT);R(x-1,y-13,3,3,'#a87c46');
-}
-function drawStall(x,y,col){
-  shadowE(x+6,y,18,3,.22);
-  R(x-13,y-9,26,10,OUT);R(x-12,y-8,24,8,'#b88a4c');R(x-12,y-8,24,2,'#e0bc82');for(let i=-8;i<12;i+=6)R(x+i,y-6,1,6,'#8a6a3a');
-  R(x-9,y-12,4,4,'#d85a3a');R(x-3,y-12,4,4,'#e8d058');R(x+3,y-12,4,4,'#86a828');R(x+8,y-11,3,3,'#e0944a');
-  R(x-14,y-26,3,26,OUT);R(x+11,y-26,3,26,OUT);R(x-13,y-26,1,26,'#c89a5c');R(x+12,y-26,1,26,'#c89a5c');
-  R(x-17,y-30,34,9,OUT);for(let k=0;k<8;k++)R(x-16+k*4,y-29,4,7,(k&1)?'#f2e8cc':col);R(x-16,y-22,32,1,'rgba(0,0,0,.25)');R(x-16,y-29,32,1,'rgba(255,255,255,.35)');
-}
-function drawBarrel(x,y){shadowE(x+4,y,7,2,.24);R(x-6,y-12,12,13,OUT);R(x-5,y-11,10,11,'#b88a4c');R(x-5,y-11,3,11,'#d4aa6a');R(x+2,y-11,3,11,'#8a6a3a');R(x-5,y-8,10,1,'#6a4a28');R(x-5,y-3,10,1,'#6a4a28');R(x-5,y-12,10,2,'#d4aa6a');R(x-3,y-12,6,1,'#7a5a30')}
-function drawCrate(x,y){shadowE(x+4,y,7,2,.24);R(x-6,y-11,12,12,OUT);R(x-5,y-10,10,10,'#c89a5c');R(x-5,y-10,10,1,'#e4c488');R(x-5,y-10,1,10,'#8a6a3a');R(x+4,y-10,1,10,'#8a6a3a');R(x-5,y-1,10,1,'#8a6a3a');for(let i=0;i<8;i++){R(x-4+i,y-9+i,1,1,'#8a6a3a');R(x+3-i,y-9+i,1,1,'#8a6a3a')}}
-function drawHay(x,y){shadowE(x+5,y,11,3,.22);blob(x,y-6,8,'#7a5a30');blob(x,y-6,7,'#e0c878');blob(x-2,y-8,4,'#f0dc98');R(x-6,y-3,12,3,'#b8985a');R(x-1,y-14,2,6,'#8a6a3a');for(let i=0;i<6;i++)R(x-6+i*2,y-2-(i%2)*4,2,1,'#c0a458')}
-function drawPot(x,y){shadowE(x+3,y,5,2,.22);R(x-4,y-7,8,8,OUT);R(x-3,y-6,6,6,'#c8704a');R(x-3,y-6,6,1,'#e08e62');blob(x,y-10,4,OUT);blob(x,y-10,3,'#7a9824');R(x-1,y-12,1,1,'#fff');R(x+2,y-10,1,1,'#fff');R(x-2,y-9,1,1,'#ffe05a')}
-function drawFbox(x,y){R(x-9,y-6,18,7,OUT);R(x-8,y-5,16,5,'#b88a4c');R(x-8,y-5,16,1,'#d4aa6a');R(x-8,y-9,16,5,'#6c8a22');for(let i=-7;i<8;i+=4){R(x+i,y-10,1,3,'#8aa83a');R(x+i-1,y-9-(i&1),2,2,'#fff')}}
-function drawSack(x,y){shadowE(x+3,y,6,2,.22);R(x-5,y-9,10,10,OUT);R(x-4,y-8,8,8,'#c8aa78');R(x-4,y-8,3,8,'#dcc28e');R(x-2,y-10,4,3,OUT);R(x-1,y-9,2,2,'#a8864e')}
-function drawFence(x,y,len,dir){
-  shadowE(x+(dir==='v'?5:len/2),y+(dir==='v'?-len/2:3),dir==='v'?3:len/2,dir==='v'?len/2:2,.18);
-  const post=(px,py)=>{R(px-2,py-14,5,15,OUT);R(px-1,py-13,3,13,'#c89a5c');R(px-1,py-13,1,13,'#e4c488');R(px-1,py-14,3,1,'#e4c488')};
-  if(dir==='v'){
-    for(let i=0;i<=len;i+=16){}
-    R(x-1,y-len-8,3,len+4,OUT);R(x,y-len-8,1,len+4,'#b88a4c');
-    for(let py=y;py>=y-len;py-=16)post(x,py);
-  }else{
-    R(x,y-10,len,4,OUT);R(x,y-9,len,2,'#b88a4c');R(x,y-9,len,1,'#d4aa6a');R(x,y-5,len,3,OUT);R(x,y-4,len,1,'#b88a4c');
-    for(let px=x;px<=x+len;px+=16)post(px,y);
-  }
-}
+function drawWell(x,y){MyrrenEnvironment.prop(ctx,'well',x,y)}
+function drawStall(x,y,col){MyrrenEnvironment.prop(ctx,'stall',x,y,col)}
+function drawBarrel(x,y){MyrrenEnvironment.prop(ctx,'barrel',x,y)}
+function drawCrate(x,y){MyrrenEnvironment.prop(ctx,'crate',x,y)}
+function drawHay(x,y){MyrrenEnvironment.prop(ctx,'hay',x,y)}
+function drawPot(x,y){MyrrenEnvironment.prop(ctx,'pot',x,y)}
+function drawFbox(x,y){MyrrenEnvironment.prop(ctx,'fbox',x,y)}
+function drawSack(x,y){MyrrenEnvironment.prop(ctx,'sack',x,y)}
+function drawFence(x,y,len,dir){MyrrenEnvironment.prop(ctx,'fence',x,y,len,dir)}
 function drawDecor(kind,x,y,a,b){
   if(kind==='supply')drawSupply(x,y);else if(kind==='board')drawBoard(x,y);else if(kind==='well')drawWell(x,y);else if(kind==='stall')drawStall(x,y,a);else if(kind==='barrel')drawBarrel(x,y);else if(kind==='crate')drawCrate(x,y);
   else if(kind==='hay')drawHay(x,y);else if(kind==='pot')drawPot(x,y);else if(kind==='fbox')drawFbox(x,y);else if(kind==='sack')drawSack(x,y);else if(kind==='fence')drawFence(x,y,a,b);else if(kind==='bush')drawBush(x,y,a);
@@ -2408,318 +2255,33 @@ function logPile(x,y){for(let r=0;r<3;r++)for(let c=0;c<(r===2?2:3);c++){const l
 function smoke(x,y,now,col){const t=now/800;for(let i=0;i<3;i++){const k=(t+i*.33)%1;ctx.globalAlpha=.5*(1-k);R(x+Math.round(Math.sin(t*3+i)*2),y-Math.round(k*16),4,4,col||'#e8e4dc');ctx.globalAlpha=1}}
 function flagAt(x,y,col,now){const f=Math.floor(now/250)%2;R(x,y-9,1,10,'#3a2410');R(x+1,y-9,5+f,3,col);R(x+1,y-6,3+f,1,col)}
 // Ancient village-side trees are scenery only: no resource or collision changes.
-const VILLAGE_GROVE=[];
-for(let j=0;j<0;j++){ // retire oversized ancient groves blocking town views
-  const a=j*2.3999632297,r=205+(j%4)*36+((j*17)%13);
-  const gx=CX+Math.cos(a)*r,gy=CY+Math.sin(a)*r*.69;
-  if(Math.abs(gx-CX)<255&&gy>CY-105&&gy<CY+100)continue;
-  if(gx<EDGE+65||gx>WW-EDGE-65||gy<EDGE+65||gy>WH-EDGE-65)continue;
-  VILLAGE_GROVE.push({x:Math.round(gx),y:Math.round(gy),k:'ancient',back:0});
-}
-function drawWoodlandShrub(x,y,seed){
-  const moss=['#203d30','#315b3c','#49724a','#63865a'];
-  shadowE(x+3,y,9,2,.18);
-  blob(x,y-6,7,moss[0]);blob(x-5,y-4,5,moss[1]);blob(x+5,y-5,5,moss[1]);
-  blob(x,y-8,5,moss[2]);blob(x-4,y-6,3,moss[2]);blob(x+4,y-7,3,moss[3]);
-  for(let k=0;k<5;k++){const px=x-7+((seed*11+k*7)%15),py=y-9+((seed+k*3)%6);R(px,py,2,1,moss[3])}
-}
+const VILLAGE_GROVE=[[-270,-130],[275,-155],[-310,170],[260,430],[-165,-265],[160,-295]].map(([dx,dy])=>({x:CX+dx,y:CY+dy,k:'ancient',back:0}));
+function drawWoodlandShrub(x,y,seed){MyrrenEnvironment.fern(ctx,x,y,seed)}
 // Decorative brook, falls and timber footbridge, placed east of the town services.
 // Water is scenery in this pass; no new impassable collision or save-coordinate changes.
-function drawVillageFalls(cx,cy,now){
-  const X=v=>Math.round(v-cx),Y=v=>Math.round(v-cy);
-  const x=CX+250,y=CY+112,t=Math.floor(now/160);
-  // Rock terraces surrounding the stream.
-  for(let i=0;i<14;i++){
-    const yy=y-92+i*15,xx=x+Math.round(Math.sin(i*.68)*17);
-    R(X(xx-31),Y(yy),12,9,'#292f2a');R(X(xx-29),Y(yy-2),9,4,'#72796a');
-    R(X(xx+20),Y(yy+3),15,10,'#28342e');R(X(xx+22),Y(yy+1),10,4,'#647b66');
-    R(X(xx-26),Y(yy-5),5,3,'#668453');
-  }
-  // Dark turquoise flowing stream, visibly tiered at the falls.
-  for(let i=0;i<21;i++){
-    const yy=y-104+i*12,xx=x+Math.round(Math.sin(i*.44)*14),wide=i<9?25:33;
-    R(X(xx-wide/2),Y(yy),wide,13,i%3===0?'#204c50':'#28636a');
-    R(X(xx-wide/2+3+(t+i*3)%11),Y(yy+4),8,2,'#6ba6a3');
-    if(i%4===0)R(X(xx+wide/2-8),Y(yy+9),6,2,'#b4d5c6');
-  }
-  for(const yy of [y-36,y+36]){
-    R(X(x-23),Y(yy),46,11,'#192e32');
-    for(let k=0;k<9;k++){
-      const xx=x-20+k*5;
-      R(X(xx),Y(yy+1),3,9,'#7ac5c8');
-      R(X(xx+1),Y(yy+6+(t+k)%3),2,3,'#d1e9db');
-    }
-    R(X(x-28),Y(yy+11),56,3,'#c5d9cd');
-  }
-  // Raised timber bridge crosses the upper stream, with rope-and-post rails.
-  const by=y-63;
-  R(X(x-51),Y(by-11),102,25,'#1b2923');
-  R(X(x-49),Y(by-9),98,20,'#594633');
-  for(let k=0;k<12;k++){
-    const xx=x-47+k*8;
-    R(X(xx),Y(by-8),7,17,k%2?'#8b6b46':'#9c7850');
-    R(X(xx),Y(by+6),7,2,'#4b3c2c');
-  }
-  for(const rail of [-13,12]){
-    R(X(x-51),Y(by+rail),102,3,'#3e3125');
-    R(X(x-51),Y(by+rail-2),102,1,'#bb9869');
-    for(let k=0;k<6;k++)R(X(x-49+k*19),Y(by+rail-8),4,12,'#624b33');
-  }
-  // Ferns and spray on the banks.
-  for(let k=0;k<12;k++){
-    const yy=y-97+k*18,xx=x+(k%2?-40:39);
-    R(X(xx),Y(yy),2,9,'#294d38');
-    R(X(xx-5),Y(yy+2),6,2,'#63885a');R(X(xx+1),Y(yy+4),6,2,'#77976a');
-  }
-}
+function drawVillageFalls(cx,cy,now){MyrrenEnvironment.brook(ctx,Math.round(CX+250-cx),Math.round(CY+112-cy),now)}
 // Woodland architecture additions: silhouettes are tailored to each service.
-function drawVillageArchitecture(b,x,y,now){
-  const id=b.id,w=b.w,hw=w/2,roofY=y-(id==='axe'?77:id==='arms'?72:67);
-  const moss='#648650',stone='#4a5147',beam='#453528';
-  // Low stone terraces, wooden steps and wildflowers frame the doorway.
-  for(const side of [-1,1]){
-    const xx=x+side*(hw+9);
-    R(xx-7,y-12,14,11,'#29382f');
-    R(xx-6,y-11,12,7,stone);
-    R(xx-5,y-12,9,2,'#8e9680');
-    R(xx-3,y-15,5,3,moss);
-    R(xx+side*4,y-3,2,3,'#a2a16d');
-  }
-  // Layered roof ridges, moss drapes and wooden fascia.
-  R(x-hw-14,roofY+8,w+28,4,'#252d28');
-  R(x-hw-11,roofY+10,w+22,2,'#8a805f');
-  for(let i=0;i<7;i++){
-    const xx=x-hw-8+i*(w+16)/7;
-    R(xx,roofY+14+(i%3)*2,4,6,'#4f6c43');
-    R(xx+1,roofY+19+(i%3)*2,2,4,'#76945d');
-  }
-  // Hanging trade banners, each shop clearly identifiable.
-  const symbols={axe:'T',pick:'M',arms:'X',food:'B',fish:'F'};
-  const banner={axe:'#41664a',pick:'#465b73',arms:'#6f493b',food:'#91703f',fish:'#3d777b'}[id];
-  const bx=x-hw-12;
-  R(bx,y-39,2,27,beam);
-  R(bx-7,y-36,15,19,'#202b26');
-  R(bx-6,y-35,13,16,banner);
-  R(bx-5,y-19,11,2,'#b9a075');
-  label(symbols[id],bx,y-24,'#f5dfaa');
-  if(id==='axe'){
-    // Town hall's raised central tower and peaked civic crest.
-    R(x-15,roofY-23,30,28,'#242e29');
-    R(x-12,roofY-20,24,24,'#6c5740');
-    R(x-15,roofY-24,30,4,'#292c26');
-    for(let i=0;i<5;i++)R(x-12+i*5,roofY-24,4,3,i%2?'#526448':'#687a53');
-    R(x-5,roofY-14,10,12,'#2d342b');
-    R(x-3,roofY-12,6,8,'#d9ac5b');
-    R(x-1,roofY-12,2,8,'#4c3827');
-  }else if(id==='arms'){
-    // A long timber awning and visible coal furnace define the open forge.
-    R(x-hw-12,y-28,w+24,4,'#322e27');
-    R(x-hw-10,y-25,5,26,'#71583d');
-    R(x+hw+5,y-25,5,26,'#71583d');
-    R(x+hw+13,y-15,13,15,'#3c403b');
-    R(x+hw+16,y-12,8,10,'#e27736');
-    R(x+hw+18,y-11,4,7,Math.floor(now/150)%2?'#ffd475':'#ffac49');
-    smoke(x+hw+18,y-31,now,'#b6b3a6');
-  }else if(id==='food'){
-    // Bakery's clay bread oven and awning.
-    R(x+hw+7,y-18,19,18,'#3b332b');
-    R(x+hw+9,y-15,15,13,'#8e8066');
-    R(x+hw+12,y-11,9,8,'#3b3025');
-    R(x+hw+14,y-10,5,5,'#f2a44e');
-  }else if(id==='pick'){
-    // Stonecutters' mineral display.
-    for(let i=0;i<3;i++){
-      const xx=x+hw+9+i*7;
-      R(xx-2,y-9,7,10,'#303e40');
-      R(xx,y-13-i%2*4,4,9,'#537d91');
-      R(xx+1,y-12-i%2*4,2,4,'#a5c5c5');
-    }
-  }else if(id==='fish'){
-    // Pier-side drying rack and ropes.
-    R(x+hw+7,y-24,3,24,beam);
-    R(x+hw+28,y-24,3,24,beam);
-    R(x+hw+8,y-22,23,3,'#8d7450');
-    for(let i=0;i<3;i++){
-      const xx=x+hw+11+i*7;
-      R(xx,y-19,1,6,'#bba985');
-      R(xx-2,y-14,5,8,'#547d7e');
-      R(xx-1,y-12,3,2,'#b4cfbc');
-    }
-  }
-}
-function drawVillageSquare(cx,cy,now){
-  const x=Math.round(CX-cx),y=Math.round(CY+57-cy);
-  // Low, walkable mossy ring with a modest blue-glowing village waystone.
-  shadowE(x+2,y+2,24,5,.22);
-  for(let i=0;i<14;i++){
-    const a=i*Math.PI*2/14;
-    const px=x+Math.round(Math.cos(a)*21),py=y+Math.round(Math.sin(a)*10);
-    R(px-3,py-2,7,5,'#303c35');R(px-2,py-3,5,3,'#818b77');
-    if(i%3===0)R(px-1,py-4,4,2,'#739359');
-  }
-  R(x-8,y-22,16,23,'#243832');
-  R(x-6,y-24,12,22,'#667569');
-  R(x-4,y-28,8,14,'#244f5d');
-  R(x-3,y-26,6,10,'#4d9eae');
-  R(x-1,y-23,3,6,'#a7e6e3');
-  ctx.save();ctx.globalAlpha=.12+Math.sin(now/450)*.03;
-  ctx.fillStyle='#5bc3d2';ctx.beginPath();ctx.arc(x,y-20,22,0,6.283);ctx.fill();ctx.restore();
-}
-function drawBuilding(b,x,y,now){
-  // Woodland architecture: all five services share a coherent native-pixel
-  // timber, stone, bark-shingle and moss palette. Preserve doorway positions.
-  const id=b.id,w=b.w,hw=w/2;
-  const hall=id==='axe',forge=id==='arms';
-  const h=hall?47:forge?42:37,top=y-21-h;
-  const timber='#775334',light='#b68c59',dark='#342a22',moss='#536f3d';
-  const roof=hall?['#554a39','#625640','#74644a','#3d382e']:
-             forge?['#50453c','#625248','#766052','#352e2a']:
-             ['#5b4935','#755b3d','#8b704c','#43372d'];
-  shadowE(x+5,y+2,hw+14,4,.28);
-  // Raised stone footings and timber framing.
-  R(x-hw-5,y-25,w+10,26,dark);
-  brick(x-hw-3,y-23,w+6,22,'#a59e83','#777460','#c5baa0');
-  R(x-hw,y-23,w,21,'#aa885c');
-  for(let p=x-hw+2;p<x+hw;p+=11){
-    R(p,y-23,2,21,timber);R(p+2,y-22,1,18,light);
-    R(p+5,y-20,4,1,'#c49d6c');
-  }
-  R(x-hw-3,y-24,w+6,3,dark);R(x-hw-2,y-23,w+4,1,light);
-  R(x-hw-3,y-10,w+6,3,timber);
-  for(const p of [x-hw-3,x+hw+1]){
-    R(p,y-26,4,26,dark);R(p+1,y-25,2,24,light);
-  }
-  // A deeper pitched roof with irregular bark shingles and moss.
-  R(x-hw-10,top+9,w+20,h-4,dark);
-  for(let row=0;row<h-5;row+=5){
-    const half=hw+9-Math.floor((h-6-row)*.29);
-    const yy=top+8+row;
-    R(x-half,yy,half*2,5,roof[(row/5)%3|0]);
-    R(x-half,yy,half*2,1,roof[3]);
-    for(let p=x-half+3+(row%2)*3;p<x+half-2;p+=10){
-      R(p,yy+3,5,1,'#a18a65');
-      if((p+row+Math.floor(x))%4===0)R(p,yy+1,6,2,moss);
-    }
-  }
-  R(x-hw-9,top+h+3,w+18,4,dark);
-  R(x-hw-8,top+h+4,w+16,1,'#99815d');
-  // Timber eaves, flower boxes, and windows.
-  for(const wx of [x-hw+7,x+hw-15]){
-    R(wx-2,y-20,12,12,dark);R(wx,y-18,8,8,'#476260');
-    R(wx+3,y-18,2,8,timber);R(wx,y-14,8,2,timber);
-    R(wx-3,y-9,14,3,timber);
-    R(wx-2,y-8,12,1,'#a6ad55');
-  }
-  if(forge){
-    // Truly doorless visual opening: furnace and anvil in the workshop bay.
-    R(x-15,y-25,30,25,dark);R(x-12,y-23,24,21,'#534536');
-    R(x-12,y-5,24,5,'#9b7a53');
-    R(x-16,y-25,4,25,timber);R(x+12,y-25,4,25,timber);
-    R(x-10,y-13,11,4,'#394149');R(x-7,y-17,7,4,'#aab5b6');
-    R(x-5,y-9,4,9,'#555e62');
-    R(x+3,y-22,9,16,'#302922');
-    R(x+4,y-20,7,12,'#9d4527');
-    R(x+5,y-18,5,9,Math.floor(now/180)%2?'#fca64a':'#ffcf62');
-    R(x+6,y-14,3,5,'#ffdf87');
-    // Forge chimney.
-    brick(x+hw-15,top-13,12,23,'#8a8677','#5e5d52','#b4ac95');
-    smoke(x+hw-10,top-18,now,'#b9b5a6');
-  }else{
-    bDoor(x,y,'#59402b','#a27b4e');
-    R(x-10,y-18,20,2,dark);
-  }
-  if(hall){
-    // Civic crest, notice board and lantern identify the town hall.
-    R(x-5,top+20,10,11,'#3d4f37');
-    R(x-4,top+21,8,9,'#b5a56e');
-    R(x-1,top+23,2,6,'#536f3d');
-    R(x-hw-16,y-20,13,18,timber);
-    R(x-hw-14,y-18,9,12,'#ddc9a0');
-    R(x-hw-12,y-16,5,1,'#705b40');
-    R(x-hw-12,y-12,6,1,'#705b40');
-    flagAt(x+hw-3,top+12,'#6b8950',now);
-  }else if(id==='pick'){
-    R(x+hw+4,y-11,12,10,'#777e75');
-    R(x+hw+5,y-12,10,3,'#bbc0b3');
-  }else if(id==='food'){
-    R(x-hw-14,y-11,12,9,'#89613a');
-    R(x-hw-12,y-9,8,4,'#d4a86b');
-    smoke(x+hw-8,top-3,now,'#d5c5a5');
-  }else if(id==='fish'){
-    R(x+hw+4,y-16,2,16,timber);
-    R(x+hw+6,y-15,8,4,'#8ba6a2');
-    R(x+hw+6,y-10,7,2,'#c3c7a6');
-  }
-  // Lichen climbing the walls and irregular timber braces.
-  for(const side of [-1,1]){
-    const bx=x+side*(hw-4);
-    R(bx,y-21,2,12,'#304d36');
-    R(bx+side*3,y-18,3,2,'#587747');
-    R(bx-side*2,y-12,4,2,'#698652');
-    R(bx,y-7,3,2,'#354c34');
-  }
-  // A stone threshold and scattered warm window light.
-  R(x-14,y+1,28,3,'#56564d');R(x-11,y+1,22,1,'#b4a58a');
-  if(!forge){
-    for(const wx of [x-hw+8,x+hw-14]){
-      R(wx,y-18,7,7,'#b78c45');
-      R(wx+1,y-17,5,5,'#f3c76a');
-      R(wx+3,y-17,1,5,'#684e32');
-      R(wx+1,y-15,5,1,'#684e32');
-    }
-  }
-  // Every occupied workshop and cottage has a real smoking chimney.
-  if(!forge){
-    const chimneyX=x+hw-13;
-    brick(chimneyX-5,top-15,11,22,'#706b5c','#45483f','#a29d87');
-    R(chimneyX-7,top-16,15,3,'#393d35');
-    smoke(chimneyX,top-20,now,'#c3c5ba');
-  }
-  // Deep gables, overlapping slate shingles and climbing roof moss.
-  R(x-hw-11,top+8,w+22,3,'#222d29');
-  for(let k=0;k<5;k++){
-    const roofY=top+10+k*5,roofHalf=hw+8-Math.floor((4-k)*3);
-    for(let p=x-roofHalf;p<x+roofHalf;p+=7){
-      R(p,roofY,6,4,(k+p)%3===0?'#404e43':'#35453e');
-      R(p+1,roofY,4,1,'#7e8672');
-      if((Math.abs(p)+k*7)%5===0)R(p+2,roofY+2,4,2,'#6c8955');
-    }
-  }
-  R(x-7,top+4,14,15,'#282c27');
-  R(x-5,top+6,10,11,'#65513b');
-  R(x-2,top+8,4,7,'#c09a58');
-  R(x-1,top+8,2,5,'#f0c879');
-  for(const side of [-1,1]){
-    R(x+side*(hw-3),y-23,4,22,'#3b2e25');
-    R(x+side*(hw-3),y-21,2,17,'#9e8056');
-  }
-  // A consistent hanging sign rather than five unrelated facades.
-  R(x-hw+4,y-27,2,9,dark);
-  R(x-hw+1,y-27,15,8,'#4b3928');
-  R(x-hw+2,y-26,13,6,'#a48755');
-  const mark=hall?'H':forge?'F':id==='pick'?'P':id==='food'?'B':'R';
-  label(mark,x-hw+8,y-20,'#f1e3b6');
-  R(x-11,y-2,22,3,'#9b8a67');
-  drawVillageArchitecture(b,x,y,now);
-}
+function drawVillageArchitecture(b,x,y,now){/* Architecture is composed once in the environment atlas. */}
+function drawVillageSquare(cx,cy,now){ctx.save();if(Math.abs(me.x-CX)<14&&me.y<CY+57&&me.y>CY+18)ctx.globalAlpha=.45;MyrrenEnvironment.square(ctx,Math.round(CX-cx),Math.round(CY+57-cy),now);ctx.restore()}
+function drawBuilding(b,x,y,now){MyrrenEnvironment.building(ctx,b,x,y,now)}
 
 function drawInterior(cx,cy,now){
   const S=SHOPS[inside.id],X=v=>Math.round(v-cx),Y=v=>Math.round(v-cy);
-  R(X(-6),Y(-6),RX+12,RY+12,'#1d120a');
-  R(X(0),Y(0),RX,44,S.wall);
+  R(X(-6),Y(-6),RX+12,RY+12,'#282a30');
+  R(X(0),Y(0),RX,44,'#7f806b');
   for(let r=0;r<4;r++)for(let c=-1;c<12;c++){const bx=c*16+((r&1)?8:0);R(X(bx),Y(r*11+10),15,1,'rgba(0,0,0,.14)');R(X(bx+15),Y(r*11),1,11,'rgba(0,0,0,.1)')}
-  R(X(0),Y(0),RX,5,'rgba(0,0,0,.25)');R(X(0),Y(42),RX,3,'#5a3a1f');
-  for(let y=45,r=0;y<RY;y+=8,r++){const h=Math.min(8,RY-y);R(X(0),Y(y),RX,h,(r&1)?'#9c6a34':'#a8743c');R(X(0),Y(y),RX,1,'#7a4e24');for(let x=((r*37)%44);x<RX;x+=44)R(X(x),Y(y),1,h,'#7a4e24')}
+  R(X(0),Y(0),RX,5,'rgba(0,0,0,.25)');R(X(0),Y(42),RX,3,'#463d37');
+  for(let y=45,r=0;y<RY;y+=8,r++){const h=Math.min(8,RY-y);R(X(0),Y(y),RX,h,(r&1)?'#79634c':'#816b51');R(X(0),Y(y),RX,1,'#574a3d');for(let x=((r*37)%44);x<RX;x+=44)R(X(x),Y(y),1,h,'#574a3d')}
   R(X(0),Y(0),3,RY,'rgba(0,0,0,.3)');R(X(RX-3),Y(0),3,RY,'rgba(0,0,0,.3)');
-  R(X(76),Y(114),24,14,'#6a1c1c');R(X(78),Y(116),20,10,'#a8402e');R(X(80),Y(118),16,1,'#e0705a');
+  R(X(76),Y(114),24,14,'#3d514b');R(X(78),Y(116),20,10,'#557568');R(X(80),Y(118),16,1,'#a4aa7d');
   R(X(78),Y(RY-1),20,7,'#ffe9a8');
-  R(X(50),Y(1),76,11,'#3a2410');R(X(51),Y(2),74,9,'#6a4422');label(S.name,X(88),Y(10),'#ffe14a');
-  R(X(30),Y(24),116,3,'#5a3a1f');R(X(30),Y(27),116,1,'rgba(0,0,0,.3)');
+  R(X(50),Y(1),76,11,'#302f32');R(X(51),Y(2),74,9,'#64523f');label(S.name,X(88),Y(10),'#ffe14a');
+  R(X(30),Y(24),116,3,'#463d37');R(X(30),Y(27),116,1,'rgba(0,0,0,.3)');
   shelfSpecs(inside.id).forEach((it,i)=>artPx(it.key,X(36+i*18),Y(8),2,it.pal));
-  if(inside.id==='axe'){for(let i=0;i<3;i++){R(X(6+i*8),Y(34),8,8,'#5a3a1f');R(X(7+i*8),Y(35),6,6,'#9a6a38');R(X(9+i*8),Y(37),2,2,'#5a3a1f')}R(X(10),Y(27),8,8,'#5a3a1f');R(X(11),Y(28),6,6,'#9a6a38')}
+  if(inside.id==='axe'){for(let i=0;i<3;i++){R(X(6+i*8),Y(34),8,8,'#463d37');R(X(7+i*8),Y(35),6,6,'#9a6a38');R(X(9+i*8),Y(37),2,2,'#463d37')}R(X(10),Y(27),8,8,'#463d37');R(X(11),Y(28),6,6,'#9a6a38')}
   else if(inside.id==='pick'){R(X(5),Y(32),24,10,'#4b5560');R(X(7),Y(29),20,4,'#7c8a93');R(X(8),Y(25),4,4,'#e0803a');R(X(16),Y(26),4,3,'#8c4a2a');R(X(9),Y(42),5,3,'#222');R(X(21),Y(42),5,3,'#222')}
   else if(inside.id==='food'){const f=Math.floor(now/140)%3;R(X(3),Y(12),28,32,'#6a5a4a');R(X(3),Y(12),28,3,'#8a7a68');R(X(8),Y(24),18,16,'#2a1810');R(X(11),Y(31-f),12,9+f,'#ff7b3a');R(X(14),Y(28-f),6,8+f,'#ffd24a')}
-  else if(inside.id==='fish'){R(X(4),Y(10),26,34,'#5a4a30');R(X(5),Y(11),24,32,'#c8b888');for(let i=0;i<8;i++)for(let j=0;j<8;j++)if((i+j)&1)R(X(6+i*3),Y(12+j*4),2,3,'#8a7a58');R(X(5),Y(11),24,2,'#6a4422');for(let i=0;i<4;i++)R(X(8+i*6),Y(40),3,3,'#e8e0d0')}
+  else if(inside.id==='fish'){R(X(4),Y(10),26,34,'#5a4a30');R(X(5),Y(11),24,32,'#c8b888');for(let i=0;i<8;i++)for(let j=0;j<8;j++)if((i+j)&1)R(X(6+i*3),Y(12+j*4),2,3,'#8a7a58');R(X(5),Y(11),24,2,'#64523f');for(let i=0;i<4;i++)R(X(8+i*6),Y(40),3,3,'#e8e0d0')}
   else{
     const flame=Math.floor(now/160)%3;
     R(X(5),Y(14),29,31,'#49372b');R(X(8),Y(19),23,23,'#28211c');
@@ -2728,11 +2290,11 @@ function drawInterior(cx,cy,now){
     R(X(42),Y(33),24,6,'#343c47');R(X(47),Y(27),15,6,'#8797a4');
     R(X(50),Y(39),8,8,'#525d68');R(X(44),Y(46),20,3,'#33343a');
   }
-  R(X(148),Y(26),20,18,'#3a2410');R(X(149),Y(27),18,16,'#7a5230');R(X(149),Y(31),18,2,'#3a2410');R(X(149),Y(38),18,2,'#3a2410');R(X(152),Y(27),2,16,'rgba(255,255,255,.18)');
+  R(X(148),Y(26),20,18,'#302f32');R(X(149),Y(27),18,16,'#725c45');R(X(149),Y(31),18,2,'#302f32');R(X(149),Y(38),18,2,'#302f32');R(X(152),Y(27),2,16,'rgba(255,255,255,.18)');
   const list=[];
   list.push({y:54,f:()=>drawPerson(X(88),Y(54),{f:1,moving:false,hue:S.hue,name:S.keeper,col:'#7ad7ff',apron:true,hair:S.hair,tool:'',mat:2,hold:0,swingAt:-9999,waving:false,g:[0,0,0,0,0]},now)});
   list.push({y:66,f:()=>{
-    R(X(30),Y(50),116,18,'#3a2410');R(X(31),Y(51),114,4,'#c28a52');R(X(31),Y(55),114,12,'#7a5230');R(X(31),Y(60),114,1,'#5a3a1f');
+    R(X(30),Y(50),116,18,'#302f32');R(X(31),Y(51),114,4,'#b4966b');R(X(31),Y(55),114,12,'#725c45');R(X(31),Y(60),114,1,'#463d37');
     shelfSpecs(inside.id).slice(0,3).forEach((it,i)=>artPx(it.key,X(46+i*34),Y(43),1,it.pal));
   }});
   for(const pt of pets)list.push({y:pt.y,f:()=>drawPet(pt,X(pt.x),Y(pt.y),now)});
@@ -2746,80 +2308,21 @@ function drawInterior(cx,cy,now){
 }
 function drawOutdoor(cx,cy,now){
   const t0=Math.max(0,Math.floor(cx/T)),t1=Math.min(WW/T-1,Math.floor((cx+cv.width)/T)),u0=Math.max(0,Math.floor(cy/T)),u1=Math.min(WH/T-1,Math.floor((cy+cv.height)/T));
-  const eT=EDGE/T;
-  for(let ty2=u0;ty2<=u1;ty2++)for(let tx2=t0;tx2<=t1;tx2++){
-    const px=tx2*T-cx,py=ty2*T-cy;
-    const hh=(Math.imul(tx2,73856093)^Math.imul(ty2,19349663))>>>0,v=hh%97;
-    if(tx2<eT||ty2<eT||tx2>=WW/T-eT||ty2>=WH/T-eT){treeTile(px,py,v);continue}
-    const lk=lakeR(tx2*T+8,ty2*T+8);
-    if(lk.r<lk.f+.12){
-      if(lk.r<lk.f){
-        R(px,py,T,T,lk.r<lk.f-.3?'#2a808f':'#338f9c');const wv=Math.floor(now/600);
-        if((v+wv)%5===0)R(px+3,py+5,6,1,'#9ddcd8');if((v+wv)%7===3)R(px+8,py+11,4,1,'#68bcc0');if(v%11===2)R(px+10,py+3,3,1,'#9ddcd8');
-        if(lk.r>lk.f-.13){R(px+(v&7),py+(v%13),3,1,'#d4f4ee');R(px+((v>>3)&7)+4,py+((v>>2)%11)+2,2,1,'#b4ece6')}
-        if(v%23===0){R(px+6,py+6,5,4,'#6a9a3a');R(px+8,py+6,1,2,'#4a7a2a')}
-      }else{
-        R(px,py,T,T,'#a8a498');R(px,py,5,T,'#b8b4a6');R(px+5,py,5,T,'#8e8a7c');R(px+10,py,6,T,'#a29e90');
-        R(px+(v%5),py,1,T,'#7a766a');R(px,py,T,2,'#cbc7b9');R(px,py+T-3,T,3,'#6a665a');
-        if(v%3===0)R(px+3,py+5,4,2,'#cbc7b9');
-        if(v%4===0){R(px+2,py,3,2,'#86a028');R(px+9,py,4,2,'#86a028')}
-      }
-      continue;
-    }
-    const isP=(a,b2)=>{
-      const dx=a-50,dy=b2-50;
-      const clearing=dx*dx/270+dy*dy/55<1;
-      const northTrail=Math.abs(dx-Math.round(2*Math.sin(b2*.19)))<=1&&b2<47;
-      const southTrail=Math.abs(dx-Math.round(3*Math.sin(b2*.17)))<=1&&b2>53;
-      const eastTrail=Math.abs(dy-Math.round(2*Math.sin(a*.19)))<=1&&a>62;
-      const westTrail=Math.abs(dy-Math.round(2*Math.sin(a*.19)))<=1&&a<38;
-      return clearing||northTrail||southTrail||eastTrail||westTrail;
-    };
-    const plaza=((tx2-50)**2/270+(ty2-50)**2/55<1),road=isP(tx2,ty2)&&!plaza;
-    if(plaza||road){
-      R(px,py,T,T,(v%3)?'#786c54':'#8d8066');
-      if(plaza){
-        for(let k=0;k<3;k++){const h=H2(v+k*5,tx2*3+ty2),cx2=px+1+(h%10),cy2=py+1+((h>>>5)%10);R(cx2,cy2,5,4,'#4d5147');R(cx2,cy2,5,3,'#a6a28d');R(cx2+1,cy2,2,1,'#d0c7a7')}
-      }else{
-        if(v%5===0)R(px+5,py+6,3,1,'#c0a962');if(v%7===0){R(px+10,py+10,2,1,'#ecdca8')}
-        if(v%11===0){R(px+4,py+4,1,3,'#c4ac64');R(px+3,py+5,3,1,'#c4ac64')}
-      }
-      const G=GRASS[v%3];
-      const rag=(side)=>{for(let i=0;i<T;i++){const d=1+((i*5+v)%7>3?1:0)+(((i+v)%3===0)?1:0);
-        if(side===0){R(px+i,py,1,d,G);R(px+i,py+d,1,1,'#7f9a22')}
-        else if(side===1){R(px+i,py+T-d,1,d,G);R(px+i,py+T-d-1,1,1,'#7f9a22')}
-        else if(side===2){R(px,py+i,d,1,G);R(px+d,py+i,1,1,'#7f9a22')}
-        else{R(px+T-d,py+i,d,1,G);R(px+T-d-1,py+i,1,1,'#7f9a22')}}};
-      if(!isP(tx2,ty2-1))rag(0);if(!isP(tx2,ty2+1))rag(1);if(!isP(tx2-1,ty2))rag(2);if(!isP(tx2+1,ty2))rag(3);
-    }else{
-      R(px,py,T,T,GRASS[v%3]);
-      if(v%3===0){R(px+3,py+9,1,3,'#7f9a22');R(px+4,py+10,1,2,'#7f9a22');R(px+2,py+10,1,2,'#7f9a22')}
-      if(v%5===1){R(px+10,py+4,1,3,'#7f9a22');R(px+11,py+5,1,2,'#7f9a22')}
-      if(v%4===2)R(px+7,py+12,2,1,'#b8cc50');
-      if(v%6===5)R(px+12,py+11,1,1,'#b8cc50');
-      if(v%19===7){R(px+5,py+6,1,1,'#fff');R(px+4,py+7,1,1,'#fff');R(px+6,py+7,1,1,'#fff');R(px+5,py+8,1,1,'#fff');R(px+5,py+7,1,1,'#ffe05a')}
-      if(v===44){R(px+9,py+9,1,1,'#ffe05a');R(px+12,py+11,1,1,'#ffe05a')}
-      if(v%37===3)drawBush(px+8,py+14,false);
-      if(v%13===4){
-        R(px+7,py+9,1,6,'#213f31');
-        for(let k=0;k<4;k++){R(px+4-k%2,py+8+k,4,1,'#63885b');R(px+8,py+8+k,4-k%2,1,'#557e51')}
-        R(px+6,py+7,3,2,'#86a16b');
-      }
-      if(v%17===2){R(px+2,py+3,4,2,'#263e30');R(px+4,py+2,5,2,'#54704a');R(px+9,py+11,3,1,'#9c7047');}
-      if(v%9===1){
-        R(px+5,py+12,2,3,'#597e4d');R(px+3,py+10,5,1,'#86a367');
-        R(px+7,py+9,4,1,'#73975c');R(px+6,py+7,1,6,'#304d37');
-      }
-      if(v%23===8){
-        R(px+4,py+8,2,2,'#b7a7bb');R(px+8,py+6,2,2,'#d3c5db');
-        R(px+5,py+10,1,3,'#496d43');R(px+9,py+8,1,3,'#496d43');
-      }
-    }
+  const isP=(a,b)=>{const dx=a-50,dy=b-50;return dx*dx/270+dy*dy/55<1||(Math.abs(dx-Math.round(2*Math.sin(b*.19)))<=1&&b<47)||(Math.abs(dx-Math.round(3*Math.sin(b*.17)))<=1&&b>53)||(Math.abs(dy-Math.round(2*Math.sin(a*.19)))<=1&&a>62)||(Math.abs(dy-Math.round(2*Math.sin(a*.19)))<=1&&a<38)};
+  for(let ty=u0;ty<=u1;ty++)for(let tx=t0;tx<=t1;tx++){
+    const x=Math.round(tx*T-cx),y=Math.round(ty*T-cy),boundary=tx<EDGE/T||ty<EDGE/T||tx>=WW/T-EDGE/T||ty>=WH/T-EDGE/T;
+    const lk=lakeR(tx*T+8,ty*T+8);
+    const plaza=(tx-50)**2/270+(ty-50)**2/55<1;
+    const path=isP(tx,ty);
+    const kind=boundary?'boundary':lk.r<lk.f?'water':lk.r<lk.f+.12?'shore':plaza?'plaza':path?'path':'grass';
+    const edge=path?(!isP(tx,ty-1)?1:0)|(!isP(tx,ty+1)?2:0)|(!isP(tx-1,ty)?4:0)|(!isP(tx+1,ty)?8:0):0;
+    MyrrenEnvironment.terrain(ctx,tx,ty,x,y,kind,now,edge);
+    if(kind==='grass'&&H2(tx,ty)%113===0)MyrrenEnvironment.fern(ctx,x+8,y+15,H2(tx,ty)%4);
   }
   for(const d of decals){const a=1-(now-d.t)/25000;ctx.globalAlpha=Math.max(0,a);const x=Math.round(d.x-cx),y=Math.round(d.y-cy);R(x-5,y-1,10,3,d.c);R(x-2,y-3,5,2,d.c);R(x+3,y+2,3,2,d.c);R(x-7,y+1,2,2,d.c);ctx.globalAlpha=1}
 
   const list=[];
-  const vis=(x,y)=>x>cx-40&&x<cx+cv.width+40&&y>cy-20&&y<cy+cv.height+60;
+  const vis=(x,y)=>x>cx-92&&x<cx+cv.width+92&&y>cy-24&&y<cy+cv.height+190;
   // The level 1–30 woodland is enclosed by an ancient, impassable
   // rainforest. Keep the existing world-edge collision and saved coordinates;
   // these are scenery only, not harvestable resource nodes.
