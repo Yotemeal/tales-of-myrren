@@ -1,229 +1,8 @@
 <title>Tales of Myrren</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
-<style>
-/* Keep hidden overlays hidden even when their CSS defines display:flex. */
-[hidden]{display:none!important}
-#intro[hidden],#modal[hidden]{display:none!important}
-/* Layout: full-screen pixel world. Top-left level badge with HP and XP bars, top-right menu and bag buttons, bottom-left joystick pad, bottom-right action buttons, translucent chat. The menu is a bronze-framed window with tabs. Single warm wood-and-bronze look on purpose. */
-:root{
-  --wood:#4a3320;
-  --wood2:#5b3d22;
-  --well:#2a1c10;
-  --bronze:#c9803a;
-  --bronze-hi:#ecb468;
-  --bronze-lo:#7a4a1c;
-  --dark:#1d120a;
-  --ink:#f4ecd4;
-  --muted:#c4b08a;
-  --gold:#ffd24a;
-  --ok:#8bd45a;
-  --bad:#ff7a5a;
-  --px:"Press Start 2P",ui-monospace,Menlo,monospace;
-  --vt:"VT323",ui-monospace,Menlo,monospace;
-  color-scheme:dark;
-}
-html,body{height:100%}
-body{background:#0d0b08;color:var(--ink);overflow:hidden;font-family:var(--vt);font-size:21px;line-height:1.08;-webkit-user-select:none;user-select:none}
-button{font-family:inherit;font-size:inherit;color:inherit}
-#app{position:relative;width:100%;height:100%;overflow:hidden}
-#cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;image-rendering:pixelated;background:#0d0b08}
-.gut{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
-.wood{background:repeating-linear-gradient(90deg,var(--wood2) 0 6px,#4d3320 6px 8px)}
-.rim{box-shadow:0 0 0 2px var(--dark),inset 0 0 0 2px var(--bronze-hi),inset 0 0 0 4px var(--bronze-lo),inset 0 0 0 5px var(--dark)}
-.ibtn{position:relative;width:52px;height:52px;border:0;padding:0;display:grid;place-items:center;border-radius:6px;cursor:pointer;touch-action:manipulation;background:repeating-linear-gradient(90deg,var(--wood2) 0 6px,#4d3320 6px 8px);box-shadow:0 0 0 2px var(--dark),inset 0 0 0 2px var(--bronze-hi),inset 0 0 0 4px var(--bronze-lo),inset 0 0 0 5px var(--dark)}
-.ibtn:active{filter:brightness(1.3)}
-.ibtn svg{width:30px;height:30px}
-.ibtn.big{width:66px;height:66px}
-.ibtn.big svg{width:40px;height:40px}
-.ibtn.round{border-radius:50%;width:46px;height:46px}
-.ibtn em{position:absolute;right:3px;bottom:0;font-style:normal;font-size:17px;color:var(--gold);text-shadow:1px 1px 0 #000}
-.ibtn:focus-visible,.slot:focus-visible,.btn:focus-visible,#mTabs button:focus-visible,#nick:focus-visible,.chip:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
-#hud{position:absolute;left:0;right:0;top:max(8px,env(safe-area-inset-top,0px));pointer-events:none}
-#hudL{display:flex;gap:6px;align-items:center;max-width:calc(100% - 76px)}
-#lvl{width:50px;height:50px;flex:none;display:grid;place-items:center;font-family:var(--px);font-size:13px;color:#fff;text-shadow:2px 2px 0 #000}
-#bars{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;max-width:300px;padding:0 10px}
-.ebar{position:relative;height:22px;background:#2a0f0c;box-shadow:0 0 0 2px var(--dark),inset 0 0 0 2px var(--bronze-hi),inset 0 0 0 3px var(--dark)}
-.ebar.thin{height:16px}
-.ebar::before,.ebar::after{content:"";position:absolute;top:50%;width:11px;height:20px;margin-top:-10px;background:linear-gradient(90deg,var(--bronze-hi),var(--bronze));filter:drop-shadow(0 0 0 var(--dark))}
-.ebar::before{left:-9px;clip-path:polygon(100% 0,0 50%,100% 100%)}
-.ebar::after{right:-9px;clip-path:polygon(0 0,100% 50%,0 100%)}
-.ebar i{position:absolute;left:4px;top:4px;bottom:4px;width:calc(100% - 8px);background:linear-gradient(#ffb28a 0 3px,#e84a30 3px 60%,#b32a1c 60%);transition:width .15s;transform-origin:left}
-.ebar.thin i{top:3px;bottom:3px;background:linear-gradient(#fff3a8 0 2px,#ffd24a 2px 60%,#d89a20 60%)}
-.ebar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;text-shadow:1px 1px 0 #000,-1px 0 0 #000}
-.ebar.thin span{font-size:14px}
-#hudR{position:absolute;right:max(12px,env(safe-area-inset-right,0px));top:0;display:flex;flex-direction:column;gap:8px;pointer-events:auto}
-#qline{position:absolute;left:max(12px,env(safe-area-inset-left,0px));top:62px;padding:3px 10px 4px;font-size:18px;color:#ffe9a8;text-shadow:1px 1px 0 #000;max-width:62vw}#qline:not([hidden])~#tgt{top:98px}
-#tgt{position:absolute;left:max(12px,env(safe-area-inset-left,0px));top:62px;padding:6px 12px 8px;text-align:center;min-width:140px;pointer-events:none}
-#tgt b{display:block;font-weight:400;font-size:19px;text-shadow:1px 1px 0 #000}
-#tgt .tb{height:8px;background:#2a0f0c;box-shadow:0 0 0 1px #000;margin-top:3px}
-#tgt .tb i{display:block;height:100%;width:100%;background:#e84a30}
-#pad{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));width:128px;height:128px;border-radius:50%;touch-action:none;background:repeating-conic-gradient(#6a4a26 0 25%,#7b5a30 0 50%);box-shadow:0 0 0 3px var(--dark),inset 0 0 0 4px var(--bronze-hi),inset 0 0 0 8px var(--bronze-lo),inset 0 0 0 9px var(--dark),0 4px 0 3px rgba(0,0,0,.35);opacity:.92}
-#knob{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:radial-gradient(circle at 38% 34%,#e8a660,#a8642a 55%,#6a3c16);box-shadow:0 0 0 2px var(--dark),inset 0 0 0 2px #f0c488;pointer-events:none}
-#acts{position:absolute;right:max(14px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:flex-end;gap:10px}
-#chat{position:absolute;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:max(190px,calc(172px + env(safe-area-inset-bottom,0px)));margin:0;padding:4px 8px;list-style:none;height:104px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;font-size:19px;pointer-events:none;background:rgba(30,24,18,.5);text-shadow:1px 1px 0 #000}
-#chat li{color:#fff}
-#chat li.gold{color:var(--gold)}
-#chat li.warn{color:#ffa56a}
-#chat li.red{color:#ff7060}
-@media (min-width:720px){
-  #chat{left:max(190px,calc(160px + env(safe-area-inset-left,0px)));right:max(120px,calc(100px + env(safe-area-inset-right,0px)));bottom:max(12px,env(safe-area-inset-bottom,0px));background:rgba(80,80,80,.5)}
-}
-#modal{position:absolute;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));top:calc(max(8px,env(safe-area-inset-top,0px)) + 66px);bottom:max(206px,calc(190px + env(safe-area-inset-bottom,0px)));display:flex;justify-content:center;pointer-events:none}
-.win{pointer-events:auto;width:100%;max-width:560px;height:100%;display:flex;flex-direction:column;border-radius:8px;background:#3b2817;box-shadow:0 0 0 3px var(--dark),inset 0 0 0 2px var(--bronze-hi),inset 0 0 0 5px var(--bronze-lo),inset 0 0 0 6px var(--dark);padding:10px;gap:8px;min-height:0}
-@media (max-height:540px) and (min-width:560px){
-  #modal{left:max(170px,calc(150px + env(safe-area-inset-left,0px)));right:max(104px,calc(90px + env(safe-area-inset-right,0px)));top:max(6px,env(safe-area-inset-top,0px));bottom:6px}
-  #hudL{max-width:260px}
-}
-.win header{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.win h2{margin:0;font-family:var(--px);font-weight:400;font-size:12px;color:var(--gold);text-shadow:2px 2px 0 #000}
-.x{width:34px;height:34px;border:0;cursor:pointer;background:#7a2a1c;box-shadow:0 0 0 2px var(--dark),inset 0 0 0 2px #e0705a;color:#fff;font-family:var(--px);font-size:11px}
-#mTabs{display:flex;gap:4px}
-#mTabs button{flex:1;height:38px;border:0;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;background:#2a1c10;box-shadow:0 0 0 2px var(--dark),inset 0 0 0 2px var(--bronze-lo);font-size:18px;touch-action:manipulation;min-width:0;padding:0 4px}
-#mTabs button svg{width:16px;height:16px;flex:none}#mTabs button{font-size:16px!important;gap:3px!important;padding:0 2px}
-#mTabs button[aria-pressed="true"]{background:#6b4a22;box-shadow:0 0 0 2px var(--dark),inset 0 0 0 2px var(--bronze-hi)}
-#mBody{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:2px}
-.paper{display:grid;grid-template-columns:repeat(3,64px);gap:6px;justify-content:center;margin:2px 0 8px}
-.slot{aspect-ratio:1;background:var(--well);box-shadow:0 0 0 1px var(--dark),inset 0 0 0 2px var(--bronze-lo);border:0;padding:2px;position:relative;display:flex;align-items:center;justify-content:center;min-width:0;cursor:pointer;touch-action:manipulation}
-.slot:disabled{cursor:default}
-.slot svg{width:82%;height:82%}
-.slot small{font-size:15px;color:#7a6a50}
-.slot em{position:absolute;left:3px;top:0;font-style:normal;font-size:15px;color:var(--gold);text-shadow:1px 1px 0 #000}
-.slot.sel{box-shadow:0 0 0 1px var(--dark),inset 0 0 0 2px var(--gold)}
-.slot.dim svg{opacity:.45}
-.pack{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
-.eqwrap{display:flex;gap:8px;align-items:flex-start;margin-bottom:4px}.eqwrap .paper{grid-template-columns:repeat(3,50px);margin:0;flex:none}.eqside{flex:1;min-width:0;background:#241709;box-shadow:inset 0 0 0 2px var(--bronze-lo),0 0 0 1px var(--dark);padding:6px 8px;display:grid;gap:2px;font-size:17px}.eqside div{display:flex;justify-content:space-between;gap:6px}.eqside b{font-weight:400;color:var(--gold);text-align:right}.eqside .bad{color:var(--bad)}.eqtot{font-size:19px}.eqside .eqline{flex-direction:column;gap:0;color:var(--muted);line-height:1;margin-top:3px}.eqside .eqline b{text-align:left;color:#cfa850;font-size:16px}.stats{display:flex;justify-content:center;gap:16px;color:var(--ink);margin-bottom:6px}
-.stats b{font-weight:400;color:var(--gold)}
-.detail{background:#241709;box-shadow:inset 0 0 0 2px var(--bronze-lo),0 0 0 1px var(--dark);padding:8px 10px;margin-top:6px;display:grid;gap:4px}
-.detail b{font-weight:400;color:var(--gold)}
-.detail small{font-size:17px;color:var(--muted)}
-.detail .bad{color:var(--bad)}
-.detail .ok{color:var(--ok)}
-.detail .row{display:flex;gap:8px;margin-top:4px}
-.btn{border:0;cursor:pointer;padding:6px 12px;min-height:34px;background:var(--bronze-lo);box-shadow:0 0 0 2px var(--dark),inset 0 0 0 2px var(--bronze-hi);touch-action:manipulation}
-.btn:disabled{opacity:.45;cursor:default}
-.btn.grow{flex:1}
-.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
-.skill{background:var(--well);box-shadow:0 0 0 1px var(--dark),inset 0 0 0 2px var(--bronze-lo);padding:8px 10px;display:grid;grid-template-columns:auto 1fr;gap:2px 8px;align-items:center;min-width:0}
-.skill .ic{grid-row:span 2}
-.skill b{font-weight:400;color:var(--gold);white-space:normal;line-height:1}
-.skill small{font-size:16px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.skill .bar{grid-column:1/-1;height:6px;background:#000;margin-top:2px}
-.skill .bar i{display:block;height:100%;background:var(--gold)}
-.plist{margin:0;padding:0;list-style:none;display:grid;gap:4px}
-.plist li{display:flex;justify-content:space-between;gap:10px;background:var(--well);padding:5px 10px;box-shadow:inset 0 0 0 1px var(--bronze-lo)}
-.plist li.me{color:var(--gold)}
-.plist li span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gpf{outline:3px solid #ffe14a!important;outline-offset:1px}.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}.chip{min-width:30%}
-.chip{flex:1;border:0;cursor:pointer;padding:6px;background:var(--well);box-shadow:0 0 0 1px var(--dark),inset 0 0 0 2px var(--bronze-lo);touch-action:manipulation}
-.chip[aria-pressed="true"]{background:#6b4a22;box-shadow:0 0 0 1px var(--dark),inset 0 0 0 2px var(--bronze-hi)}
-.shophead{display:flex;justify-content:space-between;margin-bottom:6px;color:var(--gold)}
-.shoprow{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:8px;align-items:center;background:var(--well);padding:4px 8px;margin-bottom:4px;box-shadow:inset 0 0 0 1px var(--bronze-lo)}
-.shoprow svg{width:32px;height:32px}
-.shoprow small{display:block;font-size:16px;color:var(--muted)}
-.shoprow small.bad{color:var(--bad)}
-.shoprow .btn{min-width:76px}
-.sub{margin:10px 0 4px;font-weight:400;color:var(--gold);font-size:19px}
-.note{color:var(--muted);font-size:17px;margin:6px 0 0}
-#toast{position:absolute;left:50%;top:28%;transform:translateX(-50%);width:max-content;max-width:90%;font-family:var(--px);font-size:14px;line-height:1.5;color:var(--gold);text-shadow:2px 2px 0 #000;text-align:center;white-space:pre-line;opacity:0;transition:opacity .25s;pointer-events:none}
-#toast.on{opacity:1}
-#intro{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding-top:16px;padding-bottom:max(24px,env(safe-area-inset-bottom,0px));background:linear-gradient(to top,rgba(10,8,5,.94) 30%,rgba(10,8,5,.25))}
-#intro .card{width:100%;max-width:400px;display:grid;gap:12px}
-#intro h1{margin:0;font-family:var(--px);font-weight:400;font-size:24px;line-height:1.3;color:var(--gold);text-shadow:3px 3px 0 #000}
-#intro p{margin:0;font-size:22px;line-height:1.12;max-width:44ch}
-#intro .row{display:flex;gap:8px}
-#nick{flex:1;min-width:0;background:var(--well);border:0;box-shadow:0 0 0 2px var(--dark),inset 0 0 0 2px var(--bronze-lo);color:var(--ink);padding:10px;font-size:23px;font-family:var(--vt);-webkit-user-select:text;user-select:text}
-#go{padding:10px 18px;font-family:var(--px);font-size:12px}
-#net{color:var(--muted);font-size:19px}
-@media (prefers-reduced-motion:reduce){.ebar i,#toast{transition:none}}
-
-/* ---------- compact Myrren mobile interface ---------- */
-@media (max-width:600px){
-  body{font-size:19px}
-  .gut{padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
-  #hud{top:max(6px,env(safe-area-inset-top,0px))}
-  #hudL{gap:6px;max-width:calc(100% - 92px)}
-  #lvl{width:38px;height:38px;font-size:10px;border-radius:5px}
-  #bars{padding:0 5px;gap:3px;max-width:none}
-  .ebar{height:17px;box-shadow:0 0 0 1px #130d08,inset 0 0 0 1px #d99b54}
-  .ebar.thin{height:11px}
-  .ebar::before,.ebar::after{display:none}
-  .ebar i{left:3px;top:3px;bottom:3px;width:calc(100% - 6px)}
-  .ebar.thin i{top:2px;bottom:2px}
-  .ebar span{font-size:13px}
-  .ebar.thin span{font-size:10px}
-  #hudR{right:max(8px,env(safe-area-inset-right,0px));gap:6px;flex-direction:row}
-  .ibtn{width:38px;height:38px;border-radius:5px;box-shadow:0 0 0 1px #130d08,inset 0 0 0 1px #d99b54,inset 0 0 0 3px #70451f}
-  .ibtn svg{width:23px;height:23px}
-  .ibtn.big{width:54px;height:54px}
-  .ibtn.big svg{width:32px;height:32px}
-  .ibtn.round{width:42px;height:42px}
-  .ibtn em{font-size:14px;right:2px}
-  #qline{left:max(8px,env(safe-area-inset-left,0px));top:48px;font-size:15px;padding:2px 7px;max-width:70vw}
-  #qline:not([hidden])~#tgt{top:76px}
-  #tgt{left:max(8px,env(safe-area-inset-left,0px));top:48px;min-width:112px;padding:4px 8px 5px}
-  #tgt b{font-size:16px}
-  #tgt .tb{height:6px}
-  #pad{left:max(12px,env(safe-area-inset-left,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));width:96px;height:96px;opacity:.82;box-shadow:0 0 0 2px #130d08,inset 0 0 0 3px #d99b54,inset 0 0 0 6px #70451f,0 3px 0 2px rgba(0,0,0,.3)}
-  #knob{width:42px;height:42px;margin:-21px 0 0 -21px;box-shadow:0 0 0 1px #130d08,inset 0 0 0 1px #f0c488}
-  #acts{right:max(10px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));gap:7px}
-  #chat{left:max(8px,env(safe-area-inset-left,0px));right:max(8px,env(safe-area-inset-right,0px));bottom:calc(116px + env(safe-area-inset-bottom,0px));height:58px;padding:3px 7px;font-size:16px;line-height:1.05;background:linear-gradient(90deg,rgba(17,20,17,.68),rgba(17,20,17,.38));border-left:2px solid rgba(202,151,83,.55)}
-  #modal{left:max(7px,env(safe-area-inset-left,0px));right:max(7px,env(safe-area-inset-right,0px));top:calc(max(6px,env(safe-area-inset-top,0px)) + 48px);bottom:calc(112px + env(safe-area-inset-bottom,0px))}
-  .win{max-width:none;border-radius:7px;padding:7px;gap:6px;background:rgba(39,31,23,.97);box-shadow:0 0 0 2px #100c08,inset 0 0 0 1px #d99b54,inset 0 0 0 3px #70451f}
-  .win h2{font-size:10px}
-  .x{width:29px;height:29px;font-size:9px;box-shadow:0 0 0 1px #100c08,inset 0 0 0 1px #e0705a}
-  #mTabs{gap:3px}
-  #mTabs button{height:32px;font-size:14px!important;gap:2px!important;box-shadow:0 0 0 1px #100c08,inset 0 0 0 1px #70451f}
-  #mTabs button svg{width:13px;height:13px}
-  #mBody{padding:1px}
-  .paper{grid-template-columns:repeat(3,52px);gap:5px;margin:2px 0 6px}
-  .eqwrap{gap:6px}
-  .eqwrap .paper{grid-template-columns:repeat(3,42px)}
-  .eqside{padding:5px 6px;font-size:15px}
-  .eqtot{font-size:16px}
-  .eqside .eqline b{font-size:14px}
-  .pack{gap:3px}
-  .slot{box-shadow:0 0 0 1px #100c08,inset 0 0 0 1px #70451f}
-  .slot em{font-size:12px;left:2px}
-  .slot small{font-size:12px}
-  .stats{gap:10px;font-size:17px;margin-bottom:4px}
-  .detail{padding:6px 8px;margin-top:5px;gap:3px}
-  .detail small{font-size:15px}
-  .btn{min-height:31px;padding:5px 9px}
-  .skill{padding:6px 7px;gap:2px 6px}
-  .skill small,.shoprow small,.note{font-size:15px}
-  .sub{font-size:17px;margin:7px 0 3px}
-  .shoprow{grid-template-columns:30px minmax(0,1fr) auto;gap:6px;padding:4px 6px}
-  .shoprow svg{width:27px;height:27px}
-  .shoprow .btn{min-width:62px;padding:4px 6px}
-  #toast{font-size:11px;max-width:88%;top:24%}
-  #intro{padding-top:max(12px,env(safe-area-inset-top,0px));padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
-  #intro .card{gap:9px}
-  #intro h1{font-size:18px}
-  #intro p{font-size:18px;line-height:1.08}
-  #nick{font-size:20px;padding:8px}
-  #go{font-size:10px;padding:9px 12px}
-  #net{font-size:16px}
-}
-@media (max-width:380px){
-  #hudL{max-width:calc(100% - 86px)}
-  #lvl{width:34px;height:34px}
-  #hudR{gap:5px}
-  .ibtn{width:35px;height:35px}
-  .paper{grid-template-columns:repeat(3,48px)}
-  .eqwrap .paper{grid-template-columns:repeat(3,38px)}
-  #mTabs button{font-size:12px!important}
-}
-@media (max-height:700px) and (max-width:600px){
-  #modal{top:calc(max(4px,env(safe-area-inset-top,0px)) + 43px);bottom:calc(96px + env(safe-area-inset-bottom,0px))}
-  #chat{height:44px;bottom:calc(100px + env(safe-area-inset-bottom,0px))}
-  #pad{width:84px;height:84px}
-  #knob{width:38px;height:38px;margin:-19px 0 0 -19px}
-  #acts{gap:5px}
-  .ibtn.big{width:48px;height:48px}
-}
-
-</style>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="stylesheet" href="/myrren-ui.css?v=1">
 
 <div id="app">
   <canvas id="cv"></canvas>
@@ -237,10 +16,14 @@ button{font-family:inherit;font-size:inherit;color:inherit}
     </div>
     <div id="qline" class="wood rim" hidden></div>
     <div id="tgt" class="wood rim" hidden><b id="tgtName">Pink slime</b><div class="tb"><i id="tgtFill"></i></div></div>
-    <div id="hudR">
+    <div id="hudName"></div>
+    <nav id="hudR" aria-label="Quick menus">
+      <button class="ibtn" type="button" data-ui-open="gear" aria-label="Equipment" title="Equipment" data-i="helm"></button>
+      <button class="ibtn" type="button" data-ui-open="skills" aria-label="Skills" title="Skills" data-i="pick"></button>
+      <button class="ibtn" type="button" data-ui-open="jobs" aria-label="Jobs" title="Jobs" data-i="scroll"></button>
       <button id="bMenu" class="ibtn" type="button" aria-label="Settings" data-i="cog"></button>
-      <button id="bBag" class="ibtn" type="button" aria-label="Backpack" data-i="bag"></button>
-    </div>
+      <button id="bBag" class="ibtn" type="button" aria-label="Backpack" title="Inventory" data-i="bag"></button>
+    </nav>
   </div>
   <div id="toast"></div>
   <ol id="chat" hidden></ol>
@@ -261,12 +44,15 @@ button{font-family:inherit;font-size:inherit;color:inherit}
         <button type="button" data-tab="players" aria-pressed="false"><span data-i="coins"></span>Party</button>
       </nav>
       <section id="mBody"></section>
+      <footer class="window-footer" aria-label="Currencies"><div class="currency"><span data-i="coins"></span><span class="label">GOLD</span><strong id="mCoins">0</strong></div><div class="currency tokens"><span data-i="scroll"></span><span class="label">JOB TOKENS</span><strong id="mTokens">0</strong></div></footer>
     </div>
   </div>
   <div id="intro" class="gut">
     <div class="card">
-      <h1>TALES OF MYRREN</h1>
-      <p>Walk with the pad. To gather, stand close to a tree, rock or fishing spot, face it and press the tool button. To fight, press the sword button: hold it to keep swinging, and every swing hits everything in the arc in front of you. Tap a tree or rock to see its name and level. Walk through cottage doors for supplies. Use the outdoor blacksmith furnace to smelt ingots and its anvil to forge equipment. Cook your catch on the town fire.</p>
+      <h1><span>TALES OF</span><strong>MYRREN</strong></h1>
+      <p>An old woodland. A new name.<br>Your story begins in Myrren.</p>
+      <div class="intro-controls"><span><b>MOVE</b>WASD / pad</span><span><b>GATHER</b>E / tool</span><span><b>FIGHT</b>Space / sword</span></div>
+      <details><summary>How to play</summary><p>Walk with the pad. To gather, stand close to a tree, rock or fishing spot, face it and press the tool button. To fight, press the sword button: hold it to keep swinging, and every swing hits everything in the arc in front of you. Tap a tree or rock to see its name and level. Walk through cottage doors for supplies. Use the outdoor blacksmith furnace to smelt ingots and its anvil to forge equipment. Cook your catch on the town fire.</p></details>
       <div class="row"><input id="nick" maxlength="14" placeholder="Your name" autocomplete="off"><button id="go" class="btn" type="button">ENTER</button></div>
       <div id="net">Connecting...</div>
     </div>
@@ -649,6 +435,8 @@ function uiHud(){
   $('xpFill').style.width='calc('+pct+'% - 8px)';
   $('xpTxt').textContent=NAMES[lastSkill]+' '+pct.toFixed(1)+'%';
   $('eatN').textContent=foodCount()||'';
+  $('hudName').textContent=save.name||'Wanderer';
+  $('mCoins').textContent=save.inv.coins.toLocaleString();$('mTokens').textContent=save.tokens.toLocaleString();
 }
 document.querySelectorAll('[data-i]').forEach(e=>{const k=e.dataset.i;e.innerHTML=ITEMS[k]?itemSvg(k,22):svg(k,22)});
 
@@ -711,14 +499,16 @@ function addXp(skill,amt){
 
 /* ---------- modal ---------- */
 const modal=$('modal'),mBody=$('mBody');
-const TITLES={gear:'Equipment',pack:'Backpack',skills:'Skills',players:'Party',shop:'Shop',settings:'Settings',board:'Job Board',jobs:'Odd Jobs',odd:'Odd Shop'};
+const TITLES={gear:'Equipment',pack:'Inventory',skills:'Skills',players:'Party',shop:'Shop',settings:'Settings',board:'Job Board',jobs:'Odd Jobs',odd:'Odd Shop'};
 function openModal(t){if(!tab)gpIdx=-1;tab=t;if(t!=='shop'&&t!=='settings'&&t!=='board'&&t!=='odd')lastTab=t;sel=null;renderModal()}
 function closeModal(){tab='';sel=null;outdoorShop=null;renderModal()}
 function renderModal(){
+  modal.dataset.screen=tab;
   modal.hidden=!tab;
   modal.style.display=tab?'flex':'none';
   if(!tab)return;
   $('mTabs').hidden=(tab==='settings');
+  $('mCoins').textContent=save.inv.coins.toLocaleString();$('mTokens').textContent=save.tokens.toLocaleString();
   const st=mBody.scrollTop;
   $('mTitle').textContent=tab==='shop'&&curShop()?curShop().name:TITLES[tab];
   document.querySelectorAll('#mTabs button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab===tab)));
@@ -758,63 +548,68 @@ function detail(){
   return box;
 }
 function bonusTxt(d){const p=[];if(d.atk)p.push('+'+d.atk+' atk');if(d.def)p.push('+'+d.def+' def');if(d.tool)p.push('+'+Math.max(0,(d.mat-2)*6)+'% gather');return p.join(' ')||'no bonus'}
-function rGear(){
-  const wrap=el('div','eqwrap'),g=el('div','paper');
+function equipmentPaper(){
+  const g=el('div','paper'),icons={neck:'amulet',head:'helm',ring:'ring',weapon:'sword',body:'body',shield:'shield',hands:'gloves',legs:'legs',boots:'boots'};
   [['neck','head','ring'],['weapon','body','shield'],['hands','legs',null],[null,'boots',null]].flat().forEach(sl=>{
     if(!sl){g.append(el('span'));return}
-    const id=save.eq[sl],b=el('button','slot');b.type='button';
-    if(id){b.innerHTML=gearSvg(DEFS[id],40);b.setAttribute('aria-label',SLOTNAME[sl]+': '+DEFS[id].name)}
-    else{b.innerHTML='<small>'+SLOTNAME[sl]+'</small>';b.setAttribute('aria-label',SLOTNAME[sl]+' slot, empty')}
+    const id=save.eq[sl],b=el('button','slot');b.type='button';b.title=SLOTNAME[sl];
+    if(id){b.innerHTML=gearSvg(DEFS[id],44);b.setAttribute('aria-label',SLOTNAME[sl]+': '+DEFS[id].name)}
+    else{b.innerHTML='<span class="ghost">'+svg(icons[sl],36)+'</span><small>'+SLOTNAME[sl]+'</small>';b.setAttribute('aria-label',SLOTNAME[sl]+' slot, empty')}
     if(sel&&sel.src==='eq'&&sel.key===sl)b.classList.add('sel');
-    b.addEventListener('click',()=>{sel={src:'eq',key:sl};renderModal()});
-    g.append(b);
-  });
-  const side=el('div','eqside');
-  side.append(el('div','eqtot','<span>Attack</span><b>+'+atkBonus()+'</b>'));
-  side.append(el('div','eqtot','<span>Defence</span><b>+'+defTotal()+' ('+Math.round(defRed()*100)+'%)</b>'));
-  const wd=activeDef('weapon');
-  if(wd&&wd.tool)side.append(el('div','eqtot','<span>Gather</span><b>+'+Math.max(0,(wd.mat-2)*6)+'%</b>'));
-  SLOTS.forEach(sl=>{const d=eqDef(sl);if(d)side.append(el('div','eqline','<span>'+d.name+'</span><b'+((usable(d)&&!broken(d))?'':' class="bad"')+'>'+(broken(d)?'broken':usable(d)?bonusTxt(d):'level too low')+'</b>'))});
-  if(!SLOTS.some(sl=>eqDef(sl)))side.append(el('div','eqline','<span>Nothing worn</span>'));
-  wrap.append(g,side);mBody.append(wrap);
-  mBody.append(detail());
-  if(sel&&sel.src==='eq'){
-    const cand=save.bag.map((id,i)=>({id,i,d:DEFS[id]})).filter(o=>o.d&&o.d.slot===sel.key);
-    mBody.append(el('h3','sub','In your pack: '+SLOTNAME[sel.key]));
-    if(!cand.length)mBody.append(el('p','note','Nothing in your pack fits this slot.'));
-    cand.forEach(o=>{
-      const row=el('div','shoprow'),ok=usable(o.d);
-      row.innerHTML=gearSvg(o.d,32)+'<span>'+o.d.name+'<small>'+bonusTxt(o.d)+'</small><small class="'+(ok?'':'bad')+'">Needs '+NAMES[o.d.skill]+' '+o.d.req+'</small></span>';
-      const b=el('button','btn',save.eq[sel.key]?'Swap':'Equip');b.type='button';b.addEventListener('click',()=>equipFromBag(o.i));row.append(b);mBody.append(row);
-    });
-  }else mBody.append(el('p','note','Tap a slot to see its item and what in your pack fits. Tools such as hatchets, pickaxes, nets and rods are used from the weapon slot.'));
+    b.addEventListener('click',()=>{sel={src:'eq',key:sl};renderModal()});g.append(b);
+  });return g;
+}
+function equipmentStats(cls='eqside'){
+ const box=el('div',cls);
+ for(const [name,value] of [['Attack','+'+atkBonus()],['Defence','+'+defTotal()],['Combat',lvlFor(save.xp.melee)],['Reduction',Math.round(defRed()*100)+'%']])box.append(el('div','eqtot','<span>'+name+'</span><b>'+value+'</b>'));
+ return box;
+}
+function backpackGrid(){
+ const p=el('div','pack'),slots=[];
+ stackKinds().forEach(k=>slots.push({html:itemSvg(k,44)+'<em>'+(k==='coal_pouch'?(save.inv.coal||0)+'/100':save.inv[k].toLocaleString())+'</em>',label:ITEMS[k].name+' x'+save.inv[k],pick:{src:'bag',kind:'stack',key:k}}));
+ save.bag.forEach((id,i)=>slots.push({html:gearSvg(DEFS[id],44),label:DEFS[id].name,dim:!usable(DEFS[id]),pick:{src:'bag',kind:'gear',idx:i}}));
+ for(let i=0;i<Math.max(28,slots.length);i++){
+  const b=el('button','slot'),it=slots[i];b.type='button';
+  if(it){b.innerHTML=it.html;b.title=it.label;b.setAttribute('aria-label',it.label);if(it.dim)b.classList.add('dim');if(sel&&sel.src==='bag'&&sel.kind===it.pick.kind&&sel.key===it.pick.key&&sel.idx===it.pick.idx)b.classList.add('sel');b.addEventListener('click',()=>{sel=it.pick;renderModal()})}
+  else{b.disabled=true;b.setAttribute('aria-label','Empty backpack slot')}
+  p.append(b);
+ }return p;
+}
+function inventoryHeading(title,value=''){
+ const h=el('div','pane-heading'),b=el('strong','',title),v=el('span');v.textContent=value;h.append(b,v);return h;
+}
+
+function rGear(){
+ mBody.append(inventoryHeading('EQUIPPED',save.name||'Wanderer'));
+ const sheet=el('div','character-sheet'),portrait=el('div','character-portrait'),canvas=document.createElement('canvas');canvas.width=128;canvas.height=160;canvas.setAttribute('aria-label','Your equipped character');portrait.append(canvas);
+ if(myrrenV31Ready){const g=gearArr(),sprite=myrrenV31Equipment?myrrenV31Equipment.get(g[2],g[3],save.dye!=null?DYES[save.dye]:null,g[1],g[0],g[4]):myrrenV31FeetAtlas,c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(sprite,0,0,32,40,0,0,128,160)}
+ sheet.append(equipmentPaper(),portrait,equipmentStats('character-stats'));mBody.append(sheet);mBody.append(detail());
+ const candidates=save.bag.map((id,i)=>({id,i,d:DEFS[id]})).filter(o=>o.d&&(!(sel&&sel.src==='eq')||o.d.slot===sel.key));
+ mBody.append(el('h3','sub',sel&&sel.src==='eq'?'IN YOUR PACK · '+SLOTNAME[sel.key]:'EQUIPMENT IN YOUR PACK'));
+ if(!candidates.length)mBody.append(el('p','note',sel&&sel.src==='eq'?'No spare equipment fits this slot.':'Buy or craft equipment, then equip it from your inventory.'));
+ const grid=el('div','owned-gear');candidates.forEach(o=>{const b=el('button','slot'+(!usable(o.d)?' dim':''));b.type='button';b.innerHTML=gearSvg(o.d,44);b.title=o.d.name;b.setAttribute('aria-label',o.d.name);b.addEventListener('click',()=>{sel={src:'bag',kind:'gear',idx:o.i};renderModal()});grid.append(b)});mBody.append(grid);
 }
 function rPack(){
-  const p=el('div','pack');
-  const slots=[];
-  stackKinds().forEach(k=>slots.push({html:itemSvg(k,40)+'<em>'+(k==='coal_pouch'?(save.inv.coal||0)+'/100':save.inv[k].toLocaleString())+'</em>',label:ITEMS[k].name+' x'+save.inv[k],pick:{src:'bag',kind:'stack',key:k}}));
-  save.bag.forEach((id,i)=>slots.push({html:gearSvg(DEFS[id],40),label:DEFS[id].name,dim:!usable(DEFS[id]),pick:{src:'bag',kind:'gear',idx:i}}));
-  const total=Math.max(28,slots.length);for(let i=0;i<total;i++){
-    const b=el('button','slot'),s=slots[i];b.type='button';
-    if(s){
-      b.innerHTML=s.html;b.setAttribute('aria-label',s.label);if(s.dim)b.classList.add('dim');
-      if(sel&&sel.src==='bag'&&sel.kind===s.pick.kind&&(sel.key===s.pick.key&&sel.idx===s.pick.idx))b.classList.add('sel');
-      b.addEventListener('click',()=>{sel=s.pick;renderModal()});
-    }else b.disabled=true;
-    p.append(b);
-  }
-  mBody.append(p);mBody.append(detail());
-  mBody.append(el('p','note',slotsUsed()+' / 28 slots used. Faded gear needs a higher level.'));
+ const layout=el('div','inventory-layout'),pack=el('section','pack-pane'),side=el('section','equipment-side'),item=el('div','item-detail');
+ pack.append(inventoryHeading('BACKPACK',slotsUsed()+' / 28'),backpackGrid());
+ const eq=el('div','equipment-grid');eq.append(equipmentPaper(),equipmentStats());side.append(inventoryHeading('EQUIPMENT'),eq);
+ item.append(detail());layout.append(pack,side,item);mBody.append(layout);
 }
+let skillFocus='mining';
 function rSkills(){
-  const g=el('div','grid2');
-  for(const k of SK){
-    const xp=save.xp[k],L=lvlFor(xp),lo=xpTable[L],hi=L>=MAXL?xpTable[MAXL]:xpTable[L+1];
-    const pct=L>=MAXL?100:(xp-lo)/(hi-lo)*100;
-    g.append(el('div','skill','<span class="ic">'+svg(SKILL_ART[k],28)+'</span><b>'+NAMES[k]+' '+L+'</b><small>'+Math.floor(xp).toLocaleString()+' xp'+(L<MAXL?' / '+hi.toLocaleString():'')+'</small><div class="bar"><i style="width:'+pct+'%"></i></div>'));
-  }
-  g.append(el('div','skill','<span class="ic">'+svg('coins',28)+'</span><b>Total level '+totalLevel()+'</b><small>Health '+me.hp+' / '+hpMax()+'</small>'));
-  mBody.append(g);
+ const descriptions={
+  melee:['Combat','Train by fighting creatures with your equipped weapon. Every swing strikes the creatures in front of you.','Stronger equipment needs a higher Combat level. Keep an eye on your health and eat when you need to recover.'],
+  woodcutting:['Forestry','Equip a hatchet, stand beside a tree and face it. Use the tool button or E to gather timber.','Higher levels unlock tougher trees. Timber can be sold in town, and rare gathering pets can follow you.'],
+  mining:['Delving','Equip a pickaxe and face an ore rock to gather metal. Higher levels unlock richer ores.','Use the outdoor blacksmith furnace to smelt ore into ingots, then the anvil to forge equipment.'],
+  fishing:['Fishing','Use a net at shallow fishing spots, or a rod for deeper shoals. Rod casts use bait from the fishing shop.','Face the ripples from the bank and use your tool. Better fishing spots need a higher Fishing level.'],
+  cooking:['Cooking','Cook raw fish at the village fire or bakery oven. Cooked food restores health when eaten.','Higher levels unlock more catches to cook and improve your chance of preparing a meal successfully.']
+ };
+ const k=skillFocus,info=descriptions[k],L=lvlFor(save.xp[k]),layout=el('div','skills-layout'),guide=el('section','skill-guide');
+ guide.append(el('h3','',info[0].toUpperCase()),el('p','',info[1]),el('p','',info[2]),el('p','skill-xp','Level '+L+' · '+Math.floor(save.xp[k]).toLocaleString()+' experience'));
+ const grid=el('div','grid2 skill-grid');
+ for(const skill of SK){const xp=save.xp[skill],level=lvlFor(xp),lo=xpTable[level],hi=level>=MAXL?xpTable[MAXL]:xpTable[level+1],pct=level>=MAXL?100:(xp-lo)/(hi-lo)*100,b=el('button','skill');b.type='button';b.setAttribute('aria-label',NAMES[skill]+' level '+level);b.setAttribute('aria-pressed',String(k===skill));b.innerHTML='<span class="skill-top"><span class="ic">'+svg(SKILL_ART[skill],40)+'</span><span class="level">'+level+'</span></span><b>'+NAMES[skill]+'</b><small>'+Math.floor(xp).toLocaleString()+' xp</small><span class="bar"><i style="width:'+pct+'%"></i><span>'+pct.toFixed(0)+'%</span></span>';b.addEventListener('click',()=>{skillFocus=skill;renderModal()});grid.append(b)}
+ grid.append(el('div','skill total','<span class="skill-top"><span class="ic">'+svg('coins',40)+'</span><span class="level">'+totalLevel()+'</span></span><b>Total level</b><small>Health '+me.hp+' / '+hpMax()+'</small>'));
+ layout.append(guide,grid);mBody.append(layout);
   mBody.append(el('h3','sub','Pets'));
   for(const sk of Object.keys(PETS)){
     const P=PETS[sk],st=save.pets[sk],row=el('div','shoprow');
@@ -1204,6 +999,7 @@ function rShop(){
   if(S.kinds.length)mBody.append(el('p','note','Open the Pack tab to sell spare gear here.'));
 }
 document.querySelectorAll('#mTabs button').forEach(b=>b.addEventListener('click',()=>openModal(b.dataset.tab)));
+document.querySelectorAll('[data-ui-open]').forEach(b=>b.addEventListener('click',()=>{tab===b.dataset.uiOpen?closeModal():openModal(b.dataset.uiOpen)}));
 $('mClose').addEventListener('click',closeModal);
 $('bMenu').addEventListener('click',()=>tab==='settings'?closeModal():openModal('settings'));
 $('bBag').addEventListener('click',()=>tab==='pack'?closeModal():openModal('pack'));
@@ -2489,6 +2285,7 @@ requestAnimationFrame(frame);
 })();
 </script>
 <!-- Cloudflare automatic-deployment test: 2026-11-04 -->
+
 
 
 
