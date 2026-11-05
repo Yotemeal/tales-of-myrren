@@ -1806,12 +1806,24 @@ function drawTree(n,x,y,now){
   for(let i=0;i<14;i++){const h=H2(sd,i),c=cl[h%cl.length],lx=x+c[0]+((h>>>4)%(c[2]*2))-c[2],ly=y+c[1]+((h>>>9)%(c[2]*2))-c[2];R(lx,ly,2,1,(h&1)?Hi:Ob)}
 }
 function drawRock(n,x,y,now){
-  const live=now>=n.back,A=live?'#aaa69a':'#7e7c74',B=live?'#8a867a':'#66645c',C=live?'#cbc7b9':'#908e86';
-  shadowE(x+6,y,11,3,.25);
-  R(x-10,y-5,20,7,OUT);R(x-8,y-11,16,13,OUT);R(x-9,y-8,18,9,OUT);
-  R(x-9,y-4,18,5,B);R(x-7,y-10,14,11,A);R(x-8,y-7,16,6,A);R(x-5,y-9,6,2,C);R(x-7,y-7,2,2,C);
-  R(x-9,y-1,18,2,B);R(x+3,y-8,4,7,B);R(x-1,y-6,1,3,B);
-  if(live){const RC={copper:['#e0803a','#f4b060'],tin:['#c8d0d8','#f4f8fc'],iron:['#7a8ca8','#b8c8dc'],coal:['#26262c','#5a5a64'],cobalt:['#3a7ae0','#8ab4f4'],aether:['#b070f0','#f0d0ff']},c=(RC[n.k]||RC.iron)[0],d=(RC[n.k]||RC.iron)[1];R(x-4,y-8,3,3,c);R(x+2,y-4,3,3,c);R(x-7,y-3,2,2,c);R(x+1,y-9,2,2,c);R(x-4,y-8,1,1,d);R(x+2,y-4,1,1,d)}
+  const live=now>=n.back,ore=n.k;
+  shadowE(x+3,y+1,15,4,.28);
+  // Broken strata and weathered boulders, rather than a flat grey oval.
+  const outline='#1b2725',base=live?'#626b66':'#4b544f',light='#a4a99a';
+  R(x-15,y-3,29,6,outline);R(x-12,y-12,24,13,outline);
+  R(x-13,y-5,27,7,'#343d39');R(x-10,y-12,21,12,base);
+  R(x-9,y-11,10,3,light);R(x+3,y-9,7,2,'#858f82');
+  R(x-14,y-4,7,3,'#51654d');R(x+8,y-4,5,3,'#3f5843');
+  R(x-6,y-8,2,5,'#303c38');R(x+3,y-10,2,5,'#303c38');
+  if(live){
+    const colors={copper:['#a9522f','#e8a46a'],tin:['#9eaeb0','#d8e5de'],iron:['#5d7891','#a6bdc8'],coal:['#1a2026','#69727b'],cobalt:['#2255a5','#78bbf3'],aether:['#7846aa','#d6b3ff']};
+    const c=colors[ore]||colors.iron;
+    for(const [dx,dy,w,h] of [[-7,-7,5,6],[2,-11,5,8],[8,-5,3,4]]){
+      R(x+dx-1,y+dy-1,w+2,h+2,'#25312f');
+      R(x+dx,y+dy,w,h,c[0]);R(x+dx+1,y+dy+1,Math.max(1,w-2),2,c[1]);
+      R(x+dx+w-2,y+dy+h-2,2,2,'#34453f');
+    }
+  }
 }
 function parts(list,O){
   for(const p of list)R(p[0]-1,p[1]-1,p[2]+2,p[3]+2,O);
@@ -2369,7 +2381,7 @@ function smoke(x,y,now,col){const t=now/800;for(let i=0;i<3;i++){const k=(t+i*.3
 function flagAt(x,y,col,now){const f=Math.floor(now/250)%2;R(x,y-9,1,10,'#3a2410');R(x+1,y-9,5+f,3,col);R(x+1,y-6,3+f,1,col)}
 // Ancient village-side trees are scenery only: no resource or collision changes.
 const VILLAGE_GROVE=[];
-for(let j=0;j<32;j++){
+for(let j=0;j<0;j++){ // retire oversized ancient groves blocking town views
   const a=j*2.3999632297,r=205+(j%4)*36+((j*17)%13);
   const gx=CX+Math.cos(a)*r,gy=CY+Math.sin(a)*r*.69;
   if(Math.abs(gx-CX)<255&&gy>CY-105&&gy<CY+100)continue;
@@ -2542,6 +2554,24 @@ function drawBuilding(b,x,y,now){
     R(chimneyX-7,top-16,15,3,'#393d35');
     smoke(chimneyX,top-20,now,'#c3c5ba');
   }
+  // Deep gables, overlapping slate shingles and climbing roof moss.
+  R(x-hw-11,top+8,w+22,3,'#222d29');
+  for(let k=0;k<5;k++){
+    const roofY=top+10+k*5,roofHalf=hw+8-Math.floor((4-k)*3);
+    for(let p=x-roofHalf;p<x+roofHalf;p+=7){
+      R(p,roofY,6,4,(k+p)%3===0?'#404e43':'#35453e');
+      R(p+1,roofY,4,1,'#7e8672');
+      if((Math.abs(p)+k*7)%5===0)R(p+2,roofY+2,4,2,'#6c8955');
+    }
+  }
+  R(x-7,top+4,14,15,'#282c27');
+  R(x-5,top+6,10,11,'#65513b');
+  R(x-2,top+8,4,7,'#c09a58');
+  R(x-1,top+8,2,5,'#f0c879');
+  for(const side of [-1,1]){
+    R(x+side*(hw-3),y-23,4,22,'#3b2e25');
+    R(x+side*(hw-3),y-21,2,17,'#9e8056');
+  }
   // A consistent hanging sign rather than five unrelated facades.
   R(x-hw+4,y-27,2,9,dark);
   R(x-hw+1,y-27,15,8,'#4b3928');
@@ -2654,6 +2684,14 @@ function drawOutdoor(cx,cy,now){
         R(px+6,py+7,3,2,'#86a16b');
       }
       if(v%17===2){R(px+2,py+3,4,2,'#263e30');R(px+4,py+2,5,2,'#54704a');R(px+9,py+11,3,1,'#9c7047');}
+      if(v%9===1){
+        R(px+5,py+12,2,3,'#597e4d');R(px+3,py+10,5,1,'#86a367');
+        R(px+7,py+9,4,1,'#73975c');R(px+6,py+7,1,6,'#304d37');
+      }
+      if(v%23===8){
+        R(px+4,py+8,2,2,'#b7a7bb');R(px+8,py+6,2,2,'#d3c5db');
+        R(px+5,py+10,1,3,'#496d43');R(px+9,py+8,1,3,'#496d43');
+      }
     }
   }
   for(const d of decals){const a=1-(now-d.t)/25000;ctx.globalAlpha=Math.max(0,a);const x=Math.round(d.x-cx),y=Math.round(d.y-cy);R(x-5,y-1,10,3,d.c);R(x-2,y-3,5,2,d.c);R(x+3,y+2,3,2,d.c);R(x-7,y+1,2,2,d.c);ctx.globalAlpha=1}
@@ -2684,7 +2722,7 @@ function drawOutdoor(cx,cy,now){
   // Water and bridge sit below actors and trees in the world depth list.
   if(CX+250>cx-150&&CX+250<cx+cv.width+150&&CY+112>cy-240&&CY+112<cy+cv.height+240)drawVillageFalls(cx,cy,now);
   for(const tree of VILLAGE_GROVE)if(tree.x>cx-100&&tree.x<cx+cv.width+100&&tree.y>cy-25&&tree.y<cy+cv.height+160)list.push({y:tree.y,f:()=>drawAncientTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
-  for(let i=0;i<46;i++){
+  for(let i=0;i<18;i++){
     const a=i*2.3999632297,r=160+(i%6)*20;
     const gx=CX+Math.cos(a)*r,gy=CY+Math.sin(a)*r*.72;
     if(Math.abs(gx-CX)<240&&gy>CY-95&&gy<CY+95)continue;
@@ -2712,7 +2750,7 @@ function drawOutdoor(cx,cy,now){
   list.sort((a,b)=>a.y-b.y);
   for(const e of list)e.f();
 }
-const GRASS=['#36583d','#406448','#4b7050'];
+const GRASS=['#263d31','#344d39','#3b5840'];
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;
   const cssW=cv.clientWidth,cssH=cv.clientHeight;
