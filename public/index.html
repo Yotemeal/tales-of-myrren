@@ -1955,7 +1955,8 @@ function drawApprovedPlayer(x,y,o,now){
   const direction = o.dv==='u' ? 3 : o.dv==='s' ? (o.f<0?1:2) : 0;
   const row = direction + (o.moving ? 4 : 0);
   const frame = o.moving ? Math.floor(now/140)%4 : 0;
-  const w=24,h=30;
+  // Native V31 resolution: one atlas pixel equals one world-render pixel.
+  const w=32,h=40;
   shadowE(x+1,y,7,2,.3);
   ctx.save();
   ctx.imageSmoothingEnabled=false;
@@ -1963,13 +1964,13 @@ function drawApprovedPlayer(x,y,o,now){
   ctx.restore();
   const age=now-(o.swingAt||-99999),swinging=age>=0&&age<320;
   const holding=o.tool&&o.tool!=='fist'&&(swinging||now<o.hold);
-  const f=o.f||1,hx=x+f*5,hy=y-8;
+  const f=o.f||1,hx=x+f*7,hy=y-11;
   if(o.tool==='fist'&&swinging){const d=Math.round(Math.sin(age/320*Math.PI)*6);ctx.save();ctx.translate(hx+f*d,hy);rrect(-1,-2,3,3,'#f0c49c','#2a1c18');ctx.restore()}
   else if(holding){drawTool(o.tool,o.mat,hx,hy,f,swinging?swingAng(age):-.35);ctx.save();ctx.translate(hx,hy);rrect(-1,-1,3,3,'#f0c49c','#2a1c18');ctx.restore()}
   const hurtAge=now-(me.hurtAt||-99999);
-  if(hurtAge>=0&&hurtAge<260){ctx.globalAlpha=.24;R(x-8,y-28,16,27,'#fff');ctx.globalAlpha=1}
-  label(o.name,x,y-32,o.col||'#ffffff');
-  if(o.waving)label('*waves*',x,y-44,'#ffffff');
+  if(hurtAge>=0&&hurtAge<260){ctx.globalAlpha=.24;R(x-11,y-38,22,36,'#fff');ctx.globalAlpha=1}
+  label(o.name,x,y-42,o.col||'#ffffff');
+  if(o.waving)label('*waves*',x,y-54,'#ffffff');
   return true;
 }
 function drawPerson(x,y,o,now){
