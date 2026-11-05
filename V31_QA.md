@@ -60,3 +60,10 @@ Open `/v31-equipment-preview.html` to inspect the actual renderer without readin
 or writing game saves. Select chest armour, legs and boots independently, stand or walk,
 pause/step each frame, and compare the original character. All four directions
 and all six tiers are visible on the same page.
+
+## Chest fit refinement
+
+Front/back chest panels are five native pixels wide instead of seven. The
+lower panel tapers to three pixels at rows 29–30 and one pixel at row 31.
+Shoulder caps are 2×1 pixels instead of 3×2. Profile art, head/neck and the
+approved boots/legs are unchanged.

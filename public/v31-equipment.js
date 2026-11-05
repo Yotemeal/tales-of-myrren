@@ -53,11 +53,11 @@ const V31Equipment = (() => {
         const span=side?profiles[row][row<4?0:frame]:null;
         const center=side?Math.round((span[0]+span[1])/2):(row===4&&frame===1?17:16);
         for(let y=top;y<=31;y++){
-          let left=side?(y<29?span[0]:span[2]):center-3;
-          let right=side?(y<29?span[1]:span[3]):center+3;
+          let left=side?(y<29?span[0]:span[2]):center-2;
+          let right=side?(y<29?span[1]:span[3]):center+2;
           // Short tapered hem meets the original waist without painting a
           // wide belt across it. It never reaches the approved leg artwork.
-          if(y===30&&!side){left++;right--;}
+          if(y>=29&&!side){left++;right--;}
           if(y===31){left++;right--;}
           for(let x=left;x<=right;x++){
             if(!alpha(x,y,row,frame))continue;
@@ -95,8 +95,9 @@ const V31Equipment = (() => {
         // the original shoulder skin can be covered; hair/neck are untouched.
         if(tier>1){
           const sy=back?26:25;
-          const caps=side?[(dir===1?span[1]-1:span[0])-1]:[center-5,center+3];
-          for(const sx of caps)for(let dy=0;dy<2;dy++)for(let dx=0;dx<3;dx++){
+          const caps=side?[(dir===1?span[1]-1:span[0])-1]:[center-4,center+3];
+          const capHeight=side?2:1,capWidth=side?3:2;
+          for(const sx of caps)for(let dy=0;dy<capHeight;dy++)for(let dx=0;dx<capWidth;dx++){
             const x=sx+dx,y=sy+dy;
             if(!alpha(x,y,row,frame))continue;
             const i=((oy+y)*128+ox+x)*4;
