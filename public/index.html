@@ -1941,14 +1941,29 @@ const HAIRS=['#7a4a2a','#d8b45a','#2e2a34','#a8502e','#c8c2c8'];
 // Approved V31 player sprite. NPCs keep their original renderer.
 const MYRREN_V31 = new Image();
 let myrrenV31Ready = false;
-MYRREN_V31.onload = () => { myrrenV31Ready = MYRREN_V31.naturalWidth === 128 && MYRREN_V31.naturalHeight === 320; };
+let myrrenV31FeetAtlas = null;
+MYRREN_V31.onload = () => {
+  myrrenV31Ready = MYRREN_V31.naturalWidth === 128 && MYRREN_V31.naturalHeight === 320;
+  if(!myrrenV31Ready)return;
+  // Prebuild a 32x42 atlas with four extra rows of visible lower-leg detail.
+  // Original approved 32x40 artwork remains untouched.
+  const atlas=document.createElement('canvas');
+  atlas.width=128;atlas.height=336;
+  const ac=atlas.getContext('2d');ac.imageSmoothingEnabled=false;
+  for(let row=0;row<8;row++)for(let frame=0;frame<4;frame++){
+    const sx=frame*32,sy=row*40,dy=row*42;
+    ac.drawImage(MYRREN_V31,sx,sy,32,38,sx,dy,32,38);
+    ac.drawImage(MYRREN_V31,sx,sy+34,32,4,sx,dy+38,32,4);
+  }
+  myrrenV31FeetAtlas=atlas;
+};
 MYRREN_V31.onerror = () => { myrrenV31Ready = false; };
 MYRREN_V31.src = '/hero_32x40_v31.png';
 function drawApprovedPlayer(x,y,o,now){
   // Emergency visual fallback: add ?classicSprite=1 to the game URL.
   // This changes only character rendering; saves and game state are untouched.
   if(new URLSearchParams(location.search).get('classicSprite')==='1')return false;
-  if(!myrrenV31Ready)return false;
+  if(!myrrenV31Ready||!myrrenV31FeetAtlas)return false;
   // Until equipment overlays exist, keep the original renderer for equipped armour.
   // This preserves visible helmets, chest pieces, leg armour and boots.
   if(o.g && o.g.slice(0,4).some(tier=>Number(tier)>0))return false;
@@ -1956,16 +1971,12 @@ function drawApprovedPlayer(x,y,o,now){
   const row = direction + (o.moving ? 4 : 0);
   const frame = o.moving ? Math.floor(now/140)%4 : 0;
   // Native V31 resolution: one atlas pixel equals one world-render pixel.
-  const w=32,h=40;
+  const w=32,h=42;
   shadowE(x+1,y,7,2,.3);
   ctx.save();
   ctx.imageSmoothingEnabled=false;
-  const spriteLeft=Math.round(x-w/2),spriteTop=Math.round(y-h);
-  ctx.drawImage(MYRREN_V31,frame*32,row*40,32,40,spriteLeft,spriteTop,w,h);
-  // The approved atlas leaves its final two rows transparent, making the feet
-  // appear abruptly cut short. Extend only the existing lower-leg pixels into
-  // that gap; preserve the original atlas and every other body detail.
-  ctx.drawImage(MYRREN_V31,frame*32,row*40+36,32,2,spriteLeft,spriteTop+38,w,2);
+  ctx.drawImage(myrrenV31FeetAtlas,frame*32,row*42,32,42,
+                Math.round(x-w/2),Math.round(y-h),w,h);
   ctx.restore();
   const age=now-(o.swingAt||-99999),swinging=age>=0&&age<320;
   const holding=o.tool&&o.tool!=='fist'&&(swinging||now<o.hold);
@@ -1974,8 +1985,8 @@ function drawApprovedPlayer(x,y,o,now){
   else if(holding){drawTool(o.tool,o.mat,hx,hy,f,swinging?swingAng(age):-.35);ctx.save();ctx.translate(hx,hy);rrect(-1,-1,3,3,'#f0c49c','#2a1c18');ctx.restore()}
   const hurtAge=now-(me.hurtAt||-99999);
   if(hurtAge>=0&&hurtAge<260){ctx.globalAlpha=.24;R(x-11,y-38,22,36,'#fff');ctx.globalAlpha=1}
-  label(o.name,x,y-42,o.col||'#ffffff');
-  if(o.waving)label('*waves*',x,y-54,'#ffffff');
+  label(o.name,x,y-44,o.col||'#ffffff');
+  if(o.waving)label('*waves*',x,y-56,'#ffffff');
   return true;
 }
 function drawPerson(x,y,o,now){
