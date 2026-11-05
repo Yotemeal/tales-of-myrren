@@ -1969,7 +1969,41 @@ function drawApprovedPlayer(x,y,o,now){
   if(o.waving)label('*waves*',x,y-44,'#ffffff');
   return true;
 }
+// Approved V31 base character atlas (32x40 cells, 4 cols x 8 rows).
+// Falls back to the existing player renderer until the image is loaded.
+const MYRREN_V31=new Image();
+MYRREN_V31.decoding='async';
+MYRREN_V31.src='/assets/myrren-hero-v31.png?v=31';
+function drawApprovedMyrrenV31(x,y,o,now){
+  if(!MYRREN_V31.complete||MYRREN_V31.naturalWidth!==128||MYRREN_V31.naturalHeight!==320)return false;
+  const dv=o.dv||'d';
+  const dir=dv==='u'?3:dv==='s'?(o.f<0?1:2):0;
+  const col=o.moving?Math.floor(now/140)%4:0;
+  const row=dir+(o.moving?4:0);
+  shadowE(x+1,y,7,2,.3);
+  ctx.drawImage(MYRREN_V31,col*32,row*40,32,40,Math.round(x-12),Math.round(y-30),24,30);
+  const age=now-(o.swingAt||-99999);
+  const swinging=age>=0&&age<320;
+  const holding=o.tool&&o.tool!=='fist'&&(swinging||now<o.hold);
+  const f=o.f||1;
+  const hx=x+f*7,hy=y-10;
+  if(holding){
+    drawTool(o.tool,o.mat,hx,hy,f,swinging?swingAng(age):-.35);
+    rrect(hx-1,hy-1,3,3,'#f0c49c','#2a1c18');
+  }else if(o.tool==='fist'&&swinging){
+    const d=Math.round(Math.sin(age/320*Math.PI)*5);
+    rrect(hx+f*d-1,hy-2,3,3,'#f0c49c','#2a1c18');
+  }
+  const hurtAge=now-(me.hurtAt||-99999);
+  if(hurtAge>=0&&hurtAge<260&&Math.floor(now/55)%2===0){
+    ctx.save();ctx.globalAlpha=.25;R(x-11,y-26,22,24,'#fff');ctx.restore();
+  }
+  label(o.name,x,y-35,o.col||'#ffffff');
+  if(o.waving)label('*waves*',x,y-44,'#ffffff');
+  return true;
+}
 function drawPerson(x,y,o,now){
+  if(o.isMe&&drawApprovedMyrrenV31(x,y,o,now))return;
   if(o.isMe && drawApprovedPlayer(x,y,o,now)) return;
   const f=o.f,mv=!!o.moving,ph=Math.floor(now/110)%4,g=o.g||[0,0,0,0,0],dv=o.dv||'d';
   let gh=MATS[g[0]],gb=MATS[g[1]],gl=MATS[g[2]],gt=MATS[g[3]],gs=MATS[g[4]];
@@ -2418,7 +2452,7 @@ function drawOutdoor(cx,cy,now){
   if(started)list.push({y:me.y,f:()=>{
     const sx=Math.round(me.x-cx),sy=Math.round(me.y-cy);
     drawPerson(sx,sy,{dv:me.dv,f:me.face,moving:me.moving,hue:me.hue,isMe:1,name:save.name||'Wanderer',col:'#ffe14a',tool:me.tool,mat:me.mat,hold:me.hold,swingAt:me.swing,waving:now<me.wave,g:gearArr(),dye:save.dye},now);
-    if(me.hp<hpMax())bar(sx,sy-(eqDef('head')?33:29),me.hp/hpMax());
+    if(me.hp<hpMax())bar(sx,sy-(MYRREN_V31.naturalWidth===128?36:(eqDef('head')?33:29)),me.hp/hpMax());
     drawFishFx(cx,cy,now);
   }});
   list.sort((a,b)=>a.y-b.y);
