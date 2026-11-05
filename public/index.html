@@ -274,6 +274,7 @@ button{font-family:inherit;font-size:inherit;color:inherit}
 </div>
 
 <script src="/v31-feet.js?v=1"></script>
+<script src="/v31-equipment.js?v=1"></script>
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
@@ -326,14 +327,14 @@ const ITEMS={
   copper:{art:'ore',pal:{o:'#e0803a'},name:'Copper Chunk'},
   tin:{art:'ore',pal:{o:'#d4dce4'},name:'Tin Chunk'},
   iron:{art:'ore',pal:{o:'#8c4a2a'},name:'Iron Chunk'},
-  cobalt:{art:'ore',pal:{o:'#3a7ae0',R:'#6a7a9a'},name:'Cobalt Chunk'},
-  aether:{art:'ore',pal:{o:'#c07aff',R:'#7a6aa0',r:'#3a2a5a'},name:'Aether Shard'},
+  cobalt:{art:'ore',pal:{o:'#72727c',R:'#41434b'},name:'Black Iron Chunk'},
+  aether:{art:'ore',pal:{o:'#a4b29a',R:'#626e60',r:'#354438'},name:'Myrrenite Chunk'},
   coal:{art:'ore',pal:{o:'#2a2a2e',R:'#4a4a50',r:'#1a1a1e'},name:'Coal Flakes'},
   ing_bronze:{art:'ingot',pal:{M:'#c9803a',h:'#ecb070',d:'#6a3e16'},name:'Bronze Ingot'},
   ing_iron:{art:'ingot',pal:{M:'#9fb0b8',h:'#d6e2e8',d:'#4a5860'},name:'Iron Ingot'},
   ing_steel:{art:'ingot',pal:{M:'#b5cadb',h:'#f4fbff',d:'#40586e'},name:'Steel Ingot'},
-  ing_cobalt:{art:'ingot',pal:{M:'#3f6fc4',h:'#8ab4f4',d:'#1c3270'},name:'Cobalt Ingot'},
-  ing_aether:{art:'ingot',pal:{M:'#9a5ae0',h:'#e0b8ff',d:'#442a7a'},name:'Aether Ingot'},
+  ing_cobalt:{art:'ingot',pal:{M:'#41434b',h:'#72727c',d:'#292a32'},name:'Black Iron Ingot'},
+  ing_aether:{art:'ingot',pal:{M:'#626e60',h:'#a4b29a',d:'#354438'},name:'Myrrenite Ingot'},
   bait:{art:'bait',name:'Bait'},
   coal_pouch:{art:'bag',pal:{M:'#4a4a52',H:'#7a7a86',D:'#1a1a1e'},name:'Coal Pouch'},
   bread:{art:'bread',name:'Bread'},
@@ -375,14 +376,14 @@ const MATS=[null,
   {k:'bronze',n:'Bronze',M:'#c9803a',H:'#ecb070',D:'#6a3e16',req:1},
   {k:'iron',n:'Iron',M:'#9fb0b8',H:'#d6e2e8',D:'#4a5860',req:15},
   {k:'steel',n:'Steel',M:'#b5cadb',H:'#f4fbff',D:'#40586e',req:25},
-  {k:'cobalt',n:'Cobalt',M:'#3f6fc4',H:'#8ab4f4',D:'#1c3270',req:45},
-  {k:'aether',n:'Aether',M:'#9a5ae0',H:'#e0b8ff',D:'#442a7a',req:75}];
+  {k:'cobalt',n:'Black Iron',M:'#41434b',H:'#72727c',D:'#292a32',req:45},
+  {k:'aether',n:'Myrrenite',M:'#626e60',H:'#a4b29a',D:'#354438',req:75}];
 const KINDS={
   sword:{slot:'weapon',art:'sword',skill:'melee',mats:[2,3,4,5,6],price:[25,150,700,3500,18000],atk:[1,3,6,12,22],nm:{d:'sword'}},
   axe:{slot:'weapon',art:'axe',skill:'woodcutting',mats:[2,3,4,5,6],price:[20,120,600,3000,15000],nm:{d:'hatchet'}},
   pick:{slot:'weapon',art:'pick',skill:'mining',mats:[2,3,4,5,6],price:[20,120,600,3000,15000],nm:{d:'pickaxe'}},
   net:{slot:'weapon',art:'net',skill:'fishing',mats:[1,3,4],price:[12,110,550],full:true,nm:{1:'Small net',3:'Iron-hoop net',4:'Steel-hoop net'}},
-  rod:{slot:'weapon',art:'rod',skill:'fishing',mats:[2,3,4,5,6],price:[30,160,800,4000,20000],reqs:[5,20,35,55,80],full:true,nm:{2:'Willow rod',3:'Ironwood rod',4:'Steel-tip rod',5:'Cobalt-line rod',6:'Aether rod'}},
+  rod:{slot:'weapon',art:'rod',skill:'fishing',mats:[2,3,4,5,6],price:[30,160,800,4000,20000],reqs:[5,20,35,55,80],full:true,nm:{2:'Willow rod',3:'Ironwood rod',4:'Steel-tip rod',5:'Black Iron-line rod',6:'Myrrenite rod'}},
   ring:{slot:'ring',art:'ring',skill:'melee',mats:[2,3,4],price:[40,200,900],atk:[1,2,3],def:[0,1,2],nm:{d:'ring'}},
   amulet:{slot:'neck',art:'amulet',skill:'melee',mats:[2,3,4],price:[50,240,1000],def:[2,3,5],nm:{d:'amulet'}},
   helm:{slot:'head',art:'helm',skill:'melee',mats:[1,2,3,4,5,6],price:[10,45,220,900,3600,14000],def:[1,2,4,7,11,16],nm:{1:'cap',d:'helm'}},
@@ -436,8 +437,8 @@ const NT={
   tin:{name:'Tin rock',skill:'mining',tool:'pick',req:1,xp:18,item:'tin',base:.32,dep:1,rt:[8,14],verb:'mine'},
   iron:{name:'Iron rock',skill:'mining',tool:'pick',req:15,xp:45,item:'iron',base:.2,dep:1,rt:[12,20],verb:'mine'},
   coal:{name:'Coal seam',skill:'mining',tool:'pick',req:25,xp:75,item:'coal',base:.2,dep:1,rt:[14,22],verb:'mine'},
-  cobalt:{name:'Cobalt rock',skill:'mining',tool:'pick',req:45,xp:210,item:'cobalt',base:.15,dep:1,rt:[18,28],verb:'mine'},
-  aether:{name:'Aether crystal',skill:'mining',tool:'pick',req:75,xp:900,item:'aether',base:.1,dep:1,rt:[24,36],verb:'mine'}
+  cobalt:{name:'Black Iron rock',skill:'mining',tool:'pick',req:45,xp:210,item:'cobalt',base:.15,dep:1,rt:[18,28],verb:'mine'},
+  aether:{name:'Myrrenite rock',skill:'mining',tool:'pick',req:75,xp:900,item:'aether',base:.1,dep:1,rt:[24,36],verb:'mine'}
 };
 const TREEK=['tree','oak','maple','elder','myrren'];
 const TOOLNAME={axe:'a hatchet',pick:'a pickaxe',net:'a net',rod:'a fishing rod'};
@@ -1081,7 +1082,7 @@ function rOdd(){
   });
   mBody.append(el('h3','sub','Master armour dyes'));
   const ok=maxSkill()>=85;
-  mBody.append(el('p','note',ok?'Recolours steel, cobalt and aether armour you wear.':'Needs level 85 in any skill. Recolours steel, cobalt and aether armour you wear.'));
+  mBody.append(el('p','note',ok?'Recolours steel, Black Iron and Myrrenite armour you wear.':'Needs level 85 in any skill. Recolours steel, Black Iron and Myrrenite armour you wear.'));
   DYES.forEach((d,i)=>{
     const owned=!!save.perks['dye'+i],row=el('div','shoprow');
     row.innerHTML='<span style="width:32px;height:32px;flex:none;background:'+d.M+';box-shadow:inset 0 0 0 3px '+d.H+',0 0 0 1px #000"></span><span>'+d.n+' dye<small>'+(owned?(save.dye===i?'Applied':'Owned'):'800 tokens')+'</small></span>';
@@ -1943,12 +1944,16 @@ const HAIRS=['#7a4a2a','#d8b45a','#2e2a34','#a8502e','#c8c2c8'];
 const MYRREN_V31 = new Image();
 let myrrenV31Ready = false;
 let myrrenV31FeetAtlas = null;
+let myrrenV31Equipment = null;
 MYRREN_V31.onload = () => {
   myrrenV31Ready = MYRREN_V31.naturalWidth === 128 && MYRREN_V31.naturalHeight === 320;
   if (myrrenV31Ready) {
     myrrenV31FeetAtlas = MYRREN_V31;
     if (typeof buildV31FeetAtlas === 'function') {
       try { myrrenV31FeetAtlas = buildV31FeetAtlas(MYRREN_V31); } catch (_) {}
+    }
+    if (typeof V31Equipment !== 'undefined') {
+      try { myrrenV31Equipment = V31Equipment.make(myrrenV31FeetAtlas); } catch (_) {}
     }
   }
 };
@@ -1959,9 +1964,14 @@ function drawApprovedPlayer(x,y,o,now){
   // This changes only character rendering; saves and game state are untouched.
   if(new URLSearchParams(location.search).get('classicSprite')==='1')return false;
   if(!myrrenV31Ready)return false;
-  // Until equipment overlays exist, keep the original renderer for equipped armour.
-  // This preserves visible helmets, chest pieces, leg armour and boots.
-  if(o.g && o.g.slice(0,4).some(tier=>Number(tier)>0))return false;
+  // Lower-body Design B layers preserve the native V31 character. Upper-body
+  // armour and shields retain their existing renderer until their art is ready.
+  const gear=o.g||[0,0,0,0,0];
+  if(gear[0]||gear[1]||gear[4])return false;
+  if((gear[2]||gear[3])&&!myrrenV31Equipment)return false;
+  const sprite=myrrenV31Equipment
+    ? myrrenV31Equipment.get(gear[2],gear[3],o.dye!=null?DYES[o.dye]:null)
+    : myrrenV31FeetAtlas;
   const direction = o.dv==='u' ? 3 : o.dv==='s' ? (o.f<0?1:2) : 0;
   const row = direction + (o.moving ? 4 : 0);
   const frame = o.moving ? Math.floor(now/140)%4 : 0;
@@ -1970,7 +1980,7 @@ function drawApprovedPlayer(x,y,o,now){
   shadowE(x+1,y,7,2,.3);
   ctx.save();
   ctx.imageSmoothingEnabled=false;
-  ctx.drawImage(myrrenV31FeetAtlas,frame*32,row*40,32,40,
+  ctx.drawImage(sprite,frame*32,row*40,32,40,
                 Math.round(x-w/2),Math.round(y-h),w,h);
   ctx.restore();
   const age=now-(o.swingAt||-99999),swinging=age>=0&&age<320;

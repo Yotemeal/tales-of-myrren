@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Myrren — Design B equipment test</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;color:#efe5ce;background:#171b1a}*{box-sizing:border-box}body{margin:0}main{max-width:1120px;margin:auto;padding:28px 20px}h1{font:600 clamp(25px,4vw,38px) Georgia,serif;margin:6px 0 12px}.eyebrow{font-size:11px;letter-spacing:.18em;color:#c4ab77}p{color:#bbc5b8;line-height:1.5}.panel{border:1px solid #56614f;border-radius:12px;background:#222a24;padding:18px;margin:20px 0}.controls{display:flex;flex-wrap:wrap;gap:14px;align-items:end}label{display:grid;gap:7px;font-size:13px;color:#d5d4bd}select,button{font:inherit;color:#f2e6cb;background:#343c31;border:1px solid #7b8464;border-radius:7px;padding:10px 12px;cursor:pointer}button:focus-visible,select:focus-visible{outline:2px solid #f4cb78;outline-offset:3px}canvas{display:block;width:100%;height:auto;image-rendering:pixelated;border-radius:8px;background:#829e68}.caption{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#cfbd94}.note{font-size:13px;max-width:800px}a{color:#e8c788}.status{min-height:24px;color:#e6c889;font-size:13px}.check{display:flex;align-items:center;gap:8px;padding-bottom:10px}.check input{accent-color:#c7ad73}
+</style></head><body><main>
+<div class="eyebrow">TALES OF MYRREN · V31 · DESIGN B</div><h1>Boots &amp; leg armour</h1>
+<p>Independent equipment layers on the approved character. Front, left, right and back use the same animation frames and foot anchor as the game.</p>
+<section class="panel"><div class="controls">
+<label>Leg armour<select id="legs"><option value="0">None</option><option value="1">Leather</option><option value="2">Bronze</option><option value="3">Iron</option><option value="4" selected>Steel</option><option value="5">Black Iron</option><option value="6">Myrrenite</option></select></label>
+<label>Boots<select id="boots"><option value="0">Bare feet</option><option value="1">Leather</option><option value="2">Bronze</option><option value="3">Iron</option><option value="4" selected>Steel</option><option value="5">Black Iron</option><option value="6">Myrrenite</option></select></label>
+<label>Motion<select id="motion"><option value="walk">Walking</option><option value="idle">Standing</option></select></label>
+<button id="pause">Pause</button><button id="step">Next frame</button>
+<label class="check"><input type="checkbox" id="original">Compare original character</label>
+</div><p class="status" id="status">Loading V31…</p>
+<canvas id="detail" width="768" height="280" aria-label="Four directions of the selected leg armour and boots"></canvas>
+<p class="note">The upper body and hair stay V31. Boots can be worn without leg armour, and leg armour can be worn with bare feet or boots of a different tier. This test does not read or write game saves.</p></section>
+<section class="panel"><div class="caption">All six tiers · same animation frame</div><p>Leather → Bronze → Iron → Steel → Black Iron → Myrrenite</p>
+<canvas id="lineup" width="960" height="840" aria-label="Six material tiers in four directions"></canvas></section>
+<p class="note">This stage covers boots and legs. Helmets, chest armour and shields retain their existing renderer until their V31 designs are ready. <a href="/">Return to game</a></p>
+</main><script src="/v31-feet.js?v=1"></script><script src="/v31-equipment.js?v=1"></script><script src="/v31-equipment-preview.js?v=1"></script></body></html>
