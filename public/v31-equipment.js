@@ -209,12 +209,14 @@ const V31Equipment = (() => {
       const ink='#24212b',gem=tier===5?'#e9a46b':'#83e3cf',gemD=tier===5?'#985b48':'#418c85';
       for(let row=0;row<8;row++)for(let frame=0;frame<4;frame++){
         const ox=frame*32,oy=row*40,dir=row%4,side=dir===1||dir===2,back=dir===3,cx=headCenters[row][frame],s=dir===1?-1:1;
-        c.clearRect(ox,oy,32,25);
+        // Row 24 is the original neck/under-jaw outline, including dark pixels.
+        // Keep it intact: skin-only face reconstruction cannot recover it.
+        c.clearRect(ox,oy,32,24);
         const put=(x,y,col)=>{x=Math.round(x);y=Math.round(y);if(x<0||x>31||y<0||y>24)return;c.fillStyle=col;c.fillRect(ox+x,oy+y,1,1)};
         const r=(x,y,w,h,col)=>{for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++)put(cx+Math.round((x+xx)*(side?.78:1)),y+yy,col)};
         const line=(x0,y0,x1,y1,col,w=1)=>{const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0));for(let i=0;i<=n;i++)r(x0+(x1-x0)*i/(n||1),y0+(y1-y0)*i/(n||1),w,w,col)};
         // Preserve the actual face, including eyes between the skin pixels.
-        if(!back)for(let y=17;y<25;y++){
+        if(!back)for(let y=17;y<24;y++){
           let left=32,right=-1;
           for(let x=0;x<32;x++){const i=((oy+y)*128+ox+x)*4;if(pixels[i+3]&&pixels[i]>110&&pixels[i]>pixels[i+1]*1.1&&pixels[i+1]>pixels[i+2]*1.05){left=Math.min(left,x);right=Math.max(right,x)}}
           if(right>=left){put(left-1,y,ink);put(right+1,y,ink);for(let x=left;x<=right;x++){const i=((oy+y)*128+ox+x)*4;put(x,y,'rgb('+pixels[i]+','+pixels[i+1]+','+pixels[i+2]+')')}}
