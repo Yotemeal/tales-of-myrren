@@ -273,6 +273,7 @@ button{font-family:inherit;font-size:inherit;color:inherit}
   </div>
 </div>
 
+<script src="/v31-feet.js?v=1"></script>
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
@@ -1941,8 +1942,15 @@ const HAIRS=['#7a4a2a','#d8b45a','#2e2a34','#a8502e','#c8c2c8'];
 // Approved V31 player sprite. NPCs keep their original renderer.
 const MYRREN_V31 = new Image();
 let myrrenV31Ready = false;
+let myrrenV31FeetAtlas = null;
 MYRREN_V31.onload = () => {
   myrrenV31Ready = MYRREN_V31.naturalWidth === 128 && MYRREN_V31.naturalHeight === 320;
+  if (myrrenV31Ready) {
+    myrrenV31FeetAtlas = MYRREN_V31;
+    if (typeof buildV31FeetAtlas === 'function') {
+      try { myrrenV31FeetAtlas = buildV31FeetAtlas(MYRREN_V31); } catch (_) {}
+    }
+  }
 };
 MYRREN_V31.onerror = () => { myrrenV31Ready = false; };
 MYRREN_V31.src = '/hero_32x40_v31.png';
@@ -1962,7 +1970,7 @@ function drawApprovedPlayer(x,y,o,now){
   shadowE(x+1,y,7,2,.3);
   ctx.save();
   ctx.imageSmoothingEnabled=false;
-  ctx.drawImage(MYRREN_V31,frame*32,row*40,32,40,
+  ctx.drawImage(myrrenV31FeetAtlas,frame*32,row*40,32,40,
                 Math.round(x-w/2),Math.round(y-h),w,h);
   ctx.restore();
   const age=now-(o.swingAt||-99999),swinging=age>=0&&age<320;
@@ -2515,3 +2523,4 @@ requestAnimationFrame(frame);
 })();
 </script>
 <!-- Cloudflare automatic-deployment test: 2026-11-04 -->
+
