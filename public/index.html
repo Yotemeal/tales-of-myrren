@@ -355,11 +355,11 @@ const SELL={logs:4,oak:8,maple:20,elder:60,myrren:180,copper:6,tin:6,iron:14,coa
 const FOOD={bread:{heal:5,price:6},pie:{heal:10,price:18},stew:{heal:20,price:45},shrimp:{heal:4},trout:{heal:9},salmon:{heal:15},tuna:{heal:28},eel:{heal:45}};
 const COOK={rshrimp:{to:'shrimp',req:1,xp:30},rtrout:{to:'trout',req:12,xp:70},rsalmon:{to:'salmon',req:25,xp:120},rtuna:{to:'tuna',req:40,xp:260},reel:{to:'eel',req:70,xp:800}};
 const SHOPS={
-  axe:{name:"Fellers' Hatchets",sign:'Hatchets',keeper:'Brann',wall:'#b8a888',roof:'#3f7a3a',hue:110,hair:'#8a5a30',cats:{Hatchets:['axe']},kinds:['axe'],buys:['logs','oak','maple','elder','myrren'],greet:'Brann: A sharp hatchet makes light work of any tree. I buy logs too.'},
+  axe:{name:'Woodland Town Hall',sign:'Town Hall',keeper:'Brann',wall:'#b8a888',roof:'#3f7a3a',hue:110,hair:'#8a5a30',cats:{Hatchets:['axe']},kinds:['axe'],buys:['logs','oak','maple','elder','myrren'],greet:'Brann: Welcome to town hall. I buy timber for the village. Dorn at the open forge sells axes.'},
   pick:{name:'Deepdig Picks',sign:'Picks',keeper:'Hilda',wall:'#a8a8a0',roof:'#5a6270',hue:210,hair:'#c8c0b0',cats:{Pickaxes:['pick']},kinds:['pick'],buys:['copper','tin','iron','coal','cobalt','aether'],greet:'Hilda: Pickaxes for every rock. I pay well for raw chunks and coal.'},
   food:{name:'Hearth Bakery',sign:'Bakery',keeper:'Mara',wall:'#d4b890',roof:'#d8863a',hue:30,hair:'#4a2a18',food:true,cats:{},kinds:[],buys:[],greet:'Mara: Fresh bread, pies and stew. Eat up before you fight.'},
   fish:{name:'Tidewater Rods',sign:'Fishing',keeper:'Odo',wall:'#9ab0c0',roof:'#3a6a9a',hue:200,hair:'#d8d8c8',bait:true,cats:{Nets:['net'],Rods:['rod']},kinds:['net','rod'],buys:['rshrimp','rtrout','rsalmon','rtuna','reel','shrimp','trout','salmon','tuna','eel'],greet:'Odo: A net for the shallows, a rod and bait for the deep. I buy your catch, raw or cooked.'},
-  arms:{name:'Ironmonger',sign:'Smithy',keeper:'Dorn',wall:'#a89c9c',roof:'#a8422a',hue:0,hair:'#2a2a30',cats:{Weapons:['sword'],Armour:['helm','body','gloves','legs','boots','shield'],Smelt:[],Forge:[],Repair:[]},kinds:['sword','helm','body','gloves','legs','boots','shield','ring','amulet'],buys:['ing_bronze','ing_iron','ing_steel','ing_cobalt','ing_aether'],greet:'Dorn: Blades and armour, forged to last. Bring me chunks and coal and I will smelt and forge for you.'}
+  arms:{name:'Woodland Open Forge',sign:'Forge',keeper:'Dorn',wall:'#a89c9c',roof:'#a8422a',hue:0,hair:'#2a2a30',cats:{Axes:['axe'],Weapons:['sword'],Armour:['helm','body','gloves','legs','boots','shield'],Smelt:[],Forge:[],Repair:[]},kinds:['axe','sword','helm','body','gloves','legs','boots','shield','ring','amulet'],buys:['ing_bronze','ing_iron','ing_steel','ing_cobalt','ing_aether'],greet:'Dorn: Axes, blades and armour for sale. Use the furnace and anvil to train your smithing.'}
 };
 for(const k in SHOPS)SHOPS[k].id=k;
 const SHOPMAX={rod:4,net:1};
@@ -2097,11 +2097,11 @@ function artPx(key,x,y,sz,pal2){const a=ART[key],pal=Object.assign({},a.p,pal2||
 const matPal=m=>({M:MATS[m].M,H:MATS[m].H,D:MATS[m].D,S:MATS[m].H});
 function shelfSpecs(id){
   const g=(kind,m)=>({key:KINDS[kind].art,pal:matPal(m)});
-  if(id==='axe')return [g('axe',2),g('axe',3),g('axe',4),{key:'log'},{key:'log',pal:ITEMS.oak.pal},{key:'log'}];
+  if(id==='axe')return [{key:'log'},{key:'log',pal:ITEMS.oak.pal},{key:'log'},{key:'log'},{key:'log'},{key:'log'}];
   if(id==='pick')return [g('pick',2),g('pick',3),g('pick',4),{key:'ore',pal:ITEMS.copper.pal},{key:'ore',pal:ITEMS.iron.pal},{key:'ore',pal:ITEMS.copper.pal}];
   if(id==='fish')return [g('net',1),g('net',3),g('net',4),{key:'fish',pal:ITEMS.rshrimp.pal},{key:'fish',pal:ITEMS.rtrout.pal},{key:'fish',pal:ITEMS.rsalmon.pal}];
   if(id==='food')return [{key:'bread'},{key:'pie'},{key:'bowl'},{key:'bread'},{key:'pie'},{key:'bowl'}];
-  return [g('sword',2),g('sword',4),g('helm',3),g('shield',2),g('body',3),g('boots',4)];
+  return [g('axe',2),g('axe',4),g('sword',2),g('helm',3),g('body',3),g('boots',4)];
 }
 function leaf(x,y,s,fl){
   const m=(a,w)=>s>0?x+a:x-a-w;
@@ -2301,7 +2301,15 @@ function drawBuilding(b,x,y,now){
     flagAt(x,top,'#5a7aaa',now);
   }else if(id==='arms'){
     brick(x-hw,y-20,w,20,'#8a8680','#5e5a54','#b0aca2');
-    bDoor(x,y,'#3a3a44','#4a4a54');R(x,y-16,1,16,'#1a1a20');
+    // Open timber workshop bay with no door.
+    R(x-13,y-21,26,22,'#32291f');
+    R(x-11,y-20,22,20,'#5a4933');
+    R(x-11,y-4,22,4,'#aa8455');
+    R(x-15,y-22,4,23,'#6a4329');R(x+11,y-22,4,23,'#6a4329');
+    R(x-8,y-9,11,3,'#323b42');R(x-6,y-12,7,3,'#87929a');
+    R(x-4,y-6,3,6,'#4b5156');
+    R(x+4,y-17,7,12,'#3a2920');R(x+5,y-15,5,9,'#b34b24');
+    R(x+6,y-13,3,6,Math.floor(now/170)%2?'#ffb24a':'#ffdc68');
     const fl=Math.floor(now/140)%2;R(x+hw-17,y-16,11,10,'#2a1810');R(x+hw-16,y-15,9,8,fl?'#ff7b3a':'#ffa04a');R(x+hw-14,y-13,5,5,'#ffd24a');R(x+hw-17,y-16,11,1,'#6e6a64');
     R(x-hw+3,top-18,12,30,OUT);brick(x-hw+4,top-17,10,28,'#a8a498','#7e7a6e','#cbc7b9');R(x-hw+2,top-20,14,4,OUT);R(x-hw+3,top-19,12,2,'#7e7a6e');R(x-hw+5,top-19,8,1,'#2a2420');
     slateRoof(x,top,rw,Hh,SLATE_D,21,null);
@@ -2357,7 +2365,14 @@ function drawInterior(cx,cy,now){
   else if(inside.id==='pick'){R(X(5),Y(32),24,10,'#4b5560');R(X(7),Y(29),20,4,'#7c8a93');R(X(8),Y(25),4,4,'#e0803a');R(X(16),Y(26),4,3,'#8c4a2a');R(X(9),Y(42),5,3,'#222');R(X(21),Y(42),5,3,'#222')}
   else if(inside.id==='food'){const f=Math.floor(now/140)%3;R(X(3),Y(12),28,32,'#6a5a4a');R(X(3),Y(12),28,3,'#8a7a68');R(X(8),Y(24),18,16,'#2a1810');R(X(11),Y(31-f),12,9+f,'#ff7b3a');R(X(14),Y(28-f),6,8+f,'#ffd24a')}
   else if(inside.id==='fish'){R(X(4),Y(10),26,34,'#5a4a30');R(X(5),Y(11),24,32,'#c8b888');for(let i=0;i<8;i++)for(let j=0;j<8;j++)if((i+j)&1)R(X(6+i*3),Y(12+j*4),2,3,'#8a7a58');R(X(5),Y(11),24,2,'#6a4422');for(let i=0;i<4;i++)R(X(8+i*6),Y(40),3,3,'#e8e0d0')}
-  else{R(X(7),Y(31),22,5,'#6c778a');R(X(11),Y(36),14,5,'#3c4658');R(X(8),Y(27),8,4,'#8b97ab');R(X(12),Y(41),12,3,'#2c3340')}
+  else{
+    const flame=Math.floor(now/160)%3;
+    R(X(5),Y(14),29,31,'#49372b');R(X(8),Y(19),23,23,'#28211c');
+    R(X(11),Y(26),17,15,'#9c3f1e');R(X(13),Y(29-flame),13,12+flame,'#f58230');
+    R(X(17),Y(31-flame),6,10+flame,'#ffcf55');
+    R(X(42),Y(33),24,6,'#343c47');R(X(47),Y(27),15,6,'#8797a4');
+    R(X(50),Y(39),8,8,'#525d68');R(X(44),Y(46),20,3,'#33343a');
+  }
   R(X(148),Y(26),20,18,'#3a2410');R(X(149),Y(27),18,16,'#7a5230');R(X(149),Y(31),18,2,'#3a2410');R(X(149),Y(38),18,2,'#3a2410');R(X(152),Y(27),2,16,'rgba(255,255,255,.18)');
   const list=[];
   list.push({y:54,f:()=>drawPerson(X(88),Y(54),{f:1,moving:false,hue:S.hue,name:S.keeper,col:'#7ad7ff',apron:true,hair:S.hair,tool:'',mat:2,hold:0,swingAt:-9999,waving:false,g:[0,0,0,0,0]},now)});
