@@ -3,7 +3,7 @@
 const E=MyrrenEnvironment,W=MyrrenWorld,scene=document.querySelector('#scene'),c=scene.getContext('2d'),atlas=document.querySelector('#atlas'),a=atlas.getContext('2d');
 let mode='village',hero=null;
 const im=new Image();im.onload=()=>{hero=buildV31FeetAtlas(im)};im.src='/hero_32x40_v31.png';
-const caption={village:'Village island · staggered cottages, open blacksmith and one bridge crossing',woodland:'Ancient woodland · buttress roots, hanging vines and resource trees',lakeside:'Lakeside · natural shallow banks and animated fish shoals'};
+const caption={village:'Village island · staggered cottages, open blacksmith and two bridge crossings',woodland:'Ancient woodland · buttress roots, hanging vines and resource trees',lakeside:'Lakeside · natural shallow banks and animated fish shoals'};
 document.querySelectorAll('[data-scene]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.scene;document.querySelectorAll('[data-scene]').forEach(q=>q.setAttribute('aria-pressed',String(q===b)));document.querySelector('#sceneLabel').textContent=caption[mode]}));
 const tree=(cc,k,x,y,now,big=false)=>E.tree(cc,{k,x,y,back:0},x,y,now,big);
 const text=(cc,t,x,y)=>{cc.font='12px system-ui';cc.fillStyle='#c3cbb0';cc.fillText(t,x,y)};
@@ -23,20 +23,20 @@ function paintAtlas(now){
  }
 function render(now){
  c.imageSmoothingEnabled=false;a.imageSmoothingEnabled=false;
- const origins={village:[448,560],woodland:[320,288],lakeside:[960,848]},[cx,cy]=origins[mode],X=x=>Math.round(x-cx),Y=y=>Math.round(y-cy);
- for(let yy=0;yy<28;yy++)for(let xx=0;xx<45;xx++){
+ const origins={village:[320,432],woodland:[320,288],lakeside:[960,848]},[cx,cy]=origins[mode],X=x=>Math.round(x-cx),Y=y=>Math.round(y-cy);
+ for(let yy=0;yy<45;yy++)for(let xx=0;xx<60;xx++){
   const wx=cx+xx*16,wy=cy+yy*16,tx=wx/16,ty=wy/16,d=W.waterDistance(wx+8,wy+8);
   E.terrain(c,tx,ty,xx*16,yy*16,d<-18?'water':W.pathKind(wx+8,wy+8),now);
   if(d>=-18&&d<18)E.waterTile(c,tx,ty,xx*16,yy*16,now,W);
  }
- E.bridge(c,X(W.bridge.x),Y(W.bridge.y));
+ for(const bridge of W.bridges)E.bridge(c,X(bridge.x),Y(bridge.y));
  const draw=[];
  W.buildings.forEach(b=>draw.push({y:b.y,f:()=>E.building(c,b,X(b.x),Y(b.y),now)}));
  for(const [kind,x,y,col] of [['stall',650,850,'#976953'],['well',730,854],['board',870,856],['crate',898,858],['stall',950,850,'#537e79']])draw.push({y,f:()=>E.prop(c,kind,X(x),Y(y),col)});
  draw.push({y:857,f:()=>E.square(c,X(800),Y(857),now)});
  for(const [x,y] of [[600,814],[1000,814],[680,870],[920,870],[760,870],[840,870]])draw.push({y,f:()=>E.prop(c,'lamp',X(x),Y(y),null,null,now)});
  const scenic=[['ancient',510,640,true],['ancient',1030,603,true],['oak',475,760],['tree',549,1015],['elder',1085,1125],['ancient',1390,1245,true],['oak',1435,955],['tree',1100,1180],['ancient',430,490,true],['elder',850,470],['oak',615,630],['maple',710,520]];
- for(const [k,x,y,big] of scenic)if(W.waterDistance(x,y)>15)draw.push({y,f:()=>E.tree(c,{k,x,y,back:0},X(x),Y(y),now,big)});
+ for(const [k,x,y,big] of scenic)if(W.dryFootprint(x,y,big?88:45,big?174:95,3,8))draw.push({y,f:()=>E.tree(c,{k,x,y,back:0},X(x),Y(y),now,big)});
  for(let i=0;i<16;i++){const p=W.fishingPosition(i/16*Math.PI*2+.3),n={...p,k:['spot1','spot2','spot3','spot4','spot5'][i%5],back:0};draw.push({y:p.y,f:()=>E.fishing(c,n,X(p.x),Y(p.y),now)})}
  const hp=mode==='village'?[800,833]:mode==='woodland'?[690,590]:[1083,1040],safe=W.safePosition(...hp);
  draw.push({y:safe.y,f:()=>person(c,X(safe.x),Y(safe.y),now)});

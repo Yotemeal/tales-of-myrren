@@ -273,8 +273,8 @@ button{font-family:inherit;font-size:inherit;color:inherit}
   </div>
 </div>
 
-<script src="/myrren-world.js?v=2"></script>
-<script src="/myrren-environment.js?v=2"></script>
+<script src="/myrren-world.js?v=3"></script>
+<script src="/myrren-environment.js?v=3"></script>
 <script src="/v31-feet.js?v=1"></script>
 <script src="/v31-equipment.js?v=5"></script>
 <script>
@@ -475,7 +475,7 @@ const LAMPS=[[CX-200,CY+14],[CX+200,CY+14],[CX-120,CY+70],[CX+120,CY+70],[CX-40,
 const DECOR=[['board',CX+70,CY+56],['supply',CX+98,CY+58],['well',CX-70,CY+54],['stall',CX-150,CY+50,'#b8503a'],['stall',CX+150,CY+50,'#3a7a9a'],
  ['barrel',CX-204,CY-2],['barrel',CX-193,CY],['crate',CX-212,CY-9],['fence','fence',0],
  ['hay',CX+206,CY-2],['crate',CX+194,CY-4],['pot',CX+216,CY+8],['pot',CX-100,CY-2],['pot',CX+100,CY-2],['sack',CX+118,CY-2],['fbox',CX-60,CY+54],
- ['fence',CX-270,CY-14,44,'h'],['fence',CX-270,CY-14,40,'v'],['fence',CX+230,CY-14,44,'h'],['fence',CX+274,CY-14,40,'v'],
+ ['fence',CX-240,CY-14,44,'h'],['fence',CX-240,CY-14,40,'v'],['fence',CX+230,CY-14,44,'h'],['fence',CX+274,CY-14,40,'v'],
  ['bush',CX-232,CY-18,0],['bush',CX+244,CY-18,1],['bush',CX-112,CY-60,0],['bush',CX+42,CY-60,1]].filter(d=>d[1]!=='fence');
 const SOLID=DECOR.filter(d=>d[0]==='fence').map(d=>d[4]==='v'?{x0:d[1]-3,x1:d[1]+3,y0:d[2]-d[3]-2,y1:d[2]+1}:{x0:d[1]-2,x1:d[1]+d[3]+2,y0:d[2]-3,y1:d[2]+2});
 const BOARD={x:CX+70,y:CY+56};
@@ -491,7 +491,7 @@ function spot(minCamp,minGap,x0,y0,x1,y1){
   for(let tries=0;tries<80;tries++){
     const x=x0+rnd()*(x1-x0),y=y0+rnd()*(y1-y0);
     if(Math.hypot(x-CX,y-CY)<minCamp)continue;
-    if(VILLAGE.inVillage(x,y)||VILLAGE.waterDistance(x,y)<24)continue;
+    if(VILLAGE.inVillage(x,y)||VILLAGE.waterDistance(x,y)<80)continue;
     {const o=lakeR(x,y);if(o.r<o.f+.4)continue}
     if(placed.some(p=>Math.abs(p[0]-x)<minGap&&Math.abs(p[1]-y)<minGap))continue;
     placed.push([x,y]);return [x,y];
@@ -2281,7 +2281,7 @@ const VILLAGE_GROVE=[[-270,-130],[275,-155],[-310,170],[260,430],[-165,-265],[16
 function drawWoodlandShrub(x,y,seed){MyrrenEnvironment.fern(ctx,x,y,seed)}
 // Decorative brook, falls and timber footbridge, placed east of the town services.
 // Water is scenery in this pass; no new impassable collision or save-coordinate changes.
-function drawVillageFalls(cx,cy,now){MyrrenEnvironment.bridge(ctx,Math.round(VILLAGE.bridge.x-cx),Math.round(VILLAGE.bridge.y-cy))}
+function drawVillageFalls(cx,cy,now){for(const bridge of VILLAGE.bridges)MyrrenEnvironment.bridge(ctx,Math.round(bridge.x-cx),Math.round(bridge.y-cy))}
 // Woodland architecture additions: silhouettes are tailored to each service.
 function drawVillageArchitecture(b,x,y,now){/* Architecture is composed once in the environment atlas. */}
 function drawVillageSquare(cx,cy,now){ctx.save();if(Math.abs(me.x-CX)<14&&me.y<CY+57&&me.y>CY+18)ctx.globalAlpha=.45;MyrrenEnvironment.square(ctx,Math.round(CX-cx),Math.round(CY+57-cy),now);ctx.restore()}
@@ -2338,7 +2338,7 @@ function drawOutdoor(cx,cy,now){
     const edge=kind==='path'||kind==='plaza'?(pathAt(tx,ty-1)==='grass'?1:0)|(pathAt(tx,ty+1)==='grass'?2:0)|(pathAt(tx-1,ty)==='grass'?4:0)|(pathAt(tx+1,ty)==='grass'?8:0):0;
     MyrrenEnvironment.terrain(ctx,tx,ty,x,y,d<-18?'water':kind,now,edge);
     if(d>=-18&&d<18)MyrrenEnvironment.waterTile(ctx,tx,ty,x,y,now,VILLAGE);
-    if(kind==='grass'&&d>9&&H2(tx,ty)%113===0)MyrrenEnvironment.fern(ctx,x+8,y+15,H2(tx,ty)%4);
+    if(kind==='grass'&&d>24&&VILLAGE.dryFootprint(wx+8,wy+15,14,19,2,4)&&H2(tx,ty)%113===0)MyrrenEnvironment.fern(ctx,x+8,y+15,H2(tx,ty)%4);
   }
   const smithy=BLD.find(b=>b.open);
   MyrrenEnvironment.smithyFloor(ctx,Math.round(smithy.x-cx),Math.round(smithy.y-cy));
@@ -2369,12 +2369,12 @@ function drawOutdoor(cx,cy,now){
   }
   // Water and bridge sit below actors and trees in the world depth list.
   drawVillageFalls(cx,cy,now);
-  for(const tree of VILLAGE_GROVE)if(VILLAGE.waterDistance(tree.x,tree.y)>14&&tree.x>cx-100&&tree.x<cx+cv.width+100&&tree.y>cy-25&&tree.y<cy+cv.height+160)list.push({y:tree.y,f:()=>drawAncientTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
+  for(const tree of VILLAGE_GROVE)if(VILLAGE.dryFootprint(tree.x,tree.y,88,174,3,10)&&tree.x>cx-100&&tree.x<cx+cv.width+100&&tree.y>cy-25&&tree.y<cy+cv.height+160)list.push({y:tree.y,f:()=>drawAncientTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
   for(let i=0;i<18;i++){
     const a=i*2.3999632297,r=160+(i%6)*20;
     const gx=CX+Math.cos(a)*r,gy=CY+Math.sin(a)*r*.72;
     if(Math.abs(gx-CX)<240&&gy>CY-95&&gy<CY+95)continue;
-    if(vis(gx,gy))list.push({y:gy,f:()=>drawWoodlandShrub(Math.round(gx-cx),Math.round(gy-cy),i)});
+    if(vis(gx,gy)&&VILLAGE.dryFootprint(gx,gy,14,19,2,5))list.push({y:gy,f:()=>drawWoodlandShrub(Math.round(gx-cx),Math.round(gy-cy),i)});
   }
   for(const tree of forestEdge)list.push({y:tree.y,f:()=>drawTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
   for(const n of nodes)if(vis(n.x,n.y))list.push({y:n.y,f:()=>{const sx=Math.round(n.x-cx),sy=Math.round(n.y-cy);n.k.startsWith('spot')?drawSpot(n,sx,sy,now):TREEK.includes(n.k)?drawTree(n,sx,sy,now):drawRock(n,sx,sy,now);nodeTip(n,sx,sy,now)}});
@@ -2388,7 +2388,7 @@ function drawOutdoor(cx,cy,now){
     if(Math.hypot(me.x-station.x,me.y-station.y)<43)label(station.kind==='furnace'?'Smelt ingots':station.kind==='anvil'?'Forge equipment':'Blacksmith supplies',x,y-(station.kind==='furnace'?59:29),'#e5d9af');
   }});
   for(const [lx,ly] of LAMPS)if(vis(lx,ly))list.push({y:ly,f:()=>drawLamp(Math.round(lx-cx),Math.round(ly-cy),now)});
-  for(const [kind,dx,dy,a,b2] of DECOR)if(vis(dx,dy))list.push({y:dy,f:()=>drawDecor(kind,Math.round(dx-cx),Math.round(dy-cy),a,b2)});
+  for(const [kind,dx,dy,a,b2] of DECOR)if(vis(dx,dy)&&VILLAGE.dryFootprint(dx+(kind==='fence'&&b2!=='v'?a/2:0),dy,kind==='fence'?(b2==='v'?4:a/2+3):kind==='stall'?23:19,kind==='fence'&&b2==='v'?a+16:kind==='fence'?17:53,5,10))list.push({y:dy,f:()=>drawDecor(kind,Math.round(dx-cx),Math.round(dy-cy),a,b2)});
   list.push({y:CY+22,f:()=>{
     const fx2=Math.round(CX-cx),fy=Math.round(CY+22-cy),fl=Math.floor(now/120)%3;
     shadowE(fx2+4,fy+1,10,3,.22);for(let k=0;k<8;k++){const a2=k/8*6.283;R(fx2+Math.round(Math.cos(a2)*7)-2,fy-1+Math.round(Math.sin(a2)*3)-1,4,3,OUT);R(fx2+Math.round(Math.cos(a2)*7)-1,fy-1+Math.round(Math.sin(a2)*3)-1,2,2,'#a8a498')}R(fx2-5,fy-3,10,4,'#3a2410');R(fx2-4,fy-8-fl,8,7+fl,'#ff7b3a');R(fx2-2,fy-11-fl,4,7+fl,'#ffd24a');R(fx2-1,fy-5,2,3,'#fff2b0');
@@ -2490,5 +2490,6 @@ requestAnimationFrame(frame);
 })();
 </script>
 <!-- Cloudflare automatic-deployment test: 2026-11-04 -->
+
 
 
