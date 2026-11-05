@@ -1,4 +1,4 @@
-/* Design B lower-body equipment. Code-authored native pixel layers; no scaling
+/* Design B chest, legs and boots. Code-authored native pixel layers; no scaling
  * or reslicing of the approved 32x40 animation. Storage item IDs are not used.
  * A cache holds only the material combinations actually drawn.
  */
@@ -35,6 +35,78 @@ const V31Equipment = (() => {
     const pixels=oc.getImageData(0,0,128,320).data;
     const cache=new Map();
     const alpha=(x,y,row,frame)=>x>=0&&x<32&&y>=0&&y<40 ? pixels[((row*40+y)*128+frame*32+x)*4+3] : 0;
+    function chestLayer(tier,dye) {
+      const atlas=document.createElement('canvas');atlas.width=128;atlas.height=320;
+      const c=atlas.getContext('2d');
+      const p=Object.assign({},materials[tier],dye&&tier>=4?{base:dye.M,light:dye.H,dark:dye.D}:{});
+      // Per-pose upper/lower torso spans. In profile the near hand crosses
+      // the belly on alternating steps, so a fixed rectangle would cover it.
+      const profiles={
+        1:[[14,18,14,17]],2:[[15,19,16,19]],
+        5:[[14,18,14,16],[14,18,17,20],[14,18,14,18],[14,18,14,18]],
+        6:[[11,15,12,16],[12,17,13,17],[12,16,11,14],[12,17,14,17]]
+      };
+      const fill=(x,y,col)=>{c.fillStyle=col;c.fillRect(x,y,1,1);};
+      for(let row=0;row<8;row++)for(let frame=0;frame<4;frame++){
+        const dir=row%4,back=dir===3,side=dir===1||dir===2;
+        const ox=frame*32,oy=row*40,top=back?26:25;
+        const span=side?profiles[row][row<4?0:frame]:null;
+        const center=side?Math.round((span[0]+span[1])/2):(row===4&&frame===1?17:16);
+        for(let y=top;y<=31;y++){
+          let left=side?(y<29?span[0]:span[2]):center-3;
+          let right=side?(y<29?span[1]:span[3]):center+3;
+          // Short tapered hem meets the original waist without painting a
+          // wide belt across it. It never reaches the approved leg artwork.
+          if(y===30&&!side){left++;right--;}
+          if(y===31){left++;right--;}
+          for(let x=left;x<=right;x++){
+            if(!alpha(x,y,row,frame))continue;
+            const dx=x-center,dy=y-top;
+            let col=p.base;
+            const rim=x===left||x===right;
+            if(rim)col=p.dark;
+            if(y===top)col=(Math.abs(dx)<1)?'#302c32':p.light;
+            if(tier===1){
+              if(Math.abs(dx)===Math.max(0,3-dy)||back&&Math.abs(dx)===dy-1)col=p.trim;
+              if(dy>=4&&dx===0)col=p.edge;
+            }else if(tier===2){
+              col=dy%2===1?p.dark:((x+(dy>>1))%2?p.base:p.light);
+              if(rim)col=p.dark;
+            }else if(tier===3){
+              if((dy===1||dy===3)&&(Math.abs(dx)===2||side&&x===left+1))col=p.edge;
+              if(dy===4)col=p.dark;
+            }else if(tier===4){
+              if(dx===0)col=p.light;
+              if(dy>1&&Math.abs(dx)===Math.max(0,4-dy))col=p.edge;
+              if(rim)col=p.dark;
+            }else if(tier===5){
+              if(dx+3===dy||back&&3-dx===dy)col=p.light;
+              if(dy>=4)col=dx===1?p.trim:p.dark;
+            }else if(tier===6){
+              if(Math.abs(dx)===Math.max(0,3-dy%4))col=p.edge;
+              else if(dx===0)col=p.light;
+              if(rim)col=p.dark;
+            }
+            if(y===31)col=p.dark;
+            fill(ox+x,oy+y,col);
+          }
+        }
+        // Compact shoulder caps belong to the chest slot, not gloves. Only
+        // the original shoulder skin can be covered; hair/neck are untouched.
+        if(tier>1){
+          const sy=back?26:25;
+          const caps=side?[(dir===1?span[1]-1:span[0])-1]:[center-5,center+3];
+          for(const sx of caps)for(let dy=0;dy<2;dy++)for(let dx=0;dx<3;dx++){
+            const x=sx+dx,y=sy+dy;
+            if(!alpha(x,y,row,frame))continue;
+            const i=((oy+y)*128+ox+x)*4;
+            if(Math.max(pixels[i],pixels[i+1],pixels[i+2])<100)continue;
+            fill(ox+x,oy+y,dy===0?p.light:dx===0||dx===2?p.dark:p.base);
+          }
+        }
+      }
+      return atlas;
+    }
     function layer(tier,slot,dye) {
       const result=document.createElement('canvas'); result.width=128; result.height=320;
       if(!tier)return result;
@@ -119,15 +191,16 @@ const V31Equipment = (() => {
       }
       return result;
     }
-    function get(legs,boots,dye) {
-      legs=clampTier(legs);boots=clampTier(boots);
-      if(!legs&&!boots)return source;
-      const key=legs+':'+boots+':'+(dye?[dye.M,dye.H,dye.D].join(','):'');
+    function get(legs,boots,dye,body=0) {
+      legs=clampTier(legs);boots=clampTier(boots);body=clampTier(body);
+      if(!legs&&!boots&&!body)return source;
+      const key=body+':'+legs+':'+boots+':'+(dye?[dye.M,dye.H,dye.D].join(','):'');
       if(cache.has(key))return cache.get(key);
       const atlas=document.createElement('canvas');atlas.width=128;atlas.height=320;
       const c=atlas.getContext('2d');c.drawImage(original,0,0);
       if(boots)c.drawImage(layer(boots,'boots',dye),0,0);
       if(legs)c.drawImage(layer(legs,'legs',dye),0,0);
+      if(body)c.drawImage(chestLayer(body,dye),0,0);
       // Bound recolour cache even after many master-dye combinations.
       if(cache.size>=64)cache.delete(cache.keys().next().value);
       cache.set(key,atlas);return atlas;

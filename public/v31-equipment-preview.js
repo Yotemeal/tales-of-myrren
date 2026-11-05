@@ -11,12 +11,12 @@
   function tick(t){
     if(!paused&&t-last>=140){frame=(frame+1)%4;last=t;}
     const moving=$('motion').value==='walk',fi=moving?frame:0,base=moving?4:0;
-    const legs=+$('legs').value,boots=+$('boots').value,atlas=$('original').checked?source:gear.get(legs,boots);
+    const body=+$('body').value,legs=+$('legs').value,boots=+$('boots').value,atlas=$('original').checked?source:gear.get(legs,boots,null,body);
     const c=scene(detail);c.font='17px system-ui';c.textAlign='center';
     for(let d=0;d<4;d++){const x=16+d*192;draw(c,atlas,base+d,fi,x,28,5);c.fillStyle='#20331f';c.fillText(['FRONT','LEFT','RIGHT','BACK'][d],x+80,260);}
-    $('status').textContent=($('original').checked?'Original V31':(legs?V31Equipment.materials[legs].name+' legs':'No leg armour')+' · '+(boots?V31Equipment.materials[boots].name+' boots':'Bare feet'))+' · '+(moving?'Walking':'Standing')+' · Frame '+(fi+1)+' of 4 · Native 32×40';
+    $('status').textContent=($('original').checked?'Original V31':(body?V31Equipment.materials[body].name+' chest':'No chest armour')+' · '+(legs?V31Equipment.materials[legs].name+' legs':'No leg armour')+' · '+(boots?V31Equipment.materials[boots].name+' boots':'Bare feet'))+' · '+(moving?'Walking':'Standing')+' · Frame '+(fi+1)+' of 4 · Native 32×40';
     const l=scene(lineup);l.textAlign='center';l.font='16px system-ui';
-    for(let tier=1;tier<=6;tier++){const a=gear.get(tier,tier),x=16+(tier-1)*160;l.fillStyle='#20331f';l.fillText(V31Equipment.materials[tier].name,x+64,28);for(let d=0;d<4;d++)draw(l,a,base+d,fi,x,40+d*198,4);}
+    for(let tier=1;tier<=6;tier++){const a=gear.get(tier,tier,null,tier),x=16+(tier-1)*160;l.fillStyle='#20331f';l.fillText(V31Equipment.materials[tier].name,x+64,28);for(let d=0;d<4;d++)draw(l,a,base+d,fi,x,40+d*198,4);}
     requestAnimationFrame(tick);
   }
   img.onload=()=>{if(img.naturalWidth!==128||img.naturalHeight!==320){$('status').textContent='Unexpected atlas dimensions';return;}source=buildV31FeetAtlas(img);gear=V31Equipment.make(source);requestAnimationFrame(tick);};

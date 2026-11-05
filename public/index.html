@@ -274,7 +274,7 @@ button{font-family:inherit;font-size:inherit;color:inherit}
 </div>
 
 <script src="/v31-feet.js?v=1"></script>
-<script src="/v31-equipment.js?v=1"></script>
+<script src="/v31-equipment.js?v=2"></script>
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
@@ -1964,13 +1964,13 @@ function drawApprovedPlayer(x,y,o,now){
   // This changes only character rendering; saves and game state are untouched.
   if(new URLSearchParams(location.search).get('classicSprite')==='1')return false;
   if(!myrrenV31Ready)return false;
-  // Lower-body Design B layers preserve the native V31 character. Upper-body
-  // armour and shields retain their existing renderer until their art is ready.
+  // Design B chest, leg and boot layers retain the native V31 character.
+  // Helmets and shields keep their existing renderer until their art is ready.
   const gear=o.g||[0,0,0,0,0];
-  if(gear[0]||gear[1]||gear[4])return false;
-  if((gear[2]||gear[3])&&!myrrenV31Equipment)return false;
+  if(gear[0]||gear[4])return false;
+  if((gear[1]||gear[2]||gear[3])&&!myrrenV31Equipment)return false;
   const sprite=myrrenV31Equipment
-    ? myrrenV31Equipment.get(gear[2],gear[3],o.dye!=null?DYES[o.dye]:null)
+    ? myrrenV31Equipment.get(gear[2],gear[3],o.dye!=null?DYES[o.dye]:null,gear[1])
     : myrrenV31FeetAtlas;
   const direction = o.dv==='u' ? 3 : o.dv==='s' ? (o.f<0?1:2) : 0;
   const row = direction + (o.moving ? 4 : 0);
