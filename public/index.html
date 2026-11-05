@@ -2472,6 +2472,99 @@ function drawVillageFalls(cx,cy,now){
     R(X(xx-5),Y(yy+2),6,2,'#63885a');R(X(xx+1),Y(yy+4),6,2,'#77976a');
   }
 }
+// Woodland architecture additions: silhouettes are tailored to each service.
+function drawVillageArchitecture(b,x,y,now){
+  const id=b.id,w=b.w,hw=w/2,roofY=y-(id==='axe'?77:id==='arms'?72:67);
+  const moss='#648650',stone='#4a5147',beam='#453528';
+  // Low stone terraces, wooden steps and wildflowers frame the doorway.
+  for(const side of [-1,1]){
+    const xx=x+side*(hw+9);
+    R(xx-7,y-12,14,11,'#29382f');
+    R(xx-6,y-11,12,7,stone);
+    R(xx-5,y-12,9,2,'#8e9680');
+    R(xx-3,y-15,5,3,moss);
+    R(xx+side*4,y-3,2,3,'#a2a16d');
+  }
+  // Layered roof ridges, moss drapes and wooden fascia.
+  R(x-hw-14,roofY+8,w+28,4,'#252d28');
+  R(x-hw-11,roofY+10,w+22,2,'#8a805f');
+  for(let i=0;i<7;i++){
+    const xx=x-hw-8+i*(w+16)/7;
+    R(xx,roofY+14+(i%3)*2,4,6,'#4f6c43');
+    R(xx+1,roofY+19+(i%3)*2,2,4,'#76945d');
+  }
+  // Hanging trade banners, each shop clearly identifiable.
+  const symbols={axe:'T',pick:'M',arms:'X',food:'B',fish:'F'};
+  const banner={axe:'#41664a',pick:'#465b73',arms:'#6f493b',food:'#91703f',fish:'#3d777b'}[id];
+  const bx=x-hw-12;
+  R(bx,y-39,2,27,beam);
+  R(bx-7,y-36,15,19,'#202b26');
+  R(bx-6,y-35,13,16,banner);
+  R(bx-5,y-19,11,2,'#b9a075');
+  label(symbols[id],bx,y-24,'#f5dfaa');
+  if(id==='axe'){
+    // Town hall's raised central tower and peaked civic crest.
+    R(x-15,roofY-23,30,28,'#242e29');
+    R(x-12,roofY-20,24,24,'#6c5740');
+    R(x-15,roofY-24,30,4,'#292c26');
+    for(let i=0;i<5;i++)R(x-12+i*5,roofY-24,4,3,i%2?'#526448':'#687a53');
+    R(x-5,roofY-14,10,12,'#2d342b');
+    R(x-3,roofY-12,6,8,'#d9ac5b');
+    R(x-1,roofY-12,2,8,'#4c3827');
+  }else if(id==='arms'){
+    // A long timber awning and visible coal furnace define the open forge.
+    R(x-hw-12,y-28,w+24,4,'#322e27');
+    R(x-hw-10,y-25,5,26,'#71583d');
+    R(x+hw+5,y-25,5,26,'#71583d');
+    R(x+hw+13,y-15,13,15,'#3c403b');
+    R(x+hw+16,y-12,8,10,'#e27736');
+    R(x+hw+18,y-11,4,7,Math.floor(now/150)%2?'#ffd475':'#ffac49');
+    smoke(x+hw+18,y-31,now,'#b6b3a6');
+  }else if(id==='food'){
+    // Bakery's clay bread oven and awning.
+    R(x+hw+7,y-18,19,18,'#3b332b');
+    R(x+hw+9,y-15,15,13,'#8e8066');
+    R(x+hw+12,y-11,9,8,'#3b3025');
+    R(x+hw+14,y-10,5,5,'#f2a44e');
+  }else if(id==='pick'){
+    // Stonecutters' mineral display.
+    for(let i=0;i<3;i++){
+      const xx=x+hw+9+i*7;
+      R(xx-2,y-9,7,10,'#303e40');
+      R(xx,y-13-i%2*4,4,9,'#537d91');
+      R(xx+1,y-12-i%2*4,2,4,'#a5c5c5');
+    }
+  }else if(id==='fish'){
+    // Pier-side drying rack and ropes.
+    R(x+hw+7,y-24,3,24,beam);
+    R(x+hw+28,y-24,3,24,beam);
+    R(x+hw+8,y-22,23,3,'#8d7450');
+    for(let i=0;i<3;i++){
+      const xx=x+hw+11+i*7;
+      R(xx,y-19,1,6,'#bba985');
+      R(xx-2,y-14,5,8,'#547d7e');
+      R(xx-1,y-12,3,2,'#b4cfbc');
+    }
+  }
+}
+function drawVillageSquare(cx,cy,now){
+  const x=Math.round(CX-cx),y=Math.round(CY+57-cy);
+  // Low, walkable mossy ring with a modest blue-glowing village waystone.
+  shadowE(x+2,y+2,24,5,.22);
+  for(let i=0;i<14;i++){
+    const a=i*Math.PI*2/14;
+    const px=x+Math.round(Math.cos(a)*21),py=y+Math.round(Math.sin(a)*10);
+    R(px-3,py-2,7,5,'#303c35');R(px-2,py-3,5,3,'#818b77');
+    if(i%3===0)R(px-1,py-4,4,2,'#739359');
+  }
+  R(x-8,y-22,16,23,'#243832');
+  R(x-6,y-24,12,22,'#667569');
+  R(x-4,y-28,8,14,'#244f5d');
+  R(x-3,y-26,6,10,'#4d9eae');
+  R(x-1,y-23,3,6,'#a7e6e3');
+  ctx.save();ctx.globalAlpha=.12+Math.sin(now/450)*.03;
+  ctx.fillStyle='#5bc3d2';ctx.beginPath();ctx.arc(x,y-20,22,0,6.283);ctx.fill();ctx.restore();
+}
 function drawBuilding(b,x,y,now){
   // Woodland architecture: all five services share a coherent native-pixel
   // timber, stone, bark-shingle and moss palette. Preserve doorway positions.
@@ -2607,6 +2700,7 @@ function drawBuilding(b,x,y,now){
   const mark=hall?'H':forge?'F':id==='pick'?'P':id==='food'?'B':'R';
   label(mark,x-hw+8,y-20,'#f1e3b6');
   R(x-11,y-2,22,3,'#9b8a67');
+  drawVillageArchitecture(b,x,y,now);
 }
 
 function drawInterior(cx,cy,now){
@@ -2760,6 +2854,7 @@ function drawOutdoor(cx,cy,now){
   for(const n of nodes)if(vis(n.x,n.y))list.push({y:n.y,f:()=>{const sx=Math.round(n.x-cx),sy=Math.round(n.y-cy);n.k.startsWith('spot')?drawSpot(n,sx,sy,now):TREEK.includes(n.k)?drawTree(n,sx,sy,now):drawRock(n,sx,sy,now);nodeTip(n,sx,sy,now)}});
   for(const m of mons)if((m.state!=='dead'||now-(m.dieAt||-99999)<1600)&&vis(m.x,m.y))list.push({y:m.y,f:()=>drawMon(m,Math.round(m.x-cx),Math.round(m.y-cy),now)});
   for(const c of crits)if(vis(c.x,c.y))list.push({y:c.y,f:()=>drawCritter(c,Math.round(c.x-cx),Math.round(c.y-cy),now)});
+  list.push({y:CY+57,f:()=>drawVillageSquare(cx,cy,now)});
   for(const b of BLD)list.push({y:b.y,f:()=>drawBuilding(b,Math.round(b.x-cx),Math.round(b.y-cy),now)});
   for(const [lx,ly] of LAMPS)if(vis(lx,ly))list.push({y:ly,f:()=>drawLamp(Math.round(lx-cx),Math.round(ly-cy),now)});
   for(const [kind,dx,dy,a,b2] of DECOR)if(vis(dx,dy))list.push({y:dy,f:()=>drawDecor(kind,Math.round(dx-cx),Math.round(dy-cy),a,b2)});
