@@ -1788,13 +1788,13 @@ function drawTree(n,x,y,now){
     R(x-3,y-19,6,20,OUT);R(x-2,y-19,4,19,'#ece6d2');R(x,y-19,2,19,'#c9c2aa');
     R(x-2,y-14,3,1,'#4a4034');R(x,y-9,2,1,'#4a4034');R(x-2,y-5,2,1,'#4a4034');R(x,y-17,1,1,'#4a4034');
     R(x-5,y-1,10,2,OUT);R(x-4,y-1,8,1,'#c9c2aa');
-    cl=[[0,-30,10],[-9,-24,8],[9,-24,8],[0,-21,9],[-4,-37,7],[6,-35,6]];
-    Ob='#4a5c14';Ba='#88a42a';Sh='#657f1c';Li='#b2ca42';Hi='#d4e460';
+    cl=[[0,-29,11],[-11,-25,9],[11,-25,9],[0,-20,10],[-6,-37,8],[7,-36,8]];
+    Ob='#1b382b';Ba='#305e3e';Sh='#254b36';Li='#4f8050';Hi='#8fa26a';
   }else{
     R(x-6,y-18,12,19,OUT);R(x-5,y-18,10,18,'#8a7a5c');R(x-5,y-18,4,18,'#a89878');R(x+1,y-18,4,18,'#6e5e44');
     R(x-8,y-2,5,3,OUT);R(x+3,y-2,5,3,OUT);R(x-7,y-2,4,2,'#8a7a5c');R(x+3,y-2,4,2,'#6e5e44');
     cl=[[0,-33,13],[-13,-26,9],[13,-26,9],[0,-23,12],[-8,-42,8],[8,-41,8]];
-    Ob='#6a4a1a';Ba='#d6a438';Sh='#b07c24';Li='#f0cc5c';Hi='#f8e48a';
+    Ob='#1e342a';Ba='#416548';Sh='#304e39';Li='#66865b';Hi='#9aab78';
   }
   const TC={maple:['#5a1a14','#c4442c','#982a1c','#e8744a','#f8a070'],elder:['#1a3a4a','#2a8a9a','#1c6070','#4ab8c0','#8ae0d8'],myrren:['#2a1a4a','#7a4ac4','#5a2a98','#a87ae8','#d8b8ff']};
   if(n.k==='forest')[Ob,Ba,Sh,Li,Hi]=['#193d2b','#376844','#285537','#548657','#81a16a'];
@@ -1803,7 +1803,13 @@ function drawTree(n,x,y,now){
   for(const [dx,dy,r] of cl)blob(x+dx,y+dy,r,Ba);
   for(const [dx,dy,r] of cl)blob(x+dx+1,y+dy+2,Math.max(1,r-2),Sh);
   for(const [dx,dy,r] of cl)blob(x+dx-1,y+dy-2,Math.max(1,r-3),Li);
-  for(let i=0;i<14;i++){const h=H2(sd,i),c=cl[h%cl.length],lx=x+c[0]+((h>>>4)%(c[2]*2))-c[2],ly=y+c[1]+((h>>>9)%(c[2]*2))-c[2];R(lx,ly,2,1,(h&1)?Hi:Ob)}
+  for(let i=0;i<22;i++){const h=H2(sd,i),c=cl[h%cl.length],lx=x+c[0]+((h>>>4)%(c[2]*2))-c[2],ly=y+c[1]+((h>>>9)%(c[2]*2))-c[2];R(lx,ly,2,1,(h&1)?Hi:Ob)}
+  // Drooping boughs and bark lichens distinguish harvestable forest trees.
+  for(let k=0;k<4;k++){
+    const xx=x-12+k*8,yy=y-23-(k%2)*7;
+    R(xx,yy,2,7,'#274b35');R(xx+1,yy+5,1,4,'#749468');
+  }
+  R(x-3,y-13,2,4,'#537754');R(x+2,y-7,2,3,'#76916a');
 }
 function drawRock(n,x,y,now){
   const live=now>=n.back,ore=n.k;
@@ -2031,6 +2037,28 @@ function drawMon(m,x,y,now){
   shadowE(x+1,y,mode==='dead'?10:8,2,.28*al);
   ctx.save();ctx.globalAlpha=al;ctx.translate(x,y);ctx.scale(f,1);
   if(m.t==='slime')sprSlime(mode,ph,age,flash);else if(m.t==='goblin')sprGoblin(mode,ph,age,flash);else if(m.t==='boar')sprBoar(mode,ph,age,flash);else if(m.t==='bear')sprBear(mode,ph,age,flash);else if(m.t==='cave')sprQuad(Q_CAVE,mode,ph,age,flash);else if(m.t==='abear')sprQuad(Q_ABEAR,mode,ph,age,flash);else sprWolf(mode,ph,age,flash);
+  // Native-pixel creature finishing pass: fur, eyes, tusks and equipment.
+  // Applied after existing animation so movement and combat timing remain intact.
+  if(!dead&&!flash){
+    const bob=mode==='walk'?(ph%2):0;
+    if(m.t==='goblin'){
+      R(-5,-15+bob,10,2,'#293a25');R(-3,-18+bob,6,3,'#66513a');
+      R(-7,-12+bob,3,2,'#a1b96c');R(5,-12+bob,3,2,'#a1b96c');
+      R(-2,-12+bob,1,1,'#e5bc63');R(3,-12+bob,1,1,'#e5bc63');
+      R(-5,-7+bob,3,2,'#6d5540');
+    }else if(m.t==='slime'){
+      R(-4,-10+bob,6,2,'#a9c0a0');R(-3,-11+bob,2,1,'#d3e0c0');
+      R(4,-5+bob,3,1,'#5a765b');
+    }else if(m.t==='wolf'){
+      R(-5,-11+bob,8,2,'#c2c2aa');R(-9,-8+bob,4,2,'#535e55');
+      R(8,-9+bob,2,1,'#f1d183');
+    }else if(m.t==='boar'){
+      R(5,-5+bob,5,2,'#e6d5b3');R(8,-7+bob,2,3,'#f1e2c8');
+      R(-7,-9+bob,5,2,'#7d6952');
+    }else if(m.t==='bear'||m.t==='abear'){
+      R(-5,-10+bob,8,3,'#726955');R(7,-7+bob,2,2,'#e5cfa6');
+    }
+  }
   ctx.restore();ctx.globalAlpha=1;
   if(dead)return;
   const top=y-({goblin:27,wolf:20,boar:18,bear:30,cave:30,abear:30}[m.t]||15);
