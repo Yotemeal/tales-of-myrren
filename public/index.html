@@ -1946,6 +1946,9 @@ MYRREN_V31.onerror = () => { myrrenV31Ready = false; };
 MYRREN_V31.src = '/hero_32x40_v31.png';
 function drawApprovedPlayer(x,y,o,now){
   if(!myrrenV31Ready)return false;
+  // Until equipment overlays exist, keep the original renderer for equipped armour.
+  // This preserves visible helmets, chest pieces, leg armour and boots.
+  if(o.g && o.g.slice(0,4).some(tier=>Number(tier)>0))return false;
   const direction = o.dv==='u' ? 3 : o.dv==='s' ? (o.f<0?1:2) : 0;
   const row = direction + (o.moving ? 4 : 0);
   const frame = o.moving ? Math.floor(now/140)%4 : 0;
