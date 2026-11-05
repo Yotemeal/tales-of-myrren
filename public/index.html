@@ -2428,6 +2428,29 @@ function drawOutdoor(cx,cy,now){
 
   const list=[];
   const vis=(x,y)=>x>cx-40&&x<cx+cv.width+40&&y>cy-20&&y<cy+cv.height+60;
+  // The level 1–30 woodland is enclosed by an ancient, impassable
+  // rainforest. Keep the existing world-edge collision and saved coordinates;
+  // these are scenery only, not harvestable resource nodes.
+  const forestEdge=[];
+  const forestStep=27;
+  for(let side=0;side<4;side++){
+    for(let i=0;i<=Math.ceil(WW/forestStep);i++){
+      const t=i*forestStep;
+      for(let layer=0;layer<3;layer++){
+        const wobble=((i*37+side*19+layer*13)%13)-6;
+        const inset=22+layer*28+wobble;
+        let fx,fy;
+        if(side===0){fx=t+((layer%2)*13);fy=inset}
+        else if(side===1){fx=t+((layer%2)*13);fy=WH-inset}
+        else if(side===2){fx=inset;fy=t+((layer%2)*13)}
+        else{fx=WW-inset;fy=t+((layer%2)*13)}
+        if(fx<0||fy<0||fx>WW||fy>WH||!vis(fx,fy))continue;
+        const evergreen=(i+layer+side)%4===0;
+        forestEdge.push({x:fx,y:fy,k:evergreen?'tree':'oak',back:0});
+      }
+    }
+  }
+  for(const tree of forestEdge)list.push({y:tree.y,f:()=>drawTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
   for(const n of nodes)if(vis(n.x,n.y))list.push({y:n.y,f:()=>{const sx=Math.round(n.x-cx),sy=Math.round(n.y-cy);n.k.startsWith('spot')?drawSpot(n,sx,sy,now):TREEK.includes(n.k)?drawTree(n,sx,sy,now):drawRock(n,sx,sy,now);nodeTip(n,sx,sy,now)}});
   for(const m of mons)if((m.state!=='dead'||now-(m.dieAt||-99999)<1600)&&vis(m.x,m.y))list.push({y:m.y,f:()=>drawMon(m,Math.round(m.x-cx),Math.round(m.y-cy),now)});
   for(const c of crits)if(vis(c.x,c.y))list.push({y:c.y,f:()=>drawCritter(c,Math.round(c.x-cx),Math.round(c.y-cy),now)});
