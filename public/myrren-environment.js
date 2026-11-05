@@ -63,6 +63,7 @@
     sprite(ctx,'fern:'+seed%4,28,20,14,18,x,y,({r,poly})=>{r(13,7,1,11,P.deep);for(let i=0;i<5;i++)for(const d of [-1,1]){const yy=8+i*2,xx=13+d*(3+i);poly([[13,yy+2],[xx,yy-3],[xx+d*4,yy-2],[xx,yy+1]],i%2?P.leaf:P.lit)}r(13,4,2,6,P.tip)});
   }
   function building(ctx,b,x,y,now){
+    if(b.open||b.id==='arms'){smithyFloor(ctx,x,y);smithyPart(ctx,'trade',x+1,y-28,now);smithyPart(ctx,'furnace',x+26,y-5,now);smithyPart(ctx,'anvil',x-25,y+10,now);return}
     const id=b.id,hw=b.w/2,hall=id==='axe',forge=id==='arms';
     sprite(ctx,'house:'+id+':'+b.w,110,126,55,118,x,y,({r,poly,shadow})=>{
       const X=55,Y=118,roofBottom=Y-31,peak=hall?Y-101:forge?Y-87:Y-81;
@@ -180,5 +181,75 @@
     for(const d of [-1,1]){r(x-44,yy+d*12,88,3,P.woodD);r(x-44,yy+d*12,88,1,P.woodL);for(let j=0;j<5;j++){r(x-43+j*21,yy+d*12-6,3,10,P.ink);r(x-42+j*21,yy+d*12-5,1,8,P.woodL)}}
     fern(ctx,x-29,y+17,1);fern(ctx,x+33,y+78,3);
   }
-  window.MyrrenEnvironment=Object.freeze({tree,rock,fern,building,terrain,prop,square,brook,cacheSize:()=>cache.size});
+
+  function smithyFloor(ctx,x,y){
+    const {r}=kit(ctx);
+    r(x-47,y-39,94,53,'#4f594d');
+    for(let j=0;j<6;j++)for(let i=0;i<10;i++){const h=hash(i,j);r(x-45+i*9,y-37+j*8,8,7,h%3?'#69705e':'#777c65');r(x-44+i*9,y-37+j*8,6,1,'#92947a')}
+    r(x-45,y+10,18,3,P.leaf);r(x+27,y-37,15,3,P.shade);
+  }
+  function smithyPart(ctx,kind,x,y,now=0){
+    if(kind==='floor'){smithyFloor(ctx,x,y);return}
+    const {r,poly,shadow}=kit(ctx);
+    if(kind==='anvil'){
+      shadow(x,y+1,23);r(x-13,y-5,26,7,P.ink);r(x-11,y-4,22,5,P.wood);r(x-8,y-3,16,1,P.woodL);
+      poly([[x-10,y-17],[x+16,y-17],[x+14,y-13],[x+4,y-11],[x+3,y-5],[x-6,y-5],[x-7,y-11],[x-12,y-13]],P.ink);
+      r(x-10,y-16,24,3,'#9eaaa5');r(x-8,y-13,12,3,'#637875');r(x-5,y-10,7,5,'#526460');r(x-7,y-6,12,2,'#8c9c94');
+      r(x-16,y-9,2,9,P.woodL);r(x-18,y-12,6,4,P.stone);r(x-18,y-12,5,1,P.stoneL);
+    }else if(kind==='furnace'){
+      shadow(x,y+2,31);r(x-17,y-6,34,8,P.ink);r(x-15,y-7,30,7,P.stone);
+      r(x+5,y-54,13,28,P.ink);r(x+7,y-53,9,26,'#737764');r(x+5,y-55,13,3,P.stoneL);
+      poly([[x-17,y-7],[x-16,y-30],[x-12,y-37],[x+11,y-37],[x+16,y-30],[x+17,y-7]],P.ink);
+      poly([[x-14,y-7],[x-13,y-29],[x-9,y-34],[x+10,y-34],[x+13,y-27],[x+14,y-7]],'#7f806b');
+      for(let j=0;j<5;j++){r(x-12,y-31+j*5,24,1,'#515c50');for(let i=0;i<3;i++)r(x-11+i*8+(j%2)*3,y-30+j*5,1,4,'#566153')}
+      poly([[x-10,y-8],[x-10,y-22],[x-5,y-27],[x+5,y-27],[x+10,y-22],[x+10,y-8]],P.ink);
+      r(x-7,y-20,14,12,'#8b462f');const f=Math.floor(now/150)%3;
+      r(x-6,y-15-f,12,8+f,'#db8245');r(x-3,y-20+f,6,12-f,'#f4c66c');r(x-1,y-16,3,8,'#f6dfa0');
+      r(x-14,y-7,28,3,P.stoneL);r(x+20,y-4,11,5,P.ink);r(x+21,y-6,8,5,'#35423d');
+      for(let i=0;i<3;i++){const t=(now/2100+i/3)%1;ctx.globalAlpha=(1-t)*.25;r(x+10+Math.round(Math.sin(t*4+i)*3),y-58-Math.round(t*19),4,4,'#b9bbae')}ctx.globalAlpha=1;
+    }else{
+      // Low tools-and-stock rack: the workshop has no walls, door or roof.
+      r(x-23,y-23,3,25,P.woodD);r(x+20,y-23,3,25,P.woodD);r(x-23,y-23,46,3,P.woodL);
+      for(let i=0;i<4;i++){const xx=x-14+i*9;r(xx,y-19,2,12,P.woodL);r(xx-3,y-18,8,3,i%2?P.stoneL:P.stone)}
+      r(x-17,y-2,34,3,P.woodD);r(x+25,y-8,13,9,P.woodD);r(x+26,y-10,11,3,P.stone);r(x+26,y-10,8,1,P.stoneL);
+    }
+  }
+  function bridge(ctx,x,y){
+    const {r}=kit(ctx),L=58;
+    r(x-L-2,y-13,L*2+4,29,P.ink);r(x-L,y-11,L*2,25,P.woodD);
+    for(let i=0;i<19;i++){const xx=x-L+i*6;r(xx,y-11,5,24,i%3?'#8e7453':'#a08760');r(xx,y-11,5,1,'#c0a272');r(xx,y+10,5,3,P.wood)}
+    for(const side of [-1,1]){const yy=y+side*14;r(x-L-3,yy,L*2+6,3,P.woodD);r(x-L-3,yy,L*2+6,1,P.woodL);for(let i=0;i<7;i++){const xx=x-L+i*19;r(xx-1,yy-7,4,11,P.ink);r(xx,yy-6,2,9,P.woodL)}}
+  }
+  function waterTile(ctx,tx,ty,x,y,now,W){
+    sprite(ctx,'bank:'+tx+':'+ty,16,16,0,0,x,y,({r})=>{
+      for(let yy=0;yy<16;yy++){
+        let start=0,prev=null;
+        for(let xx=0;xx<=16;xx++){
+          const d=xx<16?W.waterDistance(tx*16+xx+.5,ty*16+yy+.5):100;
+          const col=xx===16?null:d<-13?'#315d61':d<-3?'#3d6e6a':d<0?'#6b9380':d<2?'#52684b':null;
+          if(col!==prev){if(prev)r(start,yy,xx-start,1,prev);prev=col;start=xx}
+        }
+      }
+      const h=hash(tx,ty),wx=tx*16+8,wy=ty*16+8,d=W.waterDistance(wx,wy);
+      if(d>0&&d<6&&h%3===0){r(7,3,1,9,P.shade);r(5,5,2,1,P.lit);r(8,7,3,1,P.lit);r(7,2,1,3,P.tip)}
+    });
+    const h=hash(tx,ty),d=W.waterDistance(tx*16+8,ty*16+8);
+    if(d<-4&&(h+Math.floor(now/650))%9===0){const {r}=kit(ctx);r(x+5,y+8,5,1,'#8baea0')}
+  }
+  function fishing(ctx,n,x,y,now){
+    if(now<n.back)return;
+    const {r}=kit(ctx),seed=hash(n.x,n.y),phase=now/1000+seed%13;
+    // Visible shoal under the surface, followed by small broken surface rings.
+    const colors={spot1:'#9ebcb0',spot2:'#b3bfa2',spot3:'#c6b58d',spot4:'#a0bdc2',spot5:'#b7abc3'};
+    for(let i=0;i<3;i++){
+      const fx=x+Math.round(Math.sin(phase*.7+i*2)*7),fy=y-3+i*3+Math.round(Math.cos(phase*.6+i)*2),dir=i%2?1:-1;
+      r(fx-3,fy,6,2,'#244b50');r(fx-2,fy,4,1,colors[n.k]||'#b5c7b6');r(fx-dir*4,fy-1,2,4,'#547f7b');r(fx+dir*2,fy,1,1,'#d0debe');
+    }
+    for(let ring=0;ring<2;ring++){const t=(phase*.42+ring*.5)%1,rx=5+t*9,ry=2+t*4;ctx.globalAlpha=(1-t)*.65;
+      for(let j=0;j<28;j++){if((j+seed)%5===0||j>10&&j<15)continue;const a=j*Math.PI/14;r(x+Math.round(Math.cos(a)*rx),y+Math.round(Math.sin(a)*ry),2,1,'#c0d4bd')}
+    }ctx.globalAlpha=1;
+    if(Math.sin(phase*1.4)>.88){r(x+2,y-7,3,2,'#c8d7b7');r(x+3,y-8,1,1,'#e0e6c4');r(x-4,y-5,2,1,'#c0d4bd')}
+  }
+
+  window.MyrrenEnvironment=Object.freeze({tree,rock,fern,building,terrain,prop,square,brook,bridge,smithyFloor,smithyPart,waterTile,fishing,cacheSize:()=>cache.size});
 })();

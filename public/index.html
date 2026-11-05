@@ -266,14 +266,15 @@ button{font-family:inherit;font-size:inherit;color:inherit}
   <div id="intro" class="gut">
     <div class="card">
       <h1>TALES OF MYRREN</h1>
-      <p>Walk with the pad. To gather, stand close to a tree, rock or fishing spot, face it and press the tool button. To fight, press the sword button: hold it to keep swinging, and every swing hits everything in the arc in front of you. Tap a tree or rock to see its name and level. Walk straight through shop doors, forge better gear at the Ironmonger, and cook your catch on the town fire.</p>
+      <p>Walk with the pad. To gather, stand close to a tree, rock or fishing spot, face it and press the tool button. To fight, press the sword button: hold it to keep swinging, and every swing hits everything in the arc in front of you. Tap a tree or rock to see its name and level. Walk through cottage doors for supplies. Use the outdoor blacksmith furnace to smelt ingots and its anvil to forge equipment. Cook your catch on the town fire.</p>
       <div class="row"><input id="nick" maxlength="14" placeholder="Your name" autocomplete="off"><button id="go" class="btn" type="button">ENTER</button></div>
       <div id="net">Connecting...</div>
     </div>
   </div>
 </div>
 
-<script src="/myrren-environment.js?v=1"></script>
+<script src="/myrren-world.js?v=2"></script>
+<script src="/myrren-environment.js?v=2"></script>
 <script src="/v31-feet.js?v=1"></script>
 <script src="/v31-equipment.js?v=5"></script>
 <script>
@@ -360,7 +361,7 @@ const SHOPS={
   pick:{name:'Deepdig Picks',sign:'Picks',keeper:'Hilda',wall:'#a8a8a0',roof:'#5a6270',hue:210,hair:'#c8c0b0',cats:{Pickaxes:['pick']},kinds:['pick'],buys:['copper','tin','iron','coal','cobalt','aether'],greet:'Hilda: Pickaxes for every rock. I pay well for raw chunks and coal.'},
   food:{name:'Hearth Bakery',sign:'Bakery',keeper:'Mara',wall:'#d4b890',roof:'#d8863a',hue:30,hair:'#4a2a18',food:true,cats:{},kinds:[],buys:[],greet:'Mara: Fresh bread, pies and stew. Eat up before you fight.'},
   fish:{name:'Tidewater Rods',sign:'Fishing',keeper:'Odo',wall:'#9ab0c0',roof:'#3a6a9a',hue:200,hair:'#d8d8c8',bait:true,cats:{Nets:['net'],Rods:['rod']},kinds:['net','rod'],buys:['rshrimp','rtrout','rsalmon','rtuna','reel','shrimp','trout','salmon','tuna','eel'],greet:'Odo: A net for the shallows, a rod and bait for the deep. I buy your catch, raw or cooked.'},
-  arms:{name:'Woodland Open Forge',sign:'Forge',keeper:'Dorn',wall:'#a89c9c',roof:'#a8422a',hue:0,hair:'#2a2a30',cats:{Axes:['axe'],Weapons:['sword'],Armour:['helm','body','gloves','legs','boots','shield'],Smelt:[],Forge:[],Repair:[]},kinds:['axe','sword','helm','body','gloves','legs','boots','shield','ring','amulet'],buys:['ing_bronze','ing_iron','ing_steel','ing_cobalt','ing_aether'],greet:'Dorn: Axes, blades and armour for sale. Use the furnace and anvil to train your smithing.'}
+  arms:{name:'Elderwood Blacksmith',sign:'Forge',keeper:'Dorn',wall:'#a89c9c',roof:'#a8422a',hue:0,hair:'#2a2a30',cats:{Axes:['axe'],Weapons:['sword'],Armour:['helm','body','gloves','legs','boots','shield'],Smelt:[],Forge:[],Repair:[]},kinds:['axe','sword','helm','body','gloves','legs','boots','shield','ring','amulet'],buys:['ing_bronze','ing_iron','ing_steel','ing_cobalt','ing_aether'],greet:'Dorn: Axes, blades and armour for sale. Use the furnace and anvil to train your smithing.'}
 };
 for(const k in SHOPS)SHOPS[k].id=k;
 const SHOPMAX={rod:4,net:1};
@@ -468,7 +469,8 @@ const MR={slime:.09,goblin:.10,boar:.12,wolf:.13,bear:.11,cave:.12,abear:.12};
 for(const k in MT)MT[k].max=Math.max(1,Math.round(hpAt(MT[k].lv)*(MR[k]||.12)));
 /* ---------- world ---------- */
 const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=46,EDGE=100;
-const BLD=[['axe',-160,48],['pick',-80,56],['arms',0,56],['food',80,50],['fish',160,52]].map(([id,dx,w])=>({id,x:CX+dx,y:CY-34,w}));
+const VILLAGE=MyrrenWorld;
+const BLD=VILLAGE.buildings.map(b=>({...b}));
 const LAMPS=[[CX-200,CY+14],[CX+200,CY+14],[CX-120,CY+70],[CX+120,CY+70],[CX-40,CY+70],[CX+40,CY+70]];
 const DECOR=[['board',CX+70,CY+56],['supply',CX+98,CY+58],['well',CX-70,CY+54],['stall',CX-150,CY+50,'#b8503a'],['stall',CX+150,CY+50,'#3a7a9a'],
  ['barrel',CX-204,CY-2],['barrel',CX-193,CY],['crate',CX-212,CY-9],['fence','fence',0],
@@ -480,16 +482,16 @@ const BOARD={x:CX+70,y:CY+56};
 const RX=176,RY=128;
 function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const rnd=rng(2024);
-const LAKE={x:1230,y:1030,rx:175,ry:110};
-function lakeF(a){return 1+.08*Math.sin(3*a+1)+.06*Math.sin(5*a)}
-function lakeR(x,y){const nx=(x-LAKE.x)/LAKE.rx,ny=(y-LAKE.y)/LAKE.ry;return {r:Math.hypot(nx,ny),f:lakeF(Math.atan2(ny,nx))}}
-function inWater(x,y){const o=lakeR(x,y);return o.r<o.f}
+const LAKE=VILLAGE.lake;
+function lakeF(a){return VILLAGE.lakeF(a)}
+function lakeR(x,y){return VILLAGE.lakeR(x,y)}
+function inWater(x,y){return VILLAGE.inWater(x,y)}
 const placed=[];
 function spot(minCamp,minGap,x0,y0,x1,y1){
   for(let tries=0;tries<80;tries++){
     const x=x0+rnd()*(x1-x0),y=y0+rnd()*(y1-y0);
     if(Math.hypot(x-CX,y-CY)<minCamp)continue;
-    if(Math.abs(x-CX)<240&&y>CY-100&&y<CY+100)continue;
+    if(VILLAGE.inVillage(x,y)||VILLAGE.waterDistance(x,y)<24)continue;
     {const o=lakeR(x,y);if(o.r<o.f+.4)continue}
     if(placed.some(p=>Math.abs(p[0]-x)<minGap&&Math.abs(p[1]-y)<minGap))continue;
     placed.push([x,y]);return [x,y];
@@ -499,7 +501,7 @@ function spot(minCamp,minGap,x0,y0,x1,y1){
 const nodes=[],mons=[],BOX=[EDGE+30,EDGE+30,WW-EDGE-30,WH-EDGE-30];
 function addNodes(k,n,minCamp){for(let i=0;i<n;i++){const s=spot(minCamp,24,BOX[0],BOX[1],BOX[2],BOX[3]);if(s)nodes.push({k,x:s[0],y:s[1],back:0})}}
 addNodes('tree',90,90);addNodes('oak',26,260);addNodes('copper',22,120);addNodes('iron',15,330);
-(function(){const ks=['spot1','spot1','spot2','spot1','spot3','spot2','spot1','spot4','spot2','spot3','spot1','spot5','spot2','spot3','spot4','spot5'];ks.forEach((k,i)=>{const a=i/ks.length*6.2832+.3,f=lakeF(a);nodes.push({k,x:LAKE.x+Math.cos(a)*LAKE.rx*f*.9,y:LAKE.y+Math.sin(a)*LAKE.ry*f*.9,back:0})})})();
+(function(){const ks=['spot1','spot1','spot2','spot1','spot3','spot2','spot1','spot4','spot2','spot3','spot1','spot5','spot2','spot3','spot4','spot5'];ks.forEach((k,i)=>{const a=i/ks.length*6.2832+.3,p=VILLAGE.fishingPosition(a);nodes.push({k,x:p.x,y:p.y,back:0})})})();
 function addMons(k,n,minCamp){for(let i=0;i<n;i++){const s=spot(minCamp,30,BOX[0],BOX[1],BOX[2],BOX[3]);if(s)mons.push({t:k,x:s[0],y:s[1],hx:s[0],hy:s[1],hp:MT[k].hp,state:'idle',back:0,cd:0,w:rnd()*3,wx:s[0],wy:s[1],face:1,lunge:-9999})}}
 addMons('slime',16,110);addMons('goblin',12,260);addMons('boar',10,190);addMons('wolf',9,460);addMons('bear',5,560);
 addNodes('tin',20,120);addNodes('maple',22,300);addNodes('coal',16,260);addNodes('cobalt',12,430);addNodes('elder',12,480);addNodes('aether',7,600);addNodes('myrren',6,640);
@@ -652,7 +654,8 @@ document.querySelectorAll('[data-i]').forEach(e=>{const k=e.dataset.i;e.innerHTM
 
 /* ---------- gear actions ---------- */
 let tab='',sel=null,shopCat='weapons',lastTab='gear';
-const curShop=()=>inside?SHOPS[inside.id]:null;
+let outdoorShop=null;
+const curShop=()=>inside?SHOPS[inside.id]:outdoorShop&&Math.hypot(me.x-outdoorShop.x,me.y-outdoorShop.y)<110?SHOPS[outdoorShop.id]:null;
 function onGearChange(){blocked.clear();try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur()}catch(e){}refreshHeld();persist();renderModal();uiHud();refreshActionButtons();sendPresence()}
 function equipFromBag(idx){
   const id=save.bag[idx],d=DEFS[id];if(!d)return;
@@ -710,7 +713,7 @@ function addXp(skill,amt){
 const modal=$('modal'),mBody=$('mBody');
 const TITLES={gear:'Equipment',pack:'Backpack',skills:'Skills',players:'Party',shop:'Shop',settings:'Settings',board:'Job Board',jobs:'Odd Jobs',odd:'Odd Shop'};
 function openModal(t){if(!tab)gpIdx=-1;tab=t;if(t!=='shop'&&t!=='settings'&&t!=='board'&&t!=='odd')lastTab=t;sel=null;renderModal()}
-function closeModal(){tab='';sel=null;renderModal()}
+function closeModal(){tab='';sel=null;outdoorShop=null;renderModal()}
 function renderModal(){
   modal.hidden=!tab;
   modal.style.display=tab?'flex':'none';
@@ -1253,6 +1256,25 @@ function nodeOK(n){
 }
 function facingNode(now){let best=null,bd=1e9;for(const n of nodes){if(now<n.back||!nodeOK(n))continue;const d=Math.hypot(n.x-me.x,n.y-me.y);if(d<bd){bd=d;best=n}}return best}
 function nodeNear(now){for(const n of nodes){if(now>=n.back&&Math.hypot(n.x-me.x,n.y-me.y)<=(NT[n.k].reach?34:26))return n}return null}
+
+function nearSmithy(x=me.x,y=me.y,reach=33){
+ if(inside)return null;
+ let best=null,bd=reach;
+ for(const station of VILLAGE.stations){const d=Math.hypot(x-station.x,y-station.y);if(d<bd){bd=d;best=station}}
+ return best;
+}
+function openSmithy(kind){
+ const station=VILLAGE.stations.find(s=>s.kind===kind);
+ if(!station||Math.hypot(me.x-station.x,me.y-station.y)>38){say('Walk closer to the '+(kind==='anvil'?'anvil':kind==='furnace'?'furnace':'tool rack')+'.');return}
+ outdoorShop=BLD.find(b=>b.id==='arms');act=null;
+ shopCat=kind==='furnace'?'Smelt':kind==='anvil'?'Forge':'Axes';openModal('shop');
+ say(kind==='furnace'?'Use the furnace to smelt your ore into ingots.':kind==='anvil'?'Use the anvil to forge your ingots into equipment.':SHOPS.arms.greet);
+}
+function relocateSavedPosition(){
+ const blockedAt=(x,y)=>BLD.some(b=>!b.open&&Math.abs(x-b.x)<b.w/2+3&&y>b.y-14&&y<b.y)||SOLID.some(q=>x>q.x0&&x<q.x1&&y>q.y0&&y<q.y1);
+ const p=VILLAGE.safePosition(me.x,me.y,blockedAt);me.x=p.x;me.y=p.y;me.ox=p.x;me.oy=p.y;
+}
+
 function useAction(){
   const now=performance.now();
   if(inside){
@@ -1260,6 +1282,7 @@ function useAction(){
     if(inside.id==='food'&&Math.hypot(me.x-24,me.y-74)<30){act={kind:'cook',where:'oven',t:0};return}
     say('Walk up to the counter, then press the button.');return;
   }
+  const station=nearSmithy();if(station){openSmithy(station.kind);return}
   const n=facingNode(now);
   if(n){beginAct('node',n);return}
   {const sp=nearSpot();if(sp){act=null;if(sp==='board')openModal('board');else if(sp==='crate')supplyDeposit();else openModal('odd');return}}
@@ -1277,11 +1300,11 @@ function refreshActionButtons(){
   const now=performance.now();
   let uk='axe';
   if(inside)uk='coins';
-  else{const n=facingNode(now);if(n){uk=NT[n.k].tool;}else if(nearSpot())uk={board:'scroll',crate:'bag',odd:'coins'}[nearSpot()];else if(nearFire())uk='bowl'}
+  else{const station=nearSmithy(),n=facingNode(now);if(station)uk=station.kind==='furnace'?'ore':station.kind==='anvil'?'sword':'coins';else if(n){uk=NT[n.k].tool;}else if(nearSpot())uk={board:'scroll',crate:'bag',odd:'coins'}[nearSpot()];else if(nearFire())uk='bowl'}
   const ukey=uk+'|'+(w?w.id:'');
   if(ukey!==lastUseKey){
     lastUseKey=ukey;
-    if(uk==='coins'||uk==='bowl'||uk==='scroll'||uk==='bag')$('aUse').innerHTML=svg(uk,40);
+    if(uk==='coins'||uk==='bowl'||uk==='scroll'||uk==='bag'||uk==='ore'||uk==='sword')$('aUse').innerHTML=svg(uk,40);
     else{const d=toolFor(uk);$('aUse').innerHTML=d?gearSvg(d,40):svg(uk,40,{S:'#7a7a7a'})}
   }
 }
@@ -1330,6 +1353,7 @@ function sendPresence(){
 
 /* ---------- start ---------- */
 function start(){
+  relocateSavedPosition();
   save.name=$('nick').value.trim().slice(0,14)||save.name||'Wanderer';
   $('intro').hidden=true;$('intro').style.display='none';
   $('modal').hidden=true;$('modal').style.display='none';
@@ -1400,6 +1424,7 @@ cv.addEventListener('pointerdown',e=>{
     if(Math.hypot(wx-88,wy-44)<22||(wx>30&&wx<146&&wy>40&&wy<68)){if(Math.hypot(me.x-88,me.y-62)<44)useAction();else say('Walk up to the counter first.')}
     return;
   }
+  for(const station of VILLAGE.stations){if(Math.abs(wx-station.x)<20&&wy>station.y-(station.kind==='furnace'?57:25)&&wy<station.y+5){openSmithy(station.kind);return}}
   for(const k in SPOTS){const sp=SPOTS[k];if(Math.abs(wx-sp.x)<20&&wy>sp.y-42&&wy<sp.y+5){if(nearSpot()===k)useAction();else say('Walk closer first.');return}}
   let best=null;
   for(const n of nodes){
@@ -1489,6 +1514,7 @@ function cookTick(dt,now){
   }
 }
 function enterBuilding(b,now){
+  if(b.open){openSmithy('trade');return}
   inside=b;me.ox=b.x;me.oy=b.y+6;me.x=88;me.y=112;me.face=1;act=null;marker=null;petsTeleport();
   for(const m of mons)if(m.state==='chase')m.state='return';
   fade=0;snapCam=true;exitCD=now+700;
@@ -1627,6 +1653,7 @@ function update(dt,now){
       }
     }
     for(const b of BLD){
+      if(b.open)continue;
       const hw=b.w/2+3;
       if(Math.abs(me.x-b.x)<=7&&me.y<=b.y+1&&me.y>=b.y-4&&now>exitCD){enterBuilding(b,now);break}
       if(me.x>b.x-hw&&me.x<b.x+hw&&me.y>b.y-14&&me.y<b.y){
@@ -2224,12 +2251,7 @@ function drawDecor(kind,x,y,a,b){
   else if(kind==='hay')drawHay(x,y);else if(kind==='pot')drawPot(x,y);else if(kind==='fbox')drawFbox(x,y);else if(kind==='sack')drawSack(x,y);else if(kind==='fence')drawFence(x,y,a,b);else if(kind==='bush')drawBush(x,y,a);
   if(kind==='stall'&&a==='#3a7a9a'&&Math.hypot(me.x-SPOTS.odd.x,me.y-SPOTS.odd.y)<64)label('Odd Shop',x,y-34,'#ffffff');
 }
-function drawSpot(n,x,y,now){
-  if(now<n.back)return;
-  const ph=Math.floor(now/260+n.x)%4,c=n.k==='spot1'?'#e8f4ff':n.k==='spot2'?'#cfe8ff':'#ffe0d0',fc=n.k==='spot1'?'#e8a0a0':n.k==='spot2'?'#8ab07a':'#e87a6a',r=2+ph*2;
-  R(x-r,y,r*2,1,c);R(x-r+1,y-1,Math.max(0,r*2-2),1,c);R(x-r+1,y+1,Math.max(0,r*2-2),1,c);
-  if(ph===1||ph===2)R(x-2,y-4-(ph===1?1:0),4,2,fc);
-}
+function drawSpot(n,x,y,now){MyrrenEnvironment.fishing(ctx,n,x,y,now)}
 const SLATE=['#7a7874','#8c8a86','#9a9894','#b4b2ac'],SLATE_D=['#55535a','#66646c','#767480','#8e8c98'],SLATE_B=['#5e7488','#6e869a','#7e96aa','#a0b8c8'],TERRA=['#9a5a40','#ac6a4c','#bc7a58','#d4986e'];
 function slateRoof(x,top,w,H,tone,seed,moss){
   const x0=x-(w>>1),rn=Math.ceil(H/4);
@@ -2259,7 +2281,7 @@ const VILLAGE_GROVE=[[-270,-130],[275,-155],[-310,170],[260,430],[-165,-265],[16
 function drawWoodlandShrub(x,y,seed){MyrrenEnvironment.fern(ctx,x,y,seed)}
 // Decorative brook, falls and timber footbridge, placed east of the town services.
 // Water is scenery in this pass; no new impassable collision or save-coordinate changes.
-function drawVillageFalls(cx,cy,now){MyrrenEnvironment.brook(ctx,Math.round(CX+250-cx),Math.round(CY+112-cy),now)}
+function drawVillageFalls(cx,cy,now){MyrrenEnvironment.bridge(ctx,Math.round(VILLAGE.bridge.x-cx),Math.round(VILLAGE.bridge.y-cy))}
 // Woodland architecture additions: silhouettes are tailored to each service.
 function drawVillageArchitecture(b,x,y,now){/* Architecture is composed once in the environment atlas. */}
 function drawVillageSquare(cx,cy,now){ctx.save();if(Math.abs(me.x-CX)<14&&me.y<CY+57&&me.y>CY+18)ctx.globalAlpha=.45;MyrrenEnvironment.square(ctx,Math.round(CX-cx),Math.round(CY+57-cy),now);ctx.restore()}
@@ -2308,17 +2330,18 @@ function drawInterior(cx,cy,now){
 }
 function drawOutdoor(cx,cy,now){
   const t0=Math.max(0,Math.floor(cx/T)),t1=Math.min(WW/T-1,Math.floor((cx+cv.width)/T)),u0=Math.max(0,Math.floor(cy/T)),u1=Math.min(WH/T-1,Math.floor((cy+cv.height)/T));
-  const isP=(a,b)=>{const dx=a-50,dy=b-50;return dx*dx/270+dy*dy/55<1||(Math.abs(dx-Math.round(2*Math.sin(b*.19)))<=1&&b<47)||(Math.abs(dx-Math.round(3*Math.sin(b*.17)))<=1&&b>53)||(Math.abs(dy-Math.round(2*Math.sin(a*.19)))<=1&&a>62)||(Math.abs(dy-Math.round(2*Math.sin(a*.19)))<=1&&a<38)};
+  const pathAt=(tx,ty)=>VILLAGE.pathKind(tx*T+8,ty*T+8);
   for(let ty=u0;ty<=u1;ty++)for(let tx=t0;tx<=t1;tx++){
-    const x=Math.round(tx*T-cx),y=Math.round(ty*T-cy),boundary=tx<EDGE/T||ty<EDGE/T||tx>=WW/T-EDGE/T||ty>=WH/T-EDGE/T;
-    const lk=lakeR(tx*T+8,ty*T+8);
-    const plaza=(tx-50)**2/270+(ty-50)**2/55<1;
-    const path=isP(tx,ty);
-    const kind=boundary?'boundary':lk.r<lk.f?'water':lk.r<lk.f+.12?'shore':plaza?'plaza':path?'path':'grass';
-    const edge=path?(!isP(tx,ty-1)?1:0)|(!isP(tx,ty+1)?2:0)|(!isP(tx-1,ty)?4:0)|(!isP(tx+1,ty)?8:0):0;
-    MyrrenEnvironment.terrain(ctx,tx,ty,x,y,kind,now,edge);
-    if(kind==='grass'&&H2(tx,ty)%113===0)MyrrenEnvironment.fern(ctx,x+8,y+15,H2(tx,ty)%4);
+    const wx=tx*T,wy=ty*T,x=Math.round(wx-cx),y=Math.round(wy-cy);
+    const boundary=tx<EDGE/T||ty<EDGE/T||tx>=WW/T-EDGE/T||ty>=WH/T-EDGE/T;
+    const d=VILLAGE.waterDistance(wx+8,wy+8),kind=boundary?'boundary':pathAt(tx,ty);
+    const edge=kind==='path'||kind==='plaza'?(pathAt(tx,ty-1)==='grass'?1:0)|(pathAt(tx,ty+1)==='grass'?2:0)|(pathAt(tx-1,ty)==='grass'?4:0)|(pathAt(tx+1,ty)==='grass'?8:0):0;
+    MyrrenEnvironment.terrain(ctx,tx,ty,x,y,d<-18?'water':kind,now,edge);
+    if(d>=-18&&d<18)MyrrenEnvironment.waterTile(ctx,tx,ty,x,y,now,VILLAGE);
+    if(kind==='grass'&&d>9&&H2(tx,ty)%113===0)MyrrenEnvironment.fern(ctx,x+8,y+15,H2(tx,ty)%4);
   }
+  const smithy=BLD.find(b=>b.open);
+  MyrrenEnvironment.smithyFloor(ctx,Math.round(smithy.x-cx),Math.round(smithy.y-cy));
   for(const d of decals){const a=1-(now-d.t)/25000;ctx.globalAlpha=Math.max(0,a);const x=Math.round(d.x-cx),y=Math.round(d.y-cy);R(x-5,y-1,10,3,d.c);R(x-2,y-3,5,2,d.c);R(x+3,y+2,3,2,d.c);R(x-7,y+1,2,2,d.c);ctx.globalAlpha=1}
 
   const list=[];
@@ -2345,8 +2368,8 @@ function drawOutdoor(cx,cy,now){
     }
   }
   // Water and bridge sit below actors and trees in the world depth list.
-  if(CX+250>cx-150&&CX+250<cx+cv.width+150&&CY+112>cy-240&&CY+112<cy+cv.height+240)drawVillageFalls(cx,cy,now);
-  for(const tree of VILLAGE_GROVE)if(tree.x>cx-100&&tree.x<cx+cv.width+100&&tree.y>cy-25&&tree.y<cy+cv.height+160)list.push({y:tree.y,f:()=>drawAncientTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
+  drawVillageFalls(cx,cy,now);
+  for(const tree of VILLAGE_GROVE)if(VILLAGE.waterDistance(tree.x,tree.y)>14&&tree.x>cx-100&&tree.x<cx+cv.width+100&&tree.y>cy-25&&tree.y<cy+cv.height+160)list.push({y:tree.y,f:()=>drawAncientTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
   for(let i=0;i<18;i++){
     const a=i*2.3999632297,r=160+(i%6)*20;
     const gx=CX+Math.cos(a)*r,gy=CY+Math.sin(a)*r*.72;
@@ -2358,7 +2381,12 @@ function drawOutdoor(cx,cy,now){
   for(const m of mons)if((m.state!=='dead'||now-(m.dieAt||-99999)<1600)&&vis(m.x,m.y))list.push({y:m.y,f:()=>drawMon(m,Math.round(m.x-cx),Math.round(m.y-cy),now)});
   for(const c of crits)if(vis(c.x,c.y))list.push({y:c.y,f:()=>drawCritter(c,Math.round(c.x-cx),Math.round(c.y-cy),now)});
   list.push({y:CY+57,f:()=>drawVillageSquare(cx,cy,now)});
-  for(const b of BLD)list.push({y:b.y,f:()=>drawBuilding(b,Math.round(b.x-cx),Math.round(b.y-cy),now)});
+  for(const b of BLD)if(!b.open)list.push({y:b.y,f:()=>drawBuilding(b,Math.round(b.x-cx),Math.round(b.y-cy),now)});
+  for(const station of VILLAGE.stations)list.push({y:station.y,f:()=>{
+    const x=Math.round(station.x-cx),y=Math.round(station.y-cy);
+    MyrrenEnvironment.smithyPart(ctx,station.kind,x,y,now);
+    if(Math.hypot(me.x-station.x,me.y-station.y)<43)label(station.kind==='furnace'?'Smelt ingots':station.kind==='anvil'?'Forge equipment':'Blacksmith supplies',x,y-(station.kind==='furnace'?59:29),'#e5d9af');
+  }});
   for(const [lx,ly] of LAMPS)if(vis(lx,ly))list.push({y:ly,f:()=>drawLamp(Math.round(lx-cx),Math.round(ly-cy),now)});
   for(const [kind,dx,dy,a,b2] of DECOR)if(vis(dx,dy))list.push({y:dy,f:()=>drawDecor(kind,Math.round(dx-cx),Math.round(dy-cy),a,b2)});
   list.push({y:CY+22,f:()=>{
@@ -2427,7 +2455,7 @@ function finishLoad(){
   if(save.name&&!$('nick').value)$('nick').value=save.name;
 }
 function adoptSave(o,why){
-  applySave(o);me.x=clamp(save.x,EDGE+8,WW-EDGE-8);me.y=clamp(save.y,EDGE+8,WH-EDGE-8);
+  applySave(o);me.x=clamp(save.x,EDGE+8,WW-EDGE-8);me.y=clamp(save.y,EDGE+8,WH-EDGE-8);relocateSavedPosition();
   syncPets();petsTeleport();uiHud();
   try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}
 }
