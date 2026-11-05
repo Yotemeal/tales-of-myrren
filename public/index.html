@@ -1711,6 +1711,7 @@ function drawTree(n,x,y,now){
     Ob='#6a4a1a';Ba='#d6a438';Sh='#b07c24';Li='#f0cc5c';Hi='#f8e48a';
   }
   const TC={maple:['#5a1a14','#c4442c','#982a1c','#e8744a','#f8a070'],elder:['#1a3a4a','#2a8a9a','#1c6070','#4ab8c0','#8ae0d8'],myrren:['#2a1a4a','#7a4ac4','#5a2a98','#a87ae8','#d8b8ff']};
+  if(n.k==='forest')[Ob,Ba,Sh,Li,Hi]=['#193d2b','#376844','#285537','#548657','#81a16a'];
   if(TC[n.k])[Ob,Ba,Sh,Li,Hi]=TC[n.k];
   for(const [dx,dy,r] of cl)blob(x+dx,y+dy,r+1,Ob);
   for(const [dx,dy,r] of cl)blob(x+dx,y+dy,r,Ba);
@@ -2488,7 +2489,7 @@ function drawOutdoor(cx,cy,now){
         else{fx=WW-inset;fy=t+((layer%2)*13)}
         if(fx<0||fy<0||fx>WW||fy>WH||!vis(fx,fy))continue;
         const evergreen=(i+layer+side)%4===0;
-        forestEdge.push({x:fx,y:fy,k:evergreen?'tree':'oak',back:0});
+        forestEdge.push({x:fx,y:fy,k:evergreen?'tree':'forest',back:0});
       }
     }
   }
