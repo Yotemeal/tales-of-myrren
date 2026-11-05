@@ -1953,7 +1953,17 @@ MYRREN_V31.onload = () => {
   for(let row=0;row<8;row++)for(let frame=0;frame<4;frame++){
     const sx=frame*32,sy=row*40,dy=row*42;
     ac.drawImage(MYRREN_V31,sx,sy,32,38,sx,dy,32,38);
-    ac.drawImage(MYRREN_V31,sx,sy+34,32,4,sx,dy+38,32,4);
+    if(row===1||row===2||row===5||row===6){
+      // Side profiles need a narrower, defined foot rather than a thick
+      // four-row duplicate of the entire lower leg.
+      const footX=(row===1||row===5)?12:14;
+      ac.drawImage(MYRREN_V31,sx+footX,sy+36,7,2,sx+footX,dy+38,7,2);
+      // Short, dark toe outline keeps the sole distinct from the ground.
+      ac.fillStyle='#2a1c18';
+      ac.fillRect(sx+footX+(row===1||row===5?0:5),dy+40,2,1);
+    }else{
+      ac.drawImage(MYRREN_V31,sx,sy+34,32,4,sx,dy+38,32,4);
+    }
   }
   myrrenV31FeetAtlas=atlas;
 };
