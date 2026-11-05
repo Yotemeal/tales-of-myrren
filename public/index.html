@@ -2519,7 +2519,7 @@ const GRASS=['#597d3d','#638744','#6b8e4b'];
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;
   const cssW=cv.clientWidth,cssH=cv.clientHeight;
-  const sc=clamp(Math.round(Math.min(cssW,cssH)/170),2,5);
+  const sc=clamp(Math.round(Math.min(cssW,cssH)/230),2,4); // wider V31 woodland view, integer pixels
   const w=Math.ceil(cssW/sc),h=Math.ceil(cssH/sc);
   if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}
   ctx.imageSmoothingEnabled=false;
