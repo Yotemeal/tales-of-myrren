@@ -155,11 +155,11 @@
    const a=armedCanvas.getContext('2d'),b=bodyCanvas.getContext('2d'),s=shieldCanvas.getContext('2d');for(const q of[a,b,s]){q.clearRect(0,0,128,128);q.imageSmoothingEnabled=false}
    const g=(o.g||[0,0,0,0,0,0]).slice(),shieldMat=g[4];g[4]=0;
    const bodyOptions={...o,g,nativeScale:true};draw(b,64,100,bodyOptions,now);
-   const sockets=window.MyrrenSwordActions.attachments(p,o),swordPoint=[64+sockets.sword[0]-32,100+sockets.sword[1]-60],shieldPoint=[64+sockets.shield[0]-32,100+sockets.shield[1]-60],age=now-(o.swingAt??-99999),angle=o.weaponAngle??window.MyrrenSwords.angle(age),flip=p.dir===1||p.dir===3?-1:1,farSword=p.dir===1||p.dir===3;
+   const sockets=window.MyrrenSwordActions.attachments(p,o),swordPoint=[64+sockets.sword[0]-32,100+sockets.sword[1]-60],shieldPoint=[64+sockets.shield[0]-32,100+sockets.shield[1]-60],age=now-(o.swingAt??-99999),angle=o.weaponAngle??window.MyrrenSwords.angle(age),flip=p.dir===1||p.dir===3?-1:1;
    const paintSword=()=>window.MyrrenSwords.draw(a,o.weaponMat,swordPoint[0],swordPoint[1],flip,angle,52/40);
-   if(farSword)paintSword();a.drawImage(bodyCanvas,0,0);
+   a.drawImage(bodyCanvas,0,0);
    if(shieldMat){const sprite=window.MyrrenWardrobe.shieldSprite(shieldMat,p.dir===3?2:p.dir===0?0:1);if(sprite){s.drawImage(sprite,Math.round(shieldPoint[0]-16-(p.dir===0||p.dir===1?3:0)),Math.round(shieldPoint[1]-13));if(p.dir===2||p.dir===3){const body=b.getImageData(0,0,128,128).data,edge=s.getImageData(0,0,128,128);for(let yy=0;yy<128;yy++){let left=128,right=-1;for(let xx=0;xx<128;xx++)if(body[(yy*128+xx)*4+3]){left=Math.min(left,xx);right=Math.max(right,xx)}for(let xx=0;xx<128;xx++){const i=(yy*128+xx)*4,allowed=p.dir===3?xx>right&&xx<=right+2:xx<left&&xx>=left-2;if(right<0||yy<100+sockets.cut-60+2||yy<shieldPoint[1]-8||yy>shieldPoint[1]+6||!allowed)edge.data[i+3]=0}}s.putImageData(edge,0,0)}a.drawImage(shieldCanvas,0,0)}}
-   if(!farSword){paintSword();a.save();a.beginPath();a.rect(Math.floor(swordPoint[0]-3),Math.floor(swordPoint[1]-3),6,6);a.clip();a.drawImage(bodyCanvas,0,0);a.restore()}
+   {paintSword();a.save();a.beginPath();a.rect(Math.floor(swordPoint[0]-3),Math.floor(swordPoint[1]-3),6,6);a.clip();a.drawImage(bodyCanvas,0,0);a.restore()}
    const scale=o.nativeScale?1:40/52;ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(armedCanvas,Math.round(x-64*scale),Math.round(y-100*scale),128*scale,128*scale);ctx.restore();
    return {...p,handX:x+(swordPoint[0]-64)*scale,handY:y+(swordPoint[1]-100)*scale,nameY:y-57*scale,swordPoint:sockets.sword.slice(),shieldPoint:sockets.shield.slice()};
   }
