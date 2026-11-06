@@ -2122,3 +2122,44 @@ input[type=range] {
     display: none;
   }
 }
+
+/* Banknote withdrawal switch beside the bank's gold balance. */
+.banknote-toggle {
+  flex: none;
+  display: grid;
+  place-items: center;
+  position: relative;
+  width: 34px;
+  height: 30px;
+  margin-left: 8px;
+  padding: 1px;
+  color: #e5d39b;
+  background: #64583e;
+  border: 2px solid;
+  border-color: #baa879 #403c2c #302d23 #baa879;
+  box-shadow: 0 0 0 1px #282d20;
+}
+.banknote-toggle[aria-pressed=true] {
+  background: #83b7ac;
+  border-color: #d4eee0 #3e736b #3e736b #d4eee0;
+  box-shadow: 0 0 0 1px #294c42;
+}
+.banknote-toggle[aria-pressed=true]::after {
+  content: '✓';
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  padding: 0 2px;
+  font: bold 14px/1 monospace;
+  color: #f6f2ce;
+  background: #315f50;
+}
+.currency .banknote-toggle svg {
+  width: 24px;
+  height: 24px;
+}
+@media (max-width: 620px) {
+  .banknote-toggle { width: 29px; height: 27px; margin-left: 3px; }
+  .currency .banknote-toggle svg { width: 21px; height: 21px; }
+  #modal[data-screen=bank] .currency .label { display: none; }
+}

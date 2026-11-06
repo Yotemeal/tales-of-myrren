@@ -468,6 +468,10 @@ function closeModal(){closeItemMenu();tab='';sel=null;outdoorShop=null;renderMod
 function renderModal(){
   modal.dataset.screen=tab;
   modal.hidden=!tab;
+  const noteToggle=$('bBanknotes');
+  noteToggle.hidden=tab!=='bank';
+  noteToggle.setAttribute('aria-pressed',String(withdrawNoted));
+  noteToggle.title=withdrawNoted?'Withdraw banknotes · selected':'Withdraw normal items · select for banknotes';
   if(!tab)return;
   $('mTabs').hidden=(tab==='settings');
   uiCurrencies();
@@ -644,11 +648,9 @@ function selectedInventoryEntry(){
   return inventoryEntries().find(e=>sel.kind==='gear'?e.kind==='gear'&&e.idx===sel.idx:e.kind===sel.kind&&e.id===sel.key)||null;
 }
 function rBank(){
-  const controls=el('div','bank-controls'),label=el('span');label.textContent='Withdraw as';controls.append(label);
-  for(const noted of [false,true]){const b=el('button','btn',noted?'Banknotes':'Items');b.type='button';b.setAttribute('aria-pressed',String(withdrawNoted===noted));b.addEventListener('click',()=>{withdrawNoted=noted;closeItemMenu();renderModal()});controls.append(b)}
   const paneTabs=el('div','bank-pane-tabs');
   for(const pane of ['bank','pack']){const b=el('button','btn',pane==='bank'?'Chest':'Backpack');b.type='button';b.setAttribute('aria-pressed',String(bankMobilePane===pane));b.addEventListener('click',()=>{bankMobilePane=pane;closeItemMenu();renderModal()});paneTabs.append(b)}
-  mBody.append(paneTabs,controls,el('p','note','Drag items to rearrange. Hold an item or right-click for 1, 5, 10 or all. Banknotes stack, and must be deposited before withdrawing usable items.'));
+  mBody.append(paneTabs,el('p','note','Drag items to rearrange. Hold an item or right-click for 1, 5, 10 or all. Banknotes stack, and must be deposited before withdrawing usable items.'));
   const layout=el('div','bank-layout'),bank=el('section','bank-pane'),pack=el('section','carried-pane');layout.dataset.activePane=bankMobilePane;
   bank.append(inventoryHeading('BANK CHEST',Object.keys(save.bank).length+' types'),inventoryGrid('bank'));
   pack.append(inventoryHeading('BACKPACK',slotsUsed()+' / '+PACK_CAPACITY),inventoryGrid('pack'));
@@ -1130,6 +1132,7 @@ document.querySelectorAll('[data-ui-open]').forEach(b=>b.addEventListener('click
 $('mClose').addEventListener('click',closeModal);
 $('bMenu').addEventListener('click',()=>tab==='settings'?closeModal():openModal('settings'));
 $('bBag').addEventListener('click',()=>tab==='pack'?closeModal():openModal('pack'));
+$('bBanknotes').addEventListener('click',()=>{if(tab!=='bank')return;withdrawNoted=!withdrawNoted;closeItemMenu();renderModal()});
 $('aEat').addEventListener('click',()=>eat());
 
 /* ---------- action buttons ---------- */
