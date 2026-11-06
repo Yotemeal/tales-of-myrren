@@ -19,14 +19,14 @@
    [44,44,44,44,44,44],
    [42,43,44,43,42,43]
   ];
-  function head(row,col,cut,rear=false,left=false){
+  function head(row,col,cut,rear=false,left=false,fixedOffset=null){
    const refRow=rear?9:left?6:5,refCut=rear?42:44;
    // Anchor at the existing jaw/neck, including the original running bob.
    const y=cut-2;let min=64,max=-1;
    for(let x=16;x<48;x++)if(original[((row*64+y)*384+col*64+x)*4+3]){min=Math.min(min,x);max=Math.max(max,x)}
    const refY=refCut-2;let rmin=64,rmax=-1;
    for(let x=16;x<48;x++)if(original[((refRow*64+refY)*384+x)*4+3]){rmin=Math.min(rmin,x);rmax=Math.max(rmax,x)}
-   const offset=Math.round((min+max-rmin-rmax)/2);
+   const offset=fixedOffset??Math.round((min+max-rmin-rmax)/2);
    c.save();c.beginPath();c.rect(col*64,row*64,64,64);c.clip();
    c.clearRect(col*64,row*64,64,cut);
    c.drawImage(source,0,refRow*64,64,refCut,col*64+offset,row*64+cut-refCut,64,refCut);
@@ -36,6 +36,37 @@
    const rear=row===4||row===0&&(col===3||col===5),left=row===2||row===0&&col===1;
    head(row,col,cuts[row][col],rear,left);
   }
+  // Rear attachment points belong to each body's neck, not the hair outline.
+  head(0,3,43,true,false,0);
+  head(0,5,46,true,false,1);
+  // The attack's chin continues two rows below the hair/face cap. Copy only
+  // those jaw pixels, excluding the shoulder beside them. Fixed anatomical
+  // landmarks keep the old running chin from appearing as a second mouth.
+  function completeHead(row,col,refRow,offset,jawY,jawMasks){
+   const ox=col*64,oy=row*64,left=refRow===6,dy=jawY-45,cut=row===0?46:44;
+   c.save();c.beginPath();c.rect(ox,oy,64,64);c.clip();
+   c.clearRect(ox,oy,64,64);c.drawImage(source,ox,oy,64,64,ox,oy,64,64);
+   c.clearRect(ox,oy,64,cut);
+   jawMasks.forEach(([x0,x1],i)=>c.clearRect(ox+x0,oy+cut+i,x1-x0+1,1));
+   c.drawImage(source,0,refRow*64,64,44,ox+offset,oy+dy,64,44);
+   const chin=left?[[27,34],[28,33]]:[[29,36],[30,35]];
+   chin.forEach(([x0,x1],i)=>c.drawImage(source,x0,refRow*64+44+i,x1-x0+1,1,ox+offset+x0,oy+dy+44+i,x1-x0+1,1));
+   c.restore();
+  }
+  const sideJawMasks=[
+   [[25,34],[25,33]],
+   [[25,36],[26,34],[28,33]],
+   [[26,36],[27,33]],
+   [[25,36],[25,33],[27,31]],
+   [[25,35],[26,33]],
+   [[26,34],[27,32]]
+  ];
+  const sideX=[-2,-1,-1,-2,-1,-1],sideJawY=[45,46,45,46,45,45];
+  for(let col=0;col<6;col++){
+   completeHead(2,col,6,sideX[col],sideJawY[col],sideJawMasks[col]);
+   completeHead(3,col,5,-sideX[col],sideJawY[col],sideJawMasks[col].map(([x0,x1])=>[63-x1,63-x0]));
+  }
+  completeHead(0,4,5,0,49,[[25,38],[27,38],[28,36],[30,35]]);
   for(let row=7;row<=8;row++)for(let col=0;col<2;col++)head(row,col,col===0?43:46,false,row===8);
   // Hair naturally lies differently during the kneel/fall. Keep those silhouettes
   // and the hands/body in front, while using the punch's exact hair colours.
@@ -82,6 +113,8 @@
    if(p.lift){
     ctx.drawImage(atlas,sx,sy+54,CELL,10,dx,dy+54,CELL,10);
     ctx.drawImage(atlas,sx,sy,CELL,55,dx,dy-1,CELL,55);
+   }else if(p.hurt&&p.dir===1){
+    ctx.translate(dx+CELL,dy);ctx.scale(-1,1);ctx.drawImage(atlas,sx,sy,CELL,CELL,0,0,CELL,CELL);
    }else ctx.drawImage(atlas,sx,sy,CELL,CELL,dx,dy,CELL,CELL);
    ctx.restore();
    const rearHands=[[6,-9],[9,-14],[13,-27],[9,-18],[6,-10],[6,-10]];
