@@ -468,16 +468,15 @@ function closeModal(){closeItemMenu();tab='';sel=null;outdoorShop=null;renderMod
 function renderModal(){
   modal.dataset.screen=tab;
   modal.hidden=!tab;
+  document.querySelectorAll('#hudR button').forEach(b=>{const screen=b.dataset.uiOpen||(b.id==='bBag'?'pack':'settings');b.setAttribute('aria-pressed',String(tab===screen))});
   const noteToggle=$('bBanknotes');
   noteToggle.hidden=tab!=='bank';
   noteToggle.setAttribute('aria-pressed',String(withdrawNoted));
   noteToggle.title=withdrawNoted?'Withdraw banknotes · selected':'Withdraw normal items · select for banknotes';
   if(!tab)return;
-  $('mTabs').hidden=(tab==='settings');
   uiCurrencies();
   const st=mBody.scrollTop;
   $('mTitle').textContent=tab==='shop'&&curShop()?curShop().name:TITLES[tab];
-  document.querySelectorAll('#mTabs button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab===tab)));
   mBody.textContent='';
   ({gear:rGear,pack:rPack,skills:rSkills,players:rPlayers,shop:rShop,settings:rSettings,board:rBoard,jobs:rJobs,odd:rOdd,bank:rBank})[tab]();
   mBody.scrollTop=st;
@@ -781,7 +780,7 @@ function sfx(k){
 /* ---------- controller (Gamepad API: Xbox / PlayStation / MFi over Bluetooth or USB) ---------- */
 let gpName='',gpPrev=[];
 let gpFocus=null,gpIdx=-1,gpHold=0,gpCD=0;
-const gpList=()=>[...document.querySelectorAll('#mClose,#mTabs button,#mBody button:not([disabled]),#mBody input[type=range]')].filter(e=>e.offsetParent!==null);
+const gpList=()=>[...document.querySelectorAll('#hudR button,#mClose,#mBody button:not([disabled]),#mBody input[type=range],.window-footer button:not([disabled])')].filter(e=>e.offsetParent!==null);
 function gpSet(e){
   if(gpFocus)gpFocus.classList.remove('gpf');
   gpFocus=e;if(e){e.classList.add('gpf');gpIdx=gpList().indexOf(e);try{e.scrollIntoView({block:'nearest'})}catch(_){}}
@@ -861,6 +860,8 @@ function rSettings(){
   const pt=el('button','btn',cfg.pad?'On':'Off');pt.type='button';pt.style.minWidth='70px';
   pt.addEventListener('click',()=>{cfg.pad=!cfg.pad;saveCfg();renderModal()});
   top.append(row('Controller support',pt));
+  const party=el('button','btn','Open party');party.type='button';party.addEventListener('click',()=>openModal('players'));
+  top.append(row('Players',party));
   mBody.append(top);
   mBody.append(el('p','note',gpName?'Controller connected: '+gpName+'.':'No controller found. Pair it in your device Bluetooth settings (hold the pair button on an Xbox controller), then press any button on it.'));
   mBody.append(el('p','note','Left stick or D-pad: move. A: gather or talk. X, RT or RB: attack (hold to keep swinging). Y: eat. Menu: this screen. View: backpack. LB and RB: switch tabs. B: close menus.'));
@@ -1127,7 +1128,6 @@ function rShop(){
   }
   if(S.kinds.length)mBody.append(el('p','note','Open the Pack tab to sell spare gear here.'));
 }
-document.querySelectorAll('#mTabs button').forEach(b=>b.addEventListener('click',()=>openModal(b.dataset.tab)));
 document.querySelectorAll('[data-ui-open]').forEach(b=>b.addEventListener('click',()=>{tab===b.dataset.uiOpen?closeModal():openModal(b.dataset.uiOpen)}));
 $('mClose').addEventListener('click',closeModal);
 $('bMenu').addEventListener('click',()=>tab==='settings'?closeModal():openModal('settings'));

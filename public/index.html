@@ -6,7 +6,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<link rel="stylesheet" href="/myrren-ui.css?v=4">
+<link rel="stylesheet" href="/myrren-ui.css?v=5">
 </head>
 <body>
 <div id="app">
@@ -21,6 +21,7 @@
     </div>
     <div id="qline" class="wood rim" hidden></div>
     <div id="tgt" class="wood rim" hidden><b id="tgtName">Pink slime</b><div class="tb"><i id="tgtFill"></i></div></div>
+    <div id="hudBottom">
     <div id="hudName"></div>
     <nav id="hudR" aria-label="Quick menus">
       <button class="ibtn" type="button" data-ui-open="gear" aria-label="Equipment" title="Equipment" data-i="helm"></button>
@@ -29,6 +30,7 @@
       <button id="bMenu" class="ibtn" type="button" aria-label="Settings" data-i="cog"></button>
       <button id="bBag" class="ibtn" type="button" aria-label="Backpack" title="Inventory" data-i="bag"></button>
     </nav>
+    </div>
   </div>
   <div id="toast"></div>
   <ol id="chat" hidden></ol>
@@ -41,13 +43,7 @@
   <div id="modal" hidden>
     <div class="win">
       <header><h2 id="mTitle">Equipment</h2><button id="mClose" class="x" type="button" aria-label="Close">X</button></header>
-      <nav id="mTabs" aria-label="Menu tabs">
-        <button type="button" data-tab="gear" aria-pressed="false"><span data-i="helm"></span>Gear</button>
-        <button type="button" data-tab="pack" aria-pressed="false"><span data-i="bag"></span>Pack</button>
-        <button type="button" data-tab="skills" aria-pressed="false"><span data-i="sword"></span>Skills</button>
-        <button type="button" data-tab="jobs" aria-pressed="false"><span data-i="scroll"></span>Jobs</button>
-        <button type="button" data-tab="players" aria-pressed="false"><span data-i="coins"></span>Party</button>
-      </nav>
+
       <section id="mBody"></section>
       <footer class="window-footer" aria-label="Currencies"><div class="currency"><span data-i="coins"></span><span class="label">GOLD</span><strong id="mCoins">0</strong><button id="bBanknotes" class="banknote-toggle" type="button" hidden aria-label="Withdraw as banknotes" aria-pressed="false" title="Withdraw normal items"><svg viewBox="0 0 20 20" width="26" height="26" aria-hidden="true" shape-rendering="crispEdges"><path fill="#413a2c" d="M2 1h13l3 3v15H2z"/><path fill="#e5d39b" d="M3 2h11v4h3v12H3z"/><path fill="#a59464" d="M14 2v4h3zM5 5h6v2H5zM5 13h10v1H5zM5 15h7v1H5z"/><path fill="#538c83" d="M10 7h2v2h2v2h-2v2h-2v-2H8V9h2z"/></svg></button></div><div class="currency tokens"><span data-i="scroll"></span><span class="label">JOB TOKENS</span><strong id="mTokens">0</strong></div></footer>
     </div>
@@ -68,6 +64,6 @@
 <script src="/myrren-environment.js?v=3"></script>
 <script src="/v31-feet.js?v=1"></script>
 <script src="/v31-equipment.js?v=8"></script>
-<script src="/myrren-game.js?v=4"></script>
+<script src="/myrren-game.js?v=5"></script>
 </body>
 </html>
