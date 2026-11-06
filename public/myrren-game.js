@@ -50,13 +50,13 @@ const ITEMS={
   tin:{art:'ore',pal:{o:'#d4dce4'},name:'Tin Chunk'},
   iron:{art:'ore',pal:{o:'#8c4a2a'},name:'Iron Chunk'},
   cobalt:{art:'ore',pal:{o:'#72727c',R:'#41434b'},name:'Black Iron Chunk'},
-  aether:{art:'ore',pal:{o:'#a4b29a',R:'#626e60',r:'#354438'},name:'Myrrenite Chunk'},
+  aether:{art:'ore',pal:{o:'#b99bf0',R:'#675296',r:'#241b3b'},name:'Myrrenite Chunk'},
   coal:{art:'ore',pal:{o:'#2a2a2e',R:'#4a4a50',r:'#1a1a1e'},name:'Coal Flakes'},
   ing_bronze:{art:'ingot',pal:{M:'#c9803a',h:'#ecb070',d:'#6a3e16'},name:'Bronze Ingot'},
   ing_iron:{art:'ingot',pal:{M:'#9fb0b8',h:'#d6e2e8',d:'#4a5860'},name:'Iron Ingot'},
   ing_steel:{art:'ingot',pal:{M:'#b5cadb',h:'#f4fbff',d:'#40586e'},name:'Steel Ingot'},
   ing_cobalt:{art:'ingot',pal:{M:'#41434b',h:'#72727c',d:'#292a32'},name:'Black Iron Ingot'},
-  ing_aether:{art:'ingot',pal:{M:'#626e60',h:'#a4b29a',d:'#354438'},name:'Myrrenite Ingot'},
+  ing_aether:{art:'ingot',pal:{M:'#675296',h:'#b99bf0',d:'#241b3b'},name:'Myrrenite Ingot'},
   bait:{art:'bait',name:'Bait'},
   coal_pouch:{art:'bag',pal:{M:'#4a4a52',H:'#7a7a86',D:'#1a1a1e'},name:'Coal Pouch'},
   bread:{art:'bread',name:'Bread'},
@@ -73,18 +73,19 @@ const ITEMS={
   trout:{art:'fish',pal:{F:'#c89a5a',T:'#8a6a38'},name:'Cooked trout'},
   salmon:{art:'fish',pal:{F:'#d8744a',T:'#a84a2a'},name:'Cooked salmon'}
 };
-const SELL={logs:4,oak:8,maple:20,elder:60,myrren:180,copper:6,tin:6,iron:14,coal:12,cobalt:45,aether:170,ing_bronze:10,ing_iron:24,ing_steel:34,ing_cobalt:135,ing_aether:608,rshrimp:3,rtrout:9,rsalmon:20,rtuna:40,reel:110,shrimp:6,trout:16,salmon:34,tuna:70,eel:200};
+Object.assign(ITEMS,{obsidianite:{art:'ore',pal:{o:'#df5356',R:'#442b3c'},name:'Obsidianite Chunk'},meteorite:{art:'ore',pal:{o:'#83e6ff',R:'#46516e'},name:'Meteorite Fragment'},ing_obsidianite:{art:'ingot',pal:{M:'#442b3c',h:'#e65456',d:'#201c29'},name:'Obsidianite Ingot'},ing_starsteel:{art:'ingot',pal:{M:'#a2c9e2',h:'#f0f8ff',d:'#41485f'},name:'Starsteel Ingot'}});
+const SELL={obsidianite:90,meteorite:500,ing_obsidianite:265,ing_starsteel:1300,logs:4,oak:8,maple:20,elder:60,myrren:180,copper:6,tin:6,iron:14,coal:12,cobalt:45,aether:170,ing_bronze:10,ing_iron:24,ing_steel:34,ing_cobalt:135,ing_aether:608,rshrimp:3,rtrout:9,rsalmon:20,rtuna:40,reel:110,shrimp:6,trout:16,salmon:34,tuna:70,eel:200};
 const FOOD={bread:{heal:5,price:6},pie:{heal:10,price:18},stew:{heal:20,price:45},shrimp:{heal:4},trout:{heal:9},salmon:{heal:15},tuna:{heal:28},eel:{heal:45}};
 const COOK={rshrimp:{to:'shrimp',req:1,xp:30},rtrout:{to:'trout',req:12,xp:70},rsalmon:{to:'salmon',req:25,xp:120},rtuna:{to:'tuna',req:40,xp:260},reel:{to:'eel',req:70,xp:800}};
 const SHOPS={
   axe:{name:'Woodland Town Hall',sign:'Town Hall',keeper:'Brann',wall:'#b8a888',roof:'#3f7a3a',hue:110,hair:'#8a5a30',cats:{Hatchets:['axe']},kinds:['axe'],buys:['logs','oak','maple','elder','myrren'],greet:'Brann: Welcome to town hall. I buy timber for the village. Dorn at the open forge sells axes.'},
-  pick:{name:'Deepdig Picks',sign:'Picks',keeper:'Hilda',wall:'#a8a8a0',roof:'#5a6270',hue:210,hair:'#c8c0b0',cats:{Pickaxes:['pick']},kinds:['pick'],buys:['copper','tin','iron','coal','cobalt','aether'],greet:'Hilda: Pickaxes for every rock. I pay well for raw chunks and coal.'},
+  pick:{name:'Deepdig Picks',sign:'Picks',keeper:'Hilda',wall:'#a8a8a0',roof:'#5a6270',hue:210,hair:'#c8c0b0',cats:{Pickaxes:['pick']},kinds:['pick'],buys:['copper','tin','iron','coal','cobalt','aether','obsidianite','meteorite'],greet:'Hilda: Pickaxes for every rock. I pay well for raw chunks and coal.'},
   food:{name:'Hearth Bakery',sign:'Bakery',keeper:'Mara',wall:'#d4b890',roof:'#d8863a',hue:30,hair:'#4a2a18',food:true,cats:{},kinds:[],buys:[],greet:'Mara: Fresh bread, pies and stew. Eat up before you fight.'},
   fish:{name:'Tidewater Rods',sign:'Fishing',keeper:'Odo',wall:'#9ab0c0',roof:'#3a6a9a',hue:200,hair:'#d8d8c8',bait:true,cats:{Nets:['net'],Rods:['rod']},kinds:['net','rod'],buys:['rshrimp','rtrout','rsalmon','rtuna','reel','shrimp','trout','salmon','tuna','eel'],greet:'Odo: A net for the shallows, a rod and bait for the deep. I buy your catch, raw or cooked.'},
-  arms:{name:'Elderwood Blacksmith',sign:'Forge',keeper:'Dorn',wall:'#a89c9c',roof:'#a8422a',hue:0,hair:'#2a2a30',cats:{Axes:['axe'],Weapons:['sword'],Armour:['helm','body','gloves','legs','boots','shield'],Smelt:[],Forge:[],Repair:[]},kinds:['axe','sword','helm','body','gloves','legs','boots','shield','ring','amulet'],buys:['ing_bronze','ing_iron','ing_steel','ing_cobalt','ing_aether'],greet:'Dorn: Axes, blades and armour for sale. Use the furnace and anvil to train your smithing.'}
+  arms:{name:'Elderwood Blacksmith',sign:'Forge',keeper:'Dorn',wall:'#a89c9c',roof:'#a8422a',hue:0,hair:'#2a2a30',cats:{Axes:['axe'],Weapons:['sword'],Armour:['helm','body','gloves','legs','boots','shield'],Smelt:[],Forge:[],Repair:[]},kinds:['axe','sword','helm','body','gloves','legs','boots','shield','ring','amulet'],buys:['ing_bronze','ing_iron','ing_steel','ing_cobalt','ing_aether','ing_obsidianite','ing_starsteel'],greet:'Dorn: Axes, blades and armour for sale. Use the furnace and anvil to train your smithing.'}
 };
 for(const k in SHOPS)SHOPS[k].id=k;
-const SHOPMAX={rod:4,net:1};
+const SHOPMAX={rod:4,net:1,helm:8,body:8,gloves:8,legs:8,boots:8,shield:8};
 function svg(key,size,pal2){
   const a=ART[key],pal=Object.assign({},a.p,pal2||{});let r='';
   a.m.forEach((row,y)=>{for(let x=0;x<8;x++){const c=row[x];if(c!=='.'&&pal[c])r+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+pal[c]+'"/>'}});
@@ -99,7 +100,9 @@ const MATS=[null,
   {k:'iron',n:'Iron',M:'#9fb0b8',H:'#d6e2e8',D:'#4a5860',req:15},
   {k:'steel',n:'Steel',M:'#b5cadb',H:'#f4fbff',D:'#40586e',req:25},
   {k:'cobalt',n:'Black Iron',M:'#41434b',H:'#72727c',D:'#292a32',req:45},
-  {k:'aether',n:'Myrrenite',M:'#626e60',H:'#a4b29a',D:'#354438',req:75}];
+  {k:'aether',n:'Myrrenite',M:'#626e60',H:'#a4b29a',D:'#354438',req:75},
+  {k:'obsidianite',n:'Obsidianite',M:'#442b3c',H:'#e65456',D:'#201c29',req:40},
+  {k:'starsteel',n:'Starsteel',M:'#a2c9e2',H:'#f0f8ff',D:'#41485f',req:70}];
 const KINDS={
   sword:{slot:'weapon',art:'sword',skill:'melee',mats:[2,3,4,5,6],price:[25,150,700,3500,18000],atk:[1,3,6,12,22],nm:{d:'sword'}},
   axe:{slot:'weapon',art:'axe',skill:'woodcutting',mats:[2,3,4,5,6],price:[20,120,600,3000,15000],nm:{d:'hatchet'}},
@@ -124,19 +127,28 @@ for(const kind in KINDS){
     DEFS[id]={id,kind,slot:K.slot,art:K.art,mat:m,name,req:K.reqs?K.reqs[i]:MATS[m].req,skill:K.skill,price:K.price[i],atk:K.atk?K.atk[i]:0,def:K.def?K.def[i]:0,tool:kind==='axe'||kind==='pick'||kind==='net'||kind==='rod'};
   });
 }
+// Stable material IDs keep existing equipment and saves compatible.
+const ARMOUR_ORDER=[2,3,4,5,7,6,8],ARMOUR_LEVELS=[1,10,20,30,40,55,70];
+const ARMOUR_DEF={helm:[2,4,7,11,14,16,21],body:[4,8,14,22,27,32,42],gloves:[1,2,4,6,8,9,12],legs:[3,6,10,16,20,24,31],boots:[1,2,4,7,9,10,14],shield:[2,4,8,13,16,19,25]};
+for(const kind in ARMOUR_DEF){
+ const K=KINDS[kind];K.mats=ARMOUR_ORDER.slice();delete DEFS['leather_'+kind];
+ ARMOUR_ORDER.forEach((mat,i)=>{const id=MATS[mat].k+'_'+kind;DEFS[id]={id,kind,slot:K.slot,art:K.art,mat,name:MATS[mat].n+' '+K.nm.d,req:ARMOUR_LEVELS[i],skill:K.skill,price:0,atk:0,def:ARMOUR_DEF[kind][i],tool:false}});
+}
 const SLOTS=['head','body','hands','legs','boots','weapon','shield','ring','neck'];
 const SLOTNAME={head:'Head',body:'Body',hands:'Hands',legs:'Legs',boots:'Boots',weapon:'Weapon',shield:'Shield',ring:'Ring',neck:'Amulet'};
 /* smelting + forging (ingot costs from the design doc) */
 const SMELT=[
   {id:'bronze',mat:2,req:1,xp:12,in:{copper:1,tin:1}},
-  {id:'iron',mat:3,req:15,xp:30,in:{iron:2}},
-  {id:'steel',mat:4,req:25,xp:55,in:{iron:2,coal:1}},
-  {id:'cobalt',mat:5,req:45,xp:140,in:{cobalt:3,coal:2}},
-  {id:'aether',mat:6,req:75,xp:600,in:{aether:4,coal:3}}];
+  {id:'iron',mat:3,req:10,xp:30,in:{iron:2}},
+  {id:'steel',mat:4,req:20,xp:55,in:{iron:2,coal:1}},
+  {id:'cobalt',mat:5,req:30,xp:140,in:{cobalt:3,coal:2}},
+  {id:'obsidianite',mat:7,req:40,xp:300,in:{obsidianite:3,coal:2}},
+  {id:'aether',mat:6,req:55,xp:600,in:{aether:4,coal:3}},
+  {id:'starsteel',mat:8,req:70,xp:1000,in:{meteorite:3,coal:4}}];
 const FORGE={axe:3,pick:3,sword:4,shield:5,helm:4,gloves:4,boots:4,legs:5,body:6};
 /* economy: shop price of forgeable gear = 2x its ingot value, so smelting+forging always beats buying and coins are a sink */
 for(const id in DEFS){const d=DEFS[id];if(FORGE[d.kind]&&d.mat>=2){const ik='ing_'+MATS[d.mat].k;if(SELL[ik])d.price=Math.round(2*FORGE[d.kind]*SELL[ik])}}
-const gearSvg=(d,s)=>{const m=MATS[d.mat];if((d.kind==='helm'||d.kind==='shield')&&myrrenV31Equipment)return myrrenV31Equipment.icon(d.kind,d.mat,s);return svg(d.art,s,{M:m.M,H:m.H,D:m.D,S:m.H})};
+const gearSvg=(d,s)=>{if(window.MyrrenArmour?.ready&&ARMOUR_DEF[d.kind])return window.MyrrenArmour.icon(d.kind,d.mat,s);const m=MATS[d.mat];if((d.kind==='helm'||d.kind==='shield')&&myrrenV31Equipment)return myrrenV31Equipment.icon(d.kind,d.mat,s);return svg(d.art,s,{M:m.M,H:m.H,D:m.D,S:m.H})};
 
 /* ---------- rules ---------- */
 const NAMES={melee:'Combat',woodcutting:'Forestry',mining:'Delving',fishing:'Fishing',cooking:'Cooking'};
@@ -157,11 +169,12 @@ const NT={
   myrren:{name:'Myrrenwood tree',skill:'woodcutting',tool:'axe',req:85,xp:1500,item:'myrren',base:.1,dep:.8,rt:[30,45],verb:'cut'},
   copper:{name:'Copper rock',skill:'mining',tool:'pick',req:1,xp:18,item:'copper',base:.32,dep:1,rt:[8,14],verb:'mine'},
   tin:{name:'Tin rock',skill:'mining',tool:'pick',req:1,xp:18,item:'tin',base:.32,dep:1,rt:[8,14],verb:'mine'},
-  iron:{name:'Iron rock',skill:'mining',tool:'pick',req:15,xp:45,item:'iron',base:.2,dep:1,rt:[12,20],verb:'mine'},
-  coal:{name:'Coal seam',skill:'mining',tool:'pick',req:25,xp:75,item:'coal',base:.2,dep:1,rt:[14,22],verb:'mine'},
-  cobalt:{name:'Black Iron rock',skill:'mining',tool:'pick',req:45,xp:210,item:'cobalt',base:.15,dep:1,rt:[18,28],verb:'mine'},
-  aether:{name:'Myrrenite rock',skill:'mining',tool:'pick',req:75,xp:900,item:'aether',base:.1,dep:1,rt:[24,36],verb:'mine'}
+  iron:{name:'Iron rock',skill:'mining',tool:'pick',req:10,xp:45,item:'iron',base:.2,dep:1,rt:[12,20],verb:'mine'},
+  coal:{name:'Coal seam',skill:'mining',tool:'pick',req:20,xp:75,item:'coal',base:.2,dep:1,rt:[14,22],verb:'mine'},
+  cobalt:{name:'Black Iron rock',skill:'mining',tool:'pick',req:30,xp:210,item:'cobalt',base:.15,dep:1,rt:[18,28],verb:'mine'},
+  aether:{name:'Myrrenite rock',skill:'mining',tool:'pick',req:55,xp:900,item:'aether',base:.1,dep:1,rt:[24,36],verb:'mine'}
 };
+Object.assign(NT,{obsidianite:{name:'Obsidianite rock',skill:'mining',tool:'pick',req:40,xp:400,item:'obsidianite',base:.12,dep:1,rt:[22,32],verb:'mine',msg:'You swing your pickaxe at the rock.'},meteorite:{name:'Meteorite deposit',skill:'mining',tool:'pick',req:70,xp:1200,item:'meteorite',base:.08,dep:1,rt:[30,45],verb:'mine',msg:'You swing your pickaxe at the meteorite.'}});
 const TREEK=['tree','oak','maple','elder','myrren'];
 const TOOLNAME={axe:'a hatchet',pick:'a pickaxe',net:'a net',rod:'a fishing rod'};
 Object.assign(NT,{
@@ -226,6 +239,7 @@ function addMons(k,n,minCamp){for(let i=0;i<n;i++){const s=spot(minCamp,30,BOX[0
 addMons('slime',16,110);addMons('goblin',12,260);addMons('boar',10,190);addMons('wolf',9,460);addMons('bear',5,560);
 addNodes('tin',20,120);addNodes('maple',22,300);addNodes('coal',16,260);addNodes('cobalt',12,430);addNodes('elder',12,480);addNodes('aether',7,600);addNodes('myrren',6,640);
 addMons('cave',6,620);addMons('abear',4,720);
+addNodes('obsidianite',8,530);addNodes('meteorite',4,700);
 
 
 /* ---------- save ---------- */
@@ -241,7 +255,16 @@ function parseSavedProgress(raw){
 }
 let save={notes:{},bank:{},packOrder:[],bankOrder:[],wear:{},jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0},x:CX,y:CY+44};
 let fresh=true,saveTs=0;
+function migrateArmourSave(source){
+ const id=k=>typeof k==='string'&&/^leather_(helm|body|gloves|legs|boots|shield)$/.test(k)?k.replace('leather_','bronze_'):k;
+ const o={...source,eq:{...source.eq},bag:(Array.isArray(source.bag)?source.bag:[]).map(id)};
+ for(const slot in o.eq)o.eq[slot]=id(o.eq[slot]);
+ for(const field of ['notes','bank','wear']){o[field]={};for(const [k,v] of Object.entries(source[field]||{})){const key=id(k);o[field][key]=field==='wear'?Math.max(o[field][key]||0,+v||0):(o[field][key]||0)+(+v||0)}}
+ for(const field of ['packOrder','bankOrder']){const count={};o[field]=(Array.isArray(source[field])?source[field]:[]).map(token=>{if(typeof token!=='string')return null;const [type,k]=token.split(':');if(type==='g'){const key=id(k),n=count[key]||0;count[key]=n+1;return 'g:'+key+':'+n}return token.replace(k,id(k))})}
+ return o;
+}
 function applySave(o){
+  o=migrateArmourSave(o);
   save.wear={};save.jobs=[];save.tokens=0;save.perks={};save.dye=null;save.xp={};save.inv={};save.eq=emptyEq();save.bag=[];save.pets={woodcutting:0,fishing:0,mining:0};save.name='';save.x=CX;save.y=CY+44;
   {
     if(o.xp)Object.assign(save.xp,o.xp);
@@ -308,7 +331,7 @@ function persist(force){
 }
 const eqDef=slot=>save.eq[slot]?DEFS[save.eq[slot]]:null;
 const usable=d=>lvlFor(save.xp[d.skill])>=d.req;
-const WEARMAX={1:300,2:600,3:900,4:1400,5:2200,6:3500};
+const WEARMAX={1:300,2:600,3:900,4:1400,5:2200,6:3500,7:2800,8:5000};
 const wearOf=id=>(save.wear&&save.wear[id])||0;
 const broken=d=>wearOf(d.id)>=1;
 const activeDef=slot=>{const d=eqDef(slot);return d&&usable(d)&&!broken(d)?d:null};
@@ -708,7 +731,7 @@ function inventoryHeading(title,value=''){
 function rGear(){
  mBody.append(inventoryHeading('EQUIPPED',save.name||'Wanderer'));
  const sheet=el('div','character-sheet'),portrait=el('div','character-portrait'),canvas=document.createElement('canvas');canvas.width=128;canvas.height=160;canvas.setAttribute('aria-label','Your equipped character');portrait.append(canvas);
- if(approvedHero&&window.MyrrenHero.supports(gearArr())){const c=canvas.getContext('2d');c.save();c.scale(4,4);approvedHero.draw(c,16,40,{dv:'d',f:1},0);c.restore()}
+ if(approvedHero&&window.MyrrenHero.supports(gearArr())){const c=canvas.getContext('2d');c.save();c.scale(4,4);approvedHero.draw(c,16,40,{dv:'d',f:1,g:gearArr(),armourDye:save.dye!=null?DYES[save.dye]:null},0);c.restore()}
  else if(myrrenV31Ready){const g=gearArr(),sprite=myrrenV31Equipment?myrrenV31Equipment.get(g[2],g[3],save.dye!=null?DYES[save.dye]:null,g[1],g[0],g[4],0,g[5]):myrrenV31FeetAtlas,c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(sprite,0,0,32,40,0,0,128,160)}
  sheet.append(equipmentPaper(),portrait,equipmentStats('character-stats'));mBody.append(sheet);mBody.append(detail());
  const candidates=save.bag.map((id,i)=>({id,i,d:DEFS[id]})).filter(o=>o.d&&(!(sel&&sel.src==='eq')||o.d.slot===sel.key));
@@ -888,7 +911,7 @@ function rSettingsTail(){
 /* ---------- odd jobs ---------- */
 const JOB_SKILLS=['melee','woodcutting','mining','fishing','cooking'];
 const JOB_POOL={
-  mining:[['copper',1],['tin',1],['iron',15],['coal',25],['cobalt',45],['aether',75]],
+  mining:[['copper',1],['tin',1],['iron',10],['coal',20],['cobalt',30],['obsidianite',40],['aether',55],['meteorite',70]],
   woodcutting:[['logs',1],['oak',10],['maple',30],['elder',60],['myrren',85]],
   fishing:[['rshrimp',1],['rtrout',12],['rsalmon',25],['rtuna',40],['reel',70]],
   cooking:[['shrimp',1],['trout',12],['salmon',25],['tuna',40],['eel',70]]};
@@ -1061,7 +1084,8 @@ function rSmelt(){
 }
 let forgeMat=2;
 function forge(kind){
-  const r=SMELT.find(x=>x.mat===forgeMat),id=MATS[forgeMat].k+'_'+kind,d=DEFS[id],key='ing_'+r.id,cost=FORGE[kind];
+  const r=SMELT.find(x=>x.mat===forgeMat),id=MATS[forgeMat]?.k+'_'+kind,d=DEFS[id],cost=FORGE[kind];
+  if(!r||!d||!cost)return;const key='ing_'+r.id;
   if(lvlFor(save.xp.mining)<r.req){say('You need '+NAMES.mining+' '+r.req+' to forge with that.','warn');return}
   if(save.inv[key]<cost){say('You need '+cost+' '+ITEMS[key].name.toLowerCase()+'s.','warn');return}
   if(!canFitInventory({[key]:-cost},!save.eq[d.slot]&&usable(d)?0:1)){say('Your pack is full.','warn');return}
@@ -1256,7 +1280,7 @@ function ingest(change){
     o.h=((+pr.h||0)%360+360)%360;
     const a=clamp(pr.a|0,0,6);o.tool=CODE_KIND[a];o.mat=clamp(pr.tt|0,1,6);
     o.hold=a>0?now+1e9:0;
-    if(Array.isArray(pr.g))o.g=[0,1,2,3,4,5].map(i=>clamp(pr.g[i]|0,0,6));
+    if(Array.isArray(pr.g))o.g=[0,1,2,3,4,5].map(i=>clamp(pr.g[i]|0,0,8));
     if(typeof pr.s==='number'){if(o.s!==null&&pr.s!==o.s)o.swingAt=now;o.s=pr.s}
     if(typeof pr.e==='number'){if(o.e!==null&&pr.e!==o.e)o.until=now+2200;o.e=pr.e}
   }
@@ -1485,7 +1509,7 @@ function killMon(m,now){
   }
   if(Math.random()<mt.bread){if(canFitInventory({bread:1})){save.inv.bread++;say('It dropped some bread.')}else say('It dropped bread, but your pack is full.','warn')}
   if(Math.random()<mt.drop.p){
-    const mat=mt.drop.mats[rint(0,mt.drop.mats.length-1)];
+    const mat=Math.max(2,mt.drop.mats[rint(0,mt.drop.mats.length-1)]);
     const kinds=Object.keys(KINDS).filter(k=>KINDS[k].mats.includes(mat));
     giveGear(MATS[mat].k+'_'+kinds[rint(0,kinds.length-1)]);
   }
@@ -1962,7 +1986,7 @@ MYRREN_APPROVED.onerror=()=>{approvedHero=null};
 MYRREN_APPROVED.src='/hero-approved-v1.png';
 function drawApprovedBase(x,y,o,now){
   shadowE(x+1,y,7,2,.3);
-  const pose=approvedHero.draw(ctx,x,y,{...o,hurtAt:o.isMe?me.hurtAt:null,deathAt:o.isMe?me.deathAt:null},now);
+  const pose=approvedHero.draw(ctx,x,y,{...o,armourDye:o.dye!=null?DYES[o.dye]:null,hurtAt:o.isMe?me.hurtAt:null,deathAt:o.isMe?me.deathAt:null},now);
   if(pose.dead)return true;
   const age=now-(o.swingAt??-99999),swinging=age>=0&&age<320;
   if(o.tool&&o.tool!=='fist'&&(swinging||now<o.hold)){

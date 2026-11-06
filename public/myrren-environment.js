@@ -56,7 +56,7 @@
       poly([[6,22],[9,13],[18,6],[27,7],[34,16],[35,24],[14,25]],P.stone);
       poly([[9,13],[18,6],[27,7],[22,14],[12,18]],P.stoneL);poly([[22,14],[27,7],[34,16],[35,24],[26,23]],'#495a55');r(18,15,2,7,P.deep);r(20,14,5,2,P.deep);
       r(6,21,9,3,P.leaf);r(8,20,5,2,P.lit);r(29,23,7,2,P.shade);
-      if(live){const pal={copper:['#9c694d','#d8aa76'],tin:['#8fa4a2','#c6d0b8'],iron:['#657888','#a3b2b3'],coal:['#30343f','#67717c'],cobalt:['#476b95','#8bb5cc'],aether:['#7a638f','#c3b0c8']}[n.k]||['#657888','#a3b2b3'];for(const [xx,yy] of [[13,13],[25,11],[26,20]]){poly([[xx-2,yy],[xx+2,yy-3],[xx+5,yy],[xx+3,yy+4],[xx-2,yy+3]],P.ink);r(xx-1,yy,5,3,pal[0]);r(xx,yy-1,3,2,pal[1])}}
+      if(live){const pal={copper:['#9c694d','#d8aa76'],tin:['#8fa4a2','#c6d0b8'],iron:['#657888','#a3b2b3'],coal:['#30343f','#67717c'],cobalt:['#476b95','#8bb5cc'],aether:['#7958a7','#c2a0f1'],obsidianite:['#642b3f','#f06465'],meteorite:['#6c9abd','#a8efff']}[n.k]||['#657888','#a3b2b3'];for(const [xx,yy] of [[13,13],[25,11],[26,20]]){poly([[xx-2,yy],[xx+2,yy-3],[xx+5,yy],[xx+3,yy+4],[xx-2,yy+3]],P.ink);r(xx-1,yy,5,3,pal[0]);r(xx,yy-1,3,2,pal[1])}}
     });
   }
   function fern(ctx,x,y,seed=0){
