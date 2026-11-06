@@ -188,7 +188,7 @@ const MT={
 const MR={slime:.09,goblin:.10,boar:.12,wolf:.13,bear:.11,cave:.12,abear:.12};
 for(const k in MT)MT[k].max=Math.max(1,Math.round(hpAt(MT[k].lv)*(MR[k]||.12)));
 /* ---------- world ---------- */
-const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=74,EDGE=100;
+const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=90,EDGE=100;
 const VILLAGE=MyrrenWorld;
 const BLD=VILLAGE.buildings.map(b=>({...b}));
 const LAMPS=[[CX-200,CY+14],[CX+200,CY+14],[CX-120,CY+70],[CX+120,CY+70],[CX-40,CY+70],[CX+40,CY+70]];

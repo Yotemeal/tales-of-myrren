@@ -29,11 +29,11 @@ function extractFunction(source,name){let a=source.indexOf('function '+name+'(')
  }
  assert.equal(sb.window.V31Character.idleLift(2000,false),0);assert.equal(sb.window.V31Character.idleLift(NaN),0);
  assert.equal(sb.window.V31Character.idleLift(0),0);assert.equal(sb.window.V31Character.idleLift(2000),1);assert.equal(sb.window.V31Character.idleLift(3600),0);
- const speed=+runtime.match(/SPD=(\d+)/)[1];assert.equal(speed,74);assert(speed/46>1.6);assert(runtime.includes('Math.floor(now/90)%4'));
+ const speed=+runtime.match(/SPD=(\d+)/)[1];assert.equal(speed,90);assert(speed/46>1.6);assert(runtime.includes('Math.floor(now/90)%4'));
  // Export a code-rendered before/after check sheet, not a replacement asset.
  const out=createCanvas(768,360),g=out.getContext('2d');g.imageSmoothingEnabled=false;g.fillStyle='#53664c';g.fillRect(0,0,768,360);g.fillStyle='#fff';g.font='16px sans-serif';
  g.fillText('Before · standing',12,24);g.fillText('After · standing',268,24);g.fillText('After · walking',524,24);
  g.drawImage(base,0,0,32,40,32,40,192,240);g.drawImage(feet,0,0,32,40,288,40,192,240);g.drawImage(feet,0,160,32,40,544,40,192,240);
  fs.writeFileSync('/workspace/scratch/myrren-face-comparison.png',out.toBuffer('image/png'));
- console.log(`PASS: aligned standing/walking face; ${poses} bare/equipped render states; fixed feet; connected native upper body; 3.6s idle cycle; 74px/s movement.`);
+ console.log(`PASS: aligned standing/walking face; ${poses} bare/equipped render states; fixed feet; connected native upper body; 3.6s idle cycle; 90px/s movement.`);
 })().catch(e=>{console.error(e);process.exitCode=1});
