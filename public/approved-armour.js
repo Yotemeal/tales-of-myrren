@@ -1,13 +1,14 @@
-/* Approved seven-metal armour. Composites onto the locked hero poses; never cuts
- * pixels out of the body. Material IDs 1–6 remain compatible with existing saves. */
+/* Approved seven-metal armour. Fits shaped equipment to the locked hero poses; the naked source stays intact.
+ * Full armour replaces old bare-arm/fallen-body outlines with connected plates.
+ * Material IDs 1–6 remain compatible with existing saves. */
 (()=>{'use strict';
  const order=[2,3,4,5,7,6,8],frames=[{"row":0,"col":0,"x":6,"y":6,"w":52,"h":51},{"row":0,"col":1,"x":70,"y":6,"w":51,"h":52},{"row":0,"col":2,"x":134,"y":11,"w":52,"h":42},{"row":0,"col":3,"x":198,"y":6,"w":51,"h":52},{"row":0,"col":4,"x":262,"y":6,"w":51,"h":52},{"row":0,"col":5,"x":326,"y":6,"w":51,"h":52},{"row":0,"col":6,"x":390,"y":6,"w":51,"h":52},{"row":1,"col":0,"x":6,"y":70,"w":52,"h":51},{"row":1,"col":1,"x":71,"y":70,"w":50,"h":52},{"row":1,"col":2,"x":135,"y":70,"w":50,"h":52},{"row":1,"col":3,"x":200,"y":70,"w":48,"h":52},{"row":1,"col":4,"x":263,"y":70,"w":50,"h":52},{"row":1,"col":5,"x":327,"y":70,"w":50,"h":52},{"row":1,"col":6,"x":392,"y":70,"w":48,"h":52},{"row":2,"col":0,"x":6,"y":135,"w":52,"h":50},{"row":2,"col":1,"x":70,"y":134,"w":52,"h":51},{"row":2,"col":2,"x":134,"y":135,"w":52,"h":49},{"row":2,"col":3,"x":198,"y":134,"w":52,"h":51},{"row":2,"col":4,"x":262,"y":136,"w":52,"h":48},{"row":2,"col":5,"x":326,"y":134,"w":52,"h":51},{"row":2,"col":6,"x":390,"y":134,"w":52,"h":51},{"row":3,"col":0,"x":6,"y":204,"w":52,"h":39},{"row":3,"col":1,"x":70,"y":206,"w":52,"h":35},{"row":3,"col":2,"x":134,"y":206,"w":52,"h":35},{"row":3,"col":3,"x":198,"y":206,"w":52,"h":36},{"row":3,"col":4,"x":262,"y":203,"w":52,"h":41},{"row":3,"col":5,"x":326,"y":203,"w":52,"h":41},{"row":3,"col":6,"x":390,"y":203,"w":52,"h":41},{"row":4,"col":0,"x":10,"y":262,"w":44,"h":52},{"row":4,"col":1,"x":74,"y":262,"w":43,"h":52},{"row":4,"col":2,"x":138,"y":262,"w":43,"h":52},{"row":4,"col":3,"x":203,"y":262,"w":41,"h":52},{"row":4,"col":4,"x":267,"y":262,"w":42,"h":52},{"row":4,"col":5,"x":331,"y":262,"w":42,"h":52},{"row":4,"col":6,"x":394,"y":262,"w":43,"h":52},{"row":5,"col":0,"x":6,"y":330,"w":52,"h":43},{"row":5,"col":1,"x":70,"y":333,"w":52,"h":38},{"row":5,"col":2,"x":134,"y":333,"w":52,"h":38},{"row":5,"col":3,"x":198,"y":329,"w":52,"h":45},{"row":5,"col":4,"x":262,"y":329,"w":52,"h":45},{"row":5,"col":5,"x":326,"y":329,"w":52,"h":45},{"row":5,"col":6,"x":390,"y":330,"w":52,"h":44}];
- const limbFrames=[{"row":0,"col":0,"x":5,"y":6,"w":54,"h":52},{"row":0,"col":1,"x":69,"y":16,"w":54,"h":31},{"row":0,"col":2,"x":133,"y":15,"w":54,"h":33},{"row":0,"col":3,"x":197,"y":9,"w":54,"h":46},{"row":0,"col":4,"x":261,"y":9,"w":54,"h":46},{"row":0,"col":5,"x":325,"y":15,"w":54,"h":33},{"row":0,"col":6,"x":389,"y":8,"w":54,"h":48},{"row":1,"col":0,"x":11,"y":69,"w":41,"h":54},{"row":1,"col":1,"x":76,"y":69,"w":39,"h":54},{"row":1,"col":2,"x":140,"y":69,"w":40,"h":54},{"row":1,"col":3,"x":204,"y":69,"w":40,"h":54},{"row":1,"col":4,"x":268,"y":69,"w":40,"h":54},{"row":1,"col":5,"x":332,"y":69,"w":39,"h":54},{"row":1,"col":6,"x":395,"y":69,"w":41,"h":54},{"row":2,"col":0,"x":5,"y":135,"w":54,"h":50},{"row":2,"col":1,"x":69,"y":145,"w":54,"h":30},{"row":2,"col":2,"x":133,"y":144,"w":54,"h":31},{"row":2,"col":3,"x":197,"y":138,"w":54,"h":44},{"row":2,"col":4,"x":261,"y":138,"w":54,"h":44},{"row":2,"col":5,"x":325,"y":144,"w":54,"h":31},{"row":2,"col":6,"x":389,"y":137,"w":54,"h":45},{"row":3,"col":0,"x":20,"y":197,"w":24,"h":54},{"row":3,"col":1,"x":84,"y":197,"w":24,"h":54},{"row":3,"col":2,"x":148,"y":197,"w":24,"h":54},{"row":3,"col":3,"x":212,"y":197,"w":24,"h":54},{"row":3,"col":4,"x":276,"y":197,"w":24,"h":54},{"row":3,"col":5,"x":340,"y":197,"w":24,"h":54},{"row":3,"col":6,"x":404,"y":197,"w":24,"h":54},{"row":4,"col":0,"x":5,"y":268,"w":54,"h":40},{"row":4,"col":1,"x":69,"y":276,"w":54,"h":23},{"row":4,"col":2,"x":133,"y":268,"w":54,"h":39},{"row":4,"col":3,"x":197,"y":268,"w":54,"h":39},{"row":4,"col":4,"x":261,"y":268,"w":54,"h":39},{"row":4,"col":5,"x":325,"y":268,"w":54,"h":39},{"row":4,"col":6,"x":389,"y":269,"w":54,"h":38},{"row":5,"col":0,"x":13,"y":325,"w":38,"h":54},{"row":5,"col":1,"x":77,"y":325,"w":37,"h":54},{"row":5,"col":2,"x":141,"y":325,"w":38,"h":54},{"row":5,"col":3,"x":205,"y":325,"w":38,"h":54},{"row":5,"col":4,"x":268,"y":325,"w":39,"h":54},{"row":5,"col":5,"x":333,"y":325,"w":38,"h":54},{"row":5,"col":6,"x":396,"y":325,"w":39,"h":54}];
+ const limbFrames=[{"row":0,"col":0,"x":5,"y":9,"w":54,"h":45},{"row":0,"col":1,"x":69,"y":9,"w":54,"h":46},{"row":0,"col":2,"x":133,"y":8,"w":54,"h":47},{"row":0,"col":3,"x":197,"y":9,"w":54,"h":46},{"row":0,"col":4,"x":261,"y":9,"w":54,"h":46},{"row":0,"col":5,"x":325,"y":9,"w":54,"h":46},{"row":0,"col":6,"x":389,"y":9,"w":54,"h":46},{"row":1,"col":0,"x":11,"y":69,"w":41,"h":54},{"row":1,"col":1,"x":76,"y":69,"w":39,"h":54},{"row":1,"col":2,"x":140,"y":69,"w":40,"h":54},{"row":1,"col":3,"x":204,"y":69,"w":40,"h":54},{"row":1,"col":4,"x":268,"y":69,"w":40,"h":54},{"row":1,"col":5,"x":332,"y":69,"w":39,"h":54},{"row":1,"col":6,"x":395,"y":69,"w":41,"h":54},{"row":2,"col":0,"x":5,"y":138,"w":54,"h":43},{"row":2,"col":1,"x":69,"y":138,"w":54,"h":44},{"row":2,"col":2,"x":133,"y":138,"w":54,"h":44},{"row":2,"col":3,"x":197,"y":138,"w":54,"h":44},{"row":2,"col":4,"x":261,"y":138,"w":54,"h":44},{"row":2,"col":5,"x":325,"y":138,"w":54,"h":43},{"row":2,"col":6,"x":389,"y":138,"w":54,"h":43},{"row":3,"col":0,"x":20,"y":197,"w":24,"h":54},{"row":3,"col":1,"x":84,"y":197,"w":24,"h":54},{"row":3,"col":2,"x":148,"y":197,"w":24,"h":54},{"row":3,"col":3,"x":212,"y":197,"w":24,"h":54},{"row":3,"col":4,"x":276,"y":197,"w":24,"h":54},{"row":3,"col":5,"x":340,"y":197,"w":24,"h":54},{"row":3,"col":6,"x":404,"y":197,"w":24,"h":54},{"row":4,"col":0,"x":5,"y":268,"w":54,"h":39},{"row":4,"col":1,"x":69,"y":268,"w":54,"h":39},{"row":4,"col":2,"x":133,"y":268,"w":54,"h":39},{"row":4,"col":3,"x":197,"y":268,"w":54,"h":39},{"row":4,"col":4,"x":261,"y":268,"w":54,"h":39},{"row":4,"col":5,"x":325,"y":268,"w":54,"h":39},{"row":4,"col":6,"x":389,"y":269,"w":54,"h":38},{"row":5,"col":0,"x":13,"y":325,"w":38,"h":54},{"row":5,"col":1,"x":77,"y":325,"w":37,"h":54},{"row":5,"col":2,"x":141,"y":325,"w":38,"h":54},{"row":5,"col":3,"x":205,"y":325,"w":38,"h":54},{"row":5,"col":4,"x":268,"y":325,"w":39,"h":54},{"row":5,"col":5,"x":333,"y":325,"w":38,"h":54},{"row":5,"col":6,"x":396,"y":325,"w":39,"h":54}];
  const colors={2:['#4a281f','#ad633a','#f1b873','#d99547'],3:['#34303e','#8e879e','#ddd6e3','#b1acbd'],4:['#343244','#aaa7bc','#f4efff','#dddcea'],5:['#211c29','#4b3c50','#9d7a7d','#a77967'],7:['#201b28','#47303e','#a75c65','#ef535c'],6:['#241b3b','#675296','#b99bf0','#a482ed'],8:['#343a55','#aac7e3','#f5fcff','#78ddff']};
  const canvas=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c};
  let ready=false,parts=null,limbArt=null;const caches=new WeakMap(),icons=new Map(),pieceCache=new Map();
  const image=new Image();image.onload=()=>{if((image.naturalWidth||image.width)!==448||(image.naturalHeight||image.height)!==384)return;parts=image;ready=!!limbArt;window.dispatchEvent?.(new Event('myrren-armour-ready'))};image.src='/armour-parts-v1.png';
- const limbs=new Image();limbs.onload=()=>{if((limbs.naturalWidth||limbs.width)!==448||(limbs.naturalHeight||limbs.height)!==384)return;limbArt=limbs;ready=!!parts};limbs.src='/armour-limbs-v2.png';
+ const limbs=new Image();limbs.onload=()=>{if((limbs.naturalWidth||limbs.width)!==448||(limbs.naturalHeight||limbs.height)!==384)return;limbArt=limbs;ready=!!parts};limbs.src='/armour-limbs-v3.png';
  function palette(mat,dye){const p=colors[mat===1?2:mat]||colors[2];return dye&&mat>=4?[dye.D,dye.M,dye.H,p[3]]:p}
  function part(row,mat,dye){
   mat=mat===1?2:mat;const key=[row,mat,dye?.M].join('/');if(pieceCache.has(key))return pieceCache.get(key);
@@ -53,6 +54,10 @@
      mask.push([xx,yy]);moved[i+3]=0;
     }
     for(const [xx,yy] of mask){const i=(yy*64+xx)*4,to=((yy-headLift)*64+xx)*4;for(let k=0;k<4;k++)moved[to+k]=d[i+k]}
+    // Fill only empty collar pixels behind the lifted head; never recolour
+    // a face pixel to conceal a gap.
+    const rgb=palette(body,dye)[1].match(/[a-f\d]{2}/gi).map(v=>parseInt(v,16)),ny=top+19-headLift;
+    for(let yy=ny;yy<Math.min(53,ny+12);yy++)for(let xx=Math.round(head)-3;xx<=Math.round(head)+3;xx++){const i=(yy*64+xx)*4;if(moved[i+3])continue;moved[i]=rgb[0];moved[i+1]=rgb[1];moved[i+2]=rgb[2];moved[i+3]=255}
     cap.data.set(moved);ctx.putImageData(cap,ox,oy);
    }
    // Recolour only occupied limb pixels. No alpha changes and no rectangle feet.
@@ -78,38 +83,62 @@
     }
     if(!mat)continue;const p=palette(mat,dye),light=skin?(r+g+b)/3:Math.max(r,g,b)*2.8;const color=p[light>170?2:light>88?1:0].match(/[a-f\d]{2}/gi).map(v=>parseInt(v,16));d[i]=color[0];d[i+1]=color[1];d[i+2]=color[2];
    }
-   ctx.putImageData(data,ox,oy);ctx.save();ctx.beginPath();ctx.rect(ox+1,oy+1,62,61);ctx.clip();ctx.translate(ox,oy);
+   ctx.putImageData(data,ox,oy);
+   // Once both arms are fully armoured, replace the old bare arm outline.
+   // Keeping it behind the new wrist produced a detached dark hand in profile.
+   if(body&&gloves&&!fallen){const y0=Math.max(top+19,42),y1=Math.min(53,waist+3);for(let yy=y0;yy<=y1;yy++){ctx.clearRect(ox,oy+yy,Math.max(0,Math.floor(core-7)),1);ctx.clearRect(ox+Math.ceil(core+8),oy+yy,64-Math.ceil(core+8),1)}}
+   ctx.save();ctx.beginPath();ctx.rect(ox+1,oy+1,62,61);ctx.clip();ctx.translate(ox,oy);
    // Articulated equipment: complete shaped pieces follow the original pose.
    // The approved base pixels remain underneath, sealing necks and limb joins.
    if(!fallen){
-    const footPoints=[];
-    for(const sign of [-1,1]){
-     let bottom=-1,fx=0,n=0;
-     for(let yy=waist+3;yy<60;yy++)for(let xx=13;xx<51;xx++)if(limb.has(yy*64+xx)&&(sign<0?xx<core:xx>=core))bottom=Math.max(bottom,yy);
-     if(bottom<0)continue;
-     for(let yy=Math.max(waist+3,bottom-1);yy<=bottom;yy++)for(let xx=13;xx<51;xx++)if(limb.has(yy*64+xx)&&(sign<0?xx<core:xx>=core)){fx+=xx;n++}
-     if(!n)continue;fx/=n;const hipX=core+sign*3,hipY=waist+1;
-     if(legs){const endY=Math.max(hipY+4,bottom-3),angle=-Math.atan2(fx-hipX,endY-hipY),length=Math.min(12,Math.max(6,Math.round(Math.hypot(fx-hipX,endY-hipY))))+2;
-      ctx.save();ctx.translate(Math.round(hipX),hipY);ctx.rotate(angle);drawPart(ctx,9,legs,0,-1,7,length,sign<0,dye);ctx.restore()}
-     if(boots)drawPart(ctx,10,boots,fx,bottom-4,side?9:8,5,left,dye);
-     footPoints.push([fx,bottom]);
+    // Locate each bare foot independently; splitting at the torso centre merged
+    // crossing legs and missed feet that both fell on the same side in a run.
+    const seenFeet=new Set(),feet=[];
+    const footSkin=(xx,yy)=>{const [r,g,b,a]=pixel(xx,yy);return a&&r>110&&r>g*1.12&&g>b*1.06&&limb.has(yy*64+xx)};
+    for(let yy=waist+2;yy<60;yy++)for(let xx=12;xx<52;xx++){
+     const first=yy*64+xx;if(seenFeet.has(first)||!footSkin(xx,yy))continue;
+     const q=[[xx,yy]],points=[];seenFeet.add(first);
+     for(let n=0;n<q.length;n++){const [x,y]=q[n];points.push([x,y]);for(const [dx,dy] of [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]]){const nx=x+dx,ny=y+dy,key=ny*64+nx;if(nx<12||nx>=52||ny<waist+2||ny>=60||seenFeet.has(key)||!footSkin(nx,ny))continue;seenFeet.add(key);q.push([nx,ny])}}
+     if(points.length>1)feet.push(points);
     }
-    if(body){const neck=top+19-headLift,height=16;drawPart(ctx,rear?8:side?7:6,body,(head+core)/2,neck,side?16:24,height,left&&side,dye)}
+    const selected=feet.sort((a,b)=>b.length-a.length).slice(0,2).sort((a,b)=>a.reduce((n,p)=>n+p[0],0)/a.length-b.reduce((n,p)=>n+p[0],0)/b.length);
+    selected.forEach((points,i)=>{
+     const sign=i===0?-1:1,bottom=Math.max(...points.map(p=>p[1])),toe=points.filter(p=>p[1]>=bottom-1),fx=toe.reduce((n,p)=>n+p[0],0)/toe.length,hipX=core+sign*3,hipY=waist+1;
+     if(legs){const endY=Math.max(hipY+4,bottom-3),angle=-Math.atan2(fx-hipX,endY-hipY),length=Math.min(12,Math.max(6,Math.round(Math.hypot(fx-hipX,endY-hipY))))+2;
+      ctx.save();ctx.translate(Math.round(hipX),hipY);ctx.rotate(angle);drawPart(ctx,9,legs,0,-1,side?6:6,length,sign<0,dye);ctx.restore()}
+     if(boots)drawPart(ctx,10,boots,fx,bottom-4,side?8:6,5,side?left:sign<0,dye);
+    });
     if(gloves){
      const groups=[[],[]];
      for(let yy=Math.max(15,top+12);yy<=Math.min(59,waist+3);yy++)for(let xx=12;xx<53;xx++){
       const [r,g,b,a]=pixel(xx,yy);if(!a||!(r>110&&r>g*1.12&&g>b*1.06))continue;
       if(yy<top+23&&Math.abs(xx-head)<12)continue;
-      if(Math.abs(xx-core)<7&&yy>=top+22)continue;
+      if(Math.abs(xx-core)<5&&yy>=top+22)continue;
       groups[xx<core?0:1].push([xx,yy]);
      }
-     groups.forEach((g,i)=>{if(!g.length)return;const bottom=Math.max(...g.map(p=>p[1])),end=g.filter(p=>p[1]>=bottom-2),gx=end.reduce((n,p)=>n+p[0],0)/end.length;drawPart(ctx,11,gloves,gx,bottom-9,7,11,i===0,dye)});
+     groups.forEach((g,i)=>{if(!g.length)return;const bottom=Math.max(...g.map(p=>p[1])),end=g.filter(p=>p[1]>=bottom-2),gx=end.reduce((n,p)=>n+p[0],0)/end.length;
+      if(body){const p=palette(body,dye),sx=core+(i===0?-7:7),sy=top+23-headLift,ex=gx,ey=bottom-5,steps=Math.max(Math.abs(ex-sx),Math.abs(ey-sy));for(let n=0;n<=steps;n++){const x=Math.round(sx+(ex-sx)*n/Math.max(1,steps)),y=Math.round(sy+(ey-sy)*n/Math.max(1,steps));ctx.fillStyle=p[0];ctx.fillRect(x-2,y-2,5,5);ctx.fillStyle=p[1];ctx.fillRect(x-1,y-1,3,3)}}
+      drawPart(ctx,11,gloves,gx,bottom-7,6,9,i===0,dye)});
     }
+    if(body){const neck=top+19-headLift,height=16;drawPart(ctx,rear?8:side?7:6,body,(head+core)/2,neck,side?16:24,height,left&&side,dye)}
    }else{
-    if(legs){drawPart(ctx,9,legs,left?24:40,51,8,8,left,dye)}
-    if(boots)drawPart(ctx,10,boots,left?19:45,54,9,6,left,dye);
-    if(body)drawPart(ctx,8,body,left?29:35,48,16,11,left,dye);
-    if(gloves)drawPart(ctx,11,gloves,left?26:38,54,6,6,left,dye);
+    if(body&&legs&&boots&&gloves){
+     // A fallen torso needs the same sideways joint chain as the head.
+     // Remove the upright foot/arm leftovers before laying the pieces down.
+     ctx.clearRect(left?1:33,39,30,23);
+     ctx.save();if(left){ctx.translate(64,0);ctx.scale(-1,1)}
+     const p=palette(body,dye);ctx.fillStyle=p[0];ctx.fillRect(29,50,9,9);
+     ctx.save();ctx.translate(32,54);ctx.rotate(-Math.PI/2);drawPart(ctx,8,body,0,0,12,13,false,dye);ctx.restore();
+     ctx.save();ctx.translate(40,56);ctx.rotate(-Math.PI/2);drawPart(ctx,9,legs,0,0,6,11,false,dye);ctx.restore();
+     drawPart(ctx,10,boots,51,54,10,6,false,dye);
+     drawPart(ctx,11,gloves,38,53,7,7,false,dye);
+     ctx.restore();
+    }else{
+     if(legs)drawPart(ctx,9,legs,left?24:40,51,8,8,left,dye);
+     if(boots)drawPart(ctx,10,boots,left?19:45,54,9,6,left,dye);
+     if(body)drawPart(ctx,8,body,left?29:35,48,16,11,left,dye);
+     if(gloves)drawPart(ctx,11,gloves,left?26:38,54,6,6,left,dye);
+    }
    }
    if(helm){if(fallen){ctx.save();ctx.translate(head,49);ctx.rotate(left?-Math.PI/2:Math.PI/2);drawPart(ctx,2,helm,0,-11,22,22,false,dye);ctx.restore()}else{drawPart(ctx,rear?2:side?1:0,helm,head,Math.max(2,top-3-headLift),side?26:29,rear?23:24,left&&side,dye)}}
    if(sh){const a=shield(sh,dye);if(fallen){ctx.save();ctx.translate(left?20:43,56);ctx.rotate(left?-Math.PI/2:Math.PI/2);ctx.drawImage(a,-5,-6,10,12);ctx.restore()}else{const x=side?core-7:rear?core+7:core-13,y=waist-7;ctx.drawImage(a,Math.round(x),y,side?5:10,13)}}
