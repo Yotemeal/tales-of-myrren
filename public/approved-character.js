@@ -66,6 +66,22 @@
    completeHead(2,col,6,sideX[col],sideJawY[col],sideJawMasks[col]);
    completeHead(3,col,5,-sideX[col],sideJawY[col],sideJawMasks[col].map(([x0,x1])=>[63-x1,63-x0]));
   }
+  // Removing the old jaw also cleared a few neck pixels behind the new chin.
+  // Restore only those interior pixels, using each pose's own shoulder shade.
+  // Mirroring the coordinates keeps both side-running loops sealed identically.
+  const neckJoins=[
+   [[33,44],[34,44],[32,45],[33,45]],
+   [[34,45],[33,46]],
+   [[34,44],[35,44],[36,44],[33,45]],
+   [[36,44],[33,45]],
+   [[34,44],[35,44],[33,45]],
+   [[34,44]]
+  ];
+  for(let col=0;col<6;col++)for(const row of [2,3]){
+   const mirror=row===3,neckX=mirror?29:34,i=((row*64+47)*384+col*64+neckX)*4;
+   c.fillStyle='rgb('+original[i]+','+original[i+1]+','+original[i+2]+')';
+   for(const [x,y] of neckJoins[col])c.fillRect(col*64+(mirror?63-x:x),row*64+y,1,1);
+  }
   completeHead(0,4,5,0,49,[[25,38],[27,38],[28,36],[30,35]]);
   for(let row=7;row<=8;row++)for(let col=0;col<2;col++)head(row,col,col===0?43:46,false,row===8);
   // Hair naturally lies differently during the kneel/fall. Keep those silhouettes
