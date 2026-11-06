@@ -15,7 +15,7 @@ function extractFunction(source,name){let a=source.indexOf('function '+name+'(')
   assert.equal(after[((160+y)*128+f*32+centers[f]-6+dx)*4+k],canonical,'walking face changes shape between frames');
  }
  const runtime=fs.readFileSync('public/myrren-game.js','utf8'),draw=extractFunction(runtime,'drawApprovedPlayer'),canvas=createCanvas(32,42);
- Object.assign(sb,{ctx:canvas.getContext('2d'),myrrenV31Ready:true,myrrenV31FeetAtlas:feet,myrrenV31Equipment:gear,URLSearchParams,location:{search:''},DYES:[],me:{},shadowE(){},label(){},R(){},drawTool(){},rrect(){}});
+ Object.assign(sb,{ctx:canvas.getContext('2d'),approvedHero:null,myrrenV31Ready:true,myrrenV31FeetAtlas:feet,myrrenV31Equipment:gear,URLSearchParams,location:{search:''},DYES:[],me:{},shadowE(){},label(){},R(){},drawTool(){},rrect(){}});
  vm.runInContext(draw+'\nthis.draw=drawApprovedPlayer;',sb);
  let poses=0;
  const render=(tier,time,moving=false,swingAt=-99999,pose={dv:'d',f:1})=>{sb.ctx.clearRect(0,0,32,42);assert(sb.draw(16,41,{...pose,g:[tier,tier,tier,tier,tier],moving,swingAt,tool:'fist'},time));return Buffer.from(sb.ctx.getImageData(0,0,32,42).data)};
