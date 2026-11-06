@@ -725,7 +725,7 @@ function rPack(){
 let skillFocus='mining';
 function rSkills(){
  const descriptions={
-  melee:['Combat','Train by fighting creatures with your equipped weapon. Every swing strikes the creatures in front of you.','Stronger equipment needs a higher Combat level. Keep an eye on your health and eat when you need to recover.'],
+  melee:['Combat','Train by defeating creatures with your equipped weapon. Combat experience is awarded only when you get the kill, never for individual hits.','Stronger equipment needs a higher Combat level. Keep an eye on your health and eat when you need to recover.'],
   woodcutting:['Forestry','Equip a hatchet, stand beside a tree and face it. Use the tool button or E to gather timber.','Higher levels unlock tougher trees. Timber can be sold in town, and rare gathering pets can follow you.'],
   mining:['Delving','Equip a pickaxe and face an ore rock to gather metal. Higher levels unlock richer ores.','Use the outdoor blacksmith furnace to smelt ore into ingots, then the anvil to forge equipment.'],
   fishing:['Fishing','Use a net at shallow fishing spots, or a rod for deeper shoals. Rod casts use bait from the fishing shop.','Face the ripples from the bank and use your tool. Better fishing spots need a higher Fishing level.'],
@@ -1167,7 +1167,6 @@ function resolveSwing(now){
     burst(m.x,m.y-8,dmg>0?['#d83a2a','#ffffff','#ffd24a']:['#ffffff','#b5c8d8'],dmg>0?7:3,20);
     me.tgt=m;me.tgtUntil=now+4000;
     if(m.hp>0&&save.perks.spiked&&w&&w.kind==='sword'){const dd=d||1;m.x+=tx/dd*8;m.y+=ty/dd*8;m.cd=-.5}
-    if(dmg>0)addXp('melee',Math.max(1,Math.round(dmg*4*mt.xpm)));
     if(m.hp<=0)killMon(m,now);
   }
 }
@@ -1459,10 +1458,15 @@ function die(){
   me.x=CX;me.y=CY+40;me.hp=hpMax();act=null;uiHud();petsTeleport();
   for(const m of mons)if(m.state==='chase')m.state='return';
 }
+// One fixed reward per defeated creature. This is one quarter of the old
+// full-health damage reward, and never includes overkill or regenerated health.
+function combatKillXp(mt){return Math.max(1,Math.round(mt.hp*mt.xpm))}
 function killMon(m,now){
+  if(m.state==='dead')return;
   const mt=MT[m.t];m.state='dead';m.back=now+12000;m.dieAt=now;
   decals.push({x:m.x,y:m.y,t:now,c:m.t==='slime'?'#e86a86':'#a82418'});
   say('You have defeated the '+mt.name.toLowerCase()+'.','gold');
+  addXp('melee',combatKillXp(mt));
   const c=rint(mt.coins[0],mt.coins[1]);save.inv.coins+=c;say('You find '+c+' coins.');
   {
     let hit=false;
@@ -1540,7 +1544,6 @@ function doAction(dt,now){
       const dmg=hit?rint(1,2+Math.floor(L/4)+atk):0;
       m.hp-=dmg;splat(m.x,m.y-16,dmg);if(dmg>0)m.hitAt=now;
       burst(m.x,m.y-8,dmg>0?['#d83a2a','#ffffff','#ffd24a']:['#ffffff','#b5c8d8'],dmg>0?7:3,20);
-      if(dmg>0)addXp('melee',dmg*4);
       if(m.hp<=0)killMon(m,now);
     }
   }
