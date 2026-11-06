@@ -1,6 +1,6 @@
 # The Crater — implementation plan and approved-design record
 
-Status: planning only. No gameplay changes, merge or deployment are authorised by this document.
+Status: first implementation stage in progress on the separate branch, following the user’s “Carry on”. Merge and deployment still require explicit user approval. See CRATER_STAGE1_PROGRESS.md for the bounded mechanics preview and remaining asset gaps.
 
 Reviewed on 7 November 2026 (Australia/Brisbane). Repository: `Yotemeal/tales-of-myrren`.
 Baseline: `main` at `e1b349972019f2f6aa95e25841f7ecbfdb89e60b`, including the accepted sword-grip changes from PR #23.
@@ -40,7 +40,7 @@ All six attached files are accessible, unchanged 1536×1024 JPEGs. They are illu
 | Forest Troll | 22 | Original first-concept mossy green bulky troll with club, cloth and rough stone details; brutal forest stalker. | Idle, move, club slam, hit, death. | R1; latest conversation |
 | Jewelheart Guardian | 30 | Larger unique ancient guardian from R2, with denser crystals, moss, red eyes and larger fanged face; territorial boss guarding remaining core jewels in a dedicated arena. | Idle, move, ground crush, hit, death. | R2; final-name conversation |
 
-R3 explicitly depicts a thrown-rock attack. This is retained in the plan rather than silently changing the miner into a melee goblin. An older conversation described melee-only combat; the current supplied miner reference is more specific, but this historical conflict must be highlighted before implementing damage/projectile behaviour.
+R3 explicitly depicts a thrown-rock attack. The user subsequently confirmed: “Allow for the goblins to throw rocks and damage.” Damaging goblin rock throws are now authorised; this resolves the earlier melee-only conflict. Preserve the approved miner throw/flee and guard cleaver/shield roles. Additional guard throw artwork is not supplied, so do not invent a new guard animation.
 
 ### Five passive wildlife types
 
@@ -104,7 +104,7 @@ Preserve the approved player proportions, readable silhouette, outlines, palette
 
 ## 4. Proposed implementation sequence
 
-These are implementation proposals, not new design approvals. The current deliverable stops at this plan.
+These are implementation proposals, not new design approvals. The initial review delivered this plan. The subsequent “Carry on” authorises the first implementation stage on the separate branch, without merge or deployment.
 
 ### Phase 1 — preserve references and settle missing contracts
 
@@ -129,7 +129,7 @@ Deliverable: isolated previews using approved artwork; no production spawn chang
 
 - Define idle, patrol/move, acquire, chase, telegraph, attack, recover, hit, return and dead states as applicable. Reuse existing combat/saving boundaries; use elapsed simulation time for damage so animation frame rate cannot multiply hits.
 - Implement rat melee, boar charge, wolf prowl/lunge, troll slam and guardian slam/crush according to the approved actions. Values such as windup, speed, radius and cooldown remain unset until established; the art's pose counts do not imply numeric timings.
-- Miner: cautious spacing, rock-throw telegraph/projectile and retreat, subject to resolving the historical melee-only conflict. Guard: protect nearby miners, close to melee range, slash and fight to the last. Avoid invented packs, reinforcements or new magic effects.
+- Miner: cautious spacing, rock-throw telegraph/projectile and retreat, with damaging rock throws explicitly authorised by the user. Guard: protect nearby miners, close to melee range, slash and fight to the last. Avoid invented packs, reinforcements or new magic effects.
 - Wolf camouflage selects only the approved environmental palettes, retaining amber-eye readability. It is an appearance/behaviour feature; do not invent invisibility, new damage multipliers or extra drop tables.
 - Add common guardian cave placement and one dedicated Jewelheart encounter only after cave/arena layout and access rules are established. Ensure enemies cannot cross solid objects, water or safe village boundaries improperly.
 - Keep legacy bear/slime IDs recognised for old saves and jobs. Choose an explicit transition policy before removing their current spawns. Proposed choices are reviewed objective migration or temporary legacy-job completion support; do not silently discard objectives or create an inaccessible later region.
@@ -170,7 +170,7 @@ Keep all work on separate branches/draft review changes. Present the implementat
 
 All passed on code matching the baseline: JavaScript syntax for `myrren-game.js`; `inventory-capacity.cjs`; `save-inventory.test.cjs`; `bank-notes.test.cjs`; `combat-kill-xp.test.cjs`; `village-layout.test.cjs`. These cover the 36-slot limit, old/overfull saves, bank/notes, kill-only combat XP, duplicate death rewards, existing smithy actions, bridge/water geometry and saved positions. These are synthetic runtime checks, not a new browser gameplay verification.
 
-No runtime files were edited for this planning change. No new tests are needed for the plan document itself.
+The initial planning commit edited no runtime files. Later stage-one runtime work and its new tests are listed separately in CRATER_STAGE1_PROGRESS.md.
 
 ### Checks required during implementation
 
@@ -191,7 +191,7 @@ No runtime files were edited for this planning change. No new tests are needed f
 | Original game-ready creature/pet assets | All six attached boards are available. No creature/pet atlas package or source frames were found in the repository. | Transparent/lossless source sprites and directional frames, or approval of faithful extraction/cleanup from these exact references. Missing views/poses cannot be redesigned silently. |
 | Exact animation contracts and scale | State examples and player/pet comparison exist. Existing live hero/proportions are available. | Per-state frame count/timing, pivots and relative creature sizes not recovered; fit/compare exact sources before locking metadata. |
 | Hostile balance and spawn geography | Names, eight levels and visual/behaviour themes are established. | HP, defence, hits, speeds, aggro/leash/ranges, projectile/windup timing, densities, respawn rules and actual cave/arena layout/entry rules. Existing generic values are not final approvals. |
-| Miner combat exception | Current R3 explicitly shows ranged rock throw/flee; an older conversation said melee-only. | Confirm the specific miner exception before enabling projectile damage. Preserve the miner design either way. |
+| Damaging goblin rocks — resolved | User explicitly authorised goblins throwing rocks and causing damage after this plan. | Implement the approved miner throw/flee role; preserve guard design and do not invent missing animation art. |
 | Pet summon limit | Three collectible pets and switching are approved; current saves can summon multiple. | Whether exactly one may be active, and migration behaviour if that changes. |
 | XP award sources | Matching +3% while summoned is approved. Gathering, smithing and jobs share skill XP IDs. | Whether all matching skill awards count, or only successful gathering; persistence remainder is the proposed implementation for exact bonuses. |
 | Acquisition balance | Earlier rare-from-skilling statement; current formula exists. | No exact final approved odds retrieved. Preserve current formula pending a deliberate balancing decision. |
@@ -202,4 +202,4 @@ The five wildlife names, final three pet designs and +3% matching bonus are not 
 
 ## 7. Next review point
 
-Review this plan and the unresolved contracts before starting gameplay implementation. The first implementation deliverable should be a faithful creature/pet fitting and animation preview on a separate branch, using the approved sources and current player. No new live changes have been made for this request.
+Review this plan and the unresolved contracts before starting gameplay implementation. The first implementation deliverable should be a faithful creature/pet fitting and animation preview on a separate branch, using the approved sources and current player. No merge or deployment has been made for this request.

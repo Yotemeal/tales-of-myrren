@@ -203,6 +203,11 @@ for(const k in MT)MT[k].max=Math.max(1,Math.round(hpAt(MT[k].lv)*(MR[k]||.12)));
 /* ---------- world ---------- */
 const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=90,EDGE=100;
 const VILLAGE=MyrrenWorld;
+// Explicit development opt-in; normal encounters and saved progress stay unchanged.
+const craterPreview=!!window.MyrrenCrater?.previewEnabled(location.search);
+const craterRocks=craterPreview&&window.MyrrenCraterRocks?window.MyrrenCraterRocks.create():null;
+// Prototype motion tuning only, not approved Crater balance. Damage/cooldown use MT.
+const ROCK_PREVIEW={range:90,retreat:30,speed:140,distance:120,windup:300};
 const BLD=VILLAGE.buildings.map(b=>({...b}));
 const LAMPS=[[CX-200,CY+14],[CX+200,CY+14],[CX-120,CY+70],[CX+120,CY+70],[CX-40,CY+70],[CX+40,CY+70]];
 const DECOR=[['board',CX+70,CY+56],['supply',CX+98,CY+58],['well',CX-70,CY+54],['stall',CX-150,CY+50,'#b8503a'],['stall',CX+150,CY+50,'#3a7a9a'],
@@ -243,7 +248,7 @@ addNodes('obsidianite',8,530);addNodes('meteorite',4,700);
 
 
 /* ---------- save ---------- */
-const KEY='ember-reach-v2';
+const KEY=craterPreview?'myrren-crater-preview-v1':'ember-reach-v2';
 const emptyEq=()=>({head:null,body:null,hands:null,legs:null,boots:null,weapon:null,shield:null,ring:null,neck:null});
 const PACK_CAPACITY=36;
 const nonNegativeCount=value=>Number.isFinite(+value)?Math.min(Number.MAX_SAFE_INTEGER,Math.max(0,Math.floor(+value))):0;
@@ -310,10 +315,11 @@ function loadLocalProgress(){
 if(!loadLocalProgress()){finalizeSave();save.inv.coins=30}
 function snap(){const px=me.deathAt!=null?CX:inside?me.ox:me.x,py=me.deathAt!=null?CY+40:inside?me.oy:me.y;save.x=Math.round(px);save.y=Math.round(py);return{v:3,ts:Date.now(),name:save.name,xp:save.xp,inv:save.inv,eq:save.eq,bag:save.bag,pets:save.pets,notes:save.notes,bank:save.bank,packOrder:save.packOrder,bankOrder:save.bankOrder,wear:save.wear,jobs:save.jobs,tokens:save.tokens,perks:save.perks,dye:save.dye,x:save.x,y:save.y}}
 function idbOpen(){return new Promise((res,rej)=>{try{const r=indexedDB.open('ember-reach',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>res(r.result);r.onerror=()=>rej()}catch(e){rej()}})}
-async function idbPut(str){try{const d=await idbOpen();d.transaction('s','readwrite').objectStore('s').put(str,'save');d.close()}catch(e){}}
-async function idbGet(){try{const d=await idbOpen();const v=await new Promise(res=>{const q=d.transaction('s').objectStore('s').get('save');q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)});d.close();return v}catch(e){return null}}
+async function idbPut(str){if(craterPreview)return;try{const d=await idbOpen();d.transaction('s','readwrite').objectStore('s').put(str,'save');d.close()}catch(e){}}
+async function idbGet(){if(craterPreview)return null;try{const d=await idbOpen();const v=await new Promise(res=>{const q=d.transaction('s').objectStore('s').get('save');q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)});d.close();return v}catch(e){return null}}
 let cdoc=null,cloudState='checking',cloudSig='',cloudAt=0,cloudBusy=false,bakAt=0,lastSavedAt=0;
 async function cloudPush(str,force){
+  if(craterPreview)return;
   if(!cdoc||cloudBusy)return;const sig=str.replace(/"ts":\d+,?/,'');if(sig===cloudSig)return;
   if(!force&&Date.now()-cloudAt<20000)return;
   cloudBusy=true;try{await cdoc.set({json:str,ts:saveTs});cloudSig=sig;cloudAt=Date.now();cloudState='on'}catch(e){cloudState='error'}cloudBusy=false;
@@ -1288,7 +1294,7 @@ function ingest(change){
 }
 (async()=>{
   try{
-    if(!window.claude||!window.claude.use)throw 0;
+    if(craterPreview||!window.claude||!window.claude.use)throw 0;
     room=await window.claude.use('room');if(!room)throw 0;
     room.onPeers(ingest);
     room.onConnection(c=>{$('net').textContent=c?'Online with other players':'Reconnecting...'});
@@ -1468,9 +1474,10 @@ function cookTick(dt,now){
   }
 }
 function enterBuilding(b,now){
+  craterRocks?.clear();
   if(b.open){openSmithy('trade');return}
   inside=b;me.ox=b.x;me.oy=b.y+6;me.x=88;me.y=112;me.face=1;act=null;marker=null;petsTeleport();
-  for(const m of mons)if(m.state==='chase')m.state='return';
+  for(const m of mons)if(m.state==='chase'){m.state='return';m.rockCast=null}
   fade=0;snapCam=true;exitCD=now+700;
   say('You enter '+SHOPS[b.id].name+'.');sendPresence();
 }
@@ -1482,12 +1489,14 @@ function leaveBuilding(now){
 }
 function die(){
   if(me.deathAt!=null)return;
+  craterRocks?.clear();
   me.deathAt=performance.now();me.hp=0;me.moving=false;me.pend=0;me.swing=-99999;
   act=null;marker=null;wantSwing=false;closeModal();
   say('Oh dear, you are dead!','red');toast('YOU DIED');uiHud();
-  for(const m of mons)if(m.state==='chase')m.state='return';
+  for(const m of mons)if(m.state==='chase'){m.state='return';m.rockCast=null}
 }
 function respawnPlayer(){
+  craterRocks?.clear();
   me.deathAt=null;inside=null;me.x=CX;me.y=CY+40;me.hp=hpMax();me.hurtAt=-99999;
   me.dv='d';me.face=1;me.moving=false;regen=0;snapCam=true;exitCD=performance.now()+700;
   uiHud();petsTeleport();sendPresence();
@@ -1497,7 +1506,7 @@ function respawnPlayer(){
 function combatKillXp(mt){return Math.max(1,Math.round(mt.hp*mt.xpm))}
 function killMon(m,now){
   if(m.state==='dead')return;
-  const mt=MT[m.t];m.state='dead';m.back=now+12000;m.dieAt=now;
+  const mt=MT[m.t];m.rockCast=null;m.state='dead';m.back=now+12000;m.dieAt=now;
   decals.push({x:m.x,y:m.y,t:now,c:m.t==='slime'?'#e86a86':'#a82418'});
   say('You have defeated the '+mt.name.toLowerCase()+'.','gold');
   addXp('melee',combatKillXp(mt));
@@ -1582,8 +1591,38 @@ function doAction(dt,now){
     }
   }
 }
+function damagePlayerFromMonster(mt){
+  if(me.deathAt!=null||inside)return;
+  const L=lvlFor(save.xp.melee),D=defTotal();
+  let dmg=Math.random()<clamp(.75+(mt.lv-L)*.008-D*.0012,.35,.9)?rint(1,mt.max):0;
+  if(dmg>0){dmg=Math.max(1,Math.round(dmg*(1-defRed())));wearArmour()}
+  me.hp-=dmg;if(dmg>0)me.hurtAt=performance.now();splat(me.x,me.y-18,dmg);uiHud();
+  if(dmg>0&&me.hp>0&&me.hp<=hpMax()*.25&&foodCount()>0)say('You are low on health. Tap the food button to eat.','warn');
+  if(me.hp<=0)die();
+}
+function craterRockBlocked(x,y){
+  return x<EDGE||x>WW-EDGE||y<EDGE||y>WH-EDGE||VILLAGE.inVillage(x,y)||
+    SOLID.some(q=>x>q.x0&&x<q.x1&&y>q.y0&&y<q.y1)||
+    BLD.some(b=>!b.open&&Math.abs(x-b.x)<b.w/2+3&&y>b.y-14&&y<b.y);
+}
+function updateRockThrower(m,mt,dt,now,dp,dx,dy){
+  if(m.rockCast){
+    if(now-m.rockCast.at>=ROCK_PREVIEW.windup){
+      craterRocks.launch({x:m.x,y:m.y,targetX:m.rockCast.x,targetY:m.rockCast.y,speed:ROCK_PREVIEW.speed,maxDistance:ROCK_PREVIEW.distance,owner:m.t});
+      m.rockCast=null;m.cd=0;
+    }
+    return;
+  }
+  m.cd+=dt;
+  if(dp<ROCK_PREVIEW.retreat||dp>ROCK_PREVIEW.range){
+    const sign=dp<ROCK_PREVIEW.retreat?-1:1,d=dp||1,step=Math.min(mt.sp*dt,Math.abs(dp-(sign<0?ROCK_PREVIEW.retreat:ROCK_PREVIEW.range))),nx=m.x+dx/d*step*sign,ny=m.y+dy/d*step*sign;
+    if(!craterRockBlocked(nx,ny)&&!inWater(nx,ny)){m.x=nx;m.y=ny}
+  }
+  if(Math.abs(dx)>.6)m.face=dx>0?1:-1;
+  if(dp<=ROCK_PREVIEW.range&&m.cd>=mt.iv){m.rockCast={at:now,x:me.x,y:me.y}}
+}
 function update(dt,now){
-  if(me.deathAt!=null){me.moving=false;if(now-me.deathAt>=1050)respawnPlayer();return}
+  if(me.deathAt!=null){craterRocks?.clear();me.moving=false;if(now-me.deathAt>=1050)respawnPlayer();return}
   regen+=dt;if(regen>6){regen=0;if(me.hp<hpMax()){me.hp=Math.min(hpMax(),me.hp+Math.max(1,Math.floor(hpMax()/40)));uiHud()}}
   const pxv=me.x,pyv=me.y;
   refreshHeld();
@@ -1643,6 +1682,11 @@ function update(dt,now){
     const mt=MT[m.t];
     if(m.state==='dead'){if(now>=m.back){m.state='idle';m.prov=false;m.hp=mt.hp;m.x=m.hx;m.y=m.hy}continue}
     const dxp=me.x-m.x,dyp=me.y-m.y,dp=Math.hypot(dxp,dyp);
+    if(craterRocks&&m.t==='goblin'&&m.state==='chase'){
+      if((!m.prov&&lvlFor(save.xp.melee)>=2*mt.lv)||Math.hypot(m.x-m.hx,m.y-m.hy)>170||dp>130){m.state='return';m.rockCast=null}
+      else updateRockThrower(m,mt,dt,now,dp,dxp,dyp);
+      continue;
+    }
     if(m.state==='chase'){
       if(!m.prov&&lvlFor(save.xp.melee)>=2*mt.lv)m.state='return';else
       if(Math.hypot(m.x-m.hx,m.y-m.hy)>170||dp>130)m.state='return';
@@ -1651,12 +1695,7 @@ function update(dt,now){
         m.cd+=dt;
         if(m.cd>=mt.iv){
           m.cd=0;m.lunge=now;
-          const L=lvlFor(save.xp.melee),D=defTotal();
-          let dmg=Math.random()<clamp(.75+(mt.lv-L)*.008-D*.0012,.35,.9)?rint(1,mt.max):0;
-          if(dmg>0){dmg=Math.max(1,Math.round(dmg*(1-defRed())));wearArmour()}
-          me.hp-=dmg;if(dmg>0)me.hurtAt=performance.now();splat(me.x,me.y-18,dmg);uiHud();
-          if(dmg>0&&me.hp>0&&me.hp<=hpMax()*.25&&foodCount()>0)say('You are low on health. Tap the food button to eat.','warn');
-          if(me.hp<=0)die();
+          damagePlayerFromMonster(mt);
         }
       }
     }else if(m.state==='return'){
@@ -1668,6 +1707,7 @@ function update(dt,now){
       if(d>1){m.x+=dx/d*10*dt;m.y+=dy/d*10*dt;if(Math.abs(dx)>.4)m.face=dx>0?1:-1}
     }
   }
+  if(craterRocks){if(inside||me.deathAt!=null)craterRocks.clear();else craterRocks.update(dt,{target:{x:me.x,y:me.y,radius:6},isBlocked:craterRockBlocked,onHit:rock=>damagePlayerFromMonster(MT[rock.owner])})}
   peers.forEach(o=>{const k=Math.min(1,dt*9);o.x+=(o.tx-o.x)*k;o.y+=(o.ty-o.y)*k});
   petsUpdate(dt,now);
   for(let i=fx.length-1;i>=0;i--){const p=fx[i];if(now-p.t>520){fx.splice(i,1);continue}p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=70*dt}
@@ -2396,8 +2436,10 @@ function drawOutdoor(cx,cy,now){
     if(me.hp<hpMax())bar(sx,sy-(eqDef('head')?33:29),me.hp/hpMax());
     drawFishFx(cx,cy,now);
   }});
+  if(craterRocks)for(const rock of craterRocks.rocks)if(vis(rock.x,rock.y))list.push({y:rock.y,f:()=>{const x=Math.round(rock.x-cx),y=Math.round(rock.y-cy)-10;R(x-2,y-1,5,3,'#302c29');R(x-1,y-2,3,4,'#827368');R(x-1,y-1,2,1,'#baa991')}});
   list.sort((a,b)=>a.y-b.y);
   for(const e of list)e.f();
+  if(craterRocks)label('CRATER MECHANICS PREVIEW · LEGACY GOBLIN ART',cv.width/2,18,'#ffe14a');
 }
 const GRASS=['#263d31','#344d39','#3b5840'];
 function frame(now){
@@ -2450,6 +2492,8 @@ function finishLoad(){
   if(save.name&&!$('nick').value)$('nick').value=save.name;
 }
 function adoptSave(o,why){
+  craterRocks?.clear();
+  if(craterRocks)for(const m of mons){m.rockCast=null;m.cd=0}
   applySave(o);me.x=clamp(save.x,EDGE+8,WW-EDGE-8);me.y=clamp(save.y,EDGE+8,WH-EDGE-8);relocateSavedPosition();
   syncPets();petsTeleport();uiHud();
   try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}
@@ -2460,7 +2504,7 @@ async function bootLoad(){
   const cands=[];
   try{const o=parseSavedProgress(await idbGet());if(o)cands.push(o)}catch(e){}
   try{
-    if(window.claude&&window.claude.use){
+    if(!craterPreview&&window.claude&&window.claude.use){
       const [user,db]=await Promise.all([window.claude.use('user'),window.claude.use('db')]);
       const id=user&&db?await user.id():null;
       if(id){
