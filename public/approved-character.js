@@ -140,7 +140,12 @@
    const worn=window.MyrrenWardrobe?.hand(p,o);
    return worn?{...p,handX:x+worn.x*scale,handY:y+worn.y*scale,nameY:y+worn.nameY*scale}:{...p,handX:x+f*h[0],handY:y+h[1]};
   }
-  return {pose,draw};
+  function drawGrip(ctx,x,y,o,now){
+   const p=pose(o,now),worn=window.MyrrenWardrobe?.hand(p,o);if(!worn||p.dead)return;
+   const scale=window.MyrrenWardrobe?.ready&&!o.nativeScale?40/52:1,hx=x+worn.x*scale,hy=y+worn.y*scale;
+   ctx.save();ctx.beginPath();ctx.rect(Math.floor(hx-3*scale),Math.floor(hy-3*scale),Math.ceil(6*scale),Math.ceil(6*scale));ctx.clip();draw(ctx,x,y,o,now);ctx.restore();
+  }
+  return {pose,draw,drawGrip};
  }
  const supports=gear=>!gear||!gear.some(t=>t>0)||!!window.MyrrenArmour?.ready&&gear.every(t=>Number.isInteger(t)&&t>=0&&t<=8);
  window.MyrrenHero={create,supports,matchPunchHair};

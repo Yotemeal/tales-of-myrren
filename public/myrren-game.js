@@ -731,7 +731,7 @@ function inventoryHeading(title,value=''){
 function rGear(){
  mBody.append(inventoryHeading('EQUIPPED',save.name||'Wanderer'));
  const sheet=el('div','character-sheet'),portrait=el('div','character-portrait'),canvas=document.createElement('canvas');canvas.width=128;canvas.height=160;canvas.setAttribute('aria-label','Your equipped character');portrait.append(canvas);
- if(approvedHero&&window.MyrrenHero.supports(gearArr())){const c=canvas.getContext('2d');c.save();const scale=window.MyrrenWardrobe?.ready?3:4;c.scale(scale,scale);const pose=approvedHero.draw(c,64/scale,158/scale,{dv:'d',f:1,nativeScale:true,g:gearArr(),armourDye:save.dye!=null?DYES[save.dye]:null},0);const weapon=activeDef('weapon');if(weapon?.kind==='sword')window.MyrrenSwords?.draw(c,weapon.mat,pose.handX,pose.handY,1,-.35,52/40);c.restore()}
+ if(approvedHero&&window.MyrrenHero.supports(gearArr())){const c=canvas.getContext('2d');c.save();const scale=window.MyrrenWardrobe?.ready?3:4;c.scale(scale,scale);const pose=approvedHero.draw(c,64/scale,158/scale,{dv:'d',f:1,nativeScale:true,g:gearArr(),armourDye:save.dye!=null?DYES[save.dye]:null},0);const weapon=activeDef('weapon');if(weapon?.kind==='sword'&&window.MyrrenSwords?.draw(c,weapon.mat,pose.handX,pose.handY,1,-.35,52/40))approvedHero.drawGrip(c,64/scale,158/scale,{dv:'d',f:1,nativeScale:true,g:gearArr(),armourDye:save.dye!=null?DYES[save.dye]:null},0);c.restore()}
  else if(myrrenV31Ready){const g=gearArr(),sprite=myrrenV31Equipment?myrrenV31Equipment.get(g[2],g[3],save.dye!=null?DYES[save.dye]:null,g[1],g[0],g[4],0,g[5]):myrrenV31FeetAtlas,c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(sprite,0,0,32,40,0,0,128,160)}
  sheet.append(equipmentPaper(),portrait,equipmentStats('character-stats'));mBody.append(sheet);mBody.append(detail());
  const candidates=save.bag.map((id,i)=>({id,i,d:DEFS[id]})).filter(o=>o.d&&(!(sel&&sel.src==='eq')||o.d.slot===sel.key));
@@ -1994,7 +1994,7 @@ function drawApprovedBase(x,y,o,now){
   const age=now-(o.swingAt??-99999),swinging=age>=0&&age<320;
   if(o.tool&&o.tool!=='fist'&&(swinging||now<o.hold)){
     drawTool(o.tool,o.mat,pose.handX,pose.handY,o.f||1,swinging?swingAng(age):-.35);
-    // The weapon grip sits on the artwork's fist, without adding a second arm.
+    if(o.tool==='sword'&&window.MyrrenSwords?.ready)approvedHero.drawGrip(ctx,x,y,{...o,armourDye:o.dye!=null?DYES[o.dye]:null,hurtAt:o.isMe?me.hurtAt:null},now);
   }
   label(o.name,x,pose.nameY??y-42,o.col||'#ffffff');if(o.waving)label('*waves*',x,(pose.nameY??y-42)-12,'#ffffff');
   return true;
