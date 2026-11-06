@@ -327,10 +327,34 @@ const V31Equipment = (() => {
       return atlas;
     }
 
-    function get(legs,boots,dye,body=0,head=0,shield=0,action=0) {
-      legs=clampTier(legs);boots=clampTier(boots);body=clampTier(body);head=clampTier(head);shield=clampTier(shield);action=Number.isInteger(action)&&action>=0&&action<4?action:0;
-      if(!legs&&!boots&&!body&&!head&&!shield)return source;
-      const key=head+':'+shield+':'+action+':'+body+':'+legs+':'+boots+':'+(dye?[dye.M,dye.H,dye.D].join(','):'');
+    function handLayer(tier,dye) {
+      const atlas=document.createElement('canvas');atlas.width=128;atlas.height=320;
+      const c=atlas.getContext('2d');
+      const p=Object.assign({},materials[tier],dye&&tier>=4?{base:dye.M,light:dye.H,dark:dye.D}:{});
+      // Cuffs follow each original hand; never recolour belly, neck or silhouette.
+      for(let row=0;row<8;row++)for(let frame=0;frame<4;frame++){
+        const dir=row%4,ox=frame*32,oy=row*40;
+        const zones=dir===0?[[6,12],[20,25]]:dir===3?[[6,11],[20,25]]:dir===1?[[17,24]]:[[6,15]];
+        for(const [left,right] of zones){
+          let bottom=0;
+          for(let y=29;y<=32;y++)for(let x=left;x<=right;x++){
+            const i=((oy+y)*128+ox+x)*4;
+            if(pixels[i+3]&&pixels[i]>100&&pixels[i]>pixels[i+1]*1.15)bottom=y;
+          }
+          for(let y=Math.max(29,bottom-1);y<=bottom;y++)for(let x=left;x<=right;x++){
+            const i=((oy+y)*128+ox+x)*4;
+            if(!pixels[i+3]||pixels[i]<=100||pixels[i]<=pixels[i+1]*1.15)continue;
+            c.fillStyle=y===bottom?p.dark:(x%3===0?p.light:p.base);c.fillRect(ox+x,oy+y,1,1);
+          }
+        }
+      }
+      return atlas;
+    }
+
+    function get(legs,boots,dye,body=0,head=0,shield=0,action=0,hands=0) {
+      hands=clampTier(hands);legs=clampTier(legs);boots=clampTier(boots);body=clampTier(body);head=clampTier(head);shield=clampTier(shield);action=Number.isInteger(action)&&action>=0&&action<4?action:0;
+      if(!legs&&!boots&&!body&&!head&&!shield&&!hands)return source;
+      const key=hands+':'+head+':'+shield+':'+action+':'+body+':'+legs+':'+boots+':'+(dye?[dye.M,dye.H,dye.D].join(','):'');
       if(cache.has(key))return cache.get(key);
       const atlas=document.createElement('canvas');atlas.width=128;atlas.height=320;
       const c=atlas.getContext('2d');
@@ -339,6 +363,7 @@ const V31Equipment = (() => {
       if(boots)c.drawImage(layer(boots,'boots',dye),0,0);
       if(legs)c.drawImage(layer(legs,'legs',dye),0,0);
       if(body)c.drawImage(chestLayer(body,dye),0,0);
+      if(hands)c.drawImage(handLayer(hands,dye),0,0);
       if(shield)c.drawImage(shieldLayer(shield,dye,action,false),0,0);
       // Bound recolour cache even after many master-dye combinations.
       if(cache.size>=64)cache.delete(cache.keys().next().value);

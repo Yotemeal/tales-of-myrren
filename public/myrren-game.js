@@ -285,7 +285,7 @@ function loadLocalProgress(){
   return false;
 }
 if(!loadLocalProgress()){finalizeSave();save.inv.coins=30}
-function snap(){const px=inside?me.ox:me.x,py=inside?me.oy:me.y;save.x=Math.round(px);save.y=Math.round(py);return{v:3,ts:Date.now(),name:save.name,xp:save.xp,inv:save.inv,eq:save.eq,bag:save.bag,pets:save.pets,notes:save.notes,bank:save.bank,packOrder:save.packOrder,bankOrder:save.bankOrder,wear:save.wear,jobs:save.jobs,tokens:save.tokens,perks:save.perks,dye:save.dye,x:save.x,y:save.y}}
+function snap(){const px=me.deathAt!=null?CX:inside?me.ox:me.x,py=me.deathAt!=null?CY+40:inside?me.oy:me.y;save.x=Math.round(px);save.y=Math.round(py);return{v:3,ts:Date.now(),name:save.name,xp:save.xp,inv:save.inv,eq:save.eq,bag:save.bag,pets:save.pets,notes:save.notes,bank:save.bank,packOrder:save.packOrder,bankOrder:save.bankOrder,wear:save.wear,jobs:save.jobs,tokens:save.tokens,perks:save.perks,dye:save.dye,x:save.x,y:save.y}}
 function idbOpen(){return new Promise((res,rej)=>{try{const r=indexedDB.open('ember-reach',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>res(r.result);r.onerror=()=>rej()}catch(e){rej()}})}
 async function idbPut(str){try{const d=await idbOpen();d.transaction('s','readwrite').objectStore('s').put(str,'save');d.close()}catch(e){}}
 async function idbGet(){try{const d=await idbOpen();const v=await new Promise(res=>{const q=d.transaction('s').objectStore('s').get('save');q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)});d.close();return v}catch(e){return null}}
@@ -361,7 +361,7 @@ function canFitInventory(changes={},extraGear=0,noteChanges={}){
   return slotsUsed(inv)-noteKinds().length+noteKinds(notes).length+extraGear<=Math.max(PACK_CAPACITY,slotsUsed());
 }
 function refreshHeld(){const w=activeDef('weapon');me.tool=w?w.kind:'fist';me.mat=w?w.mat:2;if(w)me.hold=1e12;else if(me.hold>1e11)me.hold=0}
-const gearArr=()=>['head','body','legs','boots','shield'].map(s=>{const d=eqDef(s);return d?d.mat:0});
+const gearArr=()=>['head','body','legs','boots','shield','hands'].map(s=>{const d=eqDef(s);return d?d.mat:0});
 const me={x:clamp(save.x,EDGE+8,WW-EDGE-8),y:clamp(save.y,EDGE+8,WH-EDGE-8),face:1,hue:Math.floor(Math.random()*360),hp:0,moving:false,swing:-9999,swings:0,hold:0,tool:'',mat:2,wave:0};
 me.hp=hpMax();me.fx=0;me.fy=1;me.pend=0;me.tgt=null;me.tgtUntil=0;me.catchFx=null;
 me.ox=me.x;me.oy=me.y;
@@ -429,7 +429,7 @@ function sellStack(k){
   save.inv.coins+=v;save.inv[k]=0;sel=null;say('The shopkeeper pays you '+v+' coins.','gold');persist();renderModal();uiHud();
 }
 const foodCount=()=>Object.keys(FOOD).reduce((t,k)=>t+(save.inv[k]||0),0);
-function eat(k){
+function eat(k){if(me.deathAt!=null)return;
   if(!foodCount())return;
   if(me.hp>=hpMax()){say('You are already at full health.');return}
   if(!k||!(save.inv[k]>0)){
@@ -463,7 +463,7 @@ function addXp(skill,amt){
 /* ---------- modal ---------- */
 const modal=$('modal'),mBody=$('mBody');
 const TITLES={gear:'Equipment',pack:'Inventory',skills:'Skills',players:'Party',shop:'Shop',settings:'Settings',board:'Job Board',jobs:'Odd Jobs',odd:'Odd Shop',bank:'Bank chest'};
-function openModal(t){closeItemMenu();if(!tab)gpIdx=-1;tab=t;if(t!=='shop'&&t!=='settings'&&t!=='board'&&t!=='odd')lastTab=t;sel=null;renderModal()}
+function openModal(t){if(me.deathAt!=null)return;closeItemMenu();if(!tab)gpIdx=-1;tab=t;if(t!=='shop'&&t!=='settings'&&t!=='board'&&t!=='odd')lastTab=t;sel=null;renderModal()}
 function closeModal(){closeItemMenu();tab='';sel=null;outdoorShop=null;renderModal()}
 function renderModal(){
   modal.dataset.screen=tab;
@@ -708,7 +708,7 @@ function inventoryHeading(title,value=''){
 function rGear(){
  mBody.append(inventoryHeading('EQUIPPED',save.name||'Wanderer'));
  const sheet=el('div','character-sheet'),portrait=el('div','character-portrait'),canvas=document.createElement('canvas');canvas.width=128;canvas.height=160;canvas.setAttribute('aria-label','Your equipped character');portrait.append(canvas);
- if(myrrenV31Ready){const g=gearArr(),sprite=myrrenV31Equipment?myrrenV31Equipment.get(g[2],g[3],save.dye!=null?DYES[save.dye]:null,g[1],g[0],g[4]):myrrenV31FeetAtlas,c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(sprite,0,0,32,40,0,0,128,160)}
+ if(myrrenV31Ready){const g=gearArr(),sprite=myrrenV31Equipment?myrrenV31Equipment.get(g[2],g[3],save.dye!=null?DYES[save.dye]:null,g[1],g[0],g[4],0,g[5]):myrrenV31FeetAtlas,c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(sprite,0,0,32,40,0,0,128,160)}
  sheet.append(equipmentPaper(),portrait,equipmentStats('character-stats'));mBody.append(sheet);mBody.append(detail());
  const candidates=save.bag.map((id,i)=>({id,i,d:DEFS[id]})).filter(o=>o.d&&(!(sel&&sel.src==='eq')||o.d.slot===sel.key));
  mBody.append(el('h3','sub',sel&&sel.src==='eq'?'IN YOUR PACK · '+SLOTNAME[sel.key]:'EQUIPMENT IN YOUR PACK'));
@@ -1146,12 +1146,14 @@ aAtk.addEventListener('pointerdown',e=>{e.preventDefault();if(inside){say('No fi
 addEventListener('blur',()=>{atkPtrs.clear();atkHeld=false});
 aAtk.addEventListener('contextmenu',e=>e.preventDefault());
 function beginSwing(now){
+  if(me.deathAt!=null)return;
   if(me.pend)return;
   if(act&&act.kind!=='cook')act=null;
   refreshHeld();
   startSwing(now);me.pend=now+110;
 }
 function resolveSwing(now){
+  if(me.deathAt!=null)return;
   if(inside)return;
   wearItem(save.eq.weapon,1);
   const w=activeDef('weapon'),reach=w?30:22,L=lvlFor(save.xp.melee),atk=atkBonus();
@@ -1200,7 +1202,7 @@ function relocateSavedPosition(){
  const p=VILLAGE.safePosition(me.x,me.y,blockedAt);me.x=p.x;me.y=p.y;me.ox=p.x;me.oy=p.y;
 }
 
-function useAction(){
+function useAction(){if(me.deathAt!=null)return;
   const now=performance.now();
   if(inside){
     if(Math.hypot(me.x-88,me.y-62)<44){act=null;openShop();return}
@@ -1253,7 +1255,7 @@ function ingest(change){
     o.h=((+pr.h||0)%360+360)%360;
     const a=clamp(pr.a|0,0,6);o.tool=CODE_KIND[a];o.mat=clamp(pr.tt|0,1,6);
     o.hold=a>0?now+1e9:0;
-    if(Array.isArray(pr.g))o.g=[0,1,2,3,4].map(i=>clamp(pr.g[i]|0,0,6));
+    if(Array.isArray(pr.g))o.g=[0,1,2,3,4,5].map(i=>clamp(pr.g[i]|0,0,6));
     if(typeof pr.s==='number'){if(o.s!==null&&pr.s!==o.s)o.swingAt=now;o.s=pr.s}
     if(typeof pr.e==='number'){if(o.e!==null&&pr.e!==o.e)o.until=now+2200;o.e=pr.e}
   }
@@ -1454,9 +1456,16 @@ function leaveBuilding(now){
   sendPresence();
 }
 function die(){
-  say('Oh dear, you are dead!','red');toast('YOU DIED');
-  me.x=CX;me.y=CY+40;me.hp=hpMax();act=null;uiHud();petsTeleport();
+  if(me.deathAt!=null)return;
+  me.deathAt=performance.now();me.hp=0;me.moving=false;me.pend=0;me.swing=-99999;
+  act=null;marker=null;wantSwing=false;closeModal();
+  say('Oh dear, you are dead!','red');toast('YOU DIED');uiHud();
   for(const m of mons)if(m.state==='chase')m.state='return';
+}
+function respawnPlayer(){
+  me.deathAt=null;inside=null;me.x=CX;me.y=CY+40;me.hp=hpMax();me.hurtAt=-99999;
+  me.dv='d';me.face=1;me.moving=false;regen=0;snapCam=true;exitCD=performance.now()+700;
+  uiHud();petsTeleport();sendPresence();
 }
 // One fixed reward per defeated creature. This is one quarter of the old
 // full-health damage reward, and never includes overkill or regenerated health.
@@ -1549,6 +1558,7 @@ function doAction(dt,now){
   }
 }
 function update(dt,now){
+  if(me.deathAt!=null){me.moving=false;if(now-me.deathAt>=1050)respawnPlayer();return}
   regen+=dt;if(regen>6){regen=0;if(me.hp<hpMax()){me.hp=Math.min(hpMax(),me.hp+Math.max(1,Math.floor(hpMax()/40)));uiHud()}}
   const pxv=me.x,pyv=me.y;
   refreshHeld();
@@ -1949,37 +1959,28 @@ function drawApprovedPlayer(x,y,o,now){
   // This changes only character rendering; saves and game state are untouched.
   if(new URLSearchParams(location.search).get('classicSprite')==='1')return false;
   if(!myrrenV31Ready)return false;
-  // All five equipment layers use the approved native V31 atlas.
+  // All six equipment layers use the approved native V31 atlas.
   const gear=o.g||[0,0,0,0,0];
   if(gear.some(t=>t>0)&&!myrrenV31Equipment)return false;
-  const age=now-(o.swingAt||-99999),swinging=age>=0&&age<320;
+  const age=now-(o.swingAt??-99999),swinging=age>=0&&age<320;
   const action=swinging?(age<90?1:age<200?2:3):0;
   const sprite=myrrenV31Equipment
-    ? myrrenV31Equipment.get(gear[2],gear[3],o.dye!=null?DYES[o.dye]:null,gear[1],gear[0],gear[4],action)
+    ? myrrenV31Equipment.get(gear[2],gear[3],o.dye!=null?DYES[o.dye]:null,gear[1],gear[0],gear[4],action,gear[5])
     : myrrenV31FeetAtlas;
-  const direction = o.dv==='u' ? 3 : o.dv==='s' ? (o.f<0?1:2) : 0;
-  const row = direction + (o.moving ? 4 : 0);
-  const frame = o.moving ? Math.floor(now/90)%4 : (gear[0]||gear[4])?Math.floor(now/280)%4:0;
-  // Native V31 resolution: one atlas pixel equals one world-render pixel.
-  const w=32,h=40;
+  const character=window.V31Character;
+  const pose=character.pose(now,{...o,animatedGear:gear[0]||gear[4],hurtAt:o.isMe?me.hurtAt:null,deathAt:o.isMe?me.deathAt:null});
   shadowE(x+1,y,7,2,.3);
-  ctx.save();
-  ctx.imageSmoothingEnabled=false;
-  const idleLift=window.V31Character?window.V31Character.idleLift(now,!o.moving&&!swinging&&!o.waving):0;
-  const dx=Math.round(x-w/2),dy=Math.round(y-h);
-  if(idleLift){
-    // Keep lower legs and soles fixed. A one-row overlap at the waist keeps
-    // body, helmet and neck joined while the upper body breathes by one pixel.
-    ctx.drawImage(sprite,frame*32,row*40+31,32,9,dx,dy+31,w,9);
-    ctx.drawImage(sprite,frame*32,row*40,32,32,dx,dy-idleLift,w,32);
-  }else ctx.drawImage(sprite,frame*32,row*40,32,40,dx,dy,w,h);
+  ctx.save();ctx.imageSmoothingEnabled=false;
+  if(pose.hurt)ctx.globalAlpha=.7;
+  character.drawPose(ctx,sprite,x,y,pose);
   ctx.restore();
+  const idleLift=pose.lift;
+  if(pose.death>=0)return true;
   const holding=o.tool&&o.tool!=='fist'&&(swinging||now<o.hold);
-  const f=o.f||1,hx=x+f*7,hy=y-11-idleLift;
-  if(o.tool==='fist'&&swinging){const d=Math.round(Math.sin(age/320*Math.PI)*6);ctx.save();ctx.translate(hx+f*d,hy);rrect(-1,-2,3,3,'#f0c49c','#2a1c18');ctx.restore()}
-  else if(holding){drawTool(o.tool,o.mat,hx,hy,f,swinging?swingAng(age):-.35);ctx.save();ctx.translate(hx,hy);rrect(-1,-1,3,3,'#f0c49c','#2a1c18');ctx.restore()}
-  const hurtAge=o.isMe?now-(me.hurtAt||-99999):9999;
-  if(hurtAge>=0&&hurtAge<260){ctx.globalAlpha=.24;R(x-11,y-38,22,36,'#fff');ctx.globalAlpha=1}
+  const f=o.f||1,hx=x+f*7+pose.lean,hy=y-11-idleLift;
+  const hand=gear[5]&&typeof V31Equipment!=='undefined'?(o.dye!=null&&gear[5]>=4?DYES[o.dye].M:V31Equipment.materials[gear[5]].base):'#f0c49c';
+  if(o.tool==='fist'&&swinging){const d=Math.round(Math.sin(age/320*Math.PI)*6);ctx.save();ctx.translate(hx+f*d,hy);rrect(-1,-2,3,3,hand,'#2a1c18');ctx.restore()}
+  else if(holding){drawTool(o.tool,o.mat,hx,hy,f,swinging?swingAng(age):-.35);ctx.save();ctx.translate(hx,hy);rrect(-1,-1,3,3,hand,'#2a1c18');ctx.restore()}
   label(o.name,x,y-42,o.col||'#ffffff');
   if(o.waving)label('*waves*',x,y-54,'#ffffff');
   return true;
@@ -2270,7 +2271,7 @@ function drawInterior(cx,cy,now){
   for(const pt of pets)list.push({y:pt.y,f:()=>drawPet(pt,X(pt.x),Y(pt.y),now)});
   list.push({y:me.y,f:()=>{
     const sx=X(me.x),sy=Y(me.y);
-    drawPerson(sx,sy,{dv:me.dv,f:me.face,moving:me.moving,hue:me.hue,isMe:1,name:save.name||'Wanderer',col:'#ffe14a',tool:me.tool,mat:me.mat,hold:me.hold,swingAt:me.swing,waving:performance.now()<me.wave,g:gearArr()},now);
+    drawPerson(sx,sy,{dv:me.dv,f:me.face,moving:me.moving,hue:me.hue,isMe:1,name:save.name||'Wanderer',col:'#ffe14a',tool:me.tool,mat:me.mat,hold:me.hold,swingAt:me.swing,waving:performance.now()<me.wave,g:gearArr(),dye:save.dye},now);
   }});
   list.sort((a,b)=>a.y-b.y);
   for(const e of list)e.f();
