@@ -1,0 +1,175 @@
+{
+  "cell": 32,
+  "width": 224,
+  "height": 96,
+  "frames": [
+    {
+      "material": 2,
+      "view": "front",
+      "x": 4,
+      "y": 4,
+      "w": 24,
+      "h": 24
+    },
+    {
+      "material": 3,
+      "view": "front",
+      "x": 37,
+      "y": 3,
+      "w": 21,
+      "h": 26
+    },
+    {
+      "material": 4,
+      "view": "front",
+      "x": 72,
+      "y": 3,
+      "w": 16,
+      "h": 26
+    },
+    {
+      "material": 5,
+      "view": "front",
+      "x": 101,
+      "y": 3,
+      "w": 21,
+      "h": 26
+    },
+    {
+      "material": 7,
+      "view": "front",
+      "x": 134,
+      "y": 3,
+      "w": 20,
+      "h": 26
+    },
+    {
+      "material": 6,
+      "view": "front",
+      "x": 166,
+      "y": 3,
+      "w": 19,
+      "h": 26
+    },
+    {
+      "material": 8,
+      "view": "front",
+      "x": 198,
+      "y": 3,
+      "w": 20,
+      "h": 26
+    },
+    {
+      "material": 2,
+      "view": "angle",
+      "x": 6,
+      "y": 35,
+      "w": 20,
+      "h": 26
+    },
+    {
+      "material": 3,
+      "view": "angle",
+      "x": 38,
+      "y": 35,
+      "w": 19,
+      "h": 26
+    },
+    {
+      "material": 4,
+      "view": "angle",
+      "x": 72,
+      "y": 35,
+      "w": 15,
+      "h": 26
+    },
+    {
+      "material": 5,
+      "view": "angle",
+      "x": 102,
+      "y": 35,
+      "w": 19,
+      "h": 26
+    },
+    {
+      "material": 7,
+      "view": "angle",
+      "x": 135,
+      "y": 35,
+      "w": 18,
+      "h": 26
+    },
+    {
+      "material": 6,
+      "view": "angle",
+      "x": 167,
+      "y": 35,
+      "w": 17,
+      "h": 26
+    },
+    {
+      "material": 8,
+      "view": "angle",
+      "x": 199,
+      "y": 35,
+      "w": 18,
+      "h": 26
+    },
+    {
+      "material": 2,
+      "view": "rear",
+      "x": 4,
+      "y": 67,
+      "w": 24,
+      "h": 25
+    },
+    {
+      "material": 3,
+      "view": "rear",
+      "x": 38,
+      "y": 67,
+      "w": 20,
+      "h": 26
+    },
+    {
+      "material": 4,
+      "view": "rear",
+      "x": 72,
+      "y": 67,
+      "w": 16,
+      "h": 26
+    },
+    {
+      "material": 5,
+      "view": "rear",
+      "x": 101,
+      "y": 67,
+      "w": 21,
+      "h": 26
+    },
+    {
+      "material": 7,
+      "view": "rear",
+      "x": 134,
+      "y": 67,
+      "w": 20,
+      "h": 26
+    },
+    {
+      "material": 6,
+      "view": "rear",
+      "x": 166,
+      "y": 67,
+      "w": 19,
+      "h": 26
+    },
+    {
+      "material": 8,
+      "view": "rear",
+      "x": 197,
+      "y": 67,
+      "w": 21,
+      "h": 26
+    }
+  ]
+}
