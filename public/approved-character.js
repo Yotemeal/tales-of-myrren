@@ -116,6 +116,7 @@
    const age=now-(o.swingAt??-99999),swing=age>=0&&age<320;
    const hit=o.hurtAt!=null?now-o.hurtAt:-1;
    if(death>=0)return {row:o.f<0?8:7,col:death<130?0:death<250?1:death<390?2:death<550?3:death<720?4:5,dir,dead:true,lift:0};
+   if(swing&&o.weaponMat&&window.MyrrenSwordActions?.ready)return {row:dir,col:age<50?0:age<90?1:age<140?2:age<200?3:age<260?4:5,dir,dead:false,lift:0,swing:true,swordAction:true};
    if(swing)return {row:dir===3?9:o.f<0?6:5,col:age<50?0:age<90?1:age<140?2:age<200?3:age<260?4:5,dir,dead:false,lift:0,swing:true};
    if(hit>=0&&hit<180)return {row:0,col:dir===3?5:4,dir,dead:false,lift:0,hurt:true};
    if(o.moving)return {row:dir+1,col:Math.floor(now/75)%6,dir,dead:false,lift:0};
@@ -123,9 +124,9 @@
   }
   const hands=[[3,-10],[3,-8],[13,-13],[4,-10],[3,-9],[3,-10]];
   function draw(ctx,x,y,o,now){
-   const painted=window.MyrrenArmour?.ready?window.MyrrenArmour.compose(atlas,o.g,o.armourDye):atlas;
+   const p=pose(o,now),painted=p.swordAction?window.MyrrenSwordActions.compose(o.g,o.armourDye):window.MyrrenArmour?.ready?window.MyrrenArmour.compose(atlas,o.g,o.armourDye):atlas;
    const scale=window.MyrrenWardrobe?.ready&&!o.nativeScale?40/52:1;
-   const p=pose(o,now),sx=p.col*CELL,sy=p.row*CELL,dx=scale===1?Math.round(x-AX):-AX,dy=scale===1?Math.round(y-AY):-AY;
+   const sx=p.col*CELL,sy=p.row*CELL,dx=scale===1?Math.round(x-AX):-AX,dy=scale===1?Math.round(y-AY):-AY;
    ctx.save();ctx.imageSmoothingEnabled=false;if(scale!==1){ctx.translate(Math.round(x),Math.round(y));ctx.scale(scale,scale)}
    if(p.hurt)ctx.globalAlpha*=.72;
    if(p.lift){
@@ -137,15 +138,32 @@
    ctx.restore();
    const rearHands=[[6,-9],[9,-14],[13,-27],[9,-18],[6,-10],[6,-10]];
    const f=p.dir===3?1:o.f<0?-1:1,h=p.swing?(p.dir===3?rearHands[p.col]:hands[p.col]):[p.dir===1||p.dir===2?3:8,-11-p.lift];
-   const worn=window.MyrrenWardrobe?.hand(p,o);
+   const socket=p.swordAction?window.MyrrenSwordActions.attachments(p,o).sword:null,worn=socket?{x:socket[0]-32,y:socket[1]-60,nameY:-57}:window.MyrrenWardrobe?.hand(p,o);
    return worn?{...p,handX:x+worn.x*scale,handY:y+worn.y*scale,nameY:y+worn.nameY*scale}:{...p,handX:x+f*h[0],handY:y+h[1]};
   }
   function drawGrip(ctx,x,y,o,now){
-   const p=pose(o,now),worn=window.MyrrenWardrobe?.hand(p,o);if(!worn||p.dead)return;
+   const p=pose(o,now),socket=p.swordAction?window.MyrrenSwordActions.attachments(p,o).sword:null,worn=socket?{x:socket[0]-32,y:socket[1]-60}:window.MyrrenWardrobe?.hand(p,o);if(!worn||p.dead)return;
    const scale=window.MyrrenWardrobe?.ready&&!o.nativeScale?40/52:1,hx=x+worn.x*scale,hy=y+worn.y*scale;
    ctx.save();ctx.beginPath();ctx.rect(Math.floor(hx-3*scale),Math.floor(hy-3*scale),Math.ceil(6*scale),Math.ceil(6*scale));ctx.clip();draw(ctx,x,y,o,now);ctx.restore();
   }
-  return {pose,draw,drawGrip};
+  let armedCanvas=null,bodyCanvas=null,shieldCanvas=null;
+  const makeLayer=()=>{const c=document.createElement('canvas');c.width=c.height=128;return c};
+  function drawEquipped(ctx,x,y,o,now){
+   if(!o.weaponMat||!window.MyrrenSwords?.ready||!window.MyrrenSwordActions?.ready)return draw(ctx,x,y,o,now);
+   const p=pose(o,now);if(p.dead)return draw(ctx,x,y,o,now);
+   if(!armedCanvas){armedCanvas=makeLayer();bodyCanvas=makeLayer();shieldCanvas=makeLayer()}
+   const a=armedCanvas.getContext('2d'),b=bodyCanvas.getContext('2d'),s=shieldCanvas.getContext('2d');for(const q of[a,b,s]){q.clearRect(0,0,128,128);q.imageSmoothingEnabled=false}
+   const g=(o.g||[0,0,0,0,0,0]).slice(),shieldMat=g[4];g[4]=0;
+   const bodyOptions={...o,g,nativeScale:true};draw(b,64,100,bodyOptions,now);
+   const sockets=window.MyrrenSwordActions.attachments(p,o),swordPoint=[64+sockets.sword[0]-32,100+sockets.sword[1]-60],shieldPoint=[64+sockets.shield[0]-32,100+sockets.shield[1]-60],age=now-(o.swingAt??-99999),angle=o.weaponAngle??window.MyrrenSwords.angle(age),flip=p.dir===1||p.dir===3?-1:1,farSword=p.dir===1||p.dir===3;
+   const paintSword=()=>window.MyrrenSwords.draw(a,o.weaponMat,swordPoint[0],swordPoint[1],flip,angle,52/40);
+   if(farSword)paintSword();a.drawImage(bodyCanvas,0,0);
+   if(shieldMat){const sprite=window.MyrrenWardrobe.shieldSprite(shieldMat,p.dir===3?2:p.dir===0?0:1);if(sprite){s.drawImage(sprite,Math.round(shieldPoint[0]-16-(p.dir===0||p.dir===1?3:0)),Math.round(shieldPoint[1]-13));if(p.dir===2||p.dir===3){const body=b.getImageData(0,0,128,128).data,edge=s.getImageData(0,0,128,128);for(let yy=0;yy<128;yy++){let left=128,right=-1;for(let xx=0;xx<128;xx++)if(body[(yy*128+xx)*4+3]){left=Math.min(left,xx);right=Math.max(right,xx)}for(let xx=0;xx<128;xx++){const i=(yy*128+xx)*4,allowed=p.dir===3?xx>right&&xx<=right+2:xx<left&&xx>=left-2;if(right<0||yy<100+sockets.cut-60+2||yy<shieldPoint[1]-8||yy>shieldPoint[1]+6||!allowed)edge.data[i+3]=0}}s.putImageData(edge,0,0)}a.drawImage(shieldCanvas,0,0)}}
+   if(!farSword){paintSword();a.save();a.beginPath();a.rect(Math.floor(swordPoint[0]-3),Math.floor(swordPoint[1]-3),6,6);a.clip();a.drawImage(bodyCanvas,0,0);a.restore()}
+   const scale=o.nativeScale?1:40/52;ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(armedCanvas,Math.round(x-64*scale),Math.round(y-100*scale),128*scale,128*scale);ctx.restore();
+   return {...p,handX:x+(swordPoint[0]-64)*scale,handY:y+(swordPoint[1]-100)*scale,nameY:y-57*scale,swordPoint:sockets.sword.slice(),shieldPoint:sockets.shield.slice()};
+  }
+  return {pose,draw,drawGrip,drawEquipped};
  }
  const supports=gear=>!gear||!gear.some(t=>t>0)||!!window.MyrrenArmour?.ready&&gear.every(t=>Number.isInteger(t)&&t>=0&&t<=8);
  window.MyrrenHero={create,supports,matchPunchHair};
