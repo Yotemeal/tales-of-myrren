@@ -201,9 +201,9 @@ const V31Equipment = (() => {
     const shieldAnchors=[[[8,29]],[[10,29]],[[23,29]],[[24,29]],
       [[8,28],[9,30],[8,30],[8,28]],[[10,29],[10,30],[9,29],[10,29]],
       [[22,29],[23,28],[22,29],[23,28]],[[23,28],[24,30],[23,30],[24,28]]];
-    function helmetBase(tier,dye){
+    function helmetBase(tier,dye,itemOnly=false){
       const atlas=document.createElement('canvas');atlas.width=128;atlas.height=320;
-      const c=atlas.getContext('2d');c.drawImage(original,0,0);
+      const c=atlas.getContext('2d');if(!itemOnly)c.drawImage(original,0,0);
       const p=Object.assign({},materials[tier],dye&&tier>=4?{base:dye.M,light:dye.H,dark:dye.D}:{});
       if(tier===6)Object.assign(p,{base:'#67806d',light:'#bfd1a2',dark:'#334e43',edge:'#f1e6af'});
       const ink='#24212b',gem=tier===5?'#e9a46b':'#83e3cf',gemD=tier===5?'#985b48':'#418c85';
@@ -216,7 +216,7 @@ const V31Equipment = (() => {
         const r=(x,y,w,h,col)=>{for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++)put(cx+Math.round((x+xx)*(side?.78:1)),y+yy,col)};
         const line=(x0,y0,x1,y1,col,w=1)=>{const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0));for(let i=0;i<=n;i++)r(x0+(x1-x0)*i/(n||1),y0+(y1-y0)*i/(n||1),w,w,col)};
         // Preserve the actual face, including eyes between the skin pixels.
-        if(!back)for(let y=17;y<24;y++){
+        if(!back&&!itemOnly)for(let y=17;y<24;y++){
           let left=32,right=-1;
           for(let x=0;x<32;x++){const i=((oy+y)*128+ox+x)*4;if(pixels[i+3]&&pixels[i]>110&&pixels[i]>pixels[i+1]*1.1&&pixels[i+1]>pixels[i+2]*1.05){left=Math.min(left,x);right=Math.max(right,x)}}
           if(right>=left){put(left-1,y,ink);put(right+1,y,ink);for(let x=left;x<=right;x++){const i=((oy+y)*128+ox+x)*4;put(x,y,'rgb('+pixels[i]+','+pixels[i+1]+','+pixels[i+2]+')')}}
@@ -350,7 +350,7 @@ const V31Equipment = (() => {
       const key=kind+':'+tier+':'+(dye?[dye.M,dye.H,dye.D].join(','):'');
       if(!icons.has(key)){
         const canvas=document.createElement('canvas');canvas.width=32;canvas.height=32;const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
-        if(kind==='helm')c.drawImage(helmetBase(tier,dye),0,0,32,25,0,3,32,25);
+        if(kind==='helm')c.drawImage(helmetBase(tier,dye,true),0,0,32,25,0,3,32,25);
         else c.drawImage(shieldLayer(tier,dye,0,false),0,20,16,19,8,6,16,19);
         if(icons.size>=64)icons.delete(icons.keys().next().value);
         const pixels=c.getImageData(0,0,32,32).data;let left=32,top=32,right=0,bottom=0;

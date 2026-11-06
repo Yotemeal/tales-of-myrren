@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<link rel="stylesheet" href="/myrren-ui.css?v=1">
+<link rel="stylesheet" href="/myrren-ui.css?v=2">
 
 <div id="app">
   <canvas id="cv"></canvas>
@@ -62,7 +62,7 @@
 <script src="/myrren-world.js?v=3"></script>
 <script src="/myrren-environment.js?v=3"></script>
 <script src="/v31-feet.js?v=1"></script>
-<script src="/v31-equipment.js?v=7"></script>
+<script src="/v31-equipment.js?v=8"></script>
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
@@ -297,6 +297,7 @@ addMons('cave',6,620);addMons('abear',4,720);
 /* ---------- save ---------- */
 const KEY='ember-reach-v2';
 const emptyEq=()=>({head:null,body:null,hands:null,legs:null,boots:null,weapon:null,shield:null,ring:null,neck:null});
+const PACK_CAPACITY=36;
 let save={wear:{},jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0},x:CX,y:CY+44};
 let fresh=true,saveTs=0;
 function applySave(o){
@@ -318,7 +319,7 @@ function applySave(o){
     if(o.wear&&typeof o.wear==='object')for(const k in o.wear)if(DEFS[k])save.wear[k]=clamp(+o.wear[k]||0,0,1);
     save.tokens=Math.max(0,+o.tokens|0);if(o.perks&&typeof o.perks==='object')save.perks=Object.assign({},o.perks);save.dye=Number.isInteger(o.dye)?o.dye:null;
     if(o.pets)Object.assign(save.pets,o.pets);
-    if(Array.isArray(o.bag))save.bag=o.bag.filter(id=>DEFS[id]).slice(0,28);
+    if(Array.isArray(o.bag))save.bag=o.bag.filter(id=>DEFS[id]).slice(0,PACK_CAPACITY);
     if(o.tools){
       for(const k of ['axe','pick','sword']){
         const n=+o.tools[k]||0;
@@ -398,7 +399,7 @@ const foodPrice=k=>Math.max(FOOD[k].price,Math.round(FOOD[k].price*Math.sqrt(Mat
 const healOf=k=>Math.round(FOOD[k].heal*Math.max(1,hpMax()/40));
 const totalLevel=()=>SK.reduce((t,k)=>t+lvlFor(save.xp[k]),0);
 const pouchHides=()=>save.inv.coal_pouch>0&&save.inv.coal<=100;
-const stackKinds=()=>Object.keys(ITEMS).filter(k=>save.inv[k]>0&&!(k==='coal'&&pouchHides()));
+const stackKinds=()=>Object.keys(ITEMS).filter(k=>k!=='coins'&&save.inv[k]>0&&!(k==='coal'&&pouchHides()));
 const slotsUsed=()=>stackKinds().length+save.bag.length;
 function refreshHeld(){const w=activeDef('weapon');me.tool=w?w.kind:'fist';me.mat=w?w.mat:2;if(w)me.hold=1e12;else if(me.hold>1e11)me.hold=0}
 const gearArr=()=>['head','body','legs','boots','shield'].map(s=>{const d=eqDef(s);return d?d.mat:0});
@@ -453,7 +454,7 @@ function equipFromBag(idx){
 }
 function unequip(slot){
   if(!save.eq[slot])return;
-  if(slotsUsed()>=28){say('Your pack is full.','warn');return}
+  if(slotsUsed()>=PACK_CAPACITY){say('Your pack is full.','warn');return}
   save.bag.push(save.eq[slot]);save.eq[slot]=null;sel={src:'eq',key:slot};onGearChange();
 }
 function sellGear(idx){
@@ -480,14 +481,14 @@ function buyItem(id){
   const d=DEFS[id];
   if(owned(id)){say('You already have that.','warn');return}
   if(save.inv.coins<d.price){say('You cannot afford that.','warn');return}
-  if(slotsUsed()>=28){say('Your pack is full.','warn');return}
+  if(slotsUsed()>=PACK_CAPACITY){say('Your pack is full.','warn');return}
   save.inv.coins-=d.price;
   if(!save.eq[d.slot]&&usable(d)){save.eq[d.slot]=id;say('You buy and equip the '+d.name.toLowerCase()+'.','gold')}
   else{save.bag.push(id);say('You buy the '+d.name.toLowerCase()+'.','gold')}
   onGearChange();
 }
 function giveGear(id){
-  if(slotsUsed()>=28){say('You find a '+DEFS[id].name.toLowerCase()+' but your pack is full.','warn');return}
+  if(slotsUsed()>=PACK_CAPACITY){say('You find a '+DEFS[id].name.toLowerCase()+' but your pack is full.','warn');return}
   save.bag.push(id);say('Rare drop: '+DEFS[id].name+'!','gold');
 }
 function addXp(skill,amt){
@@ -568,7 +569,7 @@ function backpackGrid(){
  const p=el('div','pack'),slots=[];
  stackKinds().forEach(k=>slots.push({html:itemSvg(k,44)+'<em>'+(k==='coal_pouch'?(save.inv.coal||0)+'/100':save.inv[k].toLocaleString())+'</em>',label:ITEMS[k].name+' x'+save.inv[k],pick:{src:'bag',kind:'stack',key:k}}));
  save.bag.forEach((id,i)=>slots.push({html:gearSvg(DEFS[id],44),label:DEFS[id].name,dim:!usable(DEFS[id]),pick:{src:'bag',kind:'gear',idx:i}}));
- for(let i=0;i<Math.max(28,slots.length);i++){
+ for(let i=0;i<Math.max(PACK_CAPACITY,slots.length);i++){
   const b=el('button','slot'),it=slots[i];b.type='button';
   if(it){b.innerHTML=it.html;b.title=it.label;b.setAttribute('aria-label',it.label);if(it.dim)b.classList.add('dim');if(sel&&sel.src==='bag'&&sel.kind===it.pick.kind&&sel.key===it.pick.key&&sel.idx===it.pick.idx)b.classList.add('sel');b.addEventListener('click',()=>{sel=it.pick;renderModal()})}
   else{b.disabled=true;b.setAttribute('aria-label','Empty backpack slot')}
@@ -591,7 +592,7 @@ function rGear(){
 }
 function rPack(){
  const layout=el('div','inventory-layout'),pack=el('section','pack-pane'),side=el('section','equipment-side'),item=el('div','item-detail');
- pack.append(inventoryHeading('BACKPACK',slotsUsed()+' / 28'),backpackGrid());
+ pack.append(inventoryHeading('BACKPACK',slotsUsed()+' / '+PACK_CAPACITY),backpackGrid());
  const eq=el('div','equipment-grid');eq.append(equipmentPaper(),equipmentStats());side.append(inventoryHeading('EQUIPMENT'),eq);
  item.append(detail());layout.append(pack,side,item);mBody.append(layout);
 }
@@ -867,7 +868,7 @@ const maxSkill=()=>Math.max(...SK.map(k=>lvlFor(save.xp[k])));
 function oddBuy(it){
   if(save.tokens<it.cost){say('You need '+it.cost+' job tokens.','warn');return}
   if(lvlFor(save.xp[it.sk])<it.lv){say('You need '+NAMES[it.sk]+' '+it.lv+'.','warn');return}
-  if(it.item){if(save.inv[it.id]>0)return;if(slotsUsed()>=28){say('Your pack is full.','warn');return}save.inv[it.id]=1}
+  if(it.item){if(save.inv[it.id]>0)return;if(slotsUsed()>=PACK_CAPACITY){say('Your pack is full.','warn');return}save.inv[it.id]=1}
   else save.perks[it.id]=true;
   save.tokens-=it.cost;say('You buy the '+it.name.toLowerCase()+'.','gold');persist(true);renderModal();uiHud();
 }
@@ -905,7 +906,7 @@ function openShop(){const S=curShop();if(!S)return;shopCat=Object.keys(S.cats)[0
 function buyFood(k){
   const f=FOOD[k];
   if(save.inv.coins<foodPrice(k)){say('You cannot afford that.','warn');return}
-  if(!(save.inv[k]>0)&&slotsUsed()>=28){say('Your pack is full.','warn');return}
+  if(!(save.inv[k]>0)&&slotsUsed()>=PACK_CAPACITY){say('Your pack is full.','warn');return}
   save.inv.coins-=foodPrice(k);save.inv[k]++;say('You buy some '+ITEMS[k].name.toLowerCase()+'.');persist();renderModal();uiHud();
 }
 const ingName=id=>ITEMS['ing_'+id].name;
@@ -933,7 +934,7 @@ function forge(kind){
   const r=SMELT.find(x=>x.mat===forgeMat),id=MATS[forgeMat].k+'_'+kind,d=DEFS[id],key='ing_'+r.id,cost=FORGE[kind];
   if(lvlFor(save.xp.mining)<r.req){say('You need '+NAMES.mining+' '+r.req+' to forge with that.','warn');return}
   if(save.inv[key]<cost){say('You need '+cost+' '+ITEMS[key].name.toLowerCase()+'s.','warn');return}
-  if(slotsUsed()>=28&&!(save.inv[key]-cost<=0)){say('Your pack is full.','warn');return}
+  if(slotsUsed()>=PACK_CAPACITY&&!(save.inv[key]-cost<=0)){say('Your pack is full.','warn');return}
   save.inv[key]-=cost;
   if(!save.eq[d.slot]&&usable(d)){save.eq[d.slot]=id;say('You forge and equip a '+d.name.toLowerCase()+'.','gold')}
   else{save.bag.push(id);say('You forge a '+d.name.toLowerCase()+'.','gold')}
@@ -961,7 +962,7 @@ function rShop(){
     const row=el('div','shoprow');
     row.innerHTML=itemSvg('bait',32)+'<span>Bait<small>Every rod cast uses one</small><small>You have '+save.inv.bait+'</small></span>';
     const b=el('button','btn','Buy 10 for 20');b.type='button';b.disabled=save.inv.coins<20;b.addEventListener('click',()=>{
-      if(save.inv.coins<20)return;if(!(save.inv.bait>0)&&slotsUsed()>=28){say('Your pack is full.','warn');return}
+      if(save.inv.coins<20)return;if(!(save.inv.bait>0)&&slotsUsed()>=PACK_CAPACITY){say('Your pack is full.','warn');return}
       save.inv.coins-=20;save.inv.bait+=10;say('You buy some bait.');persist();renderModal();uiHud()});
     row.append(b);mBody.append(row);
   }
