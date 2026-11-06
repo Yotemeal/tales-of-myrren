@@ -1998,3 +1998,127 @@ input[type=range] {
     bottom:5px;
   }
 }
+
+/* Personal bank, notes, and mouse/touch inventory interactions. */
+.inventory-grid .slot {
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+.note-paper {
+  display: grid;
+  place-items: center;
+  width: 91%;
+  height: 91%;
+  background: #e4d49d;
+  border: 2px solid #746747;
+  box-shadow: 2px 2px #594b34;
+}
+.slot .note-paper img, .slot .note-paper svg {
+  width: 80%;
+  height: 80%;
+}
+.bank-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 14px;
+}
+.bank-controls, .item-quantities, .item-menu-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bank-controls .btn[aria-pressed=true], .item-quantities .btn[aria-pressed=true] {
+  background: #83b7ac;
+  color: #1e3a32;
+}
+.item-action-menu {
+  position: fixed;
+  width: min(300px, calc(100vw - 16px));
+  z-index: 60;
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+  color: #f3e4b9;
+  font: 21px/1.1 var(--vt);
+  background: #403c2c;
+  border: 3px solid;
+  border-color: #dfcda0 #6b5a3c #51462e #c8b682;
+  box-shadow: 0 0 0 2px #20251c, 5px 6px #10181088;
+}
+.item-menu-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+}
+.item-menu-heading strong {
+  font-weight: 400;
+}
+.item-menu-heading .btn {
+  min-height: 30px;
+  padding: 3px 9px;
+}
+.item-quantities .btn, .item-menu-actions .btn {
+  flex: 1;
+  padding: 7px;
+}
+.inventory-drag-ghost {
+  position: fixed;
+  z-index: 70;
+  width: 56px;
+  height: 56px;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  background: #7b7759cc;
+  border: 2px solid #a5d0bc;
+}
+.inventory-drag-ghost img, .inventory-drag-ghost svg {
+  max-width: 44px;
+  max-height: 44px;
+}
+.inventory-drag-ghost em {
+  position: absolute;
+  top: 0;
+  left: 2px;
+  font: 16px var(--vt);
+}
+@media (max-width: 620px) {
+  .bank-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .bank-controls {
+    font-size: 19px;
+    gap: 6px;
+  }
+  .bank-controls .btn {
+    padding: 6px 9px;
+  }
+}
+.bank-layout .pack {
+  max-width: 380px;
+  gap: 5px;
+}
+.bank-pane-tabs {
+  display: none;
+}
+@media (max-width: 620px) {
+  .bank-pane-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .bank-pane-tabs .btn {
+    flex: 1;
+  }
+  .bank-pane-tabs .btn[aria-pressed=true] {
+    background: #83b7ac;
+    color: #1e3a32;
+  }
+  .bank-layout[data-active-pane=bank] .carried-pane,
+  .bank-layout[data-active-pane=pack] .bank-pane {
+    display: none;
+  }
+}

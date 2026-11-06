@@ -4,7 +4,7 @@ const html=require('./game-source.cjs')();
 const line=prefix=>html.split('\n').find(x=>x.startsWith(prefix));
 const fn=name=>html.match(new RegExp('function '+name+'\\([^]*?\\n}'))[0];
 const ctx=vm.createContext({save:{inv:{coins:10000,bread:0,coal:12,coal_pouch:0},bag:[],eq:{head:'helm'}},ITEMS:{coins:{},bread:{},coal:{},coal_pouch:{}},DEFS:{helm:{name:'Test helm'}},say(){},onGearChange(){}});
-vm.runInContext([line('const PACK_CAPACITY='),line('const pouchHides='),line('const stackKinds='),line('const slotsUsed='),fn('canFitInventory'),fn('giveGear'),fn('unequip')].join('\n'),ctx);
+vm.runInContext([line('const PACK_CAPACITY='),line('const pouchHides='),line('const stackKinds='),line('const noteKinds='),fn('storedItem'),line('const slotsUsed='),fn('canFitInventory'),fn('giveGear'),fn('unequip')].join('\n'),ctx);
 const used=()=>vm.runInContext('slotsUsed()',ctx);
 assert.equal(used(),1,'gold does not use a slot');
 ctx.save.inv.coal_pouch=1;assert.equal(used(),1,'coal pouch continues hiding its coal stack');

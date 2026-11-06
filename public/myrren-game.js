@@ -239,7 +239,7 @@ function parseSavedProgress(raw){
     return o&&typeof o==='object'&&!Array.isArray(o)&&o.xp&&typeof o.xp==='object'&&!Array.isArray(o.xp)?o:null;
   }catch(e){return null}
 }
-let save={wear:{},jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0},x:CX,y:CY+44};
+let save={notes:{},bank:{},packOrder:[],bankOrder:[],wear:{},jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0},x:CX,y:CY+44};
 let fresh=true,saveTs=0;
 function applySave(o){
   save.wear={};save.jobs=[];save.tokens=0;save.perks={};save.dye=null;save.xp={};save.inv={};save.eq=emptyEq();save.bag=[];save.pets={woodcutting:0,fishing:0,mining:0};save.name='';save.x=CX;save.y=CY+44;
@@ -270,6 +270,8 @@ function applySave(o){
     for(const old of ['axe','pick','net','rod']){const id=save.eq[old];delete save.eq[old];if(id&&DEFS[id])save.bag.push(id)}
     for(const s of SLOTS)if(save.eq[s]&&!DEFS[save.eq[s]])save.eq[s]=null;
   }
+  save.notes=storedCounts(o.notes);save.bank=storedCounts(o.bank);
+  save.packOrder=Array.isArray(o.packOrder)?o.packOrder.slice(0,10000):[];save.bankOrder=Array.isArray(o.bankOrder)?o.bankOrder.slice(0,10000):[];
   finalizeSave();saveTs=nonNegativeCount(o.ts);fresh=false;
 }
 function finalizeSave(){
@@ -283,7 +285,7 @@ function loadLocalProgress(){
   return false;
 }
 if(!loadLocalProgress()){finalizeSave();save.inv.coins=30}
-function snap(){const px=inside?me.ox:me.x,py=inside?me.oy:me.y;save.x=Math.round(px);save.y=Math.round(py);return{v:3,ts:Date.now(),name:save.name,xp:save.xp,inv:save.inv,eq:save.eq,bag:save.bag,pets:save.pets,wear:save.wear,jobs:save.jobs,tokens:save.tokens,perks:save.perks,dye:save.dye,x:save.x,y:save.y}}
+function snap(){const px=inside?me.ox:me.x,py=inside?me.oy:me.y;save.x=Math.round(px);save.y=Math.round(py);return{v:3,ts:Date.now(),name:save.name,xp:save.xp,inv:save.inv,eq:save.eq,bag:save.bag,pets:save.pets,notes:save.notes,bank:save.bank,packOrder:save.packOrder,bankOrder:save.bankOrder,wear:save.wear,jobs:save.jobs,tokens:save.tokens,perks:save.perks,dye:save.dye,x:save.x,y:save.y}}
 function idbOpen(){return new Promise((res,rej)=>{try{const r=indexedDB.open('ember-reach',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>res(r.result);r.onerror=()=>rej()}catch(e){rej()}})}
 async function idbPut(str){try{const d=await idbOpen();d.transaction('s','readwrite').objectStore('s').put(str,'save');d.close()}catch(e){}}
 async function idbGet(){try{const d=await idbOpen();const v=await new Promise(res=>{const q=d.transaction('s').objectStore('s').get('save');q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)});d.close();return v}catch(e){return null}}
@@ -348,13 +350,15 @@ const healOf=k=>Math.round(FOOD[k].heal*Math.max(1,hpMax()/40));
 const totalLevel=()=>SK.reduce((t,k)=>t+lvlFor(save.xp[k]),0);
 const pouchHides=(inv=save.inv)=>inv.coal_pouch>0&&inv.coal<=100;
 const stackKinds=(inv=save.inv)=>Object.keys(ITEMS).filter(k=>k!=='coins'&&inv[k]>0&&!(k==='coal'&&pouchHides(inv)));
-const slotsUsed=(inv=save.inv,bag=save.bag)=>stackKinds(inv).length+bag.length;
-function canFitInventory(changes={},extraGear=0){
+const slotsUsed=(inv=save.inv,bag=save.bag)=>stackKinds(inv).length+bag.length+noteKinds().length;
+function canFitInventory(changes={},extraGear=0,noteChanges={}){
   const inv=Object.assign({},save.inv);
   for(const [key,delta] of Object.entries(changes))inv[key]=(inv[key]||0)+delta;
   // Older saves may already overflow. Keep their items and allow stacking or
   // consuming them, while refusing operations that add another occupied slot.
-  return slotsUsed(inv)+extraGear<=Math.max(PACK_CAPACITY,slotsUsed());
+  const notes=Object.assign({},save.notes||{});
+  for(const [id,delta] of Object.entries(noteChanges))notes[id]=(notes[id]||0)+delta;
+  return slotsUsed(inv)-noteKinds().length+noteKinds(notes).length+extraGear<=Math.max(PACK_CAPACITY,slotsUsed());
 }
 function refreshHeld(){const w=activeDef('weapon');me.tool=w?w.kind:'fist';me.mat=w?w.mat:2;if(w)me.hold=1e12;else if(me.hold>1e11)me.hold=0}
 const gearArr=()=>['head','body','legs','boots','shield'].map(s=>{const d=eqDef(s);return d?d.mat:0});
@@ -458,9 +462,9 @@ function addXp(skill,amt){
 
 /* ---------- modal ---------- */
 const modal=$('modal'),mBody=$('mBody');
-const TITLES={gear:'Equipment',pack:'Inventory',skills:'Skills',players:'Party',shop:'Shop',settings:'Settings',board:'Job Board',jobs:'Odd Jobs',odd:'Odd Shop'};
-function openModal(t){if(!tab)gpIdx=-1;tab=t;if(t!=='shop'&&t!=='settings'&&t!=='board'&&t!=='odd')lastTab=t;sel=null;renderModal()}
-function closeModal(){tab='';sel=null;outdoorShop=null;renderModal()}
+const TITLES={gear:'Equipment',pack:'Inventory',skills:'Skills',players:'Party',shop:'Shop',settings:'Settings',board:'Job Board',jobs:'Odd Jobs',odd:'Odd Shop',bank:'Bank chest'};
+function openModal(t){closeItemMenu();if(!tab)gpIdx=-1;tab=t;if(t!=='shop'&&t!=='settings'&&t!=='board'&&t!=='odd')lastTab=t;sel=null;renderModal()}
+function closeModal(){closeItemMenu();tab='';sel=null;outdoorShop=null;renderModal()}
 function renderModal(){
   modal.dataset.screen=tab;
   modal.hidden=!tab;
@@ -471,7 +475,7 @@ function renderModal(){
   $('mTitle').textContent=tab==='shop'&&curShop()?curShop().name:TITLES[tab];
   document.querySelectorAll('#mTabs button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab===tab)));
   mBody.textContent='';
-  ({gear:rGear,pack:rPack,skills:rSkills,players:rPlayers,shop:rShop,settings:rSettings,board:rBoard,jobs:rJobs,odd:rOdd})[tab]();
+  ({gear:rGear,pack:rPack,skills:rSkills,players:rPlayers,shop:rShop,settings:rSettings,board:rBoard,jobs:rJobs,odd:rOdd,bank:rBank})[tab]();
   mBody.scrollTop=st;
   gpAfterRender();
 }
@@ -486,7 +490,10 @@ function detail(){
   const box=el('div','detail');
   if(!sel){box.innerHTML='<small>Tap an item to see what it does.</small>';return box}
   let name='',info='',btns=[];
-  if(sel.src==='bag'&&sel.kind==='stack'){
+  if(sel.src==='bag'&&sel.kind==='note'){
+    const entry=selectedInventoryEntry();if(!entry){sel=null;return detail()}
+    name=itemName(entry.id)+' banknotes x'+entry.count.toLocaleString();info='Stackable banknotes. Deposit at the bank, then withdraw as items to use them.';
+  }else if(sel.src==='bag'&&sel.kind==='stack'){
     const k=sel.key;if(!(save.inv[k]>0)){sel=null;return detail()}
     name=ITEMS[k].name+' x'+save.inv[k].toLocaleString();
     info=k==='coal_pouch'?'Holds up to 100 coal flakes without using pack slots. Untradeable.':FOOD[k]?'Heals '+healOf(k)+' health.':SELL[k]?'Sells for '+SELL[k]+' coins each at the matching shop.':'Spend them in the shops.';
@@ -501,10 +508,181 @@ function detail(){
     if(sel.src==='bag'){btns.push(['Equip',()=>equipFromBag(sel.idx)]);if(curShop()&&curShop().kinds.includes(d.kind))btns.push(['Sell '+sellVal(d.id),()=>sellGear(sel.idx)])}
     else btns.push(['Unequip',()=>unequip(sel.key)]);
   }
+  const more=selectedInventoryEntry();if(more)btns.push(['More…',()=>openItemMenu(more,'pack')]);
   box.innerHTML='<b>'+name+'</b><small>'+info+'</small>';
   if(btns.length){const row=el('div','row');btns.forEach(([t,fn])=>{const b=el('button','btn grow',t);b.type='button';b.addEventListener('click',fn);row.append(b)});box.append(row)}
   return box;
 }
+/* ---------- personal bank, banknotes and persistent slot order ---------- */
+function storedItem(id){return id!=='coins'&&(Object.hasOwn(ITEMS,id)||Object.hasOwn(DEFS,id))}
+function storedCounts(value){
+  const counts={};
+  if(value&&typeof value==='object'&&!Array.isArray(value))for(const [id,n] of Object.entries(value))if(storedItem(id)&&nonNegativeCount(n))counts[id]=nonNegativeCount(n);
+  return counts;
+}
+const noteKinds=(notes=save.notes||{})=>Object.keys(notes).filter(id=>storedItem(id)&&notes[id]>0);
+function inventoryEntries(source='pack'){
+  if(source==='bank')return Object.entries(save.bank).filter(([,n])=>n>0).map(([id,count])=>({key:'b:'+id,id,count,kind:'bank'}));
+  const entries=stackKinds().map(id=>({key:'s:'+id,id,count:save.inv[id],kind:'stack'})),occurrences={};
+  save.bag.forEach((id,idx)=>{const n=occurrences[id]||0;occurrences[id]=n+1;entries.push({key:'g:'+id+':'+n,id,count:1,kind:'gear',idx})});
+  for(const id of noteKinds())entries.push({key:'n:'+id,id,count:save.notes[id],kind:'note'});
+  return entries;
+}
+function reconcileSlots(entries,order=[],minimum=PACK_CAPACITY){
+  const pending=new Set(entries.map(e=>e.key)),result=[];
+  for(const key of Array.isArray(order)?order.slice(0,10000):[]){
+    result.push(pending.has(key)?key:null);pending.delete(key);
+  }
+  while(result.length<minimum)result.push(null);
+  for(const key of pending){const empty=result.indexOf(null);if(empty<0)result.push(key);else result[empty]=key}
+  while(result.length>minimum&&result[result.length-1]===null)result.pop();
+  return result;
+}
+function inventorySlots(source='pack'){
+  const entries=inventoryEntries(source),field=source==='bank'?'bankOrder':'packOrder';
+  save[field]=reconcileSlots(entries,save[field]);
+  const byKey=new Map(entries.map(e=>[e.key,e]));
+  return save[field].map(key=>byKey.get(key)||null);
+}
+function moveInventorySlot(source,from,to){
+  const slots=inventorySlots(source),field=source==='bank'?'bankOrder':'packOrder';
+  if(!Number.isInteger(from)||!Number.isInteger(to)||from<0||to<0||from>=slots.length||to>=slots.length||!slots[from]||from===to)return false;
+  [save[field][from],save[field][to]]=[save[field][to],save[field][from]];
+  persist();renderModal();return true;
+}
+const bankAccess=()=>!inside&&Math.hypot(me.x-SPOTS.bank.x,me.y-SPOTS.bank.y)<42;
+const itemName=id=>DEFS[id]?DEFS[id].name:ITEMS[id].name;
+const requestedAmount=(n,available)=>n==='all'?available:Math.min(available,Math.max(1,Math.floor(+n)||1));
+function availableItem(entry){
+  if(entry.kind==='bank')return save.bank[entry.id]||0;
+  if(entry.kind==='note')return (save.notes||{})[entry.id]||0;
+  if(entry.kind==='gear')return save.bag.filter(id=>id===entry.id).length;
+  return save.inv[entry.id]||0;
+}
+function removeCarried(entry,n){
+  if(entry.kind==='note'){save.notes[entry.id]-=n;if(!save.notes[entry.id])delete save.notes[entry.id]}
+  else if(entry.kind==='gear'){let left=n;save.bag=save.bag.filter(id=>id===entry.id&&left>0?(left--,false):true)}
+  else save.inv[entry.id]-=n;
+}
+function finishItemTransfer(message){
+  closeItemMenu();sel=null;persist(true);uiHud();renderModal();say(message);
+}
+function depositItem(entry,quantity){
+  if(!bankAccess()||entry.kind==='bank')return false;
+  const n=requestedAmount(quantity,availableItem(entry));if(!n)return false;
+  // Banking the coal pouch can expose a coal stack, so check before removing it.
+  if(entry.kind==='stack'&&!canFitInventory({[entry.id]:-n}))return false;
+  removeCarried(entry,n);save.bank[entry.id]=(save.bank[entry.id]||0)+n;
+  finishItemTransfer('You deposit '+n+' '+itemName(entry.id)+'.');return true;
+}
+function withdrawItem(id,quantity,noted=false){
+  if(!bankAccess()||!storedItem(id))return false;
+  const have=save.bank[id]||0;let n=requestedAmount(quantity,have);if(!n)return false;
+  if(noted&&id==='coal_pouch'){say('The coal pouch cannot be noted.','warn');return false}
+  if(noted){if(!canFitInventory({},0,{[id]:n})){say('Your pack is full.','warn');return false}}
+  else if(DEFS[id]){n=Math.min(n,Math.max(0,PACK_CAPACITY-slotsUsed()));if(!n){say('Your pack is full.','warn');return false}}
+  else if(!canFitInventory({[id]:n})){say('Your pack is full.','warn');return false}
+  save.bank[id]-=n;if(!save.bank[id])delete save.bank[id];
+  if(noted)save.notes[id]=(save.notes[id]||0)+n;
+  else if(DEFS[id])for(let i=0;i<n;i++)save.bag.push(id);
+  else save.inv[id]+=n;
+  finishItemTransfer('You withdraw '+n+' '+itemName(id)+(noted?' as banknotes.':'.'));return true;
+}
+function canSellEntry(entry){
+  const shop=curShop();return !!shop&&(DEFS[entry.id]?shop.kinds.includes(DEFS[entry.id].kind):!!SELL[entry.id]&&shop.buys.includes(entry.id));
+}
+function sellItemQuantity(entry,quantity){
+  if(entry.kind==='bank'||!canSellEntry(entry)){say('Visit a shop that buys this item.','warn');return false}
+  const n=requestedAmount(quantity,availableItem(entry));if(!n)return false;
+  const price=DEFS[entry.id]?sellVal(entry.id):SELL[entry.id];
+  removeCarried(entry,n);save.inv.coins+=n*price;
+  finishItemTransfer('You sell '+n+' '+itemName(entry.id)+' for '+(n*price).toLocaleString()+' gold.');return true;
+}
+
+let withdrawNoted=false,bankMobilePane='bank',itemMenu=null,inventoryDrag=null;
+function entryIcon(entry,size=44){
+  const art=DEFS[entry.id]?gearSvg(DEFS[entry.id],size):itemSvg(entry.id,size);
+  return (entry.kind==='note'?'<span class="note-paper">'+art+'</span>':art)+(entry.count>1||entry.kind!=='gear'?'<em>'+entry.count.toLocaleString()+'</em>':'');
+}
+function inventoryGrid(source='pack'){
+  const grid=el('div','pack inventory-grid');grid.dataset.inventory=source;
+  inventorySlots(source).forEach((entry,index)=>{
+    const b=el('button','slot');b.type='button';b.dataset.slotIndex=index;b.dataset.inventory=source;
+    if(entry){
+      b.dataset.itemKey=entry.key;b.innerHTML=entryIcon(entry);b.title=itemName(entry.id);b.setAttribute('aria-label',itemName(entry.id)+(entry.kind==='note'?' banknote':'')+' x'+entry.count);
+      if(entry.kind==='gear'&&!usable(DEFS[entry.id]))b.classList.add('dim');
+      b.addEventListener('click',()=>{
+        if(b.dataset.suppressClick){delete b.dataset.suppressClick;return}
+        if(source==='bank'){openItemMenu(entry,source,b);return}
+        sel=entry.kind==='gear'?{src:'bag',kind:'gear',idx:entry.idx}:{src:'bag',kind:entry.kind,key:entry.id};renderModal();
+      });
+      b.addEventListener('contextmenu',e=>{e.preventDefault();openItemMenu(entry,source,b)});
+    }else{b.disabled=true;b.setAttribute('aria-label','Empty '+(source==='bank'?'bank':'backpack')+' slot')}
+    grid.append(b);
+  });return grid;
+}
+function closeItemMenu(){if(itemMenu){itemMenu.remove();itemMenu=null}}
+function openItemMenu(entry,source,anchor){
+  closeItemMenu();
+  const menu=el('div','item-action-menu');menu.setAttribute('role','dialog');menu.setAttribute('aria-label','Item actions');
+  const head=el('div','item-menu-heading'),title=el('strong');title.textContent=itemName(entry.id)+(entry.kind==='note'?' · Banknote':'');
+  const close=el('button','btn','×');close.type='button';close.setAttribute('aria-label','Close item actions');close.addEventListener('click',closeItemMenu);head.append(title,close);menu.append(head);
+  let quantity=1;const quantities=el('div','item-quantities');
+  for(const amount of [1,5,10,'all']){const b=el('button','btn',amount==='all'?'All':String(amount));b.type='button';b.setAttribute('aria-pressed',String(amount===quantity));b.addEventListener('click',()=>{quantity=amount;for(const other of quantities.children)other.setAttribute('aria-pressed',String(other===b))});quantities.append(b)}menu.append(quantities);
+  const actions=el('div','item-menu-actions');
+  const action=(label,fn,enabled=true)=>{const b=el('button','btn',label);b.type='button';b.disabled=!enabled;b.addEventListener('click',fn);actions.append(b)};
+  if(source==='bank')action(withdrawNoted?'Get banknotes':'Get items',()=>withdrawItem(entry.id,quantity,withdrawNoted));
+  else{action(bankAccess()?'Deposit':'Deposit · at bank',()=>depositItem(entry,quantity),bankAccess());action(canSellEntry(entry)?'Sell':'Sell · at shop',()=>sellItemQuantity(entry,quantity),canSellEntry(entry))}
+  menu.append(actions);document.body.append(menu);itemMenu=menu;
+  const r=anchor?.getBoundingClientRect(),width=menu.offsetWidth||280,height=menu.offsetHeight||180;
+  menu.style.left=Math.max(8,Math.min(innerWidth-width-8,r?r.left:innerWidth/2-width/2))+'px';
+  menu.style.top=Math.max(8,Math.min(innerHeight-height-8,r?r.bottom+5:innerHeight/2-height/2))+'px';
+  close.focus();
+}
+function selectedInventoryEntry(){
+  if(!sel||sel.src!=='bag')return null;
+  return inventoryEntries().find(e=>sel.kind==='gear'?e.kind==='gear'&&e.idx===sel.idx:e.kind===sel.kind&&e.id===sel.key)||null;
+}
+function rBank(){
+  const controls=el('div','bank-controls'),label=el('span');label.textContent='Withdraw as';controls.append(label);
+  for(const noted of [false,true]){const b=el('button','btn',noted?'Banknotes':'Items');b.type='button';b.setAttribute('aria-pressed',String(withdrawNoted===noted));b.addEventListener('click',()=>{withdrawNoted=noted;closeItemMenu();renderModal()});controls.append(b)}
+  const paneTabs=el('div','bank-pane-tabs');
+  for(const pane of ['bank','pack']){const b=el('button','btn',pane==='bank'?'Chest':'Backpack');b.type='button';b.setAttribute('aria-pressed',String(bankMobilePane===pane));b.addEventListener('click',()=>{bankMobilePane=pane;closeItemMenu();renderModal()});paneTabs.append(b)}
+  mBody.append(paneTabs,controls,el('p','note','Drag items to rearrange. Hold an item or right-click for 1, 5, 10 or all. Banknotes stack, and must be deposited before withdrawing usable items.'));
+  const layout=el('div','bank-layout'),bank=el('section','bank-pane'),pack=el('section','carried-pane');layout.dataset.activePane=bankMobilePane;
+  bank.append(inventoryHeading('BANK CHEST',Object.keys(save.bank).length+' types'),inventoryGrid('bank'));
+  pack.append(inventoryHeading('BACKPACK',slotsUsed()+' / '+PACK_CAPACITY),inventoryGrid('pack'));
+  layout.append(bank,pack);mBody.append(layout);
+}
+function finishInventoryPointer(e,cancelled=false){
+  const drag=inventoryDrag;if(!drag||e.pointerId!==drag.pointerId)return;
+  clearTimeout(drag.timer);inventoryDrag=null;
+  if(drag.ghost)drag.ghost.remove();
+  if(drag.dragging&&!cancelled){
+    const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-slot-index]');
+    if(target&&target.dataset.inventory===drag.source)moveInventorySlot(drag.source,drag.index,+target.dataset.slotIndex);
+  }
+}
+mBody.addEventListener('pointerdown',e=>{
+  const b=e.target.closest('button[data-item-key]');if(!b||e.button!==0)return;
+  closeItemMenu();const source=b.dataset.inventory,entry=inventorySlots(source)[+b.dataset.slotIndex];
+  const drag={pointerId:e.pointerId,source,index:+b.dataset.slotIndex,x:e.clientX,y:e.clientY,button:b,entry,dragging:false,ghost:null};inventoryDrag=drag;
+  drag.timer=setTimeout(()=>{if(inventoryDrag!==drag||drag.dragging)return;b.dataset.suppressClick='1';openItemMenu(entry,source,b)},450);
+  b.setPointerCapture(e.pointerId);
+});
+mBody.addEventListener('pointermove',e=>{
+  const drag=inventoryDrag;if(!drag||drag.pointerId!==e.pointerId)return;
+  if(!drag.dragging&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>8){
+    clearTimeout(drag.timer);closeItemMenu();drag.dragging=true;drag.button.dataset.suppressClick='1';
+    drag.ghost=el('div','inventory-drag-ghost',entryIcon(drag.entry));document.body.append(drag.ghost);
+  }
+  if(drag.dragging){e.preventDefault();const r=mBody.getBoundingClientRect();if(e.clientY>r.bottom-24)mBody.scrollTop+=8;else if(e.clientY<r.top+24)mBody.scrollTop-=8;drag.ghost.style.left=e.clientX-28+'px';drag.ghost.style.top=e.clientY-28+'px'}
+});
+mBody.addEventListener('pointerup',e=>finishInventoryPointer(e));
+mBody.addEventListener('pointercancel',e=>finishInventoryPointer(e,true));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&itemMenu){e.preventDefault();closeItemMenu()}});
+document.addEventListener('pointerdown',e=>{if(itemMenu&&!itemMenu.contains(e.target)&&!e.target.closest('[data-item-key]'))closeItemMenu()});
+
 function equipmentPaper(){
   const g=el('div','paper'),icons={neck:'amulet',head:'helm',ring:'ring',weapon:'sword',body:'body',shield:'shield',hands:'gloves',legs:'legs',boots:'boots'};
   [['neck','head','ring'],['weapon','body','shield'],['hands','legs',null],[null,'boots',null]].flat().forEach(sl=>{
@@ -521,17 +699,7 @@ function equipmentStats(cls='eqside'){
  for(const [name,value] of [['Attack','+'+atkBonus()],['Defence','+'+defTotal()],['Combat',lvlFor(save.xp.melee)],['Reduction',Math.round(defRed()*100)+'%']])box.append(el('div','eqtot','<span>'+name+'</span><b>'+value+'</b>'));
  return box;
 }
-function backpackGrid(){
- const p=el('div','pack'),slots=[];
- stackKinds().forEach(k=>slots.push({html:itemSvg(k,44)+'<em>'+(k==='coal_pouch'?(save.inv.coal||0)+'/100':save.inv[k].toLocaleString())+'</em>',label:ITEMS[k].name+' x'+save.inv[k],pick:{src:'bag',kind:'stack',key:k}}));
- save.bag.forEach((id,i)=>slots.push({html:gearSvg(DEFS[id],44),label:DEFS[id].name,dim:!usable(DEFS[id]),pick:{src:'bag',kind:'gear',idx:i}}));
- for(let i=0;i<Math.max(PACK_CAPACITY,slots.length);i++){
-  const b=el('button','slot'),it=slots[i];b.type='button';
-  if(it){b.innerHTML=it.html;b.title=it.label;b.setAttribute('aria-label',it.label);if(it.dim)b.classList.add('dim');if(sel&&sel.src==='bag'&&sel.kind===it.pick.kind&&sel.key===it.pick.key&&sel.idx===it.pick.idx)b.classList.add('sel');b.addEventListener('click',()=>{sel=it.pick;renderModal()})}
-  else{b.disabled=true;b.setAttribute('aria-label','Empty backpack slot')}
-  p.append(b);
- }return p;
-}
+function backpackGrid(){return inventoryGrid('pack')}
 function inventoryHeading(title,value=''){
  const h=el('div','pane-heading'),b=el('strong','',title),v=el('span');v.textContent=value;h.append(b,v);return h;
 }
@@ -950,9 +1118,9 @@ function rShop(){
     });
   }
   if(S.buys.length){
-    let total=0;S.buys.forEach(k=>{total+=save.inv[k]*SELL[k]});
+    let total=0;S.buys.forEach(k=>{total+=(save.inv[k]+(save.notes[k]||0))*SELL[k]});
     const b=el('button','btn',total?'Sell all goods (+'+total+')':'Nothing here to sell');b.type='button';b.style.cssText='width:100%;min-height:40px;margin-top:6px';b.disabled=!total;
-    b.addEventListener('click',()=>{let t=0;S.buys.forEach(k=>{t+=save.inv[k]*SELL[k];save.inv[k]=0});save.inv.coins+=t;say('The shopkeeper pays you '+t+' coins.','gold');persist();renderModal();uiHud()});
+    b.addEventListener('click',()=>{let t=0;S.buys.forEach(k=>{t+=(save.inv[k]+(save.notes[k]||0))*SELL[k];save.inv[k]=0;delete save.notes[k]});save.inv.coins+=t;say('The shopkeeper pays you '+t+' coins.','gold');persist();renderModal();uiHud()});
     mBody.append(b);
   }
   if(S.kinds.length)mBody.append(el('p','note','Open the Pack tab to sell spare gear here.'));
@@ -1002,7 +1170,7 @@ function resolveSwing(now){
 }
 function nearFire(){return Math.hypot(me.x-CX,me.y-(CY+22))<56}
 function nearestDoor(r){let best=null,bd=r;for(const b of BLD){const d=Math.hypot(b.x-me.x,b.y-me.y);if(d<bd){bd=d;best=b}}return best}
-const SPOTS={board:{x:BOARD.x,y:BOARD.y},crate:{x:CX+98,y:CY+58},odd:{x:CX+150,y:CY+50}};
+const SPOTS={bank:{x:CX-55,y:CY+66},board:{x:BOARD.x,y:BOARD.y},crate:{x:CX+98,y:CY+58},odd:{x:CX+150,y:CY+50}};
 function nearSpot(){let best=null,bd=36;for(const k in SPOTS){const d=Math.hypot(me.x-SPOTS[k].x,me.y-SPOTS[k].y);if(d<bd){bd=d;best=k}}return best}
 function nodeOK(n){
   const tx=n.x-me.x,ty=(n.y-(n.k.startsWith('spot')?0:2))-me.y,d=Math.hypot(tx,ty);
@@ -1040,7 +1208,7 @@ function useAction(){
   const station=nearSmithy();if(station){openSmithy(station.kind);return}
   const n=facingNode(now);
   if(n){beginAct('node',n);return}
-  {const sp=nearSpot();if(sp){act=null;if(sp==='board')openModal('board');else if(sp==='crate')supplyDeposit();else openModal('odd');return}}
+  {const sp=nearSpot();if(sp){act=null;if(sp==='board')openModal('board');else if(sp==='crate')supplyDeposit();else if(sp==='bank')openModal('bank');else openModal('odd');return}}
   if(nearFire()){act={kind:'cook',where:'fire',t:0};return}
   const f=nodeNear(now);
   if(f)say('Face the '+NT[f.k].name.toLowerCase()+' to work on it.','warn');
@@ -1055,7 +1223,7 @@ function refreshActionButtons(){
   const now=performance.now();
   let uk='axe';
   if(inside)uk='coins';
-  else{const station=nearSmithy(),n=facingNode(now);if(station)uk=station.kind==='furnace'?'ore':station.kind==='anvil'?'sword':'coins';else if(n){uk=NT[n.k].tool;}else if(nearSpot())uk={board:'scroll',crate:'bag',odd:'coins'}[nearSpot()];else if(nearFire())uk='bowl'}
+  else{const station=nearSmithy(),n=facingNode(now);if(station)uk=station.kind==='furnace'?'ore':station.kind==='anvil'?'sword':'coins';else if(n){uk=NT[n.k].tool;}else if(nearSpot())uk={bank:'bag',board:'scroll',crate:'bag',odd:'coins'}[nearSpot()];else if(nearFire())uk='bowl'}
   const ukey=uk+'|'+(w?w.id:'');
   if(ukey!==lastUseKey){
     lastUseKey=ukey;
@@ -1986,6 +2154,12 @@ function drawPet(p,x,y,now){
   else drawMole(p,x,y,now);
 }
 function drawLamp(x,y,now){MyrrenEnvironment.prop(ctx,'lamp',x,y,null,null,now)}
+function drawBankChest(x,y){
+  R(x-13,y-18,26,18,OUT);R(x-12,y-17,24,16,'#6e4c31');R(x-11,y-16,22,6,'#a47a49');
+  R(x-11,y-10,22,2,'#342e28');R(x-9,y-17,3,16,'#c4b576');R(x+6,y-17,3,16,'#c4b576');
+  R(x-3,y-12,6,7,'#252927');R(x-2,y-11,4,5,'#e4d39a');R(x-1,y-10,2,3,'#655333');
+  if(Math.hypot(me.x-SPOTS.bank.x,me.y-SPOTS.bank.y)<70)label('Bank chest',x,y-24,'#f3df9e');
+}
 function drawSupply(x,y){
   drawCrate(x-6,y);drawCrate(x+7,y);drawCrate(x,y-11);
   R(x-5,y-26,10,5,OUT);R(x-4,y-25,8,3,'#d8c890');R(x-2,y-24,4,1,'#6a5a3a');
@@ -2140,6 +2314,7 @@ function drawOutdoor(cx,cy,now){
   for(const m of mons)if((m.state!=='dead'||now-(m.dieAt||-99999)<1600)&&vis(m.x,m.y))list.push({y:m.y,f:()=>drawMon(m,Math.round(m.x-cx),Math.round(m.y-cy),now)});
   for(const c of crits)if(vis(c.x,c.y))list.push({y:c.y,f:()=>drawCritter(c,Math.round(c.x-cx),Math.round(c.y-cy),now)});
   list.push({y:CY+57,f:()=>drawVillageSquare(cx,cy,now)});
+  if(vis(SPOTS.bank.x,SPOTS.bank.y))list.push({y:SPOTS.bank.y,f:()=>drawBankChest(Math.round(SPOTS.bank.x-cx),Math.round(SPOTS.bank.y-cy))});
   for(const b of BLD)if(!b.open)list.push({y:b.y,f:()=>drawBuilding(b,Math.round(b.x-cx),Math.round(b.y-cy),now)});
   for(const station of VILLAGE.stations)list.push({y:station.y,f:()=>{
     const x=Math.round(station.x-cx),y=Math.round(station.y-cy);

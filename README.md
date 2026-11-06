@@ -36,6 +36,7 @@ Run from the repository root:
 node --check public/myrren-game.js
 node tests/inventory-capacity.cjs
 node tests/save-inventory.test.cjs
+node tests/bank-notes.test.cjs
 node tests/village-layout.test.cjs
 node tests/v31-neck-seams.test.cjs
 node tests/v31-prestige.test.cjs
@@ -45,3 +46,11 @@ The two sprite tests require `@napi-rs/canvas` (or the Codex runtime copy). Othe
 
 The inventory holds 36 occupied slots. Coins do not occupy a slot. Capacity checks account for consumed ingredients and coal-pouch storage. Loading an older overfull save keeps its items; new occupied slots are blocked until space is available.
 
+
+## Bank chest and banknotes
+
+The personal bank chest stands southwest of the village square, separate from the job supply crate. Stand nearby and use the action button (or tap the chest). Drag items within either grid to save their positions. Hold an item or right-click for quantity controls; the More button in item details provides a keyboard-accessible alternative.
+
+Deposit, withdraw and sell menus support 1, 5, 10 and all. Depositing notes restores the item to bank storage. The Banknotes withdrawal toggle produces a stackable note; notes cannot be equipped, eaten or used in recipes. Shops that accept the original item accept its notes at the same price. Untradeable coal pouches cannot be noted.
+
+Bank contents, notes and both slot layouts are included in all existing save paths and export codes. Earlier save codes remain supported. Personal-bank access requires proximity; selling requires the matching shop. Player-to-player trading is not implemented in this static deployment; it needs an authoritative shared transaction system.
