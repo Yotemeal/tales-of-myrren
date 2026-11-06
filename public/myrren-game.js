@@ -731,7 +731,7 @@ function inventoryHeading(title,value=''){
 function rGear(){
  mBody.append(inventoryHeading('EQUIPPED',save.name||'Wanderer'));
  const sheet=el('div','character-sheet'),portrait=el('div','character-portrait'),canvas=document.createElement('canvas');canvas.width=128;canvas.height=160;canvas.setAttribute('aria-label','Your equipped character');portrait.append(canvas);
- if(approvedHero&&window.MyrrenHero.supports(gearArr())){const c=canvas.getContext('2d');c.save();c.scale(4,4);approvedHero.draw(c,16,40,{dv:'d',f:1,g:gearArr(),armourDye:save.dye!=null?DYES[save.dye]:null},0);c.restore()}
+ if(approvedHero&&window.MyrrenHero.supports(gearArr())){const c=canvas.getContext('2d');c.save();const scale=window.MyrrenWardrobe?.ready?3:4;c.scale(scale,scale);approvedHero.draw(c,64/scale,158/scale,{dv:'d',f:1,nativeScale:true,g:gearArr(),armourDye:save.dye!=null?DYES[save.dye]:null},0);c.restore()}
  else if(myrrenV31Ready){const g=gearArr(),sprite=myrrenV31Equipment?myrrenV31Equipment.get(g[2],g[3],save.dye!=null?DYES[save.dye]:null,g[1],g[0],g[4],0,g[5]):myrrenV31FeetAtlas,c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(sprite,0,0,32,40,0,0,128,160)}
  sheet.append(equipmentPaper(),portrait,equipmentStats('character-stats'));mBody.append(sheet);mBody.append(detail());
  const candidates=save.bag.map((id,i)=>({id,i,d:DEFS[id]})).filter(o=>o.d&&(!(sel&&sel.src==='eq')||o.d.slot===sel.key));
@@ -1984,6 +1984,7 @@ const MYRREN_APPROVED=new Image();let approvedHero=null;
 MYRREN_APPROVED.onload=()=>{if(window.MyrrenHero)try{approvedHero=window.MyrrenHero.create(MYRREN_APPROVED)}catch(_){approvedHero=null}};
 MYRREN_APPROVED.onerror=()=>{approvedHero=null};
 MYRREN_APPROVED.src='/hero-approved-v1.png';
+window.addEventListener('myrren-armour-ready',()=>{if(tab)renderModal()});
 function drawApprovedBase(x,y,o,now){
   shadowE(x+1,y,7,2,.3);
   const pose=approvedHero.draw(ctx,x,y,{...o,armourDye:o.dye!=null?DYES[o.dye]:null,hurtAt:o.isMe?me.hurtAt:null,deathAt:o.isMe?me.deathAt:null},now);
@@ -1993,7 +1994,7 @@ function drawApprovedBase(x,y,o,now){
     drawTool(o.tool,o.mat,pose.handX,pose.handY,o.f||1,swinging?swingAng(age):-.35);
     // The weapon grip sits on the artwork's fist, without adding a second arm.
   }
-  label(o.name,x,y-42,o.col||'#ffffff');if(o.waving)label('*waves*',x,y-54,'#ffffff');
+  label(o.name,x,pose.nameY??y-42,o.col||'#ffffff');if(o.waving)label('*waves*',x,(pose.nameY??y-42)-12,'#ffffff');
   return true;
 }
 function drawApprovedPlayer(x,y,o,now){

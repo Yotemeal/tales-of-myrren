@@ -107,9 +107,9 @@
   c.putImageData(result,0,0);prepared.set(source,atlas);return atlas;
  }
 
- function create(atlas){
+ function create(atlas,options={}){
   if((atlas.naturalWidth||atlas.width)!==384||(atlas.naturalHeight||atlas.height)!==640)throw Error('Invalid approved character atlas');
-  atlas=matchPunchHair(atlas);
+  atlas=options.rawFrames?atlas:matchPunchHair(atlas);
   function pose(o,now){
    const dir=o.dv==='u'?3:o.dv==='s'?(o.f<0?1:2):0;
    const death=o.deathAt!=null?now-o.deathAt:-1;
@@ -124,8 +124,9 @@
   const hands=[[3,-10],[3,-8],[13,-13],[4,-10],[3,-9],[3,-10]];
   function draw(ctx,x,y,o,now){
    const painted=window.MyrrenArmour?.ready?window.MyrrenArmour.compose(atlas,o.g,o.armourDye):atlas;
-   const p=pose(o,now),sx=p.col*CELL,sy=p.row*CELL,dx=Math.round(x-AX),dy=Math.round(y-AY);
-   ctx.save();ctx.imageSmoothingEnabled=false;
+   const scale=window.MyrrenWardrobe?.ready&&!o.nativeScale?40/52:1;
+   const p=pose(o,now),sx=p.col*CELL,sy=p.row*CELL,dx=scale===1?Math.round(x-AX):-AX,dy=scale===1?Math.round(y-AY):-AY;
+   ctx.save();ctx.imageSmoothingEnabled=false;if(scale!==1){ctx.translate(Math.round(x),Math.round(y));ctx.scale(scale,scale)}
    if(p.hurt)ctx.globalAlpha*=.72;
    if(p.lift){
     ctx.drawImage(painted,sx,sy+54,CELL,10,dx,dy+54,CELL,10);
@@ -136,7 +137,8 @@
    ctx.restore();
    const rearHands=[[6,-9],[9,-14],[13,-27],[9,-18],[6,-10],[6,-10]];
    const f=p.dir===3?1:o.f<0?-1:1,h=p.swing?(p.dir===3?rearHands[p.col]:hands[p.col]):[p.dir===1||p.dir===2?3:8,-11-p.lift];
-   return {...p,handX:x+f*h[0],handY:y+h[1]};
+   const worn=window.MyrrenWardrobe?.hand(p,o);
+   return worn?{...p,handX:x+worn.x*scale,handY:y+worn.y*scale,nameY:y+worn.nameY*scale}:{...p,handX:x+f*h[0],handY:y+h[1]};
   }
   return {pose,draw};
  }
