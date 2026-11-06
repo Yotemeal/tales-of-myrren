@@ -104,7 +104,7 @@ const MATS=[null,
   {k:'obsidianite',n:'Obsidianite',M:'#442b3c',H:'#e65456',D:'#201c29',req:40},
   {k:'starsteel',n:'Starsteel',M:'#a2c9e2',H:'#f0f8ff',D:'#41485f',req:70}];
 const KINDS={
-  sword:{slot:'weapon',art:'sword',skill:'melee',mats:[2,3,4,5,6],price:[25,150,700,3500,18000],atk:[1,3,6,12,22],nm:{d:'sword'}},
+  sword:{slot:'weapon',art:'sword',skill:'melee',mats:[2,3,4,5,7,6,8],reqs:[1,10,20,30,40,55,70],price:[25,150,700,3500,9000,18000,40000],atk:[1,3,6,12,17,22,30],nm:{d:'sword'}},
   axe:{slot:'weapon',art:'axe',skill:'woodcutting',mats:[2,3,4,5,6],price:[20,120,600,3000,15000],nm:{d:'hatchet'}},
   pick:{slot:'weapon',art:'pick',skill:'mining',mats:[2,3,4,5,6],price:[20,120,600,3000,15000],nm:{d:'pickaxe'}},
   net:{slot:'weapon',art:'net',skill:'fishing',mats:[1,3,4],price:[12,110,550],full:true,nm:{1:'Small net',3:'Iron-hoop net',4:'Steel-hoop net'}},
@@ -148,7 +148,7 @@ const SMELT=[
 const FORGE={axe:3,pick:3,sword:4,shield:5,helm:4,gloves:4,boots:4,legs:5,body:6};
 /* economy: shop price of forgeable gear = 2x its ingot value, so smelting+forging always beats buying and coins are a sink */
 for(const id in DEFS){const d=DEFS[id];if(FORGE[d.kind]&&d.mat>=2){const ik='ing_'+MATS[d.mat].k;if(SELL[ik])d.price=Math.round(2*FORGE[d.kind]*SELL[ik])}}
-const gearSvg=(d,s)=>{if(window.MyrrenArmour?.ready&&ARMOUR_DEF[d.kind])return window.MyrrenArmour.icon(d.kind,d.mat,s);const m=MATS[d.mat];if((d.kind==='helm'||d.kind==='shield')&&myrrenV31Equipment)return myrrenV31Equipment.icon(d.kind,d.mat,s);return svg(d.art,s,{M:m.M,H:m.H,D:m.D,S:m.H})};
+const gearSvg=(d,s)=>{if(d.kind==='sword'&&window.MyrrenSwords?.ready)return window.MyrrenSwords.icon(d.mat,s);if(window.MyrrenArmour?.ready&&ARMOUR_DEF[d.kind])return window.MyrrenArmour.icon(d.kind,d.mat,s);const m=MATS[d.mat];if((d.kind==='helm'||d.kind==='shield')&&myrrenV31Equipment)return myrrenV31Equipment.icon(d.kind,d.mat,s);return svg(d.art,s,{M:m.M,H:m.H,D:m.D,S:m.H})};
 
 /* ---------- rules ---------- */
 const NAMES={melee:'Combat',woodcutting:'Forestry',mining:'Delving',fishing:'Fishing',cooking:'Cooking'};
@@ -731,7 +731,7 @@ function inventoryHeading(title,value=''){
 function rGear(){
  mBody.append(inventoryHeading('EQUIPPED',save.name||'Wanderer'));
  const sheet=el('div','character-sheet'),portrait=el('div','character-portrait'),canvas=document.createElement('canvas');canvas.width=128;canvas.height=160;canvas.setAttribute('aria-label','Your equipped character');portrait.append(canvas);
- if(approvedHero&&window.MyrrenHero.supports(gearArr())){const c=canvas.getContext('2d');c.save();const scale=window.MyrrenWardrobe?.ready?3:4;c.scale(scale,scale);approvedHero.draw(c,64/scale,158/scale,{dv:'d',f:1,nativeScale:true,g:gearArr(),armourDye:save.dye!=null?DYES[save.dye]:null},0);c.restore()}
+ if(approvedHero&&window.MyrrenHero.supports(gearArr())){const c=canvas.getContext('2d');c.save();const scale=window.MyrrenWardrobe?.ready?3:4;c.scale(scale,scale);const pose=approvedHero.draw(c,64/scale,158/scale,{dv:'d',f:1,nativeScale:true,g:gearArr(),armourDye:save.dye!=null?DYES[save.dye]:null},0);const weapon=activeDef('weapon');if(weapon?.kind==='sword')window.MyrrenSwords?.draw(c,weapon.mat,pose.handX,pose.handY,1,-.35,52/40);c.restore()}
  else if(myrrenV31Ready){const g=gearArr(),sprite=myrrenV31Equipment?myrrenV31Equipment.get(g[2],g[3],save.dye!=null?DYES[save.dye]:null,g[1],g[0],g[4],0,g[5]):myrrenV31FeetAtlas,c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(sprite,0,0,32,40,0,0,128,160)}
  sheet.append(equipmentPaper(),portrait,equipmentStats('character-stats'));mBody.append(sheet);mBody.append(detail());
  const candidates=save.bag.map((id,i)=>({id,i,d:DEFS[id]})).filter(o=>o.d&&(!(sel&&sel.src==='eq')||o.d.slot===sel.key));
@@ -1278,7 +1278,7 @@ function ingest(change){
     o.n=String(pr.n||'Wanderer').replace(/[^\w .-]/g,'').slice(0,14)||'Wanderer';
     o.tl=clamp(pr.tl|0,1,100);o.dye=(Number.isInteger(pr.dy)&&pr.dy>=0&&pr.dy<4)?pr.dy:null;
     o.h=((+pr.h||0)%360+360)%360;
-    const a=clamp(pr.a|0,0,6);o.tool=CODE_KIND[a];o.mat=clamp(pr.tt|0,1,6);
+    const a=clamp(pr.a|0,0,6);o.tool=CODE_KIND[a];o.mat=clamp(pr.tt|0,1,8);
     o.hold=a>0?now+1e9:0;
     if(Array.isArray(pr.g))o.g=[0,1,2,3,4,5].map(i=>clamp(pr.g[i]|0,0,8));
     if(typeof pr.s==='number'){if(o.s!==null&&pr.s!==o.s)o.swingAt=now;o.s=pr.s}
@@ -1688,6 +1688,7 @@ function swingAng(age){
   return lerp(1.0,-.35,(age-200)/120);
 }
 function drawTool(kind,mat,hx,hy,f,ang){
+  if(kind==='sword'&&window.MyrrenSwords?.draw(ctx,mat,hx,hy,f,ang))return;
   const a=ART[kind],pal=Object.assign({},a.p,{S:MATS[mat].H}),s=1.7,ca=Math.cos(ang),sa=Math.sin(ang);
   for(let j=0;j<8;j++)for(let i=0;i<8;i++){
     const c=a.m[j][i];if(c==='.'||!pal[c])continue;
@@ -1985,6 +1986,7 @@ MYRREN_APPROVED.onload=()=>{if(window.MyrrenHero)try{approvedHero=window.MyrrenH
 MYRREN_APPROVED.onerror=()=>{approvedHero=null};
 MYRREN_APPROVED.src='/hero-approved-v1.png';
 window.addEventListener('myrren-armour-ready',()=>{if(tab)renderModal()});
+window.addEventListener('myrren-weapons-ready',()=>{if(tab)renderModal()});
 function drawApprovedBase(x,y,o,now){
   shadowE(x+1,y,7,2,.3);
   const pose=approvedHero.draw(ctx,x,y,{...o,armourDye:o.dye!=null?DYES[o.dye]:null,hurtAt:o.isMe?me.hurtAt:null,deathAt:o.isMe?me.deathAt:null},now);
