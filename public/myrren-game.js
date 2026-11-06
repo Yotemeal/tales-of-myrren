@@ -206,6 +206,10 @@ const VILLAGE=MyrrenWorld;
 // Explicit development opt-in; normal encounters and saved progress stay unchanged.
 const craterPreview=!!window.MyrrenCrater?.previewEnabled(location.search);
 const craterRocks=craterPreview&&window.MyrrenCraterRocks?window.MyrrenCraterRocks.create():null;
+const craterPets=craterPreview&&window.MyrrenSkillingPets||null;
+const craterPetArt=craterPets&&window.MyrrenPetReference?window.MyrrenPetReference.create():null;
+craterPetArt?.load();
+window.addEventListener('myrren-pet-reference-ready',()=>{if(tab==='skills')renderModal()});
 // Prototype motion tuning only, not approved Crater balance. Damage/cooldown use MT.
 const ROCK_PREVIEW={range:90,retreat:30,speed:140,distance:120,windup:300};
 const BLD=VILLAGE.buildings.map(b=>({...b}));
@@ -258,7 +262,7 @@ function parseSavedProgress(raw){
     return o&&typeof o==='object'&&!Array.isArray(o)&&o.xp&&typeof o.xp==='object'&&!Array.isArray(o.xp)?o:null;
   }catch(e){return null}
 }
-let save={notes:{},bank:{},packOrder:[],bankOrder:[],wear:{},jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0},x:CX,y:CY+44};
+let save={notes:{},bank:{},packOrder:[],bankOrder:[],wear:{},jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0},petXpRemainders:{woodcutting:0,mining:0,fishing:0},x:CX,y:CY+44};
 let fresh=true,saveTs=0;
 function migrateArmourSave(source){
  const id=k=>typeof k==='string'&&/^leather_(helm|body|gloves|legs|boots|shield)$/.test(k)?k.replace('leather_','bronze_'):k;
@@ -288,6 +292,7 @@ function applySave(o){
     if(o.wear&&typeof o.wear==='object')for(const k in o.wear)if(DEFS[k])save.wear[k]=clamp(+o.wear[k]||0,0,1);
     save.tokens=nonNegativeCount(o.tokens);if(o.perks&&typeof o.perks==='object')save.perks=Object.assign({},o.perks);save.dye=Number.isInteger(o.dye)?o.dye:null;
     if(o.pets)Object.assign(save.pets,o.pets);
+    save.petXpRemainders=Object.fromEntries(['woodcutting','mining','fishing'].map(k=>{const r=o.petXpRemainders?.[k];return[k,Number.isInteger(r)&&r>=0&&r<100?r:0]}));
     if(Array.isArray(o.bag))save.bag=o.bag.filter(id=>DEFS[id]);
     if(o.tools){
       for(const k of ['axe','pick','sword']){
@@ -313,7 +318,7 @@ function loadLocalProgress(){
   return false;
 }
 if(!loadLocalProgress()){finalizeSave();save.inv.coins=30}
-function snap(){const px=me.deathAt!=null?CX:inside?me.ox:me.x,py=me.deathAt!=null?CY+40:inside?me.oy:me.y;save.x=Math.round(px);save.y=Math.round(py);return{v:3,ts:Date.now(),name:save.name,xp:save.xp,inv:save.inv,eq:save.eq,bag:save.bag,pets:save.pets,notes:save.notes,bank:save.bank,packOrder:save.packOrder,bankOrder:save.bankOrder,wear:save.wear,jobs:save.jobs,tokens:save.tokens,perks:save.perks,dye:save.dye,x:save.x,y:save.y}}
+function snap(){const px=me.deathAt!=null?CX:inside?me.ox:me.x,py=me.deathAt!=null?CY+40:inside?me.oy:me.y;save.x=Math.round(px);save.y=Math.round(py);return{v:3,ts:Date.now(),name:save.name,xp:save.xp,inv:save.inv,eq:save.eq,bag:save.bag,pets:save.pets,petXpRemainders:save.petXpRemainders,notes:save.notes,bank:save.bank,packOrder:save.packOrder,bankOrder:save.bankOrder,wear:save.wear,jobs:save.jobs,tokens:save.tokens,perks:save.perks,dye:save.dye,x:save.x,y:save.y}}
 function idbOpen(){return new Promise((res,rej)=>{try{const r=indexedDB.open('ember-reach',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>res(r.result);r.onerror=()=>rej()}catch(e){rej()}})}
 async function idbPut(str){if(craterPreview)return;try{const d=await idbOpen();d.transaction('s','readwrite').objectStore('s').put(str,'save');d.close()}catch(e){}}
 async function idbGet(){if(craterPreview)return null;try{const d=await idbOpen();const v=await new Promise(res=>{const q=d.transaction('s').objectStore('s').get('save');q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)});d.close();return v}catch(e){return null}}
@@ -483,6 +488,7 @@ function giveGear(id){
   save.bag.push(id);say('Rare drop: '+DEFS[id].name+'!','gold');
 }
 function addXp(skill,amt){
+  if(craterPets){if(!SK.includes(skill))return;const award=window.MyrrenSkillingPets.award(skill,nonNegativeCount(amt),save.pets,save.petXpRemainders);amt=Math.min(award.amount,Number.MAX_SAFE_INTEGER-nonNegativeCount(save.xp[skill]));save.petXpRemainders=award.remainders;}
   const before=lvlFor(save.xp[skill]),pm=hpMax();save.xp[skill]+=amt;lastSkill=skill;const after=lvlFor(save.xp[skill]);
   if(after>before){say('Congratulations, you just advanced a '+NAMES[skill]+' level. You are now level '+after+'.','gold');toast(NAMES[skill].toUpperCase()+'\nLEVEL '+after);if(skill==='melee')me.hp=Math.min(hpMax(),me.hp+Math.max(1,hpMax()-pm));blocked.clear()}
   if(after>before)sfx('level');else if(skill!=='melee')sfx('gather');
@@ -767,10 +773,12 @@ function rSkills(){
  grid.append(el('div','skill total','<span class="skill-top"><span class="ic">'+svg('coins',40)+'</span><span class="level">'+totalLevel()+'</span></span><b>Total level</b><small>Health '+me.hp+' / '+hpMax()+'</small>'));
  layout.append(guide,grid);mBody.append(layout);
   mBody.append(el('h3','sub','Pets'));
+  if(craterPets){const b=el('button','btn','Preview all three pets');b.type='button';b.addEventListener('click',()=>{for(const sk of Object.keys(PETS))save.pets[sk]=1;syncPets();petsTeleport();persist();renderModal()});mBody.append(b)}
   for(const sk of Object.keys(PETS)){
     const P=PETS[sk],st=save.pets[sk],row=el('div','shoprow');
     const sil=Object.fromEntries(Object.keys(ART[P.art].p).map(k=>[k,'#1d160e']));
-    row.innerHTML=(st?svg(P.art,32):svg(P.art,32,sil))+'<span>'+(st?P.name:'Unknown pet')+'<small>'+(st?(st===1?'Following you':'Resting'):NAMES[sk]+': about 1 in '+petOdds(sk)+' per '+P.what)+'</small></span>';
+    const icon=craterPets&&st?craterPetArt?.icon(sk):'';
+    row.innerHTML=(icon||(st?svg(P.art,32):svg(P.art,32,sil)))+'<span>'+(st?P.name:'Unknown pet')+'<small>'+(st?(st===1?'Following you':'Resting'):NAMES[sk]+': about 1 in '+petOdds(sk)+' per '+P.what)+(craterPets&&st===1?' · +3% '+NAMES[sk]+' XP':'')+'</small></span>';
     if(st){const b=el('button','btn',st===1?'Dismiss':'Call');b.type='button';b.addEventListener('click',()=>{save.pets[sk]=st===1?2:1;syncPets();petsTeleport();persist();renderModal()});row.append(b)}
     else row.append(el('span'));
     mBody.append(row);
@@ -1407,18 +1415,20 @@ const PETS={
   fishing:{name:'Mossback Terrapin',art:'pet_terrapin',what:'catch'},
   mining:{name:'Geode Mole',art:'pet_mole',what:'ore'}
 };
+if(craterPets){PETS.woodcutting={...PETS.woodcutting,art:'axe'};PETS.mining={...PETS.mining,art:'pick'};PETS.fishing={name:'River Otter',art:'net',what:'catch'}}
 const pets=[],petObjs={};
+let craterPetSkillEvent=null;
 function syncPets(){
   pets.length=0;
   for(const sk of Object.keys(PETS)){
-    if(save.pets[sk]!==1)continue;
+    if(save.pets[sk]!==1){if(craterPets&&petObjs[sk])craterPets.reset(petObjs[sk],performance.now());continue}
     let o=petObjs[sk];
     if(!o)o=petObjs[sk]={sk,x:me.x-me.face*10,y:me.y+4,face:1,moving:false,scamper:false,ph:Math.random()*6,wt:0,sx:me.x,sy:me.y,fxT:0,trail:[]};
     pets.push(o);
   }
 }
 function petAnchor(i){return {x:me.x+[-18,18,0][i%3],y:me.y+[7,7,17][i%3]}}
-function petsTeleport(){pets.forEach((p,i)=>{const a=petAnchor(i);p.x=a.x;p.y=a.y;p.sx=a.x;p.sy=a.y;p.trail.length=0})}
+function petsTeleport(){craterPetSkillEvent=null;pets.forEach((p,i)=>{const a=craterPets?craterPetAnchor(p,i):petAnchor(i);p.x=a.x;p.y=a.y;p.sx=a.x;p.sy=a.y;p.trail.length=0;if(craterPets)craterPets.reset(p,performance.now(),{playerMoving:me.moving,dead:me.deathAt!=null})})}
 const petOdds=sk=>Math.max(150,500-3*lvlFor(save.xp[sk]));
 function rollPet(sk){
   if(!PETS[sk]||save.pets[sk])return;
@@ -1427,7 +1437,30 @@ function rollPet(sk){
     say('You have a funny feeling like you are being followed.','gold');say('You found a pet: '+PETS[sk].name+'!','gold');toast('NEW PET\n'+PETS[sk].name);
   }
 }
+function craterPetCanMove(skill,x,y){
+  if(inside)return x>=10&&x<=166&&y>=70&&y<=121;
+  return x>EDGE+5&&x<WW-EDGE-5&&y>EDGE+5&&y<WH-EDGE-5&&
+    !SOLID.some(q=>x>q.x0&&x<q.x1&&y>q.y0&&y<q.y1)&&
+    !BLD.some(b=>!b.open&&Math.abs(x-b.x)<b.w/2+3&&y>b.y-14&&y<b.y)&&
+    (skill==='fishing'||!inWater(x,y));
+}
+function craterPetAnchor(p,i){
+  const base=petAnchor(i);if(craterPetCanMove(p.sk,base.x,base.y))return base;
+  for(let r=8;r<=24;r+=8)for(let j=0;j<8;j++){const x=me.x+Math.cos(j*Math.PI/4)*r,y=me.y+Math.sin(j*Math.PI/4)*r;if(craterPetCanMove(p.sk,x,y))return{x,y}}
+  return{x:me.x,y:me.y};
+}
+function craterPetAction(p,now){
+  if(inside||me.moving||act?.kind!=='node'||!act.checked||!nodeOK(act.ref)||now<act.ref.back)return null;
+  const node=act.ref,skill=NT[node.k].skill;if(skill!==p.sk)return null;
+  let target={x:node.x+(skill==='woodcutting'?12:-10),y:node.y+5};
+  if(skill==='fishing'){
+    target={x:node.x,y:node.y};
+    if(!inWater(target.x,target.y))outer:for(let r=4;r<=20;r+=4)for(let i=0;i<8;i++){const x=node.x+Math.cos(i*Math.PI/4)*r,y=node.y+Math.sin(i*Math.PI/4)*r;if(inWater(x,y)){target={x,y};break outer}}
+  }
+  return{skill,key:node.k+':'+node.x+':'+node.y,target};
+}
 function petsUpdate(dt,now){
+  if(craterPets){for(const [i,p] of pets.entries())craterPets.update(p,{dt,now,player:{x:me.x,y:me.y,moving:me.moving,dead:me.deathAt!=null,inside:!!inside},anchor:craterPetAnchor(p,i),action:craterPetAction(p,now),success:craterPetSkillEvent,activeSkill:act?.kind==='node'?NT[act.ref.k].skill:null,inWater:(x,y)=>!inside&&inWater(x,y),canMove:craterPetCanMove});return}
   pets.forEach((p,i)=>{
     const an=petAnchor(i),ax=an.x,ay=an.y;
     let dx=ax-p.x,dy=ay-p.y,d=Math.hypot(dx,dy);
@@ -1494,6 +1527,7 @@ function die(){
   act=null;marker=null;wantSwing=false;closeModal();
   say('Oh dear, you are dead!','red');toast('YOU DIED');uiHud();
   for(const m of mons)if(m.state==='chase'){m.state='return';m.rockCast=null}
+  if(craterPets)petsTeleport();
 }
 function respawnPlayer(){
   craterRocks?.clear();
@@ -1568,6 +1602,7 @@ function doAction(dt,now){
         if(n.k==='aether'&&save.perks.magnet&&Math.random()<.05){save.inv.aether++;say('The aether magnet doubles your yield!','gold')}
         say(fishing?'You catch some '+ITEMS[nt.item].name.toLowerCase().replace('raw ','raw ')+'.':'You get some '+ITEMS[nt.item].name.toLowerCase()+'.');
         if(fishing){me.catchFx={t:now,item:nt.item};startSwing(now)}
+        if(craterPets)craterPetSkillEvent={skill:nt.skill,at:now,key:nt.skill+':'+now+':'+n.x+':'+n.y};
         addXp(nt.skill,nt.xp);rollPet(nt.skill);persist();if(tab)renderModal();
         if(Math.random()<nt.dep){n.back=now+rint(nt.rt[0],nt.rt[1])*1000;act=null}
       }else if(fishing)say('The fish gets away.');
@@ -2250,6 +2285,7 @@ function drawMole(p,x,y,now){
   }
 }
 function drawPet(p,x,y,now){
+  if(craterPets){if(!craterPetArt?.draw(ctx,p,x,y,now))shadowE(x,y,3,1,.2);return}
   if(p.sk==='woodcutting')drawGlider(p,x,y,now);
   else if(p.sk==='fishing')drawTerrapin(p,x,y,now);
   else drawMole(p,x,y,now);

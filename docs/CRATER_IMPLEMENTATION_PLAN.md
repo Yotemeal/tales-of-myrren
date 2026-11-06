@@ -1,6 +1,6 @@
 # The Crater — implementation plan and approved-design record
 
-Status: second implementation stage completed on the separate branch, following the user’s “Carry on”. Merge and deployment still require explicit user approval. See CRATER_STAGE1_PROGRESS.md for the bounded mechanics preview and CRATER_STAGE2_PROGRESS.md for the supplied-frame fitting study and remaining asset gaps.
+Status: third implementation stage completed on the separate branch, following the user’s “Carry on”. Merge and deployment still require explicit user approval. See CRATER_STAGE1_PROGRESS.md for the bounded mechanics preview and CRATER_STAGE2_PROGRESS.md for the supplied-frame fitting study, and CRATER_STAGE3_PROGRESS.md for isolated pet movement/XP integration and remaining asset gaps.
 
 Reviewed on 7 November 2026 (Australia/Brisbane). Repository: `Yotemeal/tales-of-myrren`.
 Baseline: `main` at `e1b349972019f2f6aa95e25841f7ecbfdb89e60b`, including the accepted sword-grip changes from PR #23.
@@ -192,8 +192,8 @@ The initial planning commit edited no runtime files. Later stage-one runtime wor
 | Exact animation contracts and scale | State examples and player/pet comparison exist. Existing live hero/proportions are available. | Per-state frame count/timing, pivots and relative creature sizes not recovered; fit/compare exact sources before locking metadata. |
 | Hostile balance and spawn geography | Names, eight levels and visual/behaviour themes are established. | HP, defence, hits, speeds, aggro/leash/ranges, projectile/windup timing, densities, respawn rules and actual cave/arena layout/entry rules. Existing generic values are not final approvals. |
 | Damaging goblin rocks — resolved | User explicitly authorised goblins throwing rocks and causing damage after this plan. | Implement the approved miner throw/flee role; preserve guard design and do not invent missing animation art. |
-| Pet summon limit | Three collectible pets and switching are approved; current saves can summon multiple. | Whether exactly one may be active, and migration behaviour if that changes. |
-| XP award sources | Matching +3% while summoned is approved. Gathering, smithing and jobs share skill XP IDs. | Whether all matching skill awards count, or only successful gathering; persistence remainder is the proposed implementation for exact bonuses. |
+| Pet summon limit — existing behaviour preserved | Three collectible pets and switching are approved; current saves can summon multiple. | Stage three preserves those followers and all ownership. No single-active restriction is imposed without a new instruction. |
+| XP award sources — preview interpretation implemented | Matching +3% while summoned is approved. Gathering, smithing and jobs share skill XP IDs. | Stage three applies it once to all matching-skill awards in the isolated preview, retaining exact fractions. Review before normal activation; item yield, melee and cooking are unchanged. |
 | Acquisition balance | Earlier rare-from-skilling statement; current formula exists. | No exact final approved odds retrieved. Preserve current formula pending a deliberate balancing decision. |
 | Guardian rare jewellery | Necklace/ring visual designs, rare status and example effect categories exist. | Exact item IDs, stats, effect semantics and probabilities; current code has no stamina stat. No invented stamina subsystem or numerical bonuses. |
 | Legacy monsters and jobs | Current slime/bear/cave-bear/aether-bear IDs and saved jobs exist. | Transition policy before removing these spawns, especially Lv40/70 actors from a Lv1–30 starter region. No lost objectives or inaccessible targets. |
