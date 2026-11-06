@@ -188,7 +188,7 @@ const MT={
 const MR={slime:.09,goblin:.10,boar:.12,wolf:.13,bear:.11,cave:.12,abear:.12};
 for(const k in MT)MT[k].max=Math.max(1,Math.round(hpAt(MT[k].lv)*(MR[k]||.12)));
 /* ---------- world ---------- */
-const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=46,EDGE=100;
+const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=74,EDGE=100;
 const VILLAGE=MyrrenWorld;
 const BLD=VILLAGE.buildings.map(b=>({...b}));
 const LAMPS=[[CX-200,CY+14],[CX+200,CY+14],[CX-120,CY+70],[CX+120,CY+70],[CX-40,CY+70],[CX+40,CY+70]];
@@ -1931,8 +1931,11 @@ MYRREN_V31.onload = () => {
   myrrenV31Ready = MYRREN_V31.naturalWidth === 128 && MYRREN_V31.naturalHeight === 320;
   if (myrrenV31Ready) {
     myrrenV31FeetAtlas = MYRREN_V31;
+    if(window.V31Character){
+      try { myrrenV31FeetAtlas = window.V31Character.buildFaceAtlas(MYRREN_V31); } catch (_) {}
+    }
     if (typeof buildV31FeetAtlas === 'function') {
-      try { myrrenV31FeetAtlas = buildV31FeetAtlas(MYRREN_V31); } catch (_) {}
+      try { myrrenV31FeetAtlas = buildV31FeetAtlas(myrrenV31FeetAtlas); } catch (_) {}
     }
     if (typeof V31Equipment !== 'undefined') {
       try { myrrenV31Equipment = V31Equipment.make(myrrenV31FeetAtlas); } catch (_) {}
@@ -1956,17 +1959,23 @@ function drawApprovedPlayer(x,y,o,now){
     : myrrenV31FeetAtlas;
   const direction = o.dv==='u' ? 3 : o.dv==='s' ? (o.f<0?1:2) : 0;
   const row = direction + (o.moving ? 4 : 0);
-  const frame = o.moving ? Math.floor(now/140)%4 : (gear[0]||gear[4])?Math.floor(now/280)%4:0;
+  const frame = o.moving ? Math.floor(now/90)%4 : (gear[0]||gear[4])?Math.floor(now/280)%4:0;
   // Native V31 resolution: one atlas pixel equals one world-render pixel.
   const w=32,h=40;
   shadowE(x+1,y,7,2,.3);
   ctx.save();
   ctx.imageSmoothingEnabled=false;
-  ctx.drawImage(sprite,frame*32,row*40,32,40,
-                Math.round(x-w/2),Math.round(y-h),w,h);
+  const idleLift=window.V31Character?window.V31Character.idleLift(now,!o.moving&&!swinging&&!o.waving):0;
+  const dx=Math.round(x-w/2),dy=Math.round(y-h);
+  if(idleLift){
+    // Keep lower legs and soles fixed. A one-row overlap at the waist keeps
+    // body, helmet and neck joined while the upper body breathes by one pixel.
+    ctx.drawImage(sprite,frame*32,row*40+31,32,9,dx,dy+31,w,9);
+    ctx.drawImage(sprite,frame*32,row*40,32,32,dx,dy-idleLift,w,32);
+  }else ctx.drawImage(sprite,frame*32,row*40,32,40,dx,dy,w,h);
   ctx.restore();
   const holding=o.tool&&o.tool!=='fist'&&(swinging||now<o.hold);
-  const f=o.f||1,hx=x+f*7,hy=y-11;
+  const f=o.f||1,hx=x+f*7,hy=y-11-idleLift;
   if(o.tool==='fist'&&swinging){const d=Math.round(Math.sin(age/320*Math.PI)*6);ctx.save();ctx.translate(hx+f*d,hy);rrect(-1,-2,3,3,'#f0c49c','#2a1c18');ctx.restore()}
   else if(holding){drawTool(o.tool,o.mat,hx,hy,f,swinging?swingAng(age):-.35);ctx.save();ctx.translate(hx,hy);rrect(-1,-1,3,3,'#f0c49c','#2a1c18');ctx.restore()}
   const hurtAge=o.isMe?now-(me.hurtAt||-99999):9999;
@@ -1977,7 +1986,7 @@ function drawApprovedPlayer(x,y,o,now){
 }
 function drawPerson(x,y,o,now){
   if(!o.apron && drawApprovedPlayer(x,y,o,now)) return;
-  const f=o.f,mv=!!o.moving,ph=Math.floor(now/110)%4,g=o.g||[0,0,0,0,0],dv=o.dv||'d';
+  const f=o.f,mv=!!o.moving,ph=Math.floor(now/90)%4,g=o.g||[0,0,0,0,0],dv=o.dv||'d';
   let gh=MATS[g[0]],gb=MATS[g[1]],gl=MATS[g[2]],gt=MATS[g[3]],gs=MATS[g[4]];
   if(o.dye!=null&&DYES[o.dye]){const dp=DYES[o.dye],dz=(m,t)=>(m&&t>=4)?dp:m;gh=dz(gh,g[0]);gb=dz(gb,g[1]);gl=dz(gl,g[2]);gt=dz(gt,g[3]);gs=dz(gs,g[4])}
   const OL='#2a1c18',skin='#f0c49c',skD='#cf9a74',eye='#2a1c18';
