@@ -1,57 +1,12 @@
 {
   "baseline_commit": "e1b349972019f2f6aa95e25841f7ecbfdb89e60b",
   "branch": "plan/crater-creatures-and-skilling-pets",
-  "status": "planning_only",
-  "source": "User-supplied approved reference boards; original bytes retained unchanged under their existing file identities. Images are referenced here, not packaged as runtime assets.",
+  "status": "stage_two_reference_preview",
+  "source": "Original files visually verified against their actual contents; filenames are not attachment display-order identifiers. Packed preview crops retain original decoded pixels.",
   "references": [
     {
       "reference": "R1",
       "title": "Initial monster roster",
-      "original_filename": "ABD545E9-3BA7-464E-A816-3BD1084E2AFA.jpeg",
-      "library_file_id": "libfile_4e04f3ef0df88191bce7daf962cc542b",
-      "original_url": "https://chatgpt.com/library?file_id=libfile_4e04f3ef0df88191bce7daf962cc542b&account_id=personal",
-      "sha256": "b3498cd0bcf18026d802eb9b5b4b656194d5a5a9b78bb64ca87d20eae7b3c8ff",
-      "size_bytes": 742926,
-      "dimensions": [
-        1536,
-        1024
-      ],
-      "mime_type": "image/jpeg",
-      "runtime_atlas": false
-    },
-    {
-      "reference": "R2",
-      "title": "Cave Guardians — Common & Boss Variants",
-      "original_filename": "7180DC61-09B0-4A12-B5FB-C80B416E4207.jpeg",
-      "library_file_id": "libfile_56939c5e61c0819184e46429741f6163",
-      "original_url": "https://chatgpt.com/library?file_id=libfile_56939c5e61c0819184e46429741f6163&account_id=personal",
-      "sha256": "6c06f5fafb77abe83360f45a848b3a1871557e5b6aa5cd8bc1743f5c6b04604b",
-      "size_bytes": 644001,
-      "dimensions": [
-        1536,
-        1024
-      ],
-      "mime_type": "image/jpeg",
-      "runtime_atlas": false
-    },
-    {
-      "reference": "R3",
-      "title": "Cave Goblins — Gatherer & Protector",
-      "original_filename": "F7AA665A-7FB3-40C1-AA2D-B5CA8C5706D3.jpeg",
-      "library_file_id": "libfile_99eed1bf5dbc8191a15b94a0b1facdfa",
-      "original_url": "https://chatgpt.com/library?file_id=libfile_99eed1bf5dbc8191a15b94a0b1facdfa&account_id=personal",
-      "sha256": "a68af520ee61a1594957e384db980ab5e48a73d1d2aaf1a7a749baccb09ea1a5",
-      "size_bytes": 690459,
-      "dimensions": [
-        1536,
-        1024
-      ],
-      "mime_type": "image/jpeg",
-      "runtime_atlas": false
-    },
-    {
-      "reference": "R4",
-      "title": "Passive Wildlife — Flees From Players",
       "original_filename": "449125F1-7C41-4AFA-8D66-4B9E71DC2F3C.jpeg",
       "library_file_id": "libfile_bdc276656b388191bc66d9ce9175ce4e",
       "original_url": "https://chatgpt.com/library?file_id=libfile_bdc276656b388191bc66d9ce9175ce4e&account_id=personal",
@@ -65,8 +20,8 @@
       "runtime_atlas": false
     },
     {
-      "reference": "R5",
-      "title": "Skilling Pets — final three",
+      "reference": "R2",
+      "title": "Cave Guardians \u2014 Common & Boss Variants",
       "original_filename": "92B94231-3DEA-4D57-8B27-75364FDEEF9A.jpeg",
       "library_file_id": "libfile_e569c951c5d88191ace1229b27ef3613",
       "original_url": "https://chatgpt.com/library?file_id=libfile_e569c951c5d88191ace1229b27ef3613&account_id=personal",
@@ -80,8 +35,53 @@
       "runtime_atlas": false
     },
     {
+      "reference": "R3",
+      "title": "Cave Goblins \u2014 Gatherer & Protector",
+      "original_filename": "7180DC61-09B0-4A12-B5FB-C80B416E4207.jpeg",
+      "library_file_id": "libfile_56939c5e61c0819184e46429741f6163",
+      "original_url": "https://chatgpt.com/library?file_id=libfile_56939c5e61c0819184e46429741f6163&account_id=personal",
+      "sha256": "6c06f5fafb77abe83360f45a848b3a1871557e5b6aa5cd8bc1743f5c6b04604b",
+      "size_bytes": 644001,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mime_type": "image/jpeg",
+      "runtime_atlas": false
+    },
+    {
+      "reference": "R4",
+      "title": "Passive Wildlife \u2014 Flees From Players",
+      "original_filename": "F7AA665A-7FB3-40C1-AA2D-B5CA8C5706D3.jpeg",
+      "library_file_id": "libfile_99eed1bf5dbc8191a15b94a0b1facdfa",
+      "original_url": "https://chatgpt.com/library?file_id=libfile_99eed1bf5dbc8191a15b94a0b1facdfa&account_id=personal",
+      "sha256": "a68af520ee61a1594957e384db980ab5e48a73d1d2aaf1a7a749baccb09ea1a5",
+      "size_bytes": 690459,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mime_type": "image/jpeg",
+      "runtime_atlas": false
+    },
+    {
+      "reference": "R5",
+      "title": "Skilling Pets \u2014 final three",
+      "original_filename": "ABD545E9-3BA7-464E-A816-3BD1084E2AFA.jpeg",
+      "library_file_id": "libfile_4e04f3ef0df88191bce7daf962cc542b",
+      "original_url": "https://chatgpt.com/library?file_id=libfile_4e04f3ef0df88191bce7daf962cc542b&account_id=personal",
+      "sha256": "b3498cd0bcf18026d802eb9b5b4b656194d5a5a9b78bb64ca87d20eae7b3c8ff",
+      "size_bytes": 742926,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mime_type": "image/jpeg",
+      "runtime_atlas": false
+    },
+    {
       "reference": "R6",
-      "title": "Dire Wolf — Apex Hunter Redesign",
+      "title": "Dire Wolf \u2014 Apex Hunter Redesign",
       "original_filename": "E8219F5C-6F89-4540-B171-562015D380CC.jpeg",
       "library_file_id": "libfile_f549111059148191b6a48118b063061c",
       "original_url": "https://chatgpt.com/library?file_id=libfile_f549111059148191b6a48118b063061c&account_id=personal",

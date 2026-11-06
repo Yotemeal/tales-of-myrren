@@ -1,6 +1,6 @@
 # The Crater — implementation plan and approved-design record
 
-Status: first implementation stage in progress on the separate branch, following the user’s “Carry on”. Merge and deployment still require explicit user approval. See CRATER_STAGE1_PROGRESS.md for the bounded mechanics preview and remaining asset gaps.
+Status: second implementation stage completed on the separate branch, following the user’s “Carry on”. Merge and deployment still require explicit user approval. See CRATER_STAGE1_PROGRESS.md for the bounded mechanics preview and CRATER_STAGE2_PROGRESS.md for the supplied-frame fitting study and remaining asset gaps.
 
 Reviewed on 7 November 2026 (Australia/Brisbane). Repository: `Yotemeal/tales-of-myrren`.
 Baseline: `main` at `e1b349972019f2f6aa95e25841f7ecbfdb89e60b`, including the accepted sword-grip changes from PR #23.
@@ -18,11 +18,11 @@ All six attached files are accessible, unchanged 1536×1024 JPEGs. They are illu
 
 | Ref | Attached filename | Contents and authority |
 | --- | --- | --- |
-| R1 | ABD545E9-3BA7-464E-A816-3BD1084E2AFA.jpeg | Initial monster roster; retain Forest Rat, Wild Boar and original Forest Troll appearance. Its generic Goblin and Lv30 Cave Guardian are superseded by R2/R3 and final names. |
-| R2 | 7180DC61-09B0-4A12-B5FB-C80B416E4207.jpeg | Common/red-eyed Cave Guardian Lv18 and larger Jewelheart boss Lv30; guardian lore and rare jewellery examples. |
-| R3 | F7AA665A-7FB3-40C1-AA2D-B5CA8C5706D3.jpeg | Gatherer/miner and protector/guard designs and actions. Final conversation names are Goblin Miner and Goblin Guard. |
-| R4 | 449125F1-7C41-4AFA-8D66-4B9E71DC2F3C.jpeg | Five passive wildlife; grazing/alert/foraging/pecking/watching idles and species-specific flight/flee actions. |
-| R5 | 92B94231-3DEA-4D57-8B27-75364FDEEF9A.jpeg | Final three skilling pets, movement/skill interactions, matching +3% XP and example relative scale. |
+| R1 | 449125F1-7C41-4AFA-8D66-4B9E71DC2F3C.jpeg | Initial monster roster; retain Forest Rat, Wild Boar and original Forest Troll appearance. Its generic Goblin and Lv30 Cave Guardian are superseded by R2/R3 and final names. |
+| R2 | 92B94231-3DEA-4D57-8B27-75364FDEEF9A.jpeg | Common/red-eyed Cave Guardian Lv18 and larger Jewelheart boss Lv30; guardian lore and rare jewellery examples. |
+| R3 | 7180DC61-09B0-4A12-B5FB-C80B416E4207.jpeg | Gatherer/miner and protector/guard designs and actions. Final conversation names are Goblin Miner and Goblin Guard. |
+| R4 | F7AA665A-7FB3-40C1-AA2D-B5CA8C5706D3.jpeg | Five passive wildlife; grazing/alert/foraging/pecking/watching idles and species-specific flight/flee actions. |
+| R5 | ABD545E9-3BA7-464E-A816-3BD1084E2AFA.jpeg | Final three skilling pets, movement/skill interactions, matching +3% XP and example relative scale. |
 | R6 | E8219F5C-6F89-4540-B171-562015D380CC.jpeg | Latest Dire Wolf Apex Hunter design; replaces the earlier plain grey wolf in R1. |
 
 ## 2. Locked creature roster
