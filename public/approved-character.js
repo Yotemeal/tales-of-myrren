@@ -4,8 +4,65 @@
 (()=>{
  'use strict';
  const CELL=64,AX=32,AY=60;
+ // Reuse the approved punch head pixels rather than generating a second haircut.
+ // Body poses, hit frames and the source asset remain intact.
+ const prepared=new WeakMap();
+ function matchPunchHair(source){
+  if(prepared.has(source))return prepared.get(source);
+  const atlas=document.createElement('canvas');atlas.width=384;atlas.height=640;
+  const c=atlas.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(source,0,0);
+  const original=c.getImageData(0,0,384,640).data;
+  const cuts=[
+   [43,44,44,43,46,46],
+   [43,44,44,43,44,43],
+   [44,44,44,44,44,44],
+   [44,44,44,44,44,44],
+   [42,43,44,43,42,43]
+  ];
+  function head(row,col,cut,rear=false,left=false){
+   const refRow=rear?9:left?6:5,refCut=rear?42:44;
+   // Anchor at the existing jaw/neck, including the original running bob.
+   const y=cut-2;let min=64,max=-1;
+   for(let x=16;x<48;x++)if(original[((row*64+y)*384+col*64+x)*4+3]){min=Math.min(min,x);max=Math.max(max,x)}
+   const refY=refCut-2;let rmin=64,rmax=-1;
+   for(let x=16;x<48;x++)if(original[((refRow*64+refY)*384+x)*4+3]){rmin=Math.min(rmin,x);rmax=Math.max(rmax,x)}
+   const offset=Math.round((min+max-rmin-rmax)/2);
+   c.save();c.beginPath();c.rect(col*64,row*64,64,64);c.clip();
+   c.clearRect(col*64,row*64,64,cut);
+   c.drawImage(source,0,refRow*64,64,refCut,col*64+offset,row*64+cut-refCut,64,refCut);
+   c.restore();
+  }
+  for(let row=0;row<5;row++)for(let col=0;col<6;col++){
+   const rear=row===4||row===0&&(col===3||col===5),left=row===2||row===0&&col===1;
+   head(row,col,cuts[row][col],rear,left);
+  }
+  for(let row=7;row<=8;row++)for(let col=0;col<2;col++)head(row,col,col===0?43:46,false,row===8);
+  // Hair naturally lies differently during the kneel/fall. Keep those silhouettes
+  // and the hands/body in front, while using the punch's exact hair colours.
+  const isHair=(r,g,b)=>r<145&&g<115&&b<150&&r-g<40;
+  const palette=[],seen=new Set();
+  for(let y=22;y<42;y++)for(let x=16;x<48;x++){
+   const i=((5*64+y)*384+x)*4,r=original[i],g=original[i+1],b=original[i+2],key=(r<<16)|(g<<8)|b;
+   if(original[i+3]&&isHair(r,g,b)&&!seen.has(key)){seen.add(key);palette.push([r,g,b])}
+  }
+  const fallBoxes=[[20,33,44,54],[18,40,35,60],[14,42,33,60],[14,45,33,60]];
+  const result=c.getImageData(0,0,384,640),data=result.data;
+  for(let row=7;row<=8;row++)for(let col=2;col<6;col++){
+   let [x0,y0,x1,y1]=fallBoxes[col-2];if(row===8)[x0,x1]=[64-x1,64-x0];
+   for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){
+    const i=((row*64+y)*384+col*64+x)*4,r=data[i],g=data[i+1],b=data[i+2];
+    if(!data[i+3]||!isHair(r,g,b))continue;
+    let best=palette[0],distance=Infinity;
+    for(const color of palette){const d=(r-color[0])**2+(g-color[1])**2+(b-color[2])**2;if(d<distance){distance=d;best=color}}
+    data[i]=best[0];data[i+1]=best[1];data[i+2]=best[2];
+   }
+  }
+  c.putImageData(result,0,0);prepared.set(source,atlas);return atlas;
+ }
+
  function create(atlas){
   if((atlas.naturalWidth||atlas.width)!==384||(atlas.naturalHeight||atlas.height)!==640)throw Error('Invalid approved character atlas');
+  atlas=matchPunchHair(atlas);
   function pose(o,now){
    const dir=o.dv==='u'?3:o.dv==='s'?(o.f<0?1:2):0;
    const death=o.deathAt!=null?now-o.deathAt:-1;
@@ -34,5 +91,5 @@
   return {pose,draw};
  }
  const supports=gear=>!gear||!gear.some(t=>t>0);
- window.MyrrenHero={create,supports};
+ window.MyrrenHero={create,supports,matchPunchHair};
 })();

@@ -1,7 +1,7 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const {createCanvas,loadImage}=require('@napi-rs/canvas');
 (async()=>{
- const sb={window:{}};vm.createContext(sb);vm.runInContext(fs.readFileSync('public/approved-character.js','utf8'),sb);
+ const sb={window:{},document:{createElement:()=>createCanvas(1,1)}};vm.createContext(sb);vm.runInContext(fs.readFileSync('public/approved-character.js','utf8'),sb);
  const H=sb.window.MyrrenHero,image=await loadImage('public/hero-approved-v1.png'),hero=H.create(image);
  assert.equal(image.width,384);assert.equal(image.height,640);assert.throws(()=>H.create({width:1,height:1}));
  const source=createCanvas(384,640),sc=source.getContext('2d');sc.drawImage(image,0,0);const pixels=sc.getImageData(0,0,384,640).data;
