@@ -107,9 +107,9 @@
   c.putImageData(result,0,0);prepared.set(source,atlas);return atlas;
  }
 
- function create(atlas){
+ function create(atlas,options={}){
   if((atlas.naturalWidth||atlas.width)!==384||(atlas.naturalHeight||atlas.height)!==640)throw Error('Invalid approved character atlas');
-  atlas=matchPunchHair(atlas);
+  atlas=options.rawFrames?atlas:matchPunchHair(atlas);
   function pose(o,now){
    const dir=o.dv==='u'?3:o.dv==='s'?(o.f<0?1:2):0;
    const death=o.deathAt!=null?now-o.deathAt:-1;
