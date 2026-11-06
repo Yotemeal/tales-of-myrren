@@ -17,9 +17,31 @@ After that, commits to `main` will trigger a new deployment. The game URL stays 
 
 ## Files
 
-- `public/index.html` — current deployable game.
+- `public/index.html` — game document and script order.
+- `public/myrren-game.js` — game state, controls, simulation and interface logic.
+- `public/myrren-ui.css` — responsive game interface.
+- `public/v31-equipment.js` — native armour layers and item icons.
+- `public/myrren-world.js` and `public/myrren-environment.js` — shared geometry and rendering.
 - `index.html` — preserved copy of the same game build at repository setup.
 - `backups/original-baseline.html` — untouched baseline backup.
 - `wrangler.jsonc` — Cloudflare Worker static asset configuration.
 
-Always edit `public/index.html` for future game updates.
+Edit the files in `public/` for future game updates. Keep script order intact and bump the game script URL version in `public/index.html` when changing the runtime. The root `index.html` and `backups/` files are historical copies, not deployment entry points.
+
+## Checks
+
+Run from the repository root:
+
+```sh
+node --check public/myrren-game.js
+node tests/inventory-capacity.cjs
+node tests/save-inventory.test.cjs
+node tests/village-layout.test.cjs
+node tests/v31-neck-seams.test.cjs
+node tests/v31-prestige.test.cjs
+```
+
+The two sprite tests require `@napi-rs/canvas` (or the Codex runtime copy). Other tests use Node built-ins. The synthetic game runtime checks logic; desktop/mobile browser checks are still needed for layout and real input.
+
+The inventory holds 36 occupied slots. Coins do not occupy a slot. Capacity checks account for consumed ingredients and coal-pouch storage. Loading an older overfull save keeps its items; new occupied slots are blocked until space is available.
+

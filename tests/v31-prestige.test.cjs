@@ -19,6 +19,6 @@ for(let t=1;t<=6;t++){
  const dye={M:'#b02a2a',H:'#ee7a64',D:'#5a1414'};if(t>=4)assert.notDeepEqual(Buffer.from(pixels(gear.get(t,t,dye,t,t,t))),Buffer.from(pixels(gear.get(t,t,null,t,t,t))),'master dyes still apply');
 }
 assert.equal(headShapes.size,6,'six unique helmet silhouettes');assert.equal(shieldShapes.size,6,'six unique shield silhouettes');assert.equal(gear.get(0,0,null,0,0,0),source,'unequip restores the exact source');assert.equal(gear.get(-1,99,null,0,-1,99),source);
-new Function(fs.readFileSync('public/v31-equipment-preview.js','utf8'));const game=fs.readFileSync('public/index.html','utf8');new Function(game.slice(game.indexOf('<script>')+8,game.lastIndexOf('</script>')));
+new Function(fs.readFileSync('public/v31-equipment-preview.js','utf8'));new Function(require('./game-source.cjs')());
 console.log('PASS: 49 mixed helmet/shield combinations × 32 poses; six fixed shield silhouettes and six helmet silhouettes; preserved torso/legs/feet; combat poses, dyes, native icons and exact unequip restoration.');
 })().catch(e=>{console.error(e);process.exitCode=1});
