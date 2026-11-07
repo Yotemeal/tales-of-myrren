@@ -6,8 +6,9 @@ import {
 
 // One instance serves one arena. The storage adapter must provide atomic
 // read/modify/write transactions and resolve only after a successful commit.
-export function createJewelheartService({ storage, newEncounterId, maxHp }) {
+export function createJewelheartService({ storage, newEncounterId, maxHp, rollRewards }) {
   const key = 'jewelheart';
+  const rewardKey = id => 'jewelheart-rewards/' + id;
 
   async function open() {
     return storage.transaction(async tx => {
@@ -27,6 +28,9 @@ export function createJewelheartService({ storage, newEncounterId, maxHp }) {
 
       const result = applyJewelheartStrike(current, validatedStrike);
       if (result.state !== current) await tx.put(key, result.state);
+      if (result.defeated && rollRewards) {
+        await tx.put(rewardKey(current.id), rollRewards(result.state));
+      }
       return result;
     });
   }
@@ -44,5 +48,9 @@ export function createJewelheartService({ storage, newEncounterId, maxHp }) {
     });
   }
 
-  return { open, strike, reset };
+  async function rewards(encounterId) {
+    return storage.transaction(async tx => (await tx.get(rewardKey(encounterId))) ?? null);
+  }
+
+  return { open, strike, reset, rewards };
 }

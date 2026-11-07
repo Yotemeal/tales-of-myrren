@@ -31,10 +31,17 @@ function arenaStorage() {
 
 (async () => {
   const { createJewelheartService } = await import('../src/jewelheart-service.mjs');
+  const { createJewelheartRewardPolicy } = await import('../src/jewelheart-rewards.mjs');
   const storage = arenaStorage();
+  let rolls = 0;
+  const rollRewards = createJewelheartRewardPolicy({
+    coinsPerContributor: 25,
+    rares: [{ itemId: 'fixture_ring', contributorChance: 100, topChance: 500 }],
+    rollBasisPoints() { rolls++; return 200; }
+  });
   let generation = 0;
   const makeService = () => createJewelheartService({
-    storage, maxHp: 450, newEncounterId: () => 'arena/' + ++generation
+    storage, maxHp: 450, rollRewards, newEncounterId: () => 'arena/' + ++generation
   });
   const lead = makeService();
   const ally = makeService();
@@ -57,6 +64,7 @@ function arenaStorage() {
   await assert.rejects(lead.strike(finalHit), /storage unavailable/);
   const reconnected = makeService();
   assert.equal((await reconnected.open()).hp, 200);
+  assert.equal(await reconnected.rewards(initial.id), null);
   const finishes = await Promise.all([
     reconnected.strike(finalHit),
     ally.strike(hit('ally', 2, 250)),
@@ -65,6 +73,15 @@ function arenaStorage() {
   assert.equal(finishes.filter(result => result.defeated).length, 1);
   assert.equal(finishes.reduce((sum, result) => sum + result.appliedDamage, 0), 200);
   assert.equal((await lead.open()).hp, 0);
+  const payout = {
+    encounterId: initial.id,
+    awards: [
+      { playerId: 'lead', coins: 25, items: ['fixture_ring'], topContributor: true },
+      { playerId: 'ally', coins: 25, items: [], topContributor: false }
+    ]
+  };
+  assert.deepEqual(await ally.rewards(initial.id), payout);
+  assert.equal(rolls, 4, 'only the failed transaction and the committed defeat draw rolls');
 
   const resets = await Promise.all([lead.reset(initial.id), ally.reset(initial.id)]);
   assert.equal(resets.filter(result => result.reset).length, 1);
@@ -75,6 +92,8 @@ function arenaStorage() {
   assert.deepEqual(fresh.contributions, []);
   assert.equal((await lead.strike(finalHit)).appliedDamage, 0);
   assert.equal((await ally.open()).hp, 450);
+  assert.deepEqual(await reconnected.rewards(initial.id), payout);
+  assert.equal(await lead.rewards(fresh.id), null);
 
   console.log('PASS: shared arena persistence, concurrent strikes and resets, reconnect, failed-write rollback and retry.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
