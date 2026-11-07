@@ -3012,3 +3012,23 @@ input[type=range] {
 @media (max-width: 620px) {
   #acts #aEat { bottom: calc(100% + 7px); }
 }
+
+/* Skills progress: percentage appears once, within the bar, without clipping. */
+#modal[data-screen="skills"] .skill .bar {
+  height: 12px;
+  bottom: 3px;
+  overflow: hidden;
+  border-radius: 3px;
+}
+#modal[data-screen="skills"] .skill .bar span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inset: 0;
+  font-size: 9px;
+  line-height: 1;
+  white-space: nowrap;
+}
+#modal[data-screen="skills"] .skill {
+  padding-bottom: 15px;
+}
