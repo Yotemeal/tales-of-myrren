@@ -214,11 +214,11 @@ for(const k in MT)MT[k].max=Math.max(1,Math.round(hpAt(MT[k].lv)*(MR[k]||.12)));
 const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=90,EDGE=100;
 const VILLAGE=MyrrenWorld;
 const BLD=VILLAGE.buildings.map(b=>({...b}));
-const LAMPS=[[CX-200,CY+14],[CX+200,CY+14],[CX-120,CY+70],[CX+120,CY+70],[CX-40,CY+70],[CX+40,CY+70]];
+const LAMPS=[[CX-116,CY+12],[CX+116,CY+12],[CX-82,CY+108],[CX+82,CY+108]];
 // A maintained camp: keep only essential community fixtures.
-const DECOR=[['board',CX,CY-45]];
+const DECOR=[['board',CX+108,CY-38],['provisions',CX-185,CY-111],['provisions',CX+175,CY-112]];
 const SOLID=DECOR.filter(d=>d[0]==='fence').map(d=>d[4]==='v'?{x0:d[1]-3,x1:d[1]+3,y0:d[2]-d[3]-2,y1:d[2]+1}:{x0:d[1]-2,x1:d[1]+d[3]+2,y0:d[2]-3,y1:d[2]+2});
-const BOARD={x:CX,y:CY-45};
+const BOARD={x:CX+108,y:CY-38};
 const TRADER={x:CX-142,y:CY-38,id:'cart'};
 const RX=176,RY=128;
 function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -1368,9 +1368,9 @@ function resolveSwing(now){
     if(m.hp<=0)killMon(m,now);
   }
 }
-function nearFire(){return Math.hypot(me.x-CX,me.y-(CY+22))<56}
+function nearFire(){return Math.hypot(me.x-(CX+176),me.y-(CY-90))<36}
 function nearestDoor(r){let best=null,bd=r;for(const b of BLD){if(!b.open)continue;const d=Math.hypot(b.x-me.x,b.y-me.y);if(d<bd){bd=d;best=b}}return best}
-const SPOTS={bank:{x:CX-70,y:CY+66},board:{x:BOARD.x,y:BOARD.y}};
+const SPOTS={bank:{x:CX-133,y:CY+64},board:{x:BOARD.x,y:BOARD.y}};
 function nearSpot(){let best=null,bd=36;for(const k in SPOTS){const d=Math.hypot(me.x-SPOTS[k].x,me.y-SPOTS[k].y);if(d<bd){bd=d;best=k}}return best}
 function nodeOK(n){
   const tx=n.x-me.x,ty=(n.y-(n.k.startsWith('spot')?0:2))-me.y,d=Math.hypot(tx,ty);
@@ -2464,19 +2464,19 @@ function drawSupply(x,y){
   if(Math.hypot(me.x-SPOTS.crate.x,me.y-SPOTS.crate.y)<64)label('Supply Crate',x,y-30,'#ffffff');
 }
 function drawBoard(x,y){
-  // Large shared noticeboard: announcements, requests and lost-city rumours.
-  R(x-36,y-9,5,49,'#493a2c');R(x+31,y-9,5,49,'#493a2c');
-  R(x-43,y-64,86,56,'#332f29');R(x-39,y-60,78,49,'#7a5b3e');
-  R(x-35,y-55,70,41,'#a4875e');
-  R(x-43,y-68,86,7,'#5c4a35');R(x-36,y-72,72,5,'#88704e');
-  for(let i=0;i<5;i++){
-    const px=x-29+(i%3)*23,py=y-50+Math.floor(i/3)*20;
-    R(px,py,19,16,i%2?'#d6c6a0':'#c3b58f');
-    R(px+3,py+4,12,2,'#786b55');R(px+3,py+9,9,2,'#948168');
-    R(px+9,py+1,2,2,'#65472e');
+  // Modest community noticeboard, returned to the side of the clearing.
+  R(x-22,y-5,4,30,'#4a382a');R(x+18,y-5,4,30,'#4a382a');
+  R(x-27,y-42,54,37,'#302b25');R(x-24,y-39,48,31,'#826446');
+  R(x-21,y-36,42,25,'#a68b62');
+  R(x-29,y-46,58,6,'#51402e');R(x-24,y-49,48,4,'#92714b');
+  for(let i=0;i<3;i++){
+    const px=x-17+i*13,py=y-32+(i%2)*3;
+    R(px,py,12,17,i===1?'#ded1a9':'#d0bd91');
+    R(px+2,py+5,8,1,'#7f7056');R(px+2,py+9,6,1,'#7f7056');
+    R(px+5,py+2,2,2,'#a07045');
   }
-  if(save.jobs.some(j=>j.done))R(x+25,y-49,5,7,'#e5c97d');
-  if(Math.hypot(me.x-BOARD.x,me.y-BOARD.y)<80)label('Community Board',x,y-77,'#e4dfc3');
+  if(save.jobs.some(j=>j.done))R(x+17,y-33,3,5,'#e5c97d');
+  if(Math.hypot(me.x-BOARD.x,me.y-BOARD.y)<65)label('Community Board',x,y-55,'#e4dfc3');
 }
 function drawWell(x,y){MyrrenEnvironment.prop(ctx,'well',x,y)}
 function drawStall(x,y,col){MyrrenEnvironment.prop(ctx,'stall',x,y,col)}
@@ -2487,9 +2487,20 @@ function drawPot(x,y){MyrrenEnvironment.prop(ctx,'pot',x,y)}
 function drawFbox(x,y){MyrrenEnvironment.prop(ctx,'fbox',x,y)}
 function drawSack(x,y){MyrrenEnvironment.prop(ctx,'sack',x,y)}
 function drawFence(x,y,len,dir){MyrrenEnvironment.prop(ctx,'fence',x,y,len,dir)}
+function drawProvisions(x,y){
+  // Small orderly emergency supply cache, deliberately sparse.
+  R(x-27,y-3,57,5,'#4b3a2c');R(x-23,y-7,48,4,'#9b7954');
+  for(const bx of [x-19,x+4]){
+    R(bx-8,y-22,22,15,'#3f352b');R(bx-6,y-20,18,12,'#96734c');
+    R(bx-6,y-17,18,2,'#c49b67');R(bx-2,y-21,3,14,'#66523b');
+  }
+  R(x-15,y-28,16,7,'#526c4b');R(x-13,y-31,12,4,'#8ea16a');
+  R(x+12,y-28,13,7,'#a16b3f');R(x+15,y-31,7,4,'#e1b66a');
+  R(x+24,y-17,10,13,'#7d6446');R(x+26,y-20,6,5,'#b6a078');
+}
 function drawDecor(kind,x,y,a,b){
   if(kind==='supply')drawSupply(x,y);else if(kind==='board')drawBoard(x,y);else if(kind==='well')drawWell(x,y);else if(kind==='stall')drawStall(x,y,a);else if(kind==='barrel')drawBarrel(x,y);else if(kind==='crate')drawCrate(x,y);
-  else if(kind==='hay')drawHay(x,y);else if(kind==='pot')drawPot(x,y);else if(kind==='fbox')drawFbox(x,y);else if(kind==='sack')drawSack(x,y);else if(kind==='fence')drawFence(x,y,a,b);else if(kind==='bush')drawBush(x,y,a);
+  else if(kind==='hay')drawHay(x,y);else if(kind==='pot')drawPot(x,y);else if(kind==='fbox')drawFbox(x,y);else if(kind==='sack')drawSack(x,y);else if(kind==='fence')drawFence(x,y,a,b);else if(kind==='bush')drawBush(x,y,a);else if(kind==='provisions')drawProvisions(x,y);
   if(kind==='stall'&&a==='#3a7a9a'&&Math.hypot(me.x-SPOTS.odd.x,me.y-SPOTS.odd.y)<64)label('Odd Shop',x,y-34,'#ffffff');
 }
 function drawSpot(n,x,y,now){MyrrenEnvironment.fishing(ctx,n,x,y,now)}
@@ -2525,29 +2536,36 @@ function drawWoodlandShrub(x,y,seed){MyrrenEnvironment.fern(ctx,x,y,seed)}
 function drawVillageFalls(cx,cy,now){for(const bridge of VILLAGE.bridges)MyrrenEnvironment.bridge(ctx,Math.round(bridge.x-cx),Math.round(bridge.y-cy))}
 // Woodland architecture additions: silhouettes are tailored to each service.
 function drawVillageArchitecture(b,x,y,now){/* Architecture is composed once in the environment atlas. */}
-function drawVillageSquare(cx,cy,now){ctx.save();if(Math.abs(me.x-CX)<14&&me.y<CY+57&&me.y>CY+18)ctx.globalAlpha=.45;MyrrenEnvironment.square(ctx,Math.round(CX-cx),Math.round(CY+57-cy),now);ctx.restore()}
+function drawVillageSquare(cx,cy,now){/* Centre kept clear for foot traffic and gatherings. */}
 function drawBuilding(b,x,y,now){MyrrenEnvironment.building(ctx,b,x,y,now)}
 // Low, improvised stalls keep the original shop triggers without a row of houses.
 function drawTraderCart(x,y,now){
-  // One travelling merchant resting on a rock beside a loaded horse cart.
-  R(x-43,y-6,32,10,'#555b53');R(x-39,y-12,23,8,'#8d8b7b');
-  R(x-12,y-20,49,17,'#483626');R(x-9,y-23,42,7,'#9b7751');
-  R(x-8,y-30,5,11,'#73563a');R(x+28,y-30,5,11,'#73563a');
-  R(x-7,y-34,39,6,'#b09870');
-  for(const wx of [x-3,x+28]){
-    R(wx-7,y-8,14,13,'#302e2b');R(wx-5,y-6,10,10,'#8c7656');
-    R(wx-2,y-3,4,4,'#3b3a33');
+  // Colourful, compact horse cart with the same outlined pixel language as the hero.
+  const bob=Math.round(Math.sin(now/780)*.8);
+  R(x-44,y-6,27,8,'#38403a');R(x-42,y-10,23,5,'#737c72');R(x-39,y-12,15,2,'#a6a99a');
+  // Cart: timber frame, fabric roll and travel goods.
+  R(x-12,y-22,49,20,'#2b2928');R(x-9,y-25,44,17,'#a56e43');
+  R(x-8,y-24,42,4,'#e0ae6a');R(x-7,y-16,40,3,'#624632');
+  R(x-5,y-32,35,8,'#356d67');R(x-2,y-34,29,3,'#74a79a');
+  R(x+3,y-40,16,6,'#cbb77e');R(x+5,y-42,12,2,'#eee0a8');
+  for(const wx of [x-3,x+29]){
+    R(wx-8,y-10,16,15,'#262a29');R(wx-6,y-8,12,11,'#b18b57');
+    R(wx-3,y-5,6,6,'#4d463b');R(wx-1,y-3,2,2,'#d7bd80');
   }
-  // Pack horse, harness and reins.
-  R(x+44,y-26,24,15,'#8d6341');R(x+61,y-33,10,14,'#9d714b');
-  R(x+62,y-37,3,8,'#66452f');R(x+68,y-37,3,8,'#66452f');
-  for(const hx of [x+47,x+62])R(hx,y-11,5,17,'#60432f');
-  R(x+40,y-24,4,12,'#5a4b3d');R(x+35,y-17,11,2,'#c3a779');
-  // Seated traveller on the stone.
-  R(x-35,y-30,14,15,'#675344');R(x-34,y-43,11,13,'#c4a080');
-  R(x-38,y-46,19,5,'#524637');R(x-35,y-50,12,6,'#635341');
-  R(x-27,y-17,14,5,'#4d493f');
-  if(Math.hypot(me.x-TRADER.x,me.y-TRADER.y)<75)label('Rook · Starter Gear',x,y-59,'#e9d5a1');
+  // Chestnut horse: shaped silhouette, mane, face, hooves and harness.
+  R(x+40,y-25+bob,26,16,'#3a2929');R(x+43,y-24+bob,22,13,'#b8794b');
+  R(x+57,y-33+bob,10,14,'#b8794b');R(x+62,y-37+bob,10,10,'#3a2929');
+  R(x+64,y-36+bob,8,8,'#c8915c');R(x+65,y-41+bob,3,7,'#a66a44');
+  R(x+71,y-41+bob,3,7,'#a66a44');R(x+70,y-31+bob,6,5,'#e4b47b');
+  R(x+69,y-34+bob,2,2,'#242527');R(x+75,y-29+bob,2,2,'#2d2825');
+  R(x+46,y-12,5,18,'#71472f');R(x+60,y-12,5,18,'#71472f');
+  R(x+45,y+4,8,3,'#2c2b2b');R(x+59,y+4,8,3,'#2c2b2b');
+  R(x+39,y-23,5,4,'#443b31');R(x+37,y-20,8,2,'#ddc394');
+  R(x+65,y-27+bob,3,7,'#39635d');
+  // Trader uses the exact same character renderer and atlas as players.
+  drawPerson(x-29,y-12,{dv:'d',f:1,moving:false,g:[0,0,0,0,0],hue:150,hair:'#8b4b29',name:'',col:'#f2d4a2'},now);
+  R(x-38,y-10,16,5,'#47554b');R(x-35,y-8,12,3,'#65715a');
+  if(Math.hypot(me.x-TRADER.x,me.y-TRADER.y)<75)label('Rook · Starter Gear',x,y-61,'#e9d5a1');
 }
 function drawCampPitch(b,x,y,now){
   R(x-27,y-4,54,5,'#443b2e');R(x-23,y-13,46,10,'#826c4e');
@@ -2809,9 +2827,12 @@ function drawOutdoor(cx,cy,now){
   }});
   for(const [lx,ly] of LAMPS)if(vis(lx,ly))list.push({y:ly,f:()=>drawLamp(Math.round(lx-cx),Math.round(ly-cy),now)});
   for(const [kind,dx,dy,a,b2] of DECOR)if(vis(dx,dy)&&VILLAGE.dryFootprint(dx+(kind==='fence'&&b2!=='v'?a/2:0),dy,kind==='fence'?(b2==='v'?4:a/2+3):kind==='stall'?23:19,kind==='fence'&&b2==='v'?a+16:kind==='fence'?17:53,5,10))list.push({y:dy,f:()=>drawDecor(kind,Math.round(dx-cx),Math.round(dy-cy),a,b2)});
-  list.push({y:CY+22,f:()=>{
-    const fx2=Math.round(CX-cx),fy=Math.round(CY+22-cy),fl=Math.floor(now/120)%3;
-    shadowE(fx2+4,fy+1,10,3,.22);for(let k=0;k<8;k++){const a2=k/8*6.283;R(fx2+Math.round(Math.cos(a2)*7)-2,fy-1+Math.round(Math.sin(a2)*3)-1,4,3,OUT);R(fx2+Math.round(Math.cos(a2)*7)-1,fy-1+Math.round(Math.sin(a2)*3)-1,2,2,'#a8a498')}R(fx2-5,fy-3,10,4,'#3a2410');R(fx2-4,fy-8-fl,8,7+fl,'#ff7b3a');R(fx2-2,fy-11-fl,4,7+fl,'#ffd24a');R(fx2-1,fy-5,2,3,'#fff2b0');
+  // Small cooking fire kept with the provisions, not in the central circle.
+  list.push({y:CY-90,f:()=>{
+    const fx2=Math.round(CX+176-cx),fy=Math.round(CY-90-cy),fl=Math.floor(now/120)%3;
+    shadowE(fx2+2,fy+1,7,2,.2);
+    for(let k=0;k<6;k++){const a2=k/6*6.283;R(fx2+Math.round(Math.cos(a2)*6)-2,fy+Math.round(Math.sin(a2)*3)-1,4,3,'#68675b')}
+    R(fx2-4,fy-6-fl,8,7+fl,'#df733a');R(fx2-2,fy-9-fl,4,7+fl,'#ffd15d');
   }});
   peers.forEach(o=>{if(vis(o.x,o.y))list.push({y:o.y,f:()=>drawPerson(Math.round(o.x-cx),Math.round(o.y-cy),{dv:(()=>{const dx=o.tx-o.x,dy=o.ty-o.y;if(Math.hypot(dx,dy)>1)o.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s';return o.dv||'d'})(),f:o.face,moving:Math.hypot(o.tx-o.x,o.ty-o.y)>1,hue:o.h,name:o.n,col:'#ffffff',tool:o.tool,mat:o.mat,hold:o.hold,swingAt:o.swingAt,waving:now<o.until,g:o.g,dye:o.dye},now)})});
   for(const pt of pets)list.push({y:pt.y,f:()=>drawPet(pt,Math.round(pt.x-cx),Math.round(pt.y-cy),now)});
