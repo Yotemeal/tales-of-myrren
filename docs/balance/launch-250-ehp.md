@@ -67,3 +67,23 @@ Record current cap and per-level XP table; record real action times and highest 
 - Migration required: initialize forging XP to zero on new and old saves; include in save/export and skill UI; ensure old mining XP remains unchanged (no retroactive reassignment).
 - Existing equipment shop pricing is derived from 2x ingot sell value, while sellVal applies a 0.25 factor; test profit loops before changing XP or shop prices.
 - Suggested implementation sequence: add Forging registry and save migration, reassign production XP and level gates, add dedicated skill UI, calibrate XP per recipe and duration, then test economy and save compatibility. Do not deploy partial changes.
+
+## Curse of Aros smithing comparison — proposed Forging unlock schedule
+Reference: https://curseofaros.wiki/wiki/Smithing (consulted 2026-11-07).
+Curse of Aros staggers gear unlocks within metal tiers, and smelting grants much less XP than equipment crafting. Adapt the structure, not its raw XP numbers.
+
+| Myrren metal | Smelt level | Equipment level range |
+| --- | ---: | ---: |
+| Bronze | 1 | 1–8 |
+| Iron | 10 | 10–18 |
+| Steel | 20 | 20–28 |
+| Black Iron | 30 | 30–38 |
+| Obsidian | 40 | 40–48 |
+| Myrrenite | 55 | 55–63 |
+| Starsteel | 70 | 70–78 |
+
+For each tier with base level B, proposed equipment requirements: pickaxe B, axe B+1, helm B+2, boots and gloves B+3, sword B+4, shield B+5, legs B+7, body B+8. These are *Forging* crafting requirements; existing Combat equipment requirements remain separate.
+
+Current implementation gates both smelting and forging on Delving (mining) level. Replace those checks with Forging level; do not change ore gathering level gates. Forge XP should dominate smelting XP, but calculate actual numbers against the existing level-100 XP table and sustainable action times before changing live gameplay. Keep the final levels 79–100 meaningful via existing recipes, advanced methods or future content; do not leave them without viable training options. Avoid introducing special gold/silver bars merely to mirror Curse of Aros.
+
+Implementation and tests pending. This section is design only.
