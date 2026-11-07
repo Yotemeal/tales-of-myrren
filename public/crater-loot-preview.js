@@ -7,9 +7,10 @@
   for(const d of table.bonus||[])if(random()*10000<d.chanceBps)drops.push({itemId:d.itemId,quantity:d.quantity||1});
   return drops;
  }
- function create(){const settled=new WeakSet();return {award(monster,table,grant,random=Math.random){
-  if(settled.has(monster))return false;
-  const drops=roll(table,random);settled.add(monster);
+ function create(){const settled=new WeakMap();return {award(monster,table,grant,random=Math.random){
+  const death=monster.dieAt;
+  if(settled.get(monster)===death)return false;
+  const drops=roll(table,random);settled.set(monster,death);
   try{grant(drops)}catch(error){settled.delete(monster);throw error}
   return true;
  }}}
