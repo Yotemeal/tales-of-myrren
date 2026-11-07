@@ -3117,3 +3117,73 @@ input[type=range] {
 }
 #pad {background:#24251e40;border-color:#c7ac7c78;box-shadow:0 0 0 2px #241b1970,inset 0 0 0 2px #a9945540}
 #knob {background:#938458aa;border-color:#d2c095}
+
+/* OSRS-inspired Skills overview: dense three-column icon/level grid.
+   Keep the existing click-to-inspect skill guide and XP calculations. */
+#modal[data-screen="skills"] .skills-layout {
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-bottom:10px;
+}
+#modal[data-screen="skills"] .skill-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:5px;
+  width:100%;
+}
+#modal[data-screen="skills"] .skill {
+  min-height:82px;
+  padding:7px 4px 9px;
+  gap:2px;
+  border:2px solid #251e19;
+  border-top-color:#b69b71;
+  border-left-color:#a58a61;
+  background:linear-gradient(145deg,#534435,#302b28);
+  border-radius:6px;
+  box-shadow:inset 0 0 0 1px #806b4e;
+}
+#modal[data-screen="skills"] .skill[aria-pressed="true"] {
+  background:linear-gradient(145deg,#786044,#4b3b2b);
+  outline:2px solid #e0bf77;
+  outline-offset:-2px;
+}
+#modal[data-screen="skills"] .skill-top {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  width:100%;
+}
+#modal[data-screen="skills"] .skill .ic svg {width:29px;height:29px}
+#modal[data-screen="skills"] .skill .level {font-size:24px;color:#f2d68b}
+#modal[data-screen="skills"] .skill b {font-size:15px;line-height:1.05;color:#f1e5c7}
+#modal[data-screen="skills"] .skill .bar {
+  position:relative;
+  width:76%;
+  height:4px;
+  margin:2px 0 0;
+  padding:0;
+  overflow:hidden;
+  border:0;
+  border-radius:2px;
+  background:#1c1918;
+}
+#modal[data-screen="skills"] .skill .bar i {
+  display:block;
+  height:100%;
+  background:#9cbb6b;
+}
+#modal[data-screen="skills"] .skill.total {background:linear-gradient(145deg,#59432c,#302820)}
+#modal[data-screen="skills"] .skill-info-popover {
+  position:relative;
+  width:100%;
+  max-width:none;
+}
+@media(max-width:420px) {
+  #modal[data-screen="skills"] .skill-grid {gap:4px}
+  #modal[data-screen="skills"] .skill {min-height:74px;padding:6px 2px}
+  #modal[data-screen="skills"] .skill .ic svg {width:25px;height:25px}
+  #modal[data-screen="skills"] .skill .level {font-size:21px}
+  #modal[data-screen="skills"] .skill b {font-size:13px}
+}
