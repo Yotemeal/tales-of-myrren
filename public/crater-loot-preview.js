@@ -41,7 +41,8 @@
   }
   return visit(root);
  }
- function create(){const settled=new WeakMap();return {award(monster,table,grant,random=Math.random,sharedTables={}){
+ function create(){const settled=new WeakMap();return {award(monster,table,grant,random=Math.random,sharedTables={},eligibility={}){
+  if(eligibility.eligible===false||eligibility.ironmanOwner===false)return false;
   const death=monster.dieAt;
   if(settled.get(monster)===death)return false;
   const drops=roll(table,random,sharedTables);
