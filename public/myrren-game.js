@@ -311,15 +311,55 @@ function finalizeSave(){
   for(const k of SK)save.xp[k]=nonNegativeCount(save.xp[k]);
 }
 function loadLocalProgress(){
-  for(const key of [KEY,KEY+'-bak']){
-    try{const o=parseSavedProgress(localStorage.getItem(key));if(o){applySave(o);return true}}catch(e){}
+  let best=null;
+  for(const key of [KEY,KEY+'-bak',KEY+'-bak2']){
+    try{
+      const o=parseSavedProgress(localStorage.getItem(key));
+      if(o&&(!best||(+o.ts||0)>(+best.ts||0)))best=o;
+    }catch(e){}
   }
+  if(best){applySave(best);return true}
   return false;
 }
 if(!loadLocalProgress()){finalizeSave();save.inv.coins=30}
 function snap(){const px=me.deathAt!=null?CX:inside?me.ox:me.x,py=me.deathAt!=null?CY+40:inside?me.oy:me.y;save.x=Math.round(px);save.y=Math.round(py);return{v:3,ts:Date.now(),name:save.name,xp:save.xp,inv:save.inv,eq:save.eq,bag:save.bag,pets:save.pets,notes:save.notes,bank:save.bank,packOrder:save.packOrder,bankOrder:save.bankOrder,wear:save.wear,jobs:save.jobs,tokens:save.tokens,perks:save.perks,dye:save.dye,x:save.x,y:save.y}}
 function idbOpen(){return new Promise((res,rej)=>{try{const r=indexedDB.open('ember-reach',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>res(r.result);r.onerror=()=>rej()}catch(e){rej()}})}
-async function idbPut(str){try{const d=await idbOpen();d.transaction('s','readwrite').objectStore('s').put(str,'save');d.close()}catch(e){}}
+async function idbPut(str){
+  try{
+    const d=await idbOpen();
+    await new Promise((resolve,reject)=>{
+      const tx=d.transaction('s','readwrite'),store=tx.objectStore('s');
+      const get=store.get('save');
+      get.onsuccess=()=>{
+        const prev=parseSavedProgress(get.result);
+        if(prev&&(+prev.ts||0)<(+parseSavedProgress(str).ts||0))store.put(get.result,'backup');
+        store.put(str,'save');
+      };
+      get.onerror=()=>store.put(str,'save');
+      tx.oncomplete=resolve;
+      tx.onerror=()=>reject(tx.error);
+      tx.onabort=()=>reject(tx.error);
+    });
+    d.close();
+    return true;
+  }catch(e){return false}
+}
+async function idbGetAll(){
+  try{
+    const d=await idbOpen();
+    const values=await new Promise(resolve=>{
+      const tx=d.transaction('s','readonly'),store=tx.objectStore('s'),result=[];
+      for(const key of ['save','backup']){
+        const q=store.get(key);
+        q.onsuccess=()=>result.push(q.result||null);
+      }
+      tx.oncomplete=()=>resolve(result);
+      tx.onerror=()=>resolve(result);
+    });
+    d.close();
+    return values;
+  }catch(e){return []}
+}
 async function idbGet(){try{const d=await idbOpen();const v=await new Promise(res=>{const q=d.transaction('s').objectStore('s').get('save');q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)});d.close();return v}catch(e){return null}}
 let cdoc=null,cloudState='checking',cloudSig='',cloudAt=0,cloudBusy=false,bakAt=0,lastSavedAt=0;
 async function cloudPush(str,force){
@@ -332,7 +372,12 @@ function persist(force){
     const o=snap(),str=JSON.stringify(o);saveTs=o.ts;
     try{
       const prev=localStorage.getItem(KEY);
-      if(parseSavedProgress(prev)&&Date.now()-bakAt>300000){localStorage.setItem(KEY+'-bak',prev);bakAt=Date.now()}
+      if(parseSavedProgress(prev)&&Date.now()-bakAt>300000){
+        const backup=localStorage.getItem(KEY+'-bak');
+        if(parseSavedProgress(backup))localStorage.setItem(KEY+'-bak2',backup);
+        localStorage.setItem(KEY+'-bak',prev);
+        bakAt=Date.now();
+      }
       localStorage.setItem(KEY,str);
     }catch(e){}
     idbPut(str);cloudPush(str,force);lastSavedAt=Date.now();
@@ -2546,7 +2591,7 @@ async function bootLoad(){
   const g=$('go');g.disabled=true;g.textContent='LOADING SAVE...';
   const guard=setTimeout(finishLoad,4000);
   const cands=[];
-  try{const o=parseSavedProgress(await idbGet());if(o)cands.push(o)}catch(e){}
+  try{for(const raw of await idbGetAll()){const o=parseSavedProgress(raw);if(o)cands.push(o)}}catch(e){}
   try{
     if(window.claude&&window.claude.use){
       const [user,db]=await Promise.all([window.claude.use('user'),window.claude.use('db')]);
@@ -2561,8 +2606,7 @@ async function bootLoad(){
   }catch(e){cloudState=cdoc?'error':'off'}
   clearTimeout(guard);
   let best=null;for(const o of cands)if(o&&o.xp&&(!best||(+o.ts||0)>(+best.ts||0)))best=o;
-  if(best&&(+best.ts||0)>saveTs&&!started)adoptSave(best);
-  else if(best&&fresh&&!started)adoptSave(best);
+  if(best&&!started&&(fresh||(+best.ts||0)>saveTs))adoptSave(best);
   finishLoad();
   if(!fresh&&cdoc&&cloudState==='on')cloudPush(JSON.stringify(snap()),true);
 }
