@@ -2200,6 +2200,62 @@ function drawApprovedBase(x,y,o,now){
   label(o.name,x,pose.nameY??y-42,o.col||'#ffffff');if(o.waving)label('*waves*',x,(pose.nameY??y-42)-12,'#ffffff');
   return true;
 }
+// Kez V2 lightweight visual preview. Opt in with ?kezV2=1; no save or combat changes.
+// Drawn in native pixels so the sprite remains crisp at the game's existing scale.
+function drawLightweightKez(x,y,o,now){
+  const g=o.g||[],f=o.f||1,d=o.dv||'d',back=d==='u',side=d==='s';
+  const phase=Math.floor(now/115)%4,walking=!!o.moving;
+  const step=walking?[0,1,0,-1][phase]:0;
+  const bob=walking?(phase%2):Math.floor(now/650)%2;
+  const age=now-(o.swingAt??-99999),attack=age>=0&&age<320;
+  const hurt=o.isMe&&now-(me.hurtAt||-99999)<220;
+  const dead=o.isMe&&me.deathAt!=null&&now-me.deathAt>=0;
+  const skin='#eec39a',shade='#bf8c6f',ink='#282322';
+  const hair='#443431',hairLight='#65504a';
+  const dye=o.dye!=null&&DYES[o.dye]&&Math.max(...g)>=4?DYES[o.dye]:null;
+  const mat=t=>t>0?(dye&&t>=4?dye:MATS[t]):null;
+  const helmMat=mat(g[0]),bodyMat=mat(g[1]),legMat=mat(g[2]),bootMat=mat(g[3]),shieldMat=mat(g[4]);
+  const shirt=bodyMat?bodyMat.M:'#71513c',shirtHi=bodyMat?bodyMat.H:'#977057';
+  const trousers=legMat?legMat.M:'#383331',boots=bootMat?bootMat.M:'#302725';
+  shadowE(x,y,5,2,.23);
+  ctx.save();ctx.translate(Math.round(x),Math.round(y));ctx.scale(f,1);
+  if(hurt)ctx.globalAlpha=.65;
+  if(dead){ctx.translate(0,-3);ctx.rotate(Math.PI/2)}
+  // Boots, tiny animated steps, compact torso and minimal facial pixels.
+  R(-4+step,-4,3,4,ink);R(-3+step,-4,2,3,boots);
+  R(1-step,-4,3,4,ink);R(2-step,-4,2,3,boots);
+  R(-4,-8+bob,8,5,ink);R(-3,-8+bob,6,4,trousers);
+  R(-5,-15+bob,10,8,ink);R(-4,-14+bob,8,7,shirt);
+  R(-3,-14+bob,6,1,shirtHi);
+  R(-7,-13+bob+step,3,6,ink);R(-6,-12+bob+step,2,4,bodyMat?bodyMat.M:skin);
+  R(4,-13+bob-step,3,6,ink);R(5,-12+bob-step,2,4,bodyMat?bodyMat.M:skin);
+  R(-6,-8+bob+step,2,2,skin);R(5,-8+bob-step,2,2,skin);
+  R(-6,-24+bob,12,11,ink);
+  R(-5,-23+bob,10,9,back?hair:skin);
+  if(!back){R(-4,-15+bob,8,1,shade);
+    if(side)R(2,-19+bob,1,2,ink);
+    else{R(-3,-19+bob,1,2,ink);R(2,-19+bob,1,2,ink)}
+  }
+  R(-6,-25+bob,12,5,hair);R(-5,-27+bob,4,3,hair);
+  R(0,-28+bob,5,4,hair);R(5,-24+bob,2,5,hair);
+  R(-5,-26+bob,4,1,hairLight);R(1,-27+bob,3,1,hairLight);
+  if(back)R(-4,-19+bob,8,4,hair);
+  if(helmMat){
+    R(-6,-26+bob,12,7,ink);R(-5,-25+bob,10,5,helmMat.M);
+    R(-4,-25+bob,8,1,helmMat.H);R(-6,-20+bob,12,2,helmMat.D);
+    if(!back)R(-3,-18+bob,6,2,skin);
+  }
+  if(shieldMat){R(-8,-14+bob,4,8,ink);R(-7,-13+bob,3,6,shieldMat.M);R(-7,-13+bob,3,1,shieldMat.H)}
+  ctx.restore();
+  if(!dead){
+    const holding=o.tool&&o.tool!=='fist'&&(attack||now<o.hold);
+    if(holding)drawTool(o.tool,o.mat,x+f*7,y-10+bob,f,attack?swingAng(age):-.35);
+    else if(o.tool==='fist'&&attack)R(x+f*7,y-12+bob,3,3,skin);
+  }
+  label(o.name,x,y-34,o.col||'#ffffff');
+  if(o.waving)label('*waves*',x,y-45,'#ffffff');
+  return true;
+}
 function drawApprovedPlayer(x,y,o,now){
   // Emergency visual fallback: add ?classicSprite=1 to the game URL.
   // This changes only character rendering; saves and game state are untouched.
@@ -2233,6 +2289,7 @@ function drawApprovedPlayer(x,y,o,now){
   return true;
 }
 function drawPerson(x,y,o,now){
+  if(o.isMe && !o.apron && new URLSearchParams(location.search).get('kezV2')==='1' && drawLightweightKez(x,y,o,now)) return;
   if(!o.apron && drawApprovedPlayer(x,y,o,now)) return;
   const f=o.f,mv=!!o.moving,ph=Math.floor(now/90)%4,g=o.g||[0,0,0,0,0],dv=o.dv||'d';
   let gh=MATS[g[0]],gb=MATS[g[1]],gl=MATS[g[2]],gt=MATS[g[3]],gs=MATS[g[4]];
