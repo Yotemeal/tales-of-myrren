@@ -240,3 +240,12 @@ User explicitly approved an Old School RuneScape-inspired loot system for **all 
 - **Verification:** Deterministic seeded/controlled-roll tests for 100% coins, weighted main selection, independent rares, simultaneous multi-drops, repeat duplicate equipment, stacking, Ironman farming, and exactly-once grants; balance review before deployment.
 
 Implement this in the existing draft branch and keep it preview-only until the user approves activation. Do not merge or deploy without explicit approval.
+
+
+## Ordinary enemies versus boss (clarified)
+
+The seven Crater regular enemies—Forest Rat, Goblin Miner, Wild Boar, Dire Wolf, Goblin Guard, Cave Guardian, and Forest Troll—are **ordinary monsters**, not a separate reward class. Their current gameplay follows the same kill, XP, coins, bread, gear, inventory, and job rules as ordinary enemies elsewhere in Myrren. The separate Crater loot-table prototype remains test-only and must not override the normal combat reward path merely because the player is in the Crater.
+
+The **Jewelheart Guardian is the only Crater boss**. Its current preview is a combat rehearsal and intentionally grants no XP or loot. The planned Guardian's Necklace and Guardian's Ring are unconfigured placeholders until exact stats and odds are approved. Boss rewards must be implemented separately behind an explicit activation gate, with contributor/ownership rules and exactly-once settlement validated before progression is enabled.
+
+The earlier instruction to define eight Crater-specific monster loot tables is a *design exercise*, not authorization to replace the seven ordinary monsters' existing loot rules. If the game's ordinary loot system is later upgraded to shared OSRS-style tables, apply that change consistently to ordinary monsters game-wide.
