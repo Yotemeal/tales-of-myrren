@@ -2463,3 +2463,92 @@ input[type=range] {
   #modal[data-screen="gear"] .character-stats .eqtot span { font-size: 10px; }
   #modal[data-screen="gear"] .character-stats .eqtot b { font-size: 15px; }
 }
+
+/* Equipment layout correction: always show the character, including landscape. */
+#modal[data-screen="gear"] .character-portrait {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  height: auto;
+}
+#modal[data-screen="gear"] .character-portrait canvas {
+  display: block;
+  width: 88px;
+  height: 110px;
+  max-width: 100%;
+  image-rendering: pixelated;
+}
+@media (max-width: 620px) and (orientation: portrait) {
+  #modal[data-screen="gear"] .character-sheet {
+    grid-template-columns: 112px minmax(0,1fr);
+    grid-template-rows: auto auto;
+  }
+  #modal[data-screen="gear"] .character-portrait {
+    display: grid;
+    grid-column: 2;
+    grid-row: 1;
+    height: 132px;
+  }
+  #modal[data-screen="gear"] .character-stats {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+@media (orientation: landscape) and (max-height: 540px) {
+  #modal[data-screen="gear"] {
+    top: max(8px, env(safe-area-inset-top));
+    bottom: calc(var(--hud-bottom) + var(--hud-height) + 7px);
+  }
+  #modal[data-screen="gear"] .win {
+    width: min(100%, 460px);
+    height: auto;
+    max-height: 100%;
+    padding: 4px;
+    gap: 3px;
+    grid-template-rows: 29px minmax(0,auto) 27px;
+  }
+  #modal[data-screen="gear"] #mBody { padding: 2px 4px; }
+  #modal[data-screen="gear"] .pane-heading {
+    margin-bottom: 3px;
+    font-size: 13px;
+  }
+  #modal[data-screen="gear"] .character-sheet {
+    grid-template-columns: 104px 82px minmax(0,1fr);
+    grid-template-rows: auto;
+    gap: 5px;
+    padding: 5px;
+    margin: 0;
+  }
+  #modal[data-screen="gear"] .character-sheet .paper .slot {
+    min-height: 0;
+    padding: 1px;
+  }
+  #modal[data-screen="gear"] .character-portrait {
+    display: grid;
+    grid-column: 2;
+    grid-row: 1;
+    height: 125px;
+    min-height: 0;
+  }
+  #modal[data-screen="gear"] .character-portrait canvas {
+    width: 76px;
+    height: 95px;
+  }
+  #modal[data-screen="gear"] .character-stats {
+    grid-column: 3;
+    grid-row: 1;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 3px;
+  }
+  #modal[data-screen="gear"] .character-stats .eqtot {
+    min-width: 0;
+    padding: 2px 3px;
+  }
+  #modal[data-screen="gear"] .character-stats .eqtot span { font-size: 10px; }
+  #modal[data-screen="gear"] .character-stats .eqtot b { font-size: 14px; }
+  #modal[data-screen="gear"] .gear-info-popover {
+    top: 3px;
+    right: 3px;
+    width: min(220px,calc(100% - 6px));
+  }
+}
