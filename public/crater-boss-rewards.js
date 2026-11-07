@@ -7,14 +7,12 @@
   Object.freeze({itemId:'guardians_necklace',approved:false}),
   Object.freeze({itemId:'guardians_ring',approved:false})
  ]);
- function create({enabled=false,table=null,grant=null}={}){
+ function create({enabled=false}={}){
   if(enabled)throw new Error('Jewelheart rewards are not approved for activation');
-  const settled=new Set();
   function evaluate({killId,bossId=BOSS_ID,eligible=false,ironmanOwner=false,contributor=false}={}){
    if(typeof killId!=='string'||!killId.trim())throw new TypeError('Stable boss kill ID required');
    if(bossId!==BOSS_ID)return Object.freeze({status:'wrong-boss',drops:[]});
    if(!eligible||!ironmanOwner||!contributor)return Object.freeze({status:'ineligible',drops:[]});
-   if(settled.has(killId))return Object.freeze({status:'already-settled',drops:[]});
    // A preview rehearsal is not a real reward settlement: do not lock the kill.
    return Object.freeze({status:'preview-only',drops:[]});
   }
