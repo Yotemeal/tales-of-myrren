@@ -215,13 +215,17 @@ const craterGoblins=craterRocks&&window.MyrrenCraterGoblins?.create();
 craterGoblins?.load?.();
 const craterDash=craterRocks&&window.MyrrenCraterDash?.create();
 craterDash?.load?.();
-// Use existing mid-tier combat values for the isolated protector encounter.
-if(craterRocks)MT.goblin_guard={...MT.wolf,name:'Cave Goblin Protector',lv:16};
+// Borrow existing combat values for these isolated encounters.
+if(craterRocks){
+  MT.goblin_guard={...MT.wolf,name:'Cave Goblin Protector',lv:16};
+  MT.rat={...MT.slime,name:'Forest Rat'};
+}
 window.addEventListener('myrren-pet-reference-ready',()=>{if(tab==='skills')renderModal()});
 // Prototype motion tuning only, not approved Crater balance. Damage/cooldown use MT.
 const ROCK_PREVIEW={range:90,retreat:30,speed:140,distance:120,windup:300};
 // Prototype timings for the preview's lunging and charging enemies.
 const CRATER_DASH={
+  rat:{range:12,travel:6,windup:240,dash:90,recover:200,hitRadius:7},
   wolf:{range:30,windup:320,dash:150,recover:260,hitRadius:7},
   boar:{range:42,windup:460,dash:190,recover:380,hitRadius:8}
 };
@@ -951,7 +955,7 @@ let boardOffers=null,boardLv=0;
 function mkObj(sk){
   const L=lvlFor(save.xp[sk]),br=BR(L);
   if(sk==='melee'){
-    let pool=Object.keys(MT).filter(k=>k!=='goblin_guard'&&MT[k].lv<=L+15);if(!pool.length)pool=['slime'];
+    let pool=Object.keys(MT).filter(k=>k!=='goblin_guard'&&k!=='rat'&&MT[k].lv<=L+15);if(!pool.length)pool=['slime'];
     const good=pool.filter(k=>MT[k].lv>=L*.4);if(good.length)pool=good;
     return {type:'slay',skill:sk,mon:pool[rint(0,pool.length-1)],need:rint(SLAYQ[br][0],SLAYQ[br][1]),have:0};
   }
@@ -1709,7 +1713,8 @@ function updateCraterDash(m,mt,dt,now,dp,dx,dy,timing){
       attack.fromX=m.x;attack.fromY=m.y;
       // Player attacks can knock the creature back during the windup.
       const ax=attack.x-m.x,ay=attack.y-m.y,dist=Math.hypot(ax,ay);
-      const scale=dist>timing.range?timing.range/dist:1;
+      const travel=timing.travel??timing.range;
+      const scale=dist>travel?travel/dist:1;
       attack.x=m.x+ax*scale;attack.y=m.y+ay*scale;
       if(Math.abs(ax)>.6)m.face=ax>0?1:-1;
     }
@@ -2085,11 +2090,11 @@ function drawMon(m,x,y,now){
   const ph=Math.floor(now/(mode==='walk'?110:230))%4;
   let al=1;if(dead&&age>1000)al=Math.max(0,1-(age-1000)/600);
   if(al<=0)return;
-  shadowE(x+1,y,mode==='dead'?10:8,2,.28*al);
+  shadowE(x+1,y,m.t==='rat'?4:mode==='dead'?10:8,2,.28*al);
   ctx.save();ctx.globalAlpha=al;
   const goblinDrawn=craterGoblins?.draw?.(ctx,m,x,y,now,{moving,hitAge:ha,windup:ROCK_PREVIEW.windup});
   const dashDrawn=craterDash?.draw?.(ctx,m,x,y,now,{moving,hitAge:ha,recover:CRATER_DASH[m.t]?.recover});
-  if(!goblinDrawn&&!dashDrawn){
+  if(!goblinDrawn&&!dashDrawn&&m.t!=='rat'){
     ctx.translate(x,y);ctx.scale(f,1);
     if(m.t==='slime')sprSlime(mode,ph,age,flash);else if((m.t==='goblin'||m.t==='goblin_guard'))sprGoblin(mode,ph,age,flash);else if(m.t==='boar')sprBoar(mode,ph,age,flash);else if(m.t==='bear')sprBear(mode,ph,age,flash);else if(m.t==='cave')sprQuad(Q_CAVE,mode,ph,age,flash);else if(m.t==='abear')sprQuad(Q_ABEAR,mode,ph,age,flash);else sprWolf(mode,ph,age,flash);
     // Native-pixel creature finishing pass: fur, eyes, tusks and equipment.
@@ -2117,7 +2122,7 @@ function drawMon(m,x,y,now){
   }
   ctx.restore();ctx.globalAlpha=1;
   if(dead)return;
-  const top=y-(dashDrawn?(m.t==='boar'?30:38):goblinDrawn?(m.t==='goblin_guard'?42:34):({goblin:27,wolf:20,boar:18,bear:30,cave:30,abear:30}[m.t]||15));
+  const top=y-(dashDrawn?({rat:19,boar:30,wolf:38}[m.t]):goblinDrawn?(m.t==='goblin_guard'?42:34):({goblin:27,wolf:20,boar:18,bear:30,cave:30,abear:30}[m.t]||15));
   if(m.hp<mt.hp)bar(x,top,m.hp/mt.hp);
   if(Math.hypot(m.x-me.x,m.y-me.y)<70||me.tgt===m)label((goblinDrawn&&m.t==='goblin'?'Goblin Miner':mt.name)+' (Lv '+mt.lv+')',x,top-5,'#ffffff');
 }
@@ -2618,8 +2623,10 @@ if(craterRocks){
     const x=miner.hx+24,y=miner.hy;
     if(craterRockBlocked(x,y)||inWater(x,y)||placed.some(p=>Math.hypot(p[0]-x,p[1]-y)<16))continue;
     mons.push({t:'goblin_guard',miner,x,y,hx:x,hy:y,hp:MT.goblin_guard.hp,state:'idle',cd:0,face:-1,lunge:-9999});
+    placed.push([x,y]);
     if(++count===4)break;
   }
+  addMons('rat',6,110);
 }
 syncPets();petsTeleport();uiHud();
 let loadDone=false;

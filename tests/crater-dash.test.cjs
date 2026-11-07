@@ -80,6 +80,34 @@ const createGame=require('./game-runtime.cjs');
   assert.equal(creature.y,800);
   assert.equal(g.me.hp,g.hpMax());
 
+  ({g,creature}=await encounter('?craterPreview=1','rat'));
+  assert.equal(g.MT.rat.lv,1);
+  g.me.x=1392;
+  g.update(.05,1000);
+  assert(creature.dashAttack,'a rat winds up only in close range');
+  g.update(.05,1239);
+  assert.equal(g.me.hp,g.hpMax());
+  g.update(.05,1240);
+  g.update(.05,1330);
+  assert.equal(creature.x,1386,'a bite only moves the rat a few pixels');
+  assert.equal(g.me.hp,g.hpMax()-1);
+  g.update(.05,1400);
+  assert.equal(g.me.hp,g.hpMax()-1,'a bite lands once');
+
+  ({g,creature}=await encounter('?craterPreview=1','rat'));
+  g.me.x=1392;
+  g.update(.05,1000);
+  g.me.y+=12;
+  g.update(.05,1240);
+  g.update(.05,1330);
+  assert.equal(g.me.hp,g.hpMax(),'stepping away avoids the bite');
+
+  const {game:normal}=await createGame();
+  assert(!normal.mons.some(m=>m.t==='rat'));
+  const {game:preview}=await createGame({}, {search:'?craterPreview=1'});
+  assert(preview.mons.some(m=>m.t==='rat'));
+  assert.equal(preview.mons.filter(m=>m.t==='slime').length,normal.mons.filter(m=>m.t==='slime').length);
+
   ({g,creature}=await encounter(''));
   g.update(.05,1000);
   assert.equal(creature.dashAttack,undefined);
@@ -111,8 +139,8 @@ const createGame=require('./game-runtime.cjs');
  }
  const renderer=window.MyrrenCraterDash.create();
  assert(await renderer.load());
- const surface=createCanvas(560,168),ctx=surface.getContext('2d');
- ctx.fillStyle='#283a32';ctx.fillRect(0,0,560,168);
+ const surface=createCanvas(560,252),ctx=surface.getContext('2d');
+ ctx.fillStyle='#283a32';ctx.fillRect(0,0,560,252);
  const {states}=metadata.creatures.find(c=>c.id==='dire_wolf');
  const draw=window.MyrrenCraterAnimation.drawFrame;
  let frame;
@@ -146,6 +174,21 @@ const createGame=require('./game-runtime.cjs');
   assert(renderer.draw(ctx,{t:'boar',state:'chase',lunge:-9999,face:i%2?-1:1,...monster},i*80+40,144,0,{moving,hitAge,recover:380}));
   assert.equal(frame,expected);
  }
+ const rat=metadata.creatures.find(c=>c.id==='forest_rat');
+ assert(rat.draftFitHeight<metadata.creatures.find(c=>c.id==='wild_boar').draftFitHeight);
+ const ratCases=[
+  [{},rat.states.idle.frames[0]],
+  [{moving:true},rat.states.move.frames[0]],
+  [{dashAttack:{}},rat.states.attack.frames[0]],
+  [{lunge:0},rat.states.attack.frames[1]],
+  [{hitAge:0},rat.states.hit.frames[0]],
+  [{state:'dead'},rat.states.death.frames[0]]
+ ];
+ for(const [i,[pose,expected]] of ratCases.entries()){
+  const {moving=false,hitAge=Infinity,...monster}=pose;
+  assert(renderer.draw(ctx,{t:'rat',state:'chase',lunge:-9999,face:i%2?-1:1,...monster},i*80+40,228,0,{moving,hitAge,recover:200}));
+  assert.equal(frame,expected);
+ }
  if(process.env.DASH_CONTACT_SHEET)fs.writeFileSync(process.env.DASH_CONTACT_SHEET,surface.toBuffer('image/png'));
- console.log('PASS: Dire Wolf and Wild Boar use approved poses and dodgeable attacks. Checked damage, recovery, terrain and cancellation.');
+ console.log('PASS: Dire Wolf, Wild Boar and Forest Rat use approved poses and dodgeable attacks. Checked damage, recovery, terrain and cancellation.');
 })().catch(e=>{console.error(e);process.exitCode=1});
