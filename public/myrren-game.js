@@ -2545,7 +2545,7 @@ function drawOutdoor(cx,cy,now){
     MyrrenEnvironment.terrain(ctx,tx,ty,x,y,d<-18?'water':kind,now,edge);
     // The Camp lies inside the overgrown impact crater of the lost trading city.
     // Subtle rocky terraces, not a solid wall: all existing routes stay open.
-    const craterR=Math.hypot((wx+8-CX)/485,(wy+8-CY)/370);
+    const craterR=Math.hypot((wx+8-CX)/355,(wy+8-CY)/275);
     if(d>25&&kind==='grass'&&craterR>.70&&craterR<1.35){
       const grit=H2(tx+731,ty-391)%17;
       // Two softly staggered rock shelves form the crater's visible inner wall.
@@ -2608,8 +2608,8 @@ function drawOutdoor(cx,cy,now){
   for(let i=0;i<180;i++){
     const a=i*Math.PI*2/180;
     const wobble=Math.sin(i*2.31)*8+Math.cos(i*.71)*6;
-    const gx=CX+Math.cos(a)*(485+wobble),gy=CY+Math.sin(a)*(370+wobble*.7);
-    if(gy>CY+285&&Math.abs(gx-CX)<65)continue;
+    const gx=CX+Math.cos(a)*(355+wobble),gy=CY+Math.sin(a)*(275+wobble*.7);
+    if(gy>CY+205&&Math.abs(gx-CX)<65)continue;
     if(!vis(gx,gy))continue;
     list.push({y:gy,f:()=>{
       const x=Math.round(gx-cx),y=Math.round(gy-cy),k=(i*17)%11;
@@ -2628,9 +2628,9 @@ function drawOutdoor(cx,cy,now){
   }
   // Ejecta scattered away from the impact, increasingly sparse at distance.
   for(let i=0;i<78;i++){
-    const a=i*2.3999632297,r=525+(i%7)*22;
+    const a=i*2.3999632297,r=395+(i%7)*22;
     const gx=CX+Math.cos(a)*r,gy=CY+Math.sin(a)*r*.76;
-    if(gy>CY+275&&Math.abs(gx-CX)<85)continue;
+    if(gy>CY+195&&Math.abs(gx-CX)<85)continue;
     if(!vis(gx,gy)||VILLAGE.waterDistance(gx,gy)<20)continue;
     list.push({y:gy,f:()=>{
       const x=Math.round(gx-cx),y=Math.round(gy-cy),w=8+(i%4)*4;
