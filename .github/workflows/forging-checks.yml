@@ -1,0 +1,27 @@
+name: Forging regression checks
+on:
+  pull_request:
+    paths:
+      - 'public/myrren-game.js'
+      - 'tests/forging-skill.test.cjs'
+      - '.github/workflows/forging-checks.yml'
+  push:
+    branches:
+      - 'balance/250-ehp-launch-skills'
+jobs:
+  forging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: node --check public/myrren-game.js
+      - name: Forging regression contracts
+        run: node tests/forging-skill.test.cjs
+      - name: Core save and inventory regression
+        run: |
+          node tests/inventory-capacity.cjs
+          node tests/save-inventory.test.cjs
+          node tests/bank-notes.test.cjs
