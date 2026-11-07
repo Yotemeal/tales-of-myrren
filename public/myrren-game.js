@@ -420,7 +420,7 @@ function uiHud(){
   $('hpTxt').textContent=Math.max(0,me.hp)+' / '+m;
   $('lvlTxt').textContent=lvlFor(save.xp.melee);
   $('eatN').textContent=foodCount()||'';
-  $('hudName').textContent=save.name||'Wanderer';
+  // Player name is kept in save data for chat; it is not shown in the HUD.
   uiCurrencies();
 }
 document.querySelectorAll('[data-i]').forEach(e=>{const k=e.dataset.i;e.innerHTML=ITEMS[k]?itemSvg(k,22):svg(k,22)});
