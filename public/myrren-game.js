@@ -2890,54 +2890,77 @@ let miniLast=0;
 function drawMini(now){
   if(!miniRoot||!miniCtx)return;
   miniRoot.hidden=!started||!!inside;
-  if(miniRoot.hidden||now-miniLast<120)return;
+  if(miniRoot.hidden||now-miniLast<90)return;
   miniLast=now;
-  const g=miniCtx,cx=80,cy=80;
+  const g=miniCtx,mid=80,scale=.24;
+  const mapX=x=>mid+(x-me.x)*scale;
+  const mapY=y=>mid+(y-me.y)*scale;
   g.clearRect(0,0,160,160);
-  g.save();g.beginPath();g.arc(cx,cy,77,0,Math.PI*2);g.clip();
-  g.fillStyle='#263b2b';g.fillRect(0,0,160,160);
-  // Tiny clustered forest texture, stable across frames.
-  for(let i=0;i<170;i++){
-    const x=(i*73+19)%160,y=(i*47+(i%7)*13)%160;
-    g.fillStyle=i%3?'#334b32':'#53633d';g.fillRect(x,y,i%4+2,i%3+2);
+  g.save();g.beginPath();g.arc(mid,mid,77,0,Math.PI*2);g.clip();
+  g.fillStyle='#304734';g.fillRect(0,0,160,160);
+  // Stable world-coordinate forest texture: scenery scrolls, not the player marker.
+  const tile=48,reach=80/scale;
+  for(let gy=Math.floor((me.y-reach)/tile)-1;gy<=Math.ceil((me.y+reach)/tile)+1;gy++){
+    for(let gx=Math.floor((me.x-reach)/tile)-1;gx<=Math.ceil((me.x+reach)/tile)+1;gx++){
+      const wx=gx*tile,wy=gy*tile,px=mapX(wx),py=mapY(wy);
+      const hash=((gx*73856093)^(gy*19349663))>>>0;
+      const dist=Math.hypot(wx-CX,wy-CY);
+      if(dist<275)continue;
+      g.fillStyle=hash%4===0?'#415b3c':hash%4===1?'#263b30':'#354d36';
+      g.fillRect(Math.floor(px),Math.floor(py),Math.ceil(tile*scale)+1,Math.ceil(tile*scale)+1);
+      if(hash%5<3){
+        g.fillStyle='#192d25';g.fillRect(Math.floor(px+3),Math.floor(py+4),8,8);
+        g.fillStyle=hash%2?'#61704a':'#536746';g.fillRect(Math.floor(px+2),Math.floor(py+2),7,6);
+        g.fillStyle='#78805c';g.fillRect(Math.floor(px+3),Math.floor(py+2),4,2);
+      }
+    }
   }
-  // The crater is a fixed miniature of the camp rather than a generic radar.
-  g.fillStyle='#1b2b24';g.beginPath();g.ellipse(80,77,64,56,0,0,Math.PI*2);g.fill();
-  g.fillStyle='#826a4d';g.beginPath();g.ellipse(80,76,56,47,0,0,Math.PI*2);g.fill();
-  g.fillStyle='#9a7b56';g.beginPath();g.moveTo(70,103);g.lineTo(90,103);g.lineTo(99,160);g.lineTo(61,160);g.closePath();g.fill();
-  // Fractured stone rim with an intentional southern gap.
-  for(let i=0;i<27;i++){
-    const ang=-Math.PI+(i/26)*Math.PI*2;
-    if(Math.sin(ang)>.66)continue;
-    const x=80+60*Math.cos(ang),y=76+51*Math.sin(ang);
-    const w=6+(i*7)%7,h=7+(i*11)%7;
-    g.fillStyle='#252a27';g.fillRect(Math.round(x-w/2)+1,Math.round(y-h/2)+2,w,h);
-    g.fillStyle=i%3===0?'#89877f':'#777b72';g.fillRect(Math.round(x-w/2),Math.round(y-h/2),w,h);
-    g.fillStyle='#a7a197';g.fillRect(Math.round(x-w/2),Math.round(y-h/2),w-2,2);
+  // The crater clearing is anchored in world coordinates and scrolls away naturally.
+  const x=mapX(CX),y=mapY(CY);
+  g.fillStyle='#77634a';g.beginPath();g.ellipse(x,y,245*scale,205*scale,0,0,Math.PI*2);g.fill();
+  g.fillStyle='#8c7351';g.beginPath();g.ellipse(x,y,224*scale,186*scale,0,0,Math.PI*2);g.fill();
+  g.fillStyle='#a0835b';g.beginPath();
+  g.moveTo(mapX(CX-39),mapY(CY+125));g.lineTo(mapX(CX+39),mapY(CY+125));
+  g.lineTo(mapX(CX+39),mapY(WH));g.lineTo(mapX(CX-39),mapY(WH));g.closePath();g.fill();
+  // Rock wall segments around the rim; southern entry remains open.
+  for(let i=0;i<45;i++){
+    const ang=-Math.PI+(i/45)*Math.PI*2;
+    if(Math.sin(ang)>.70)continue;
+    const wx=CX+242*Math.cos(ang),wy=CY+202*Math.sin(ang);
+    const px=mapX(wx),py=mapY(wy);
+    if(px< -14||px>174||py< -14||py>174)continue;
+    const w=7+i%5,h=8+i%6;
+    g.fillStyle='#272b29';g.fillRect(Math.round(px-w/2)+1,Math.round(py-h/2)+2,w,h);
+    g.fillStyle=i%3?'#777b72':'#95948a';g.fillRect(Math.round(px-w/2),Math.round(py-h/2),w,h);
+    g.fillStyle='#aaa89b';g.fillRect(Math.round(px-w/2),Math.round(py-h/2),w-2,2);
   }
-  // A handful of small shrubs and uneven stone chips inside the clearing.
-  for(let i=0;i<27;i++){
-    const x=80+Math.cos(i*2.4)*(11+i%6*6),y=78+Math.sin(i*2.4)*(8+i%5*6);
-    g.fillStyle=i%4?'#6a7450':'#ad9975';g.fillRect(Math.round(x),Math.round(y),i%3+2,2);
-  }
-  const icon=(x,y,col)=>{
-    g.fillStyle='#291e16';g.fillRect(x-5,y-5,11,11);
-    g.fillStyle='#c59a5e';g.fillRect(x-4,y-4,9,9);
-    g.fillStyle=col;g.fillRect(x-2,y-2,5,5);
+  const landmark=(wx,wy,col)=>{
+    const px=mapX(wx),py=mapY(wy);
+    if(px<5||px>155||py<5||py>155)return;
+    g.fillStyle='#2b2119';g.fillRect(Math.round(px)-5,Math.round(py)-5,11,11);
+    g.fillStyle='#c9a16b';g.fillRect(Math.round(px)-4,Math.round(py)-4,9,9);
+    g.fillStyle=col;g.fillRect(Math.round(px)-2,Math.round(py)-2,5,5);
   };
-  icon(46,73,'#e5bd6e'); // trader
-  icon(109,73,'#e5d3a0'); // forge
-  icon(81,53,'#d4c9a6'); // notice board
-  icon(53,96,'#ab8863'); // storage chest
-  // Player location is projected into the fixed overview.
-  const px=Math.max(11,Math.min(149,80+(me.x-CX)*.24));
-  const py=Math.max(11,Math.min(149,76+(me.y-CY)*.24));
-  g.fillStyle='#24190d';g.beginPath();g.arc(px,py,7,0,Math.PI*2);g.fill();
-  g.fillStyle='#f0bd36';g.beginPath();g.arc(px,py,5.5,0,Math.PI*2);g.fill();
-  g.fillStyle='#fff7c9';g.beginPath();g.moveTo(px,py-9);g.lineTo(px-5,py-2);g.lineTo(px+5,py-2);g.closePath();g.fill();
+  landmark(TRADER.x,TRADER.y,'#e7b96d');
+  landmark(BOARD.x,BOARD.y,'#e7d5ac');
+  landmark(SPOTS.bank.x,SPOTS.bank.y,'#a7825e');
+  // Directional player arrow, rotating with Kez's actual facing vector.
+  let dx=me.fx||0,dy=me.fy||0;
+  const mag=Math.hypot(dx,dy)||1;dx/=mag;dy/=mag;
+  const nx=-dy,ny=dx;
+  g.fillStyle='#211a10';g.beginPath();
+  g.moveTo(mid+dx*10,mid+dy*10);
+  g.lineTo(mid-dx*6+nx*7,mid-dy*6+ny*7);
+  g.lineTo(mid-dx*6-nx*7,mid-dy*6-ny*7);
+  g.closePath();g.fill();
+  g.fillStyle='#f7c542';g.beginPath();
+  g.moveTo(mid+dx*8,mid+dy*8);
+  g.lineTo(mid-dx*5+nx*5,mid-dy*5+ny*5);
+  g.lineTo(mid-dx*5-nx*5,mid-dy*5-ny*5);
+  g.closePath();g.fill();
+  g.fillStyle='#fff5c8';g.beginPath();g.arc(mid,mid,2.5,0,Math.PI*2);g.fill();
   g.restore();
 }
-
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;
   const cssW=cv.clientWidth,cssH=cv.clientHeight;
