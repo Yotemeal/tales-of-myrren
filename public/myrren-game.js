@@ -1600,7 +1600,7 @@ function killMon(m,now){
       }
       for(const id of plan.equipment)say('Rare drop: '+DEFS[id].name+'!','gold');
       for(const drop of plan.rejected)say('Your pack is full; '+drop.itemId+' could not be collected.','warn');
-    },Math.random,window.MyrrenCraterLootTables.sharedTables);
+    },Math.random,window.MyrrenCraterLootTables.sharedTables,{eligible:true,ironmanOwner:true});
     else {save.inv.coins+=c;say('You find '+c+' coins.');}
   }else{
     const c=rint(mt.coins[0],mt.coins[1]);save.inv.coins+=c;say('You find '+c+' coins.');
