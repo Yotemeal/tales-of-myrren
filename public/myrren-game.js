@@ -82,7 +82,7 @@ const SHOPS={
   pick:{name:'Deepdig Picks',sign:'Picks',keeper:'Hilda',wall:'#a8a8a0',roof:'#5a6270',hue:210,hair:'#c8c0b0',cats:{Pickaxes:['pick']},kinds:['pick'],buys:['copper','tin','iron','coal','cobalt','aether','obsidianite','meteorite'],greet:'Hilda: Pickaxes for every rock. I pay well for raw chunks and coal.'},
   food:{name:'Hearth Bakery',sign:'Bakery',keeper:'Mara',wall:'#d4b890',roof:'#d8863a',hue:30,hair:'#4a2a18',food:true,cats:{},kinds:[],buys:[],greet:'Mara: Fresh bread, pies and stew. Eat up before you fight.'},
   fish:{name:'Tidewater Rods',sign:'Fishing',keeper:'Odo',wall:'#9ab0c0',roof:'#3a6a9a',hue:200,hair:'#d8d8c8',bait:true,cats:{Nets:['net'],Rods:['rod']},kinds:['net','rod'],buys:['rshrimp','rtrout','rsalmon','rtuna','reel','shrimp','trout','salmon','tuna','eel'],greet:'Odo: A net for the shallows, a rod and bait for the deep. I buy your catch, raw or cooked.'},
-  arms:{name:'Elderwood Blacksmith',sign:'Forge',keeper:'Dorn',wall:'#a89c9c',roof:'#a8422a',hue:0,hair:'#2a2a30',cats:{Axes:['axe'],Weapons:['sword'],Armour:['helm','body','gloves','legs','boots','shield'],Smelt:[],Forge:[],Repair:[]},kinds:['axe','sword','helm','body','gloves','legs','boots','shield','ring','amulet'],buys:['ing_bronze','ing_iron','ing_steel','ing_cobalt','ing_aether','ing_obsidianite','ing_starsteel'],greet:'Dorn: Axes, blades and armour for sale. Use the furnace and anvil to train your smithing.'}
+  arms:{name:'Elderwood Blacksmith',sign:'Forge',keeper:'Dorn',wall:'#a89c9c',roof:'#a8422a',hue:0,hair:'#2a2a30',cats:{Axes:['axe'],Weapons:['sword'],Armour:['helm','body','gloves','legs','boots','shield'],Smelt:[],Forge:[],Repair:[]},kinds:['axe','sword','helm','body','gloves','legs','boots','shield','ring','amulet'],buys:['ing_bronze','ing_iron','ing_steel','ing_cobalt','ing_aether','ing_obsidianite','ing_starsteel'],greet:'Dorn: Axes, blades and armour for sale. Use the furnace and anvil to train Forging.'}
 };
 for(const k in SHOPS)SHOPS[k].id=k;
 const SHOPMAX={rod:4,net:1,helm:8,body:8,gloves:8,legs:8,boots:8,shield:8};
@@ -146,14 +146,17 @@ const SMELT=[
   {id:'aether',mat:6,req:55,xp:600,in:{aether:4,coal:3}},
   {id:'starsteel',mat:8,req:70,xp:1000,in:{meteorite:3,coal:4}}];
 const FORGE={axe:3,pick:3,sword:4,shield:5,helm:4,gloves:4,boots:4,legs:5,body:6};
+const FORGE_UNLOCK={pick:0,axe:1,helm:2,boots:3,gloves:3,sword:4,shield:5,legs:7,body:8};
+const forgeReq=(r,kind)=>r.req+FORGE_UNLOCK[kind];
+const forgeXp=(r,cost)=>cost*r.xp*2;
 /* economy: shop price of forgeable gear = 2x its ingot value, so smelting+forging always beats buying and coins are a sink */
 for(const id in DEFS){const d=DEFS[id];if(FORGE[d.kind]&&d.mat>=2){const ik='ing_'+MATS[d.mat].k;if(SELL[ik])d.price=Math.round(2*FORGE[d.kind]*SELL[ik])}}
 const gearSvg=(d,s)=>{if(d.kind==='sword'&&window.MyrrenSwords?.ready)return window.MyrrenSwords.icon(d.mat,s);if(window.MyrrenArmour?.ready&&ARMOUR_DEF[d.kind])return window.MyrrenArmour.icon(d.kind,d.mat,s);const m=MATS[d.mat];if((d.kind==='helm'||d.kind==='shield')&&myrrenV31Equipment)return myrrenV31Equipment.icon(d.kind,d.mat,s);return svg(d.art,s,{M:m.M,H:m.H,D:m.D,S:m.H})};
 
 /* ---------- rules ---------- */
-const NAMES={melee:'Combat',woodcutting:'Forestry',mining:'Delving',fishing:'Fishing',cooking:'Cooking'};
-const SK=['melee','woodcutting','mining','fishing','cooking'];
-const SKILL_ART={melee:'sword',woodcutting:'axe',mining:'pick',fishing:'net',cooking:'bowl'};
+const NAMES={melee:'Combat',woodcutting:'Forestry',mining:'Delving',fishing:'Fishing',cooking:'Cooking',forging:'Forging'};
+const SK=['melee','woodcutting','mining','fishing','cooking','forging'];
+const SKILL_ART={melee:'sword',woodcutting:'axe',mining:'pick',fishing:'net',cooking:'bowl',forging:'ingot'};
 const MAXL=100,XPK=24;
 const hpAt=L=>10+Math.round(L*1.5+L*L/40);
 const xpTable=[0,0];
@@ -253,7 +256,7 @@ function parseSavedProgress(raw){
     return o&&typeof o==='object'&&!Array.isArray(o)&&o.xp&&typeof o.xp==='object'&&!Array.isArray(o.xp)?o:null;
   }catch(e){return null}
 }
-let save={notes:{},bank:{},packOrder:[],bankOrder:[],wear:{},jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0},x:CX,y:CY+44};
+let save={notes:{},bank:{},packOrder:[],bankOrder:[],wear:{},jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0,forging:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0},x:CX,y:CY+44};
 let fresh=true,saveTs=0;
 function migrateArmourSave(source){
  const id=k=>typeof k==='string'&&/^leather_(helm|body|gloves|legs|boots|shield)$/.test(k)?k.replace('leather_','bronze_'):k;
@@ -752,7 +755,8 @@ function rSkills(){
   woodcutting:['Forestry','Equip a hatchet, stand beside a tree and face it. Use the tool button or E to gather timber.','Higher levels unlock tougher trees. Timber can be sold in town, and rare gathering pets can follow you.'],
   mining:['Delving','Equip a pickaxe and face an ore rock to gather metal. Higher levels unlock richer ores.','Use the outdoor blacksmith furnace to smelt ore into ingots, then the anvil to forge equipment.'],
   fishing:['Fishing','Use a net at shallow fishing spots, or a rod for deeper shoals. Rod casts use bait from the fishing shop.','Face the ripples from the bank and use your tool. Better fishing spots need a higher Fishing level.'],
-  cooking:['Cooking','Cook raw fish at the village fire or bakery oven. Cooked food restores health when eaten.','Higher levels unlock more catches to cook and improve your chance of preparing a meal successfully.']
+  cooking:['Cooking','Cook raw fish at the village fire or bakery oven. Cooked food restores health when eaten.','Higher levels unlock more catches to cook and improve your chance of preparing a meal successfully.'],
+  forging:['Forging','Smelt ore into ingots at the furnace for modest XP, then forge weapons and armour at the anvil for much higher XP.','Buying ingots is fast but expensive; mining your own ore takes longer. Equipment recipes unlock gradually within each metal tier.']
  };
  const k=skillFocus,info=descriptions[k],L=lvlFor(save.xp[k]),layout=el('div','skills-layout'),guide=el('section','skill-guide');
  guide.append(el('h3','',info[0].toUpperCase()),el('p','',info[1]),el('p','',info[2]),el('p','skill-xp','Level '+L+' · '+Math.floor(save.xp[k]).toLocaleString()+' experience'));
@@ -1062,23 +1066,23 @@ function buyFood(k){
 }
 const ingName=id=>ITEMS['ing_'+id].name;
 function smelt(r){
-  if(lvlFor(save.xp.mining)<r.req){say('You need '+NAMES.mining+' '+r.req+' to smelt that.','warn');return}
+  if(lvlFor(save.xp.forging)<r.req){say('You need '+NAMES.forging+' '+r.req+' to smelt that.','warn');return}
   for(const k in r.in)if(save.inv[k]<r.in[k]){say('You do not have enough materials.','warn');return}
   const key='ing_'+r.id,changes={[key]:1};
   for(const k in r.in)changes[k]=-r.in[k];
   if(!canFitInventory(changes)){say('Your pack is full.','warn');return}
   for(const k in r.in)save.inv[k]-=r.in[k];save.inv[key]++;
   say('You smelt a '+ITEMS[key].name.toLowerCase()+'.');burst(inside?88:me.x,inside?60:me.y-8,['#ff7b3a','#ffd24a','#fff2b0'],8,22);
-  addXp('mining',r.xp);persist();renderModal();uiHud();
+  addXp('forging',r.xp);persist();renderModal();uiHud();
 }
 function rSmelt(){
-  mBody.append(el('p','note','Smelt chunks and coal into ingots. Uses '+NAMES.mining+' level.'));
+  mBody.append(el('p','note','Smelt chunks and coal into ingots. Uses '+NAMES.forging+' level.'));
   SMELT.forEach(r=>{
-    const key='ing_'+r.id,lv=lvlFor(save.xp.mining);
+    const key='ing_'+r.id,lv=lvlFor(save.xp.forging);
     const can=lv>=r.req&&Object.keys(r.in).every(k=>save.inv[k]>=r.in[k]);
     const need=Object.keys(r.in).map(k=>r.in[k]+' '+ITEMS[k].name+' ('+save.inv[k]+')').join(' + ');
     const row=el('div','shoprow');
-    row.innerHTML=itemSvg(key,32)+'<span>'+ITEMS[key].name+'<small>'+need+'</small><small class="'+(lv>=r.req?'':'bad')+'">Needs '+NAMES.mining+' '+r.req+' | You have '+save.inv[key]+'</small></span>';
+    row.innerHTML=itemSvg(key,32)+'<span>'+ITEMS[key].name+'<small>'+need+'</small><small class="'+(lv>=r.req?'':'bad')+'">Needs '+NAMES.forging+' '+r.req+' | You have '+save.inv[key]+'</small></span>';
     const b=el('button','btn','Smelt');b.type='button';b.disabled=!can;b.addEventListener('click',()=>smelt(r));row.append(b);mBody.append(row);
   });
 }
@@ -1086,25 +1090,25 @@ let forgeMat=2;
 function forge(kind){
   const r=SMELT.find(x=>x.mat===forgeMat),id=MATS[forgeMat]?.k+'_'+kind,d=DEFS[id],cost=FORGE[kind];
   if(!r||!d||!cost)return;const key='ing_'+r.id;
-  if(lvlFor(save.xp.mining)<r.req){say('You need '+NAMES.mining+' '+r.req+' to forge with that.','warn');return}
+  if(lvlFor(save.xp.forging)<forgeReq(r,kind)){say('You need '+NAMES.forging+' '+forgeReq(r,kind)+' to forge with that.','warn');return}
   if(save.inv[key]<cost){say('You need '+cost+' '+ITEMS[key].name.toLowerCase()+'s.','warn');return}
   if(!canFitInventory({[key]:-cost},!save.eq[d.slot]&&usable(d)?0:1)){say('Your pack is full.','warn');return}
   save.inv[key]-=cost;
   if(!save.eq[d.slot]&&usable(d)){save.eq[d.slot]=id;say('You forge and equip a '+d.name.toLowerCase()+'.','gold')}
   else{save.bag.push(id);say('You forge a '+d.name.toLowerCase()+'.','gold')}
   burst(inside?88:me.x,inside?60:me.y-8,['#ff7b3a','#ffd24a','#fff2b0'],8,22);
-  addXp('mining',cost*Math.round(r.xp/2));onGearChange();
+  addXp('forging',forgeXp(r,cost));onGearChange();
 }
 function rForge(){
   const chips=el('div','chips');
   SMELT.forEach(r=>{const b=el('button','chip',MATS[r.mat].n);b.type='button';b.setAttribute('aria-pressed',String(forgeMat===r.mat));b.addEventListener('click',()=>{forgeMat=r.mat;renderModal()});chips.append(b)});
   mBody.append(chips);
-  const r=SMELT.find(x=>x.mat===forgeMat),key='ing_'+r.id,lv=lvlFor(save.xp.mining);
-  mBody.append(el('p','note','You have '+save.inv[key]+' '+ITEMS[key].name.toLowerCase()+'s. Needs '+NAMES.mining+' '+r.req+(lv>=r.req?'.':' (you have '+lv+').')));
+  const r=SMELT.find(x=>x.mat===forgeMat),key='ing_'+r.id,lv=lvlFor(save.xp.forging);
+  mBody.append(el('p','note','You have '+save.inv[key]+' '+ITEMS[key].name.toLowerCase()+'s. Needs '+NAMES.forging+' '+r.req+' to smelt; equipment unlocks gradually.'+(lv>=r.req?'.':' (you have '+lv+').')));
   Object.keys(FORGE).forEach(kind=>{
     const id=MATS[forgeMat].k+'_'+kind,d=DEFS[id];if(!d)return;
-    const cost=FORGE[kind],can=lv>=r.req&&save.inv[key]>=cost,row=el('div','shoprow');
-    row.innerHTML=gearSvg(d,32)+'<span>'+d.name+'<small>'+statLine(d)+'</small><small>'+cost+' ingots | needs '+NAMES[d.skill]+' '+d.req+' to use</small></span>';
+    const cost=FORGE[kind],can=lv>=forgeReq(r,kind)&&save.inv[key]>=cost,row=el('div','shoprow');
+    row.innerHTML=gearSvg(d,32)+'<span>'+d.name+'<small>'+statLine(d)+'</small><small>'+cost+' ingots | Forging '+forgeReq(r,kind)+' | needs '+NAMES[d.skill]+' '+d.req+' to use</small></span>';
     const b=el('button','btn','Forge '+cost);b.type='button';b.disabled=!can;b.addEventListener('click',()=>forge(kind));row.append(b);mBody.append(row);
   });
   mBody.append(el('p','note','A full combat set is 32 ingots: sword 4, shield 5, helmet 4, gauntlets 4, boots 4, legs 5, body 6.'));
