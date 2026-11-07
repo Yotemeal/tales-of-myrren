@@ -2181,3 +2181,34 @@ input[type=range] {
   .skill { min-height: 82px; padding: 4px 3px 12px; }
   .skill .level { font-size: 28px; }
 }
+
+/* Compact Equipment panel on phones: smaller slots and a content-sized window. */
+@media (max-width: 620px) {
+  #modal[data-screen="gear"] .win {
+    width: min(100%, 390px);
+    height: auto;
+    max-height: min(78dvh, 570px);
+    grid-template-rows: 34px minmax(0, 1fr) 32px;
+  }
+  #modal[data-screen="gear"] .character-sheet {
+    grid-template-columns: minmax(0, 132px) minmax(0, 1fr);
+    gap: 8px;
+    padding: 7px;
+    margin-bottom: 8px;
+  }
+  #modal[data-screen="gear"] .paper { gap: 3px; }
+  #modal[data-screen="gear"] .character-sheet .paper .slot {
+    min-height: 0;
+    aspect-ratio: 1;
+    padding: 2px;
+  }
+  #modal[data-screen="gear"] .paper .slot svg {
+    width: min(100%, 30px);
+    height: 30px;
+  }
+  #modal[data-screen="gear"] .paper .slot small { font-size: 9px; }
+  #modal[data-screen="gear"] .character-stats { gap: 3px; }
+  #modal[data-screen="gear"] .character-stats .eqtot { padding: 3px 5px; }
+  #modal[data-screen="gear"] .character-stats .eqtot b { font-size: 17px; }
+  #modal[data-screen="gear"] .owned-gear .slot { min-width: 42px; min-height: 42px; }
+}
