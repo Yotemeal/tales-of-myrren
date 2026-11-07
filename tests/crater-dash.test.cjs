@@ -184,9 +184,24 @@ const createGame=require('./game-runtime.cjs');
   g.update(.05,1900);
   assert.equal(g.me.hp,g.hpMax(),'leaving the aimed area avoids the ground crush');
 
-  const {game:boss}=await createGame({}, {search:bossSearch});
-  assert.equal(boss.mons.filter(m=>m.t==='jewelheart').length,1);
-  const {game:bossFlagOnly}=await createGame({}, {search:'?craterBossPreview=1'});
+  const {game:boss,canvasText}=await createGame({}, {search:bossSearch,captureCanvasText:true});
+  const jewelhearts=boss.mons.filter(m=>m.t==='jewelheart');
+  assert.equal(jewelhearts.length,1);
+  const jewelheart=jewelhearts[0];
+  boss.me.x=jewelheart.x+80;
+  boss.me.y=jewelheart.y-80;
+  boss.drawOutdoor(boss.me.x-400,boss.me.y-300,1000);
+  assert(canvasText.has('JEWELHEART TEST · SW 7 TILES'));
+  boss.me.x=jewelheart.x;
+  boss.me.y=jewelheart.y;
+  boss.drawOutdoor(boss.me.x-400,boss.me.y-300,1000);
+  assert(canvasText.has('JEWELHEART TEST · NEARBY'));
+  boss.killMon(jewelheart,1100);
+  boss.drawOutdoor(boss.me.x-400,boss.me.y-300,1200);
+  assert(canvasText.has('JEWELHEART · RESPAWNING · NEARBY'));
+  const {game:bossFlagOnly,canvasText:normalText}=await createGame({}, {search:'?craterBossPreview=1',captureCanvasText:true});
+  bossFlagOnly.drawOutdoor(400,500,1000);
+  assert(![...normalText].some(text=>text.includes('JEWELHEART')));
   assert(!bossFlagOnly.mons.some(m=>m.t==='jewelheart'));
 
   const {game:normal}=await createGame();

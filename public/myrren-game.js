@@ -2515,6 +2515,18 @@ function drawInterior(cx,cy,now){
   for(const e of list)e.f();
   label('Exit',X(88),Y(112),'#ffe14a');
 }
+const BOSS_BEARINGS=['N','NE','E','SE','S','SW','W','NW'];
+function jewelheartWaypoint(){
+  const boss=mons.find(m=>m.t==='jewelheart');
+  if(!boss)return 'JEWELHEART TEST · SPAWN UNAVAILABLE';
+  const waiting=boss.state==='dead';
+  const dx=(waiting?boss.hx:boss.x)-me.x,dy=(waiting?boss.hy:boss.y)-me.y;
+  const distance=Math.hypot(dx,dy);
+  const name=waiting?'JEWELHEART · RESPAWNING':'JEWELHEART TEST';
+  if(distance<2*T)return name+' · NEARBY';
+  const bearing=BOSS_BEARINGS[(Math.round(Math.atan2(dx,-dy)*4/Math.PI)+8)%8];
+  return name+' · '+bearing+' '+Math.round(distance/T)+' TILES';
+}
 function drawOutdoor(cx,cy,now){
   const t0=Math.max(0,Math.floor(cx/T)),t1=Math.min(WW/T-1,Math.floor((cx+cv.width)/T)),u0=Math.max(0,Math.floor(cy/T)),u1=Math.min(WH/T-1,Math.floor((cy+cv.height)/T));
   const pathAt=(tx,ty)=>VILLAGE.pathKind(tx*T+8,ty*T+8);
@@ -2592,7 +2604,7 @@ function drawOutdoor(cx,cy,now){
   if(craterRocks)for(const rock of craterRocks.rocks)if(vis(rock.x,rock.y))list.push({y:rock.y,f:()=>{const x=Math.round(rock.x-cx),y=Math.round(rock.y-cy)-10;R(x-2,y-1,5,3,'#302c29');R(x-1,y-2,3,4,'#827368');R(x-1,y-1,2,1,'#baa991')}});
   list.sort((a,b)=>a.y-b.y);
   for(const e of list)e.f();
-  if(craterRocks)label(craterBossPreview?'CRATER PREVIEW · JEWELHEART COMBAT TEST':craterGoblins?.ready?'CRATER MECHANICS PREVIEW':'CRATER MECHANICS PREVIEW · LEGACY GOBLIN ART',cv.width/2,18,'#ffe14a');
+  if(craterRocks)label(craterBossPreview?jewelheartWaypoint():craterGoblins?.ready?'CRATER MECHANICS PREVIEW':'CRATER MECHANICS PREVIEW · LEGACY GOBLIN ART',cv.width/2,18,'#ffe14a');
 }
 const GRASS=['#263d31','#344d39','#3b5840'];
 function frame(now){
