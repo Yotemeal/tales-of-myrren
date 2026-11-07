@@ -256,7 +256,7 @@ function parseSavedProgress(raw){
     return o&&typeof o==='object'&&!Array.isArray(o)&&o.xp&&typeof o.xp==='object'&&!Array.isArray(o.xp)?o:null;
   }catch(e){return null}
 }
-let save={notes:{},bank:{},packOrder:[],bankOrder:[],wear:{},jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0,forging:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0},x:CX,y:CY+44};
+let save={notes:{},bank:{},packOrder:[],bankOrder:[],wear:{},jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0,forging:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0,forging:0},x:CX,y:CY+44};
 let fresh=true,saveTs=0;
 function migrateArmourSave(source){
  const id=k=>typeof k==='string'&&/^leather_(helm|body|gloves|legs|boots|shield)$/.test(k)?k.replace('leather_','bronze_'):k;
@@ -268,7 +268,7 @@ function migrateArmourSave(source){
 }
 function applySave(o){
   o=migrateArmourSave(o);
-  save.wear={};save.jobs=[];save.tokens=0;save.perks={};save.dye=null;save.xp={};save.inv={};save.eq=emptyEq();save.bag=[];save.pets={woodcutting:0,fishing:0,mining:0};save.name='';save.x=CX;save.y=CY+44;
+  save.wear={};save.jobs=[];save.tokens=0;save.perks={};save.dye=null;save.xp={};save.inv={};save.eq=emptyEq();save.bag=[];save.pets={woodcutting:0,fishing:0,mining:0,forging:0};save.name='';save.x=CX;save.y=CY+44;
   {
     if(o.xp)Object.assign(save.xp,o.xp);
     if((+o.v||0)<3){
@@ -1081,7 +1081,7 @@ function smelt(r){
   markProduction('smelt');
   for(const k in r.in)save.inv[k]-=r.in[k];save.inv[key]++;
   say('You smelt a '+ITEMS[key].name.toLowerCase()+'.');burst(inside?88:me.x,inside?60:me.y-8,['#ff7b3a','#ffd24a','#fff2b0'],8,22);
-  addXp('forging',r.xp);persist();renderModal();uiHud();
+  addXp('forging',r.xp);rollPet('forging');persist();renderModal();uiHud();
 }
 function rSmelt(){
   mBody.append(el('p','note','Smelt chunks and coal into ingots. Uses '+NAMES.forging+' level.'));
@@ -1107,7 +1107,7 @@ function forge(kind){
   if(!save.eq[d.slot]&&usable(d)){save.eq[d.slot]=id;say('You forge and equip a '+d.name.toLowerCase()+'.','gold')}
   else{save.bag.push(id);say('You forge a '+d.name.toLowerCase()+'.','gold')}
   burst(inside?88:me.x,inside?60:me.y-8,['#ff7b3a','#ffd24a','#fff2b0'],8,22);
-  addXp('forging',forgeXp(r,cost));onGearChange();
+  addXp('forging',forgeXp(r,cost));rollPet('forging');onGearChange();
 }
 function rForge(){
   const chips=el('div','chips');
@@ -1413,7 +1413,8 @@ function startSwing(now){sfx('swing');me.swing=now;me.swings++;me.hold=now+3500;
 const PETS={
   woodcutting:{name:'Timber Glider',art:'pet_glider',what:'log'},
   fishing:{name:'Mossback Terrapin',art:'pet_terrapin',what:'catch'},
-  mining:{name:'Geode Mole',art:'pet_mole',what:'ore'}
+  mining:{name:'Geode Mole',art:'pet_mole',what:'ore'},
+  forging:{name:'Cinder Wisp',art:'ingot',what:'forge'}
 };
 const pets=[],petObjs={};
 function syncPets(){
@@ -2223,9 +2224,20 @@ function drawMole(p,x,y,now){
     }
   }
 }
+function drawCinderWisp(p,x,y,now){
+  const bob=Math.round(Math.sin(now/230+p.ph)*2),cy=y-7+bob;
+  R(x-5,y-1,10,2,'rgba(0,0,0,.18)');
+  R(x-3,cy-2,6,6,'#602f29');
+  R(x-2,cy-4,4,7,'#e66b28');
+  R(x-1,cy-6,2,7,'#ffd15a');
+  R(x,cy-7,1,3,'#fff2ad');
+  R(x-2,cy,1,1,'#241a23');R(x+1,cy,1,1,'#241a23');
+  if(Math.floor(now/180)%3===0)R(x+4,cy-5,1,2,'#ffcf64');
+}
 function drawPet(p,x,y,now){
   if(p.sk==='woodcutting')drawGlider(p,x,y,now);
   else if(p.sk==='fishing')drawTerrapin(p,x,y,now);
+  else if(p.sk==='forging')drawCinderWisp(p,x,y,now);
   else drawMole(p,x,y,now);
 }
 function drawLamp(x,y,now){MyrrenEnvironment.prop(ctx,'lamp',x,y,null,null,now)}
