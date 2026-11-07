@@ -90,6 +90,7 @@ const SHOPS={
   fish:{name:'Tidewater Rods',sign:'Fishing',keeper:'Odo',wall:'#9ab0c0',roof:'#3a6a9a',hue:200,hair:'#d8d8c8',bait:true,cats:{Nets:['net'],Rods:['rod']},kinds:['net','rod'],buys:['rshrimp','rtrout','rsalmon','rtuna','reel','shrimp','trout','salmon','tuna','eel'],greet:'Odo: A net for the shallows, a rod and bait for the deep. I buy your catch, raw or cooked.'},
   arms:{name:'Elderwood Blacksmith',sign:'Forge',keeper:'Dorn',wall:'#a89c9c',roof:'#a8422a',hue:0,hair:'#2a2a30',cats:{Axes:['axe'],Weapons:['sword'],Armour:['helm','body','gloves','legs','boots','shield'],Smelt:[],Forge:[],Repair:[]},kinds:['axe','sword','helm','body','gloves','legs','boots','shield','ring','amulet'],buys:['ing_bronze','ing_iron','ing_steel','ing_cobalt','ing_aether','ing_obsidianite','ing_starsteel'],greet:'Dorn: Axes, blades and armour for sale. Use the furnace and anvil to train Forging.'}
 };
+SHOPS.cart={name:'Wandering Trader',sign:'Traveller',keeper:'Rook',cats:{Gathering:['axe','pick','net','rod'],Combat:['sword','shield']},kinds:['axe','pick','net','rod','sword','shield'],buys:[],greet:'Rook: Just the basics, traveller. Better equipment is earned out there.'};
 for(const k in SHOPS)SHOPS[k].id=k;
 const SHOPMAX={rod:4,net:1,helm:8,body:8,gloves:8,legs:8,boots:8,shield:8};
 function svg(key,size,pal2){
@@ -214,13 +215,11 @@ const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=90,EDGE=100;
 const VILLAGE=MyrrenWorld;
 const BLD=VILLAGE.buildings.map(b=>({...b}));
 const LAMPS=[[CX-200,CY+14],[CX+200,CY+14],[CX-120,CY+70],[CX+120,CY+70],[CX-40,CY+70],[CX+40,CY+70]];
-const DECOR=[['board',CX+70,CY+56],['supply',CX+98,CY+58],['well',CX-70,CY+54],['stall',CX-150,CY+50,'#b8503a'],['stall',CX+150,CY+50,'#3a7a9a'],
- ['barrel',CX-204,CY-2],['barrel',CX-193,CY],['crate',CX-212,CY-9],['fence','fence',0],
- ['hay',CX+206,CY-2],['crate',CX+194,CY-4],['pot',CX+216,CY+8],['pot',CX-100,CY-2],['pot',CX+100,CY-2],['sack',CX+118,CY-2],['fbox',CX-60,CY+54],
- ['fence',CX-240,CY-14,44,'h'],['fence',CX-240,CY-14,40,'v'],['fence',CX+230,CY-14,44,'h'],['fence',CX+274,CY-14,40,'v'],
- ['bush',CX-232,CY-18,0],['bush',CX+244,CY-18,1],['bush',CX-112,CY-60,0],['bush',CX+42,CY-60,1]].filter(d=>d[1]!=='fence');
+// A maintained camp: keep only essential community fixtures.
+const DECOR=[['board',CX,CY-45]];
 const SOLID=DECOR.filter(d=>d[0]==='fence').map(d=>d[4]==='v'?{x0:d[1]-3,x1:d[1]+3,y0:d[2]-d[3]-2,y1:d[2]+1}:{x0:d[1]-2,x1:d[1]+d[3]+2,y0:d[2]-3,y1:d[2]+2});
-const BOARD={x:CX+70,y:CY+56};
+const BOARD={x:CX,y:CY-45};
+const TRADER={x:CX-142,y:CY-38,id:'cart'};
 const RX=176,RY=128;
 function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const rnd=rng(2024);
@@ -612,7 +611,7 @@ function addXp(skill,amt){
 
 /* ---------- modal ---------- */
 const modal=$('modal'),mBody=$('mBody');
-const TITLES={gear:'Equipment',pack:'Inventory',skills:'Skills',players:'Party',shop:'Shop',settings:'Settings',board:'Job Board',jobs:'Odd Jobs',odd:'Odd Shop',bank:'Bank chest'};
+const TITLES={gear:'Equipment',pack:'Inventory',skills:'Skills',players:'Party',shop:'Shop',settings:'Settings',board:'Community Board',jobs:'Odd Jobs',odd:'Odd Shop',bank:'Storage Chest'};
 function openModal(t){if(me.deathAt!=null)return;closeItemMenu();if(!tab)gpIdx=-1;tab=t;if(t!=='shop'&&t!=='settings'&&t!=='board'&&t!=='odd')lastTab=t;sel=null;renderModal()}
 function closeModal(){closeItemMenu();tab='';sel=null;outdoorShop=null;renderModal()}
 function renderModal(){
@@ -1308,7 +1307,7 @@ function rShop(){
     }
     const special=S.id==='arms'&&(shopCat==='Smelt'||shopCat==='Forge'||shopCat==='Repair');
     if(special){if(shopCat==='Smelt')rSmelt();else if(shopCat==='Forge')rForge();else rRepair()}
-    const list=special?[]:Object.values(DEFS).filter(d=>S.cats[shopCat].includes(d.kind)&&!owned(d.id)&&d.mat<=(SHOPMAX[d.kind]||3)).sort((a,b)=>a.price-b.price);
+    const list=special?[]:Object.values(DEFS).filter(d=>S.cats[shopCat].includes(d.kind)&&!owned(d.id)&&(S.id==='cart'?d.mat===KINDS[d.kind].mats[0]:d.mat<=(SHOPMAX[d.kind]||3))).sort((a,b)=>a.price-b.price);
     if(!list.length&&!special)mBody.append(el('p','note','You own everything in this section.'));
     list.forEach(d=>{
       const ok=usable(d),row=el('div','shoprow');
@@ -1371,7 +1370,7 @@ function resolveSwing(now){
 }
 function nearFire(){return Math.hypot(me.x-CX,me.y-(CY+22))<56}
 function nearestDoor(r){let best=null,bd=r;for(const b of BLD){const d=Math.hypot(b.x-me.x,b.y-me.y);if(d<bd){bd=d;best=b}}return best}
-const SPOTS={bank:{x:CX-55,y:CY+66},board:{x:BOARD.x,y:BOARD.y},crate:{x:CX+98,y:CY+58},odd:{x:CX+150,y:CY+50}};
+const SPOTS={bank:{x:CX-70,y:CY+66},board:{x:BOARD.x,y:BOARD.y}};
 function nearSpot(){let best=null,bd=36;for(const k in SPOTS){const d=Math.hypot(me.x-SPOTS[k].x,me.y-SPOTS[k].y);if(d<bd){bd=d;best=k}}return best}
 function nodeOK(n){
   const tx=n.x-me.x,ty=(n.y-(n.k.startsWith('spot')?0:2))-me.y,d=Math.hypot(tx,ty);
@@ -1406,6 +1405,7 @@ function useAction(){if(me.deathAt!=null)return;
     if(inside.id==='food'&&Math.hypot(me.x-24,me.y-74)<30){act={kind:'cook',where:'oven',t:0};return}
     say('Walk up to the counter, then press the button.');return;
   }
+  if(Math.hypot(me.x-TRADER.x,me.y-TRADER.y)<47){outdoorShop=TRADER;openShop();return}
   const station=nearSmithy();if(station){openSmithy(station.kind);return}
   const n=facingNode(now);
   if(n){beginAct('node',n);return}
@@ -1802,7 +1802,7 @@ function update(dt,now){
       }
     }
     for(const b of BLD){
-      if(b.open)continue;
+      if(b.open||b.id!=='axe')continue;
       const hw=b.w/2+3;
       if(Math.abs(me.x-b.x)<=7&&me.y<=b.y+1&&me.y>=b.y-4&&now>exitCD){enterBuilding(b,now);break}
       if(me.x>b.x-hw&&me.x<b.x+hw&&me.y>b.y-14&&me.y<b.y){
@@ -2440,12 +2440,22 @@ function drawPet(p,x,y,now){
   else if(p.sk==='forging')drawLivingAnvil(p,x,y,now);
   else drawMole(p,x,y,now);
 }
-function drawLamp(x,y,now){MyrrenEnvironment.prop(ctx,'lamp',x,y,null,null,now)}
+function drawLamp(x,y,now){
+  MyrrenEnvironment.prop(ctx,'lamp',x,y,null,null,now);
+  const sway=Math.round(Math.sin(now/900+x*.13)*2),flicker=Math.sin(now/180+x);
+  ctx.save();ctx.globalAlpha=.13+flicker*.025;ctx.fillStyle='#ffd181';
+  ctx.beginPath();ctx.arc(x+sway,y-16,19,0,Math.PI*2);ctx.fill();ctx.restore();
+  R(x+sway-3,y-19,7,8,'#e6ad56');R(x+sway-1,y-17,3,5,'#ffe6a0');
+}
 function drawBankChest(x,y){
-  R(x-13,y-18,26,18,OUT);R(x-12,y-17,24,16,'#6e4c31');R(x-11,y-16,22,6,'#a47a49');
-  R(x-11,y-10,22,2,'#342e28');R(x-9,y-17,3,16,'#c4b576');R(x+6,y-17,3,16,'#c4b576');
-  R(x-3,y-12,6,7,'#252927');R(x-2,y-11,4,5,'#e4d39a');R(x-1,y-10,2,3,'#655333');
-  if(Math.hypot(me.x-SPOTS.bank.x,me.y-SPOTS.bank.y)<70)label('Bank chest',x,y-24,'#f3df9e');
+  // Weather-beaten travelling storage trunk; bank inventory stays intact.
+  R(x-19,y-4,38,6,'#34342e');R(x-18,y-22,36,19,'#473729');
+  R(x-17,y-24,34,9,'#70553b');R(x-14,y-26,28,4,'#8a6947');
+  R(x-16,y-17,32,3,'#302b27');R(x-15,y-10,30,3,'#594531');
+  R(x-12,y-22,3,17,'#777366');R(x+9,y-22,3,17,'#777366');
+  R(x-4,y-16,8,8,'#3a3831');R(x-2,y-14,4,5,'#a69b78');
+  R(x-16,y-7,5,3,'#2d302c');R(x+11,y-7,5,3,'#2d302c');
+  if(Math.hypot(me.x-SPOTS.bank.x,me.y-SPOTS.bank.y)<70)label('Storage Chest',x,y-33,'#e8d9ae');
 }
 function drawSupply(x,y){
   drawCrate(x-6,y);drawCrate(x+7,y);drawCrate(x,y-11);
@@ -2453,9 +2463,19 @@ function drawSupply(x,y){
   if(Math.hypot(me.x-SPOTS.crate.x,me.y-SPOTS.crate.y)<64)label('Supply Crate',x,y-30,'#ffffff');
 }
 function drawBoard(x,y){
- MyrrenEnvironment.prop(ctx,'board',x,y);
- if(save.jobs.some(j=>j.done)){R(x-1,y-52,3,7,'#e5c97d');R(x-1,y-44,3,2,'#e5c97d')}
- if(Math.hypot(me.x-BOARD.x,me.y-BOARD.y)<60)label('Job Board',x,y-46,'#e4dfc3');
+  // Large shared noticeboard: announcements, requests and lost-city rumours.
+  R(x-36,y-9,5,49,'#493a2c');R(x+31,y-9,5,49,'#493a2c');
+  R(x-43,y-64,86,56,'#332f29');R(x-39,y-60,78,49,'#7a5b3e');
+  R(x-35,y-55,70,41,'#a4875e');
+  R(x-43,y-68,86,7,'#5c4a35');R(x-36,y-72,72,5,'#88704e');
+  for(let i=0;i<5;i++){
+    const px=x-29+(i%3)*23,py=y-50+Math.floor(i/3)*20;
+    R(px,py,19,16,i%2?'#d6c6a0':'#c3b58f');
+    R(px+3,py+4,12,2,'#786b55');R(px+3,py+9,9,2,'#948168');
+    R(px+9,py+1,2,2,'#65472e');
+  }
+  if(save.jobs.some(j=>j.done))R(x+25,y-49,5,7,'#e5c97d');
+  if(Math.hypot(me.x-BOARD.x,me.y-BOARD.y)<80)label('Community Board',x,y-77,'#e4dfc3');
 }
 function drawWell(x,y){MyrrenEnvironment.prop(ctx,'well',x,y)}
 function drawStall(x,y,col){MyrrenEnvironment.prop(ctx,'stall',x,y,col)}
@@ -2507,6 +2527,27 @@ function drawVillageArchitecture(b,x,y,now){/* Architecture is composed once in 
 function drawVillageSquare(cx,cy,now){ctx.save();if(Math.abs(me.x-CX)<14&&me.y<CY+57&&me.y>CY+18)ctx.globalAlpha=.45;MyrrenEnvironment.square(ctx,Math.round(CX-cx),Math.round(CY+57-cy),now);ctx.restore()}
 function drawBuilding(b,x,y,now){MyrrenEnvironment.building(ctx,b,x,y,now)}
 // Low, improvised stalls keep the original shop triggers without a row of houses.
+function drawTraderCart(x,y,now){
+  // One travelling merchant resting on a rock beside a loaded horse cart.
+  R(x-43,y-6,32,10,'#555b53');R(x-39,y-12,23,8,'#8d8b7b');
+  R(x-12,y-20,49,17,'#483626');R(x-9,y-23,42,7,'#9b7751');
+  R(x-8,y-30,5,11,'#73563a');R(x+28,y-30,5,11,'#73563a');
+  R(x-7,y-34,39,6,'#b09870');
+  for(const wx of [x-3,x+28]){
+    R(wx-7,y-8,14,13,'#302e2b');R(wx-5,y-6,10,10,'#8c7656');
+    R(wx-2,y-3,4,4,'#3b3a33');
+  }
+  // Pack horse, harness and reins.
+  R(x+44,y-26,24,15,'#8d6341');R(x+61,y-33,10,14,'#9d714b');
+  R(x+62,y-37,3,8,'#66452f');R(x+68,y-37,3,8,'#66452f');
+  for(const hx of [x+47,x+62])R(hx,y-11,5,17,'#60432f');
+  R(x+40,y-24,4,12,'#5a4b3d');R(x+35,y-17,11,2,'#c3a779');
+  // Seated traveller on the stone.
+  R(x-35,y-30,14,15,'#675344');R(x-34,y-43,11,13,'#c4a080');
+  R(x-38,y-46,19,5,'#524637');R(x-35,y-50,12,6,'#635341');
+  R(x-27,y-17,14,5,'#4d493f');
+  if(Math.hypot(me.x-TRADER.x,me.y-TRADER.y)<75)label('Rook · Starter Gear',x,y-59,'#e9d5a1');
+}
 function drawCampPitch(b,x,y,now){
   R(x-27,y-4,54,5,'#443b2e');R(x-23,y-13,46,10,'#826c4e');
   R(x-25,y-29,3,25,'#66513a');R(x+22,y-29,3,25,'#66513a');
@@ -2744,11 +2785,8 @@ function drawOutdoor(cx,cy,now){
   if(vis(SPOTS.bank.x,SPOTS.bank.y))list.push({y:SPOTS.bank.y,f:()=>drawBankChest(Math.round(SPOTS.bank.x-cx),Math.round(SPOTS.bank.y-cy))});
   // Only the general store is a permanent building. Other existing shops
   // remain usable as small canvas trade pitches instead of extra houses.
-  for(const b of BLD)if(!b.open)list.push({y:b.y,f:()=>{
-    const x=Math.round(b.x-cx),y=Math.round(b.y-cy);
-    if(b.id==='axe')drawBuilding(b,x,y,now);
-    else drawCampPitch(b,x,y,now);
-  }});
+  // The travelling merchant replaces all permanent starter shops.
+  if(vis(TRADER.x,TRADER.y))list.push({y:TRADER.y,f:()=>drawTraderCart(Math.round(TRADER.x-cx),Math.round(TRADER.y-cy),now)});
   for(const station of VILLAGE.stations)list.push({y:station.y,f:()=>{
     const x=Math.round(station.x-cx),y=Math.round(station.y-cy);
     MyrrenEnvironment.smithyPart(ctx,station.kind,x,y,now);
