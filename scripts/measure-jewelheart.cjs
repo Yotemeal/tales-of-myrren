@@ -9,15 +9,25 @@ function seededRandom(seed){
  };
 }
 
-async function fight({material,dodge,bossHp,maxHit},seed){
+async function createFighter(material){
  const {game}=await createGame({}, {search:'?craterPreview=1&craterBossPreview=1'});
- const boss=game.mons.find(m=>m.t==='jewelheart');
-
  game.save.xp.melee=game.xpTable[30];
  for(const [slot,kind] of Object.entries({weapon:'sword',head:'helm',body:'body',hands:'gloves',legs:'legs',boots:'boots',shield:'shield'})){
   const id=material+'_'+kind;
   if(!game.DEFS[id]||game.DEFS[id].req>30)throw Error('Gear unavailable at level 30: '+id);
   game.save.eq[slot]=id;
+ }
+ return game;
+}
+
+async function fight({material,dodge,bossHp,maxHit,partySize=1},seed){
+ const game=await createFighter(material);
+ const boss=game.mons.find(m=>m.t==='jewelheart');
+ const allies=[];
+ for(let i=1;i<partySize;i++){
+  const ally=await createFighter(material);
+  ally.mons.splice(0,ally.mons.length,boss);
+  allies.push({game:ally,side:i===1?-1:1,nextSwing:1000+i*300});
  }
  game.start();
  game.mons.splice(0,game.mons.length,boss);
@@ -44,6 +54,17 @@ async function fight({material,dodge,bossHp,maxHit},seed){
    const hp=me.hp;
    game.update(.05,now);
    damage+=Math.max(0,hp-me.hp);
+   // Idealised flankers share the boss HP and use the real damage roll.
+   // Only the lead fighter runs movement and boss targeting in this benchmark.
+   if(me.deathAt==null)for(const ally of allies){
+    if(boss.state==='dead'||now<ally.nextSwing)continue;
+    const y=boss.y+ally.side*20;
+    const aim=boss.dashAttack;
+    if(aim&&Math.hypot(boss.x-aim.x,y-aim.y)<=19)continue;
+    Object.assign(ally.game.me,{x:boss.x,y,fx:0,fy:-ally.side});
+    ally.game.resolveSwing(now);
+    ally.nextSwing=now+900;
+   }
    if(boss.lunge!==lastRelease){lastRelease=boss.lunge;crushes++}
    if(boss.state==='dead'||me.deathAt!=null)return {seconds:elapsed/1000,damage,crushes,win:boss.state==='dead'};
   }
@@ -58,10 +79,23 @@ function median(values){
 }
 
 (async()=>{
- const runs=Number(process.argv[2]||40);
+ const args=process.argv.slice(2);
+ const party=args.includes('--party');
+ const runs=Number(args.find(arg=>arg!=='--party')||40);
  if(!Number.isInteger(runs)||runs<1)throw Error('Run count must be a positive integer.');
- for(const [bossHp,maxHit] of [[42,6],[120,6],[120,18],[200,18],[450,18]])for(const material of ['iron','steel','cobalt'])for(const dodge of [false,true]){
-  const settings={bossHp,maxHit,material,dodge};
+ const scenarios=[];
+ if(party){
+  for(const material of ['steel','cobalt'])for(const partySize of [1,2,3]){
+   scenarios.push({bossHp:450,maxHit:18,material,dodge:true,partySize});
+  }
+ }else{
+  for(const [bossHp,maxHit] of [[42,6],[120,6],[120,18],[200,18],[450,18]]){
+   for(const material of ['iron','steel','cobalt'])for(const dodge of [false,true]){
+    scenarios.push({bossHp,maxHit,material,dodge});
+   }
+  }
+ }
+ for(const settings of scenarios){
   const results=[];
   for(let seed=1;seed<=runs;seed++)results.push(await fight(settings,seed));
   const wins=results.filter(r=>r.win);

@@ -203,3 +203,16 @@ The five wildlife names, final three pet designs and +3% matching bonus are not 
 ## 7. Next review point
 
 Review this plan and the unresolved contracts before starting gameplay implementation. The first implementation deliverable should be a faithful creature/pet fitting and animation preview on a separate branch, using the approved sources and current player. No merge or deployment has been made for this request.
+
+## 8. Jewelheart group encounter
+
+Jewelheart is a group-first level 30 fight. Players with good level 30 gear can clear it solo, with grouping offering faster repeat clears. The Guardian's Ring and Necklace are intended as useful level 30 rewards that later tiers can replace. Final effects and odds depend on real group clear times, including entry, reset and looting.
+
+Run `node scripts/measure-jewelheart.cjs --party 40` from the repository root. At the draft's 450 HP, level 30 medians were 63.4s solo, 30.4s duo and 18.6s trio in steel. In Black Iron they were 45.5s, 21.7s and 13.4s. This estimates ideal coordination. The lead fighter uses the game's movement and dodge logic with assisted aiming. Flankers use the actual swing damage against the same HP pool, but have fixed attack positions and the boss targets only the lead fighter. The benchmark excludes network delay, arena travel and reward collection.
+
+The current room connection exchanges player presence. Boss HP, target selection and defeat are local to each game. Implement the shared encounter in an authoritative runtime once a service and arena are selected.
+
+- The runtime owns one encounter ID and one HP pool per arena. It validates attack cooldown, weapon eligibility, range and facing against server-side state, then broadcasts the resulting HP, target and attack phase. Clients display the shared windup and impact, while the runtime resolves hits and player damage.
+- Define entry, leash and reset when the arena layout is established. A reset starts a fresh encounter ID and clears prior contributions. Reconnecting during an active fight reloads its current snapshot rather than creating another boss.
+- Attribute actual applied damage to verified player identities. Resolve eligibility at defeat from encounter participation and presence. Commit each eligible player's reward once, keyed by encounter and player, so simultaneous final hits and reconnects cannot duplicate credit. A full pack needs a way to collect a pending reward later.
+- Before enabling rewards, verify solo and multi-client clears, overlapping swings, late joins, party wipes, reconnects, duplicate requests and full packs. Keep rare-item odds provisional until actual party pacing and reward collection are measured.
