@@ -1369,7 +1369,7 @@ function resolveSwing(now){
   }
 }
 function nearFire(){return Math.hypot(me.x-CX,me.y-(CY+22))<56}
-function nearestDoor(r){let best=null,bd=r;for(const b of BLD){const d=Math.hypot(b.x-me.x,b.y-me.y);if(d<bd){bd=d;best=b}}return best}
+function nearestDoor(r){let best=null,bd=r;for(const b of BLD){if(!b.open)continue;const d=Math.hypot(b.x-me.x,b.y-me.y);if(d<bd){bd=d;best=b}}return best}
 const SPOTS={bank:{x:CX-70,y:CY+66},board:{x:BOARD.x,y:BOARD.y}};
 function nearSpot(){let best=null,bd=36;for(const k in SPOTS){const d=Math.hypot(me.x-SPOTS[k].x,me.y-SPOTS[k].y);if(d<bd){bd=d;best=k}}return best}
 function nodeOK(n){
@@ -1649,6 +1649,7 @@ function cookTick(dt,now){
 }
 function enterBuilding(b,now){
   if(b.open){openSmithy('trade');return}
+  if(b.id!=='arms'){outdoorShop=TRADER;openShop();return}
   inside=b;me.ox=b.x;me.oy=b.y+6;me.x=88;me.y=112;me.face=1;act=null;marker=null;petsTeleport();
   for(const m of mons)if(m.state==='chase')m.state='return';
   fade=0;snapCam=true;exitCD=now+700;
@@ -1802,7 +1803,7 @@ function update(dt,now){
       }
     }
     for(const b of BLD){
-      if(b.open||b.id!=='axe')continue;
+      if(!b.open)continue;
       const hw=b.w/2+3;
       if(Math.abs(me.x-b.x)<=7&&me.y<=b.y+1&&me.y>=b.y-4&&now>exitCD){enterBuilding(b,now);break}
       if(me.x>b.x-hw&&me.x<b.x+hw&&me.y>b.y-14&&me.y<b.y){
@@ -1813,7 +1814,7 @@ function update(dt,now){
   }
   if(act&&inRange){
     if(act.kind==='npc'){act=null;openShop()}
-    else if(act.kind==='door'){const b=act.ref;act=null;if(!inside)enterBuilding(b,now)}
+    else if(act.kind==='door'){const b=act.ref;act=null;if(!inside&&b.open)enterBuilding(b,now)}
     else if(act.kind==='cook')cookTick(dt,now);
     else doAction(dt,now);
   }
@@ -2642,18 +2643,32 @@ function drawOutdoor(cx,cy,now){
     if(kind==='grass'&&d>24&&VILLAGE.dryFootprint(wx+8,wy+15,14,19,2,4)&&H2(tx,ty)%113===0)MyrrenEnvironment.fern(ctx,x+8,y+15,H2(tx,ty)%4);
   }
   const smithy=BLD.find(b=>b.open);
-  // Compact stone-and-timber forge courtyard instead of a featureless slab.
+  // The smithy is a reclaimed stone workshop: charcoal-stained ground,
+  // a shelter over the workbench, stacked fuel and warm furnace spill.
   const sx=Math.round(smithy.x-cx),sy=Math.round(smithy.y-cy);
-  R(sx-65,sy-13,129,30,'#625849');
-  for(let j=0;j<8;j++){
-    const px=sx-61+j*16;
-    R(px,sy-12,14,2,j%2?'#8e806a':'#9c8b71');
-    R(px+3,sy+7,10,2,'#50483d');
+  R(sx-67,sy-38,135,62,'#514b40');
+  for(let j=0;j<7;j++)for(let i=0;i<14;i++){
+    const px=sx-64+i*9,py=sy-34+j*8,h=H2(i+83,j+27)%5;
+    R(px,py,8,7,h<2?'#6d6758':h<4?'#7e7764':'#5c5b50');
+    R(px+1,py,6,1,'#98917b');
   }
-  R(sx-66,sy-17,133,5,'#3d423b');
-  R(sx-64,sy+15,129,4,'#343e38');
-  R(sx-58,sy-25,4,12,'#68513a');R(sx+56,sy-25,4,12,'#68513a');
-
+  R(sx-70,sy+23,140,5,'#3b4039');
+  // Timber roof on the rear side, leaving furnace and anvil accessible.
+  R(sx-61,sy-62,5,28,'#4d382b');R(sx+52,sy-62,5,28,'#4d382b');
+  R(sx-66,sy-69,124,8,'#403b32');R(sx-61,sy-75,114,7,'#74634b');
+  R(sx-54,sy-79,102,5,'#a18c67');
+  for(let i=0;i<6;i++){
+    R(sx-52+i*19,sy-74,2,9,'#524838');
+  }
+  // Fuel pile, quench barrel and ember light.
+  for(let i=0;i<5;i++){
+    R(sx-60+i*7,sy+9-(i%2)*4,12,5,'#453629');
+    R(sx-59+i*7,sy+8-(i%2)*4,9,2,'#8c6846');
+  }
+  R(sx+48,sy+3,17,17,'#373a36');R(sx+50,sy+1,13,7,'#6b5540');
+  R(sx+52,sy+4,9,3,'#6b8a86');
+  ctx.save();ctx.globalAlpha=.11+Math.sin(now/240)*.025;
+  ctx.fillStyle='#ff9a42';ctx.beginPath();ctx.arc(sx+26,sy-8,42,0,Math.PI*2);ctx.fill();ctx.restore();
   for(const d of decals){const a=1-(now-d.t)/25000;ctx.globalAlpha=Math.max(0,a);const x=Math.round(d.x-cx),y=Math.round(d.y-cy);R(x-5,y-1,10,3,d.c);R(x-2,y-3,5,2,d.c);R(x+3,y+2,3,2,d.c);R(x-7,y+1,2,2,d.c);ctx.globalAlpha=1}
 
   const list=[];
