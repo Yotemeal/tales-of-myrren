@@ -19,7 +19,7 @@
     if(!Number.isFinite(value))throw new TypeError('Invalid item stat');
    }
   }
-  if(!config.approved)throw new TypeError('Explicit balance approval required');
+  if(config.approved!==true)throw new TypeError('Explicit balance approval required');
   return true;
  }
  window.MyrrenBossRewardSchema=Object.freeze({validate});
