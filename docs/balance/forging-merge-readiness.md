@@ -22,3 +22,12 @@ The current level-100 XP curve requires **249,604,271 XP**. Starsteel body armou
 - Inspect UI for mobile and desktop.
 
 Do not merge or deploy until these checks pass.
+
+## Follow-up implementation and verification status (2026-11-07)
+- Added 1.5-second smelting and 2.5-second equipment forging cooldowns to prevent rapid input duplication. Cooldown starts only after validation succeeds.
+- Added GitHub Actions workflow at `.github/workflows/forging-checks.yml`, running JavaScript syntax, Forging behavior and existing inventory/save/bank regression tests.
+- Extended `tests/forging-skill.test.cjs` to execute isolated production functions and assert XP allocation, cooldowns, level locks and resource consumption.
+- GitHub API returned **zero workflow runs and zero commit statuses** at the time of inspection. Do not interpret this as a passing test result.
+- XP thresholds calculated from runtime: level 70 = 3,253,985; level 78 = 10,602,570; level 90 = 60,554,361; level 100 = 249,604,271.
+- At 12,000 XP per Starsteel body, 2.5-second forging cooldown alone gives a theoretical 14.4-hour lower bound from zero XP, excluding gathering, smelting, travel, banking, unlocks and failed actions. This does NOT establish the 35 EHP target.
+- The PR must remain draft until checks run successfully and browser save/import/economy checks complete.
