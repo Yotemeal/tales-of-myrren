@@ -2603,8 +2603,30 @@ function drawOutdoor(cx,cy,now){
     const n={x:gx,y:gy,k:'tree',previewTree:rimKinds[i%rimKinds.length],back:0};
     list.push({y:gy,f:()=>drawTree(n,Math.round(gx-cx),Math.round(gy-cy),now)});
   }
+  // Fallen masonry and sharpened timber protect the Camp. The southern gap
+  // is the only route through; the shared world geometry handles collision.
+  for(let i=0;i<96;i++){
+    const a=i*Math.PI*2/96;
+    const gx=CX+Math.cos(a)*310,gy=CY+Math.sin(a)*235;
+    if(gy>CY+160&&Math.abs(gx-CX)<49)continue;
+    if(!vis(gx,gy))continue;
+    list.push({y:gy,f:()=>{
+      const x=Math.round(gx-cx),y=Math.round(gy-cy);
+      const k=(i*13)%7;
+      // Dark foundation, irregular stone tops, moss and occasional stakes.
+      R(x-10,y-5,20,9,'#3f4b45');
+      R(x-9,y-10-k%3,18,8,'#697369');
+      R(x-7,y-12-k%3,12,3,'#989987');
+      R(x-7,y-8,4,2,'#536f50');
+      if(i%3===0){
+        R(x-2,y-19,4,14,'#4c392d');
+        R(x-1,y-22,2,5,'#a58b64');
+        R(x-3,y-15,1,7,'#8e7655');
+      }
+    }});
+  }
   // Water and bridge sit below actors and trees in the world depth list.
-  drawVillageFalls(cx,cy,now);
+  // No bridges or encircling water remain in the Camp.
   for(const tree of VILLAGE_GROVE)if(VILLAGE.dryFootprint(tree.x,tree.y,88,174,3,10)&&tree.x>cx-100&&tree.x<cx+cv.width+100&&tree.y>cy-25&&tree.y<cy+cv.height+160)list.push({y:tree.y,f:()=>drawAncientTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
   // Keep the camp centre readable: vegetation belongs on the crater slopes.
   for(let i=0;i<12;i++){
