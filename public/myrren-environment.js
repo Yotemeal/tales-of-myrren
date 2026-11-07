@@ -17,7 +17,29 @@
     const shadow=(x,y,w)=>{r(x-w/2,y-1,w,3,'#203631');r(x-w*.35,y+2,w*.7,1,'#263c34')};
     return {r,poly,crown,shadow};
   }
+  /* Optional approved resource sprites. Missing images safely retain procedural art. */
+  const resourceImages=new Map();
+  const resourceNames={tree:'bramblewood',oak:'alder',maple:'ironbark',elder:'elderthorn',myrren:'starroot'};
+  function resourceSprite(ctx,n,x,y,now,isTree){
+    if(now<n.back)return false; // preserve harvested stump / depleted rock visuals
+    const name=isTree?resourceNames[n.k]:({cobalt:'black_iron',aether:'myrrenite'}[n.k]||n.k);
+    if(!name)return false;
+    const key=(isTree?'tree_':'ore_')+name;
+    let entry=resourceImages.get(key);
+    if(!entry){
+      const img=new Image();entry={img,ready:false,failed:false};resourceImages.set(key,entry);
+      img.onload=()=>{entry.ready=img.naturalWidth>0};
+      img.onerror=()=>{entry.failed=true};
+      img.src='/assets/resources/'+key+'.png';
+    }
+    if(!entry.ready)return false;
+    const w=isTree?Math.min(82,Math.round(entry.img.naturalWidth*0.48)):35;
+    const h=isTree?Math.min(96,Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth)):Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth);
+    ctx.drawImage(entry.img,Math.round(x-w/2),Math.round(y-h+4),w,h);
+    return true;
+  }
   function tree(ctx,n,x,y,now,ancient=false){
+    if(!ancient&&resourceSprite(ctx,n,x,y,now,true))return;
     const variant=hash(n.x,n.y)%4,k=n.k,stump=now<n.back,tainted=n.x>1130&&n.y>1160;
     const big=ancient,scale=big?1.65:k==='tree'?1:1.18;
     sprite(ctx,`tree:${k}:${variant}:${stump}:${big}:${tainted}`,big?180:100,big?185:108,big?90:50,big?177:101,x,y,({r,poly,crown,shadow})=>{
@@ -50,6 +72,7 @@
     });
   }
   function rock(ctx,n,x,y,now){
+    if(resourceSprite(ctx,n,x,y,now,false))return;
     const live=now>=n.back;
     sprite(ctx,`rock:${n.k}:${live}:${hash(n.x,n.y)%3}`,42,30,21,26,x,y,({r,poly,shadow})=>{
       shadow(22,27,34);poly([[4,23],[4,15],[9,7],[19,3],[30,7],[37,17],[37,25],[12,27]],P.ink);
