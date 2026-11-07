@@ -1577,43 +1577,16 @@ function killMon(m,now){
     return; // The rehearsal has no progression or loot awards.
   }
   addXp('melee',combatKillXp(mt));
-  // Regular Crater enemies use the same ordinary-monster reward path as the rest of Myrren.
-  // Keep the structured Crater loot roller available for isolated preview tests only.
-  const definition=null;
-  const useCraterRewards=!!(craterLoot&&definition);
-  if(useCraterRewards){
-    const c=rint(mt.coins[0],mt.coins[1]);
-    const table={...definition,guaranteed:[{itemId:'coins',quantity:c}]};
-    craterLoot.award(m,table,drops=>{
-      const adapter=window.MyrrenCraterInventory;
-      if(!adapter)throw new Error('Crater inventory adapter missing');
-      const plan=adapter.plan(drops,{
-        inventory:save.inv,gear:save.bag,
-        canFit:(stack,extraGear)=>canFitInventory(stack,extraGear),
-        resolveGear:()=>{
-          const mat=Math.max(2,mt.drop.mats[rint(0,mt.drop.mats.length-1)]);
-          const kinds=Object.keys(KINDS).filter(k=>KINDS[k].mats.includes(mat));
-          return MATS[mat].k+'_'+kinds[rint(0,kinds.length-1)];
-        }
-      });
-      adapter.commit(plan,save.inv,save.bag);
-      for(const [id,count] of Object.entries(plan.stack)){
-        if(id==='coins')say('You find '+count+' coins.');
-        else if(id==='bread')say('It dropped '+count+' bread.');
-      }
-      for(const id of plan.equipment)say('Rare drop: '+DEFS[id].name+'!','gold');
-      for(const drop of plan.rejected)say('Your pack is full; '+drop.itemId+' could not be collected.','warn');
-    },Math.random,window.MyrrenCraterLootTables.sharedTables,{eligible:true,ironmanOwner:true});
-  }else{
-    const c=rint(mt.coins[0],mt.coins[1]);save.inv.coins+=c;say('You find '+c+' coins.');
-  }
+  const coins=rint(mt.coins[0],mt.coins[1]);
+  save.inv.coins+=coins;
+  say('You find '+coins+' coins.');
   {
     let hit=false;
     for(const j of save.jobs)for(const o of j.objs)if(o.type==='slay'&&o.mon===m.t&&o.have<o.need){o.have++;hit=true}
     if(hit)for(const j of save.jobs){const was=j.done;j.done=jobDone(j);if(j.done&&!was){say('Odd job complete! Claim it in your Jobs tab.','gold');toast('ODD JOB DONE\nOpen your Jobs tab')}}
   }
-  if(!useCraterRewards&&Math.random()<mt.bread){if(canFitInventory({bread:1})){save.inv.bread++;say('It dropped some bread.')}else say('It dropped bread, but your pack is full.','warn')}
-  if(!useCraterRewards&&Math.random()<mt.drop.p){
+  if(Math.random()<mt.bread){if(canFitInventory({bread:1})){save.inv.bread++;say('It dropped some bread.')}else say('It dropped bread, but your pack is full.','warn')}
+  if(Math.random()<mt.drop.p){
     const mat=Math.max(2,mt.drop.mats[rint(0,mt.drop.mats.length-1)]);
     const kinds=Object.keys(KINDS).filter(k=>KINDS[k].mats.includes(mat));
     giveGear(MATS[mat].k+'_'+kinds[rint(0,kinds.length-1)]);
