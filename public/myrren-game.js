@@ -552,7 +552,7 @@ document.querySelectorAll('[data-i]').forEach(e=>{const k=e.dataset.i;e.innerHTM
 const HUD_LINE_ICONS={
   helm:'<path d="M12 3 4.5 6.5V13c0 5 3.2 7.7 7.5 9 4.3-1.3 7.5-4 7.5-9V6.5L12 3Z"/>',
   pick:'<path d="M5 20v-5M12 20V9M19 20V4"/>',
-  scroll:'<path d="M7 4h11a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3V7a3 3 0 0 0-3-3h5Zm-5 0a3 3 0 0 1 3 3v2h5V7a3 3 0 0 0-3-3M9 10h8M9 14h7M9 18h6"/>',
+  scroll:'<path d="M7 3h11a2 2 0 0 1 2 2v13H8a3 3 0 0 1-3-3V6a3 3 0 0 0-3-3h5Z"/><path d="M2 3a3 3 0 0 1 3 3v2h5V6a3 3 0 0 0-3-3M8 18v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2H8ZM10 8h7M10 12h7M10 16h4"/>',
   cog:'<path d="M10 2h4l.7 2.3 1.8.8 2.1-1.1 2.8 2.8-1.1 2.1.8 1.8L23 11v4l-2.3.7-.8 1.8 1.1 2.1-2.8 2.8-2.1-1.1-1.8.8L14 23h-4l-.7-2.3-1.8-.8-2.1 1.1-2.8-2.8 1.1-2.1-.8-1.8L1 15v-4l2.3-.7.8-1.8L3 6.4l2.8-2.8 2.1 1.1 1.8-.8L10 2Z"/><circle cx="12" cy="13" r="3"/>',
   bag:'<rect x="4" y="7" width="16" height="15" rx="3"/><path d="M9 7V5a3 3 0 0 1 6 0v2M8 13h8v6H8zM10 16h4"/>'
 };
