@@ -54,3 +54,20 @@ Use the provided bare-character movement sheets and steel armour multi-direction
 - `public/myrren-game.js` contains procedural code-drawn Trader Gus/cart and pet functions.
 - `public/myrren-environment.js` references `assets/resources/` for environment resource sprites.
 - This audit is partial; it does **not** establish that Work's full monster or pet art is absent. Do not overwrite uninspected Work changes.
+
+## Code-level integration audit — first pass
+Verified from `public/myrren-game.js` on the default branch:
+
+| Approved concept | Current drawing path | Integration action |
+| --- | --- | --- |
+| Timber Glider | `drawPet` routes woodcutting to `drawGlider` | Compare Work sprite sheets before replacement |
+| Geode Mole | `drawPet` defaults to `drawMole`; has dirt-trail and burrowing code | Check mining skill routing and Work art |
+| River Otter | Fishing currently routes to `drawTerrapin` (a turtle, not the approved otter) | Requires asset and animation migration; preserve fishing pet data/save IDs |
+| Forging pet | `drawPet` routes forging to `drawLivingAnvil` | Existing pet not shown on the supplied three-pet sheet; do not remove without confirming intended roster |
+| Trader Gus | `drawTraderCart` is drawn with rectangle primitives | Replace visually with scale-matched Work-style sprites only after checking available assets |
+| Storage chest | `drawBankChest` is procedural | Preserve bank/storage interaction when reskinning |
+| Lantern | `drawLamp` draws environment prop and animated glow | Preserve light animation when reskinning |
+
+**Confirmed mismatch:** The fishing pet in current code is a terrapin, while the approved reference depicts a River Otter. This is an art/integration discrepancy, not permission to silently replace an existing player's pet. Inspect save schema, asset availability and animation states before migration.
+
+**Asset discovery limitation:** GitHub code search returned no results for the queried monster/pet terms, so this pass cannot establish the full repository's asset inventory. No binary sprite sheets were changed, no gameplay balancing was altered and no asset was claimed to be installed.
