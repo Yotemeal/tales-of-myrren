@@ -2736,3 +2736,73 @@ input[type=range] {
   }
   #modal[data-screen="skills"] .skill { height: 68px; }
 }
+
+/* Landscape inventory must stay inside the visible game area above the HUD. */
+@media (orientation: landscape) and (max-height: 600px) {
+  #modal[data-screen="pack"] {
+    top: max(6px, env(safe-area-inset-top));
+    bottom: calc(var(--hud-bottom) + var(--hud-height) + 8px);
+    align-items: center;
+    justify-content: center;
+  }
+  #modal[data-screen="pack"] .win {
+    box-sizing: border-box;
+    width: min(100%, 342px);
+    height: min(100%, 315px);
+    max-height: 100%;
+    min-height: 0;
+    grid-template-rows: 29px minmax(0,1fr) 27px;
+    gap: 3px;
+    padding: 4px;
+    overflow: hidden;
+  }
+  #modal[data-screen="pack"] #mBody {
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    padding: 3px;
+  }
+  #modal[data-screen="pack"] .inventory-layout,
+  #modal[data-screen="pack"] .pack-pane { min-height: 0; }
+  #modal[data-screen="pack"] .pack {
+    grid-template-columns: repeat(6,minmax(0,1fr));
+    gap: 3px;
+  }
+  #modal[data-screen="pack"] .pack .slot {
+    min-height: 0;
+    width: 100%;
+    aspect-ratio: 1;
+    padding: 1px;
+  }
+  #modal[data-screen="pack"] .pane-heading { margin-bottom: 3px; }
+}
+/* Denser Skills tiles in both phone orientations. */
+#modal[data-screen="skills"] .skill {
+  box-sizing: border-box;
+  min-height: 0;
+  height: 66px;
+  gap: 0;
+  padding: 2px 1px 7px;
+}
+#modal[data-screen="skills"] .skill .skill-top { gap: 3px; }
+#modal[data-screen="skills"] .skill .ic svg { width: 18px; height: 18px; }
+#modal[data-screen="skills"] .skill .level { font-size: 20px; }
+#modal[data-screen="skills"] .skill b { font-size: 11px; line-height: 1.05; }
+#modal[data-screen="skills"] .skill small { font-size: 9px; line-height: 1; }
+#modal[data-screen="skills"] .skill .bar { height: 4px; bottom: 2px; }
+@media (max-width: 620px) {
+  #modal[data-screen="skills"] .win { width: min(100%, 288px); }
+  #modal[data-screen="skills"] .skill { height: 62px; }
+  #modal[data-screen="skills"] .skill-grid { gap: 3px; }
+}
+@media (orientation: landscape) and (max-height: 600px) {
+  #modal[data-screen="skills"] .win {
+    width: min(100%, 365px);
+    max-height: min(100%, 295px);
+    min-height: 0;
+  }
+  #modal[data-screen="skills"] .skill { height: 58px; }
+  #modal[data-screen="skills"] .skill-grid { gap: 3px; }
+}
