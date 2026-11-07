@@ -40,3 +40,10 @@ An optimistic tier-by-tier simulation (unlimited purchased ingots, best 6-ingot 
 Important: the original 35 EHP target cannot be claimed from the current XP/cooldown parameters. Do not set an arbitrary longer click cooldown without assessing gameplay feel. Consider production batches, crafting durations and bank/ingot supply, then benchmark a valid unlock-by-unlock route. Separate purchasing (efficient EHP) from self-mining (Delving + Forging combined hours).
 
 A browser smoke test and real saved-character migration are still needed; successful CI is not a substitute.
+
+## Resource-cost reality check
+A level-70-to-100 shortcut using only Starsteel body armour is **not a legal route** because body armour unlocks at Forging 78. The ~20,530 body crafts / 123,180 ingots / 369,540 meteorite / 492,720 coal figures are illustrative only, not a validated route.
+
+The `SELL.ing_starsteel = 1300` constant is an **NPC buyback value**, not an NPC purchase price. The current shop code sells gear and food, not ingots. Therefore multiplying 123,180 ingots by 1,300 yields ~160.1m coins of *foregone NPC ingot sale value*, not an established cost to buy ingots. No player marketplace purchase price is implemented or verified here.
+
+Keep XP rates unchanged for now: the substantial ore/coal supply constraint may already balance the 14.6-hour ideal click-time floor. Reassess after a legal unlock-by-unlock route, resource acquisition, banking and market availability are measured.
