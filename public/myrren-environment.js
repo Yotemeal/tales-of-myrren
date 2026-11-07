@@ -241,6 +241,15 @@
     r(x-47,y-39,94,53,'#4f594d');
     for(let j=0;j<6;j++)for(let i=0;i<10;i++){const h=hash(i,j);r(x-45+i*9,y-37+j*8,8,7,h%3?'#69705e':'#777c65');r(x-44+i*9,y-37+j*8,6,1,'#92947a')}
     r(x-45,y+10,18,3,P.leaf);r(x+27,y-37,15,3,P.shade);
+    // Charcoal soot and iron flecks ground the smithy in the survivor camp.
+    for(let i=0;i<18;i++){
+      const px=x-39+(hash(i,37)%79),py=y-29+(hash(i,61)%38);
+      r(px,py,i%3===0?3:2,1,i%4===0?'#3b3933':i%3===0?'#a19072':'#565c50');
+    }
+    // The forge has a small neat stack of fuel, not a cluttered shopfront.
+    r(x+32,y-27,12,3,'#302c28');r(x+34,y-30,9,3,'#494137');
+    r(x+34,y-31,7,1,'#9b7a55');
+    r(x-43,y-33,11,2,'#4a4134');r(x-41,y-36,7,3,'#6d543b');
   }
   function smithyPart(ctx,kind,x,y,now=0){
     if(kind==='floor'){smithyFloor(ctx,x,y);return}
@@ -257,9 +266,18 @@
       poly([[x-14,y-7],[x-13,y-29],[x-9,y-34],[x+10,y-34],[x+13,y-27],[x+14,y-7]],'#7f806b');
       for(let j=0;j<5;j++){r(x-12,y-31+j*5,24,1,'#515c50');for(let i=0;i<3;i++)r(x-11+i*8+(j%2)*3,y-30+j*5,1,4,'#566153')}
       poly([[x-10,y-8],[x-10,y-22],[x-5,y-27],[x+5,y-27],[x+10,y-22],[x+10,y-8]],P.ink);
+      // Firebox arch, iron rim and ember bed.
+      r(x-11,y-23,22,3,'#3a3430');r(x-9,y-25,18,3,'#a39b80');
+      r(x-8,y-21,16,14,'#302a25');
       r(x-7,y-20,14,12,'#8b462f');const f=Math.floor(now/150)%3;
       r(x-6,y-15-f,12,8+f,'#db8245');r(x-3,y-20+f,6,12-f,'#f4c66c');r(x-1,y-16,3,8,'#f6dfa0');
-      r(x-14,y-7,28,3,P.stoneL);r(x+20,y-4,11,5,P.ink);r(x+21,y-6,8,5,'#35423d');
+      r(x-14,y-7,28,3,P.stoneL);
+      // Glowing coals and reflected heat across the furnace mouth.
+      r(x-7,y-9,14,2,'#b55331');r(x-5,y-10,3,2,'#ffbf64');
+      r(x+2,y-10,3,2,'#ffe3a0');
+      ctx.save();ctx.globalAlpha=.08+Math.sin(now/210)*.025;
+      ctx.fillStyle='#ffad55';ctx.beginPath();ctx.arc(x,y-14,27,0,Math.PI*2);ctx.fill();ctx.restore();
+      r(x+20,y-4,11,5,P.ink);r(x+21,y-6,8,5,'#35423d');
       for(let i=0;i<3;i++){const t=(now/2100+i/3)%1;ctx.globalAlpha=(1-t)*.25;r(x+10+Math.round(Math.sin(t*4+i)*3),y-58-Math.round(t*19),4,4,'#b9bbae')}ctx.globalAlpha=1;
     }else{
       // Low tools-and-stock rack: the workshop has no walls, door or roof.
