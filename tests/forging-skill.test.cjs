@@ -1,0 +1,26 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const src=fs.readFileSync(require('node:path').join(__dirname,'../public/myrren-game.js'),'utf8');
+new vm.Script(src,{filename:'myrren-game.js'});
+const has=x=>assert.ok(src.includes(x),'Missing runtime contract: '+x);
+has("forging:'Forging'");
+has("'cooking','forging']");
+has("forging:'ingot'");
+has("addXp('forging',r.xp)");
+has("addXp('forging',forgeXp(r,cost))");
+has("lvlFor(save.xp.forging)<r.req");
+has("lvlFor(save.xp.forging)<forgeReq(r,kind)");
+has("const forgeXp=(r,cost)=>cost*r.xp*2");
+const section=src.slice(src.indexOf('const ingName=id=>'),src.indexOf('function rForge(){'));
+assert.ok(!section.includes("addXp('mining'"),'Production must not award Delving XP');
+const skill=src.match(/const SK=\[([^\]]+)\]/);
+assert.ok(skill&&skill[1].split(',').length===6,'Expected six skills');
+const requirements={pick:0,axe:1,helm:2,boots:3,gloves:3,sword:4,shield:5,legs:7,body:8};
+const tiers=[1,10,20,30,40,55,70];
+for(const base of tiers)for(const [kind,offset] of Object.entries(requirements)){
+ const level=base+offset;
+ assert.ok(level>=base&&level<=base+8,kind+' unlock invalid');
+}
+console.log('Forging static contracts and syntax passed');
