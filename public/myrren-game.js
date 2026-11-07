@@ -419,10 +419,6 @@ function uiHud(){
   $('hpFill').style.width='calc('+clamp(me.hp/m,0,1)*100+'% - 8px)';
   $('hpTxt').textContent=Math.max(0,me.hp)+' / '+m;
   $('lvlTxt').textContent=lvlFor(save.xp.melee);
-  const xp=save.xp[lastSkill],L=lvlFor(xp),lo=xpTable[L],hi=L>=MAXL?xpTable[MAXL]:xpTable[L+1];
-  const pct=L>=MAXL?100:(xp-lo)/(hi-lo)*100;
-  $('xpFill').style.width='calc('+pct+'% - 8px)';
-  $('xpTxt').textContent=NAMES[lastSkill]+' '+pct.toFixed(1)+'%';
   $('eatN').textContent=foodCount()||'';
   $('hudName').textContent=save.name||'Wanderer';
   uiCurrencies();
