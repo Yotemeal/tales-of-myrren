@@ -2548,10 +2548,16 @@ function drawOutdoor(cx,cy,now){
     const craterR=Math.hypot((wx+8-CX)/555,(wy+8-CY)/455);
     if(d>25&&kind==='grass'&&craterR>.78&&craterR<1.13){
       const grit=H2(tx+731,ty-391)%17;
-      if(grit<9){
-        R(x+2,y+12,12,2,craterR>1?'#64705a':'#7b8063');
-        R(x+3,y+10,8,2,craterR>1?'#777b65':'#96917b');
-        if(grit<4){R(x+4,y+8,5,2,'#9d9a85');R(x+9,y+12,4,2,'#4b5d4d')}
+      // Two softly staggered rock shelves form the crater's visible inner wall.
+      const shelf=craterR>.91&&craterR<1.055;
+      if(shelf&&grit<12){
+        R(x,y+11,16,5,'#46544b');
+        R(x,y+8,16,4,'#697465');
+        R(x+2,y+7,11,2,'#999b83');
+        if(grit<5){R(x+2,y+5,5,2,'#818b72');R(x+10,y+12,4,2,'#4e7251')}
+      }else if(grit<5){
+        R(x+3,y+12,10,2,'#65715b');
+        R(x+5,y+10,6,2,'#8b9076');
       }
     }
     if(d>=-18&&d<18)MyrrenEnvironment.waterTile(ctx,tx,ty,x,y,now,VILLAGE);
@@ -2583,6 +2589,19 @@ function drawOutdoor(cx,cy,now){
         forestEdge.push({x:fx,y:fy,k:'forest',back:0});
       }
     }
+  }
+  // Uneven forest crown on the crater's outer shoulder. Keep entrances and
+  // the central settlement unobstructed; these trees are purely visual.
+  const rimKinds=['bramblewood','alder','ironbark','redleaf','duskwillow','elderthorn','starroot'];
+  for(let i=0;i<24;i++){
+    const a=(i+.32)*Math.PI*2/24;
+    const radius=610+((i*37)%65);
+    const gx=CX+Math.cos(a)*radius,gy=CY+Math.sin(a)*radius*.79;
+    if(gx<EDGE+65||gy<EDGE+65||gx>WW-EDGE-65||gy>WH-EDGE-65)continue;
+    if(Math.abs(gy-CY)<65)continue; // leave the east/west approach clear
+    if(!vis(gx,gy)||!VILLAGE.dryFootprint(gx,gy,70,140,4,12))continue;
+    const n={x:gx,y:gy,k:'tree',previewTree:rimKinds[i%rimKinds.length],back:0};
+    list.push({y:gy,f:()=>drawTree(n,Math.round(gx-cx),Math.round(gy-cy),now)});
   }
   // Water and bridge sit below actors and trees in the world depth list.
   drawVillageFalls(cx,cy,now);
