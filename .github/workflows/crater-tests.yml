@@ -26,6 +26,7 @@ jobs:
       - run: node --check public/crater-loot-inventory.js
       - run: node --check public/crater-boss-rewards.js
       - run: node --check public/crater-boss-reward-schema.js
+      - run: node --check public/crater-boss-loot-table.js
       - run: node --check src/crater-loot.mjs
       - run: node --check src/crater-kill-rewards.mjs
-      - run: node --test tests/crater-loot*.test.* tests/crater-boss-rewards.test.cjs tests/crater-boss-reward-schema.test.cjs tests/crater-kill-rewards.test.mjs
+      - run: node --test tests/crater-loot*.test.* tests/crater-boss-rewards.test.cjs tests/crater-boss-reward-schema.test.cjs tests/crater-boss-loot-table.test.cjs tests/crater-kill-rewards.test.mjs
