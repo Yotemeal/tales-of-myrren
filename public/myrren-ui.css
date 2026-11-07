@@ -2968,3 +2968,35 @@ input[type=range] {
     max-height: 100%;
   }
 }
+
+/* Single-line HUD: level | HP | equipment and other menu buttons. */
+#hud {
+  height: 48px;
+  grid-template-columns: 34px minmax(0,1fr);
+  grid-template-rows: 1fr;
+  gap: 5px;
+  padding: 4px 6px;
+}
+#hudBottom {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: minmax(48px,1fr) auto;
+  gap: 5px;
+  align-items: center;
+}
+#hudBottom > #bars {
+  display: block;
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  width: 100%;
+}
+#hudBottom #hp { height: 12px; }
+#hudBottom #hp span { font-size: 10px; line-height: 11px; }
+#hudBottom > #hudR { grid-column: 2; grid-row: 1; }
+#lvl { grid-column: 1; grid-row: 1; }
+@media (max-width:620px) {
+  #hud { height: 48px; }
+  #hudBottom { gap: 4px; }
+}
