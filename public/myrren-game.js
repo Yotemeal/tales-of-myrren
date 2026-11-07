@@ -213,11 +213,14 @@ const craterWildlife=craterPreview&&window.MyrrenCraterWildlife?.create();
 craterWildlife?.load?.();
 const craterGoblins=craterRocks&&window.MyrrenCraterGoblins?.create();
 craterGoblins?.load?.();
+const craterWolf=craterRocks&&window.MyrrenCraterWolf?.create();
+craterWolf?.load?.();
 // Use existing mid-tier combat values for the isolated protector encounter.
 if(craterRocks)MT.goblin_guard={...MT.wolf,name:'Cave Goblin Protector',lv:16};
 window.addEventListener('myrren-pet-reference-ready',()=>{if(tab==='skills')renderModal()});
 // Prototype motion tuning only, not approved Crater balance. Damage/cooldown use MT.
 const ROCK_PREVIEW={range:90,retreat:30,speed:140,distance:120,windup:300};
+const WOLF_PREVIEW={range:30,windup:320,dash:150,recover:260,hitRadius:7};
 const BLD=VILLAGE.buildings.map(b=>({...b}));
 const LAMPS=[[CX-200,CY+14],[CX+200,CY+14],[CX-120,CY+70],[CX+120,CY+70],[CX-40,CY+70],[CX+40,CY+70]];
 const DECOR=[['board',CX+70,CY+56],['supply',CX+98,CY+58],['well',CX-70,CY+54],['stall',CX-150,CY+50,'#b8503a'],['stall',CX+150,CY+50,'#3a7a9a'],
@@ -1213,7 +1216,7 @@ function resolveSwing(now){
     m.hp-=dmg;splat(m.x,m.y-16,dmg);sfx(dmg>0?'hit':'miss');if(dmg>0)m.hitAt=now;
     burst(m.x,m.y-8,dmg>0?['#d83a2a','#ffffff','#ffd24a']:['#ffffff','#b5c8d8'],dmg>0?7:3,20);
     me.tgt=m;me.tgtUntil=now+4000;
-    if(m.hp>0&&save.perks.spiked&&w&&w.kind==='sword'){const dd=d||1;m.x+=tx/dd*8;m.y+=ty/dd*8;m.cd=-.5}
+    if(m.hp>0&&save.perks.spiked&&w&&w.kind==='sword'){const dd=d||1;m.x+=tx/dd*8;m.y+=ty/dd*8;m.cd=-.5;if(m.wolfAttack?.released)m.wolfAttack=null}
     if(m.hp<=0)killMon(m,now);
   }
 }
@@ -1516,7 +1519,7 @@ function enterBuilding(b,now){
   craterRocks?.clear();
   if(b.open){openSmithy('trade');return}
   inside=b;me.ox=b.x;me.oy=b.y+6;me.x=88;me.y=112;me.face=1;act=null;marker=null;petsTeleport();
-  for(const m of mons)if(m.state==='chase'){m.state='return';m.rockCast=null;m.guardStrikeAt=null}
+  for(const m of mons)if(m.state==='chase'){m.state='return';m.rockCast=null;m.guardStrikeAt=null;m.wolfAttack=null}
   fade=0;snapCam=true;exitCD=now+700;
   say('You enter '+SHOPS[b.id].name+'.');sendPresence();
 }
@@ -1532,7 +1535,7 @@ function die(){
   me.deathAt=performance.now();me.hp=0;me.moving=false;me.pend=0;me.swing=-99999;
   act=null;marker=null;wantSwing=false;closeModal();
   say('Oh dear, you are dead!','red');toast('YOU DIED');uiHud();
-  for(const m of mons)if(m.state==='chase'){m.state='return';m.rockCast=null;m.guardStrikeAt=null}
+  for(const m of mons)if(m.state==='chase'){m.state='return';m.rockCast=null;m.guardStrikeAt=null;m.wolfAttack=null}
   if(craterPets)petsTeleport();
 }
 function respawnPlayer(){
@@ -1546,7 +1549,7 @@ function respawnPlayer(){
 function combatKillXp(mt){return Math.max(1,Math.round(mt.hp*mt.xpm))}
 function killMon(m,now){
   if(m.state==='dead')return;
-  const mt=MT[m.t];m.rockCast=null;m.guardStrikeAt=null;m.state='dead';m.back=now+12000;m.dieAt=now;
+  const mt=MT[m.t];m.rockCast=null;m.guardStrikeAt=null;m.wolfAttack=null;m.state='dead';m.back=now+12000;m.dieAt=now;
   decals.push({x:m.x,y:m.y,t:now,c:m.t==='slime'?'#e86a86':'#a82418'});
   say('You have defeated the '+mt.name.toLowerCase()+'.','gold');
   addXp('melee',combatKillXp(mt));
@@ -1666,7 +1669,7 @@ function updateGoblinGuard(m,mt,dt,now,dp,dx,dy){
   if(m.state==='return'){
     const hx=m.hx-m.x,hy=m.hy-m.y,d=Math.hypot(hx,hy);
     if(d<3){m.state='idle';m.hp=mt.hp;m.prov=false}
-    else moveGoblinGuard(m,hx,hy,d,mt.sp*dt);
+    else moveCraterHostile(m,hx,hy,d,mt.sp*dt);
     return;
   }
   if(m.state==='idle'){
@@ -1685,13 +1688,48 @@ function updateGoblinGuard(m,mt,dt,now,dp,dx,dy){
   }
   if(now-m.lunge<220)return;
   if(Math.abs(dx)>.6)m.face=dx>0?1:-1;
-  if(dp>11){moveGoblinGuard(m,dx,dy,dp,mt.sp*dt);return}
+  if(dp>11){moveCraterHostile(m,dx,dy,dp,mt.sp*dt);return}
   m.cd+=dt;
   if(m.cd>=mt.iv)m.guardStrikeAt=now;
 }
-function moveGoblinGuard(m,dx,dy,d,step){
+function moveCraterHostile(m,dx,dy,d,step){
   const x=m.x+dx/d*step,y=m.y+dy/d*step;
   if(!craterRockBlocked(x,y)&&!inWater(x,y)){m.x=x;m.y=y}
+}
+function updateCraterWolf(m,mt,dt,now,dp,dx,dy){
+  const attack=m.wolfAttack;
+  if(attack){
+    if(now-attack.at<WOLF_PREVIEW.windup)return;
+    if(!attack.released){
+      attack.released=true;m.lunge=now;m.cd=0;
+      attack.fromX=m.x;attack.fromY=m.y;
+      // Player attacks can knock the wolf back during the windup.
+      const ax=attack.x-m.x,ay=attack.y-m.y,dist=Math.hypot(ax,ay);
+      const scale=dist>WOLF_PREVIEW.range?WOLF_PREVIEW.range/dist:1;
+      attack.x=m.x+ax*scale;attack.y=m.y+ay*scale;
+      if(Math.abs(ax)>.6)m.face=ax>0?1:-1;
+    }
+    const progress=Math.min(1,(now-m.lunge)/WOLF_PREVIEW.dash);
+    const x=attack.fromX+(attack.x-attack.fromX)*progress;
+    const y=attack.fromY+(attack.y-attack.fromY)*progress;
+    const ox=m.x,oy=m.y,steps=Math.max(1,Math.ceil(Math.hypot(x-ox,y-oy)/2));
+    let blocked=false;
+    for(let i=1;i<=steps;i++){
+      const nx=ox+(x-ox)*i/steps,ny=oy+(y-oy)*i/steps;
+      if(craterRockBlocked(nx,ny)||inWater(nx,ny)){blocked=true;break}
+      m.x=nx;m.y=ny;
+    }
+    if(!attack.hit&&window.MyrrenCraterRocks.circleContact(ox,oy,m.x,m.y,me.x,me.y,WOLF_PREVIEW.hitRadius)!==null){
+      attack.hit=true;damagePlayerFromMonster(mt);
+    }
+    if(blocked||progress===1)m.wolfAttack=null;
+    return;
+  }
+  if(now-m.lunge<WOLF_PREVIEW.recover)return;
+  m.cd+=dt;
+  if(Math.abs(dx)>.6)m.face=dx>0?1:-1;
+  if(dp<=WOLF_PREVIEW.range&&m.cd>=mt.iv)m.wolfAttack={at:now,x:me.x,y:me.y};
+  else if(dp>11)moveCraterHostile(m,dx,dy,dp,Math.min(mt.sp*dt,dp-11));
 }
 function update(dt,now){
   if(me.deathAt!=null){craterRocks?.clear();me.moving=false;if(now-me.deathAt>=1050)respawnPlayer();return}
@@ -1755,8 +1793,9 @@ function update(dt,now){
     if(m.state==='dead'){if(now>=m.back){m.state='idle';m.prov=false;m.hp=mt.hp;m.x=m.hx;m.y=m.hy}continue}
     const dxp=me.x-m.x,dyp=me.y-m.y,dp=Math.hypot(dxp,dyp);
     if(m.t==='goblin_guard'){updateGoblinGuard(m,mt,dt,now,dp,dxp,dyp);continue}
-    if(craterRocks&&m.t==='goblin'&&m.state==='chase'){
-      if((!m.prov&&lvlFor(save.xp.melee)>=2*mt.lv)||Math.hypot(m.x-m.hx,m.y-m.hy)>170||dp>130){m.state='return';m.rockCast=null}
+    if(craterRocks&&(m.t==='goblin'||m.t==='wolf')&&m.state==='chase'){
+      if((!m.prov&&lvlFor(save.xp.melee)>=2*mt.lv)||Math.hypot(m.x-m.hx,m.y-m.hy)>170||dp>130){m.state='return';m.rockCast=null;m.wolfAttack=null}
+      else if(m.t==='wolf')updateCraterWolf(m,mt,dt,now,dp,dxp,dyp);
       else updateRockThrower(m,mt,dt,now,dp,dxp,dyp);
       continue;
     }
@@ -2044,7 +2083,8 @@ function drawMon(m,x,y,now){
   shadowE(x+1,y,mode==='dead'?10:8,2,.28*al);
   ctx.save();ctx.globalAlpha=al;
   const goblinDrawn=craterGoblins?.draw?.(ctx,m,x,y,now,{moving,hitAge:ha,windup:ROCK_PREVIEW.windup});
-  if(!goblinDrawn){
+  const wolfDrawn=craterWolf?.draw?.(ctx,m,x,y,now,{moving,hitAge:ha});
+  if(!goblinDrawn&&!wolfDrawn){
     ctx.translate(x,y);ctx.scale(f,1);
     if(m.t==='slime')sprSlime(mode,ph,age,flash);else if((m.t==='goblin'||m.t==='goblin_guard'))sprGoblin(mode,ph,age,flash);else if(m.t==='boar')sprBoar(mode,ph,age,flash);else if(m.t==='bear')sprBear(mode,ph,age,flash);else if(m.t==='cave')sprQuad(Q_CAVE,mode,ph,age,flash);else if(m.t==='abear')sprQuad(Q_ABEAR,mode,ph,age,flash);else sprWolf(mode,ph,age,flash);
     // Native-pixel creature finishing pass: fur, eyes, tusks and equipment.
@@ -2072,7 +2112,7 @@ function drawMon(m,x,y,now){
   }
   ctx.restore();ctx.globalAlpha=1;
   if(dead)return;
-  const top=y-(goblinDrawn?(m.t==='goblin_guard'?42:34):({goblin:27,wolf:20,boar:18,bear:30,cave:30,abear:30}[m.t]||15));
+  const top=y-(wolfDrawn?38:goblinDrawn?(m.t==='goblin_guard'?42:34):({goblin:27,wolf:20,boar:18,bear:30,cave:30,abear:30}[m.t]||15));
   if(m.hp<mt.hp)bar(x,top,m.hp/mt.hp);
   if(Math.hypot(m.x-me.x,m.y-me.y)<70||me.tgt===m)label((goblinDrawn&&m.t==='goblin'?'Goblin Miner':mt.name)+' (Lv '+mt.lv+')',x,top-5,'#ffffff');
 }
@@ -2585,7 +2625,7 @@ function finishLoad(){
 }
 function adoptSave(o,why){
   craterRocks?.clear();
-  if(craterRocks)for(const m of mons){m.rockCast=null;m.rockReleasedAt=null;if(m.t==='goblin_guard'){m.guardStrikeAt=null;m.lunge=-9999}m.cd=0}
+  if(craterRocks)for(const m of mons){m.rockCast=null;m.rockReleasedAt=null;if(m.t==='goblin_guard'){m.guardStrikeAt=null;m.lunge=-9999}if(m.t==='wolf'){m.wolfAttack=null;m.lunge=-9999}m.cd=0}
   applySave(o);me.x=clamp(save.x,EDGE+8,WW-EDGE-8);me.y=clamp(save.y,EDGE+8,WH-EDGE-8);relocateSavedPosition();
   syncPets();petsTeleport();uiHud();
   try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}
