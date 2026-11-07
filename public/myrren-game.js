@@ -754,9 +754,15 @@ function rGear(){
  const grid=el('div','owned-gear');candidates.forEach(o=>{const b=el('button','slot'+(!usable(o.d)?' dim':''));b.type='button';b.innerHTML=gearSvg(o.d,44);b.title=o.d.name;b.setAttribute('aria-label',o.d.name);b.addEventListener('click',()=>{sel={src:'bag',kind:'gear',idx:o.i};renderModal()});grid.append(b)});if(sel&&sel.src==='eq'&&candidates.length)mBody.append(grid);
 }
 function rPack(){
- const layout=el('div','inventory-layout'),pack=el('section','pack-pane'),item=el('div','item-detail');
+ const layout=el('div','inventory-layout'),pack=el('section','pack-pane');
  pack.append(inventoryHeading('BACKPACK',slotsUsed()+' / '+PACK_CAPACITY),backpackGrid());
- item.append(detail());layout.append(pack,item);mBody.append(layout);
+ if(sel&&sel.src==='bag'){
+   const pop=el('div','pack-info-popover'),close=el('button','pack-info-close','×');
+   close.type='button';close.setAttribute('aria-label','Close item information');
+   close.addEventListener('click',()=>{sel=null;renderModal()});
+   pop.append(close,detail());pack.append(pop);
+ }
+ layout.append(pack);mBody.append(layout);
 }
 let skillFocus='mining';
 function rSkills(){
