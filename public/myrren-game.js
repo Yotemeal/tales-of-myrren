@@ -1578,14 +1578,10 @@ function killMon(m,now){
   }
   addXp('melee',combatKillXp(mt));
   if(craterLoot){
-    // Temporary preview table uses existing monster probabilities; no new rates.
-    // Equipment is an independent bonus roll, so it can coexist with bread.
+    const definition=window.MyrrenCraterLootTables?.tableFor(m.t,mt);
     const c=rint(mt.coins[0],mt.coins[1]);
-    const breadBps=Math.round(mt.bread*10000);
-    const gearBps=Math.round(mt.drop.p*10000);
-    craterLoot.award(m,{guaranteed:[{itemId:'coins',quantity:c}],main:[
-      {itemId:'bread',weight:breadBps},{itemId:'nothing',weight:10000-breadBps}
-    ],bonus:[{itemId:'existing_random_gear',chanceBps:gearBps}]},drops=>{
+    const table=definition?{...definition,guaranteed:[{itemId:'coins',quantity:c}]}:null;
+    if(table)craterLoot.award(m,table,drops=>{
       for(const drop of drops){
         if(drop.itemId==='coins'){save.inv.coins+=drop.quantity;say('You find '+drop.quantity+' coins.')}
         else if(drop.itemId==='bread'){if(canFitInventory({bread:drop.quantity})){save.inv.bread+=drop.quantity;say('It dropped some bread.')}else say('It dropped bread, but your pack is full.','warn')}
@@ -1595,7 +1591,8 @@ function killMon(m,now){
           giveGear(MATS[mat].k+'_'+kinds[rint(0,kinds.length-1)]);
         }
       }
-    });
+    },Math.random,window.MyrrenCraterLootTables.sharedTables);
+    else {save.inv.coins+=c;say('You find '+c+' coins.');}
   }else{
     const c=rint(mt.coins[0],mt.coins[1]);save.inv.coins+=c;say('You find '+c+' coins.');
   }
