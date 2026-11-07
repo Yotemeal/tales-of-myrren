@@ -95,5 +95,41 @@ function arenaStorage() {
   assert.deepEqual(await reconnected.rewards(initial.id), payout);
   assert.equal(await lead.rewards(fresh.id), null);
 
-  console.log('PASS: shared arena persistence, concurrent strikes and resets, reconnect, failed-write rollback and retry.');
+  const { createJewelheartClaimHandler } = await import('../src/jewelheart-claims.mjs');
+  const packs = new Map([['lead', arenaStorage()], ['ally', arenaStorage()]]);
+  const leadPack = packs.get('lead');
+  const allyPack = packs.get('ally');
+  const savePack = (pack, value) => pack.transaction(tx => tx.put('inventory', value));
+  const readPack = pack => pack.transaction(tx => tx.get('inventory'));
+  const full = { inv: { coins: 10, bread: 2 }, bag: ['steel_sword'], xp: { melee: 100 } };
+  await savePack(leadPack, full);
+  await savePack(allyPack, { inv: { coins: 5 }, bag: ['bronze_sword'] });
+  const claim = createJewelheartClaimHandler({
+    encounterService: reconnected,
+    storageForPlayer: playerId => packs.get(playerId),
+    canFit: (inventory, extra) => inventory.bag.length + extra <= 1
+  });
+
+  assert.deepEqual(await claim(initial.id, 'spectator'), { status: 'unavailable' });
+  assert.deepEqual(await claim(initial.id, 'lead'), { status: 'pack-full' });
+  assert.deepEqual(await readPack(leadPack), full);
+  assert.equal((await claim(initial.id, 'ally')).status, 'claimed', 'coins fit in a full pack');
+  assert.equal((await readPack(allyPack)).inv.coins, 30);
+
+  await savePack(leadPack, { ...full, bag: [], inv: { ...full.inv, coins: Number.MAX_SAFE_INTEGER } });
+  assert.deepEqual(await claim(initial.id, 'lead'), { status: 'coin-limit' });
+  await savePack(leadPack, { ...full, bag: [] });
+  leadPack.failNextCommit();
+  await assert.rejects(claim(initial.id, 'lead'), /storage unavailable/);
+  assert.deepEqual(await readPack(leadPack), { ...full, bag: [] });
+
+  const claims = await Promise.all([claim(initial.id, 'lead'), claim(initial.id, 'lead')]);
+  assert.deepEqual(claims.map(result => result.status).sort(), ['already-claimed', 'claimed']);
+  assert.deepEqual(claims[0].receipt, claims[1].receipt);
+  assert.deepEqual(await readPack(leadPack), {
+    ...full, inv: { ...full.inv, coins: 35 }, bag: ['fixture_ring']
+  });
+  assert.equal((await claim(initial.id, 'lead')).status, 'already-claimed');
+
+  console.log('PASS: shared arena persistence, concurrent strikes and resets, reconnect, failed-write rollback, full-pack retries and exactly-once claims.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
