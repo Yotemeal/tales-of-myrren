@@ -2212,3 +2212,65 @@ input[type=range] {
   #modal[data-screen="gear"] .character-stats .eqtot b { font-size: 17px; }
   #modal[data-screen="gear"] .owned-gear .slot { min-width: 42px; min-height: 42px; }
 }
+
+/* iPhone 16 portrait (393 CSS px) equipment refinement; responsive on other phones. */
+@media (max-width: 620px) and (orientation: portrait) {
+  #modal[data-screen="gear"] {
+    inset: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+      calc(var(--hud-bottom) + var(--hud-height) + 12px)
+      max(12px, env(safe-area-inset-left));
+    align-items: center;
+  }
+  #modal[data-screen="gear"] .win {
+    width: min(100%, 350px);
+    height: auto;
+    max-height: min(72dvh, 520px);
+    min-height: 0;
+    grid-template-rows: 32px minmax(0, 1fr) 30px;
+    padding: 5px;
+    gap: 4px;
+    border-radius: 14px;
+  }
+  #modal[data-screen="gear"] #mBody {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 3px 5px;
+  }
+  #modal[data-screen="gear"] .character-sheet {
+    grid-template-columns: minmax(0, 120px) minmax(0, 1fr);
+    gap: 7px;
+    padding: 6px;
+    margin-bottom: 6px;
+    border-radius: 10px;
+  }
+  #modal[data-screen="gear"] .character-sheet .paper .slot {
+    width: 100%;
+    min-height: 0;
+    aspect-ratio: 1;
+    padding: 2px;
+  }
+  #modal[data-screen="gear"] .character-sheet .paper .slot svg {
+    width: min(100%, 28px);
+    height: 28px;
+  }
+  #modal[data-screen="gear"] .character-sheet .paper .slot small {
+    font-size: 8px;
+    line-height: 1.1;
+  }
+  #modal[data-screen="gear"] .character-stats .eqtot {
+    padding: 3px 5px;
+    min-width: 0;
+  }
+  #modal[data-screen="gear"] .character-stats .eqtot b { font-size: 16px; }
+  #modal[data-screen="gear"] .owned-gear { gap: 4px; }
+  #modal[data-screen="gear"] .owned-gear .slot {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+@media (max-width: 360px) and (orientation: portrait) {
+  #modal[data-screen="gear"] .character-sheet {
+    grid-template-columns: minmax(0, 108px) minmax(0, 1fr);
+  }
+}
