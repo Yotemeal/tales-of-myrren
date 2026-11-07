@@ -1716,6 +1716,15 @@ function moveCraterHostile(m,dx,dy,d,step){
   const x=m.x+dx/d*step,y=m.y+dy/d*step;
   if(!craterRockBlocked(x,y)&&!inWater(x,y)){m.x=x;m.y=y}
 }
+function craterImpactPathClear(ax,ay,bx,by){
+  const dx=bx-ax,dy=by-ay;
+  const steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)/2));
+  for(let i=1;i<=steps;i++){
+    const x=ax+dx*i/steps,y=ay+dy*i/steps;
+    if(craterRockBlocked(x,y)||inWater(x,y))return false;
+  }
+  return true;
+}
 function updateCraterDash(m,mt,dt,now,dp,dx,dy,timing){
   const attack=m.dashAttack;
   if(attack){
@@ -1725,20 +1734,18 @@ function updateCraterDash(m,mt,dt,now,dp,dx,dy,timing){
       attack.fromX=m.x;attack.fromY=m.y;
       // Player attacks can knock the creature back during the windup.
       const ax=attack.x-m.x,ay=attack.y-m.y,dist=Math.hypot(ax,ay);
-      const travel=timing.travel??timing.range;
-      const scale=dist>travel?travel/dist:1;
-      attack.x=m.x+ax*scale;attack.y=m.y+ay*scale;
       if(Math.abs(ax)>.6)m.face=ax>0?1:-1;
       if(timing.impactRadius){
         m.dashAttack=null;
-        const steps=Math.max(1,Math.ceil(dist*scale/2));
-        for(let i=1;i<=steps;i++){
-          const x=m.x+ax*scale*i/steps,y=m.y+ay*scale*i/steps;
-          if(craterRockBlocked(x,y)||inWater(x,y))return;
-        }
-        if(Math.hypot(me.x-attack.x,me.y-attack.y)<=timing.impactRadius)damagePlayerFromMonster(mt);
+        // A shove can move the attacker out of reach, but the marked target never shifts.
+        if(dist<=timing.range&&Math.hypot(me.x-attack.x,me.y-attack.y)<=timing.impactRadius&&
+          craterImpactPathClear(m.x,m.y,attack.x,attack.y)&&
+          craterImpactPathClear(attack.x,attack.y,me.x,me.y))damagePlayerFromMonster(mt);
         return;
       }
+      const travel=timing.travel??timing.range;
+      const scale=dist>travel?travel/dist:1;
+      attack.x=m.x+ax*scale;attack.y=m.y+ay*scale;
     }
     const progress=Math.min(1,(now-m.lunge)/timing.dash);
     const x=attack.fromX+(attack.x-attack.fromX)*progress;
@@ -2527,6 +2534,15 @@ function jewelheartWaypoint(){
   const bearing=BOSS_BEARINGS[(Math.round(Math.atan2(dx,-dy)*4/Math.PI)+8)%8];
   return name+' · '+bearing+' '+Math.round(distance/T)+' TILES';
 }
+function drawCraterImpactWarning(x,y,radius,progress){
+  ctx.save();
+  ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);
+  ctx.fillStyle='rgba(221, 111, 61, 0.22)';ctx.fill();
+  ctx.lineWidth=1;ctx.strokeStyle='#9d5842';ctx.stroke();
+  ctx.beginPath();ctx.arc(x,y,radius,-Math.PI/2,-Math.PI/2+progress*Math.PI*2);
+  ctx.strokeStyle='#ffd180';ctx.stroke();
+  ctx.restore();
+}
 function drawOutdoor(cx,cy,now){
   const t0=Math.max(0,Math.floor(cx/T)),t1=Math.min(WW/T-1,Math.floor((cx+cv.width)/T)),u0=Math.max(0,Math.floor(cy/T)),u1=Math.min(WH/T-1,Math.floor((cy+cv.height)/T));
   const pathAt=(tx,ty)=>VILLAGE.pathKind(tx*T+8,ty*T+8);
@@ -2568,6 +2584,12 @@ function drawOutdoor(cx,cy,now){
   }
   // Water and bridge sit below actors and trees in the world depth list.
   drawVillageFalls(cx,cy,now);
+  if(craterRocks)for(const m of mons){
+    const attack=m.dashAttack,timing=CRATER_DASH[m.t];
+    if(m.state==='chase'&&timing?.impactRadius&&attack&&!attack.released&&vis(attack.x,attack.y)){
+      drawCraterImpactWarning(attack.x-cx,attack.y-cy,timing.impactRadius,clamp((now-attack.at)/timing.windup,0,1));
+    }
+  }
   for(const tree of VILLAGE_GROVE)if(VILLAGE.dryFootprint(tree.x,tree.y,88,174,3,10)&&tree.x>cx-100&&tree.x<cx+cv.width+100&&tree.y>cy-25&&tree.y<cy+cv.height+160)list.push({y:tree.y,f:()=>drawAncientTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
   for(let i=0;i<18;i++){
     const a=i*2.3999632297,r=160+(i%6)*20;

@@ -2,8 +2,8 @@ const fs=require('node:fs');
 module.exports=async function createGame(localSaves={},options={}){
 const worldSource=fs.readFileSync('public/myrren-world.js','utf8'),envSource=fs.readFileSync('public/myrren-environment.js','utf8'),gameSource=require('./game-source.cjs')();
  let rects=0;
- const canvasText=new Set();
- const context=()=>new Proxy({globalAlpha:1,fillRect(...p){if(!p.slice(0,4).every(Number.isFinite))throw Error('Nonfinite rectangle '+p);rects++},fillText(text){if(options.captureCanvasText)canvasText.add(text)},drawImage(){},createRadialGradient(){return {addColorStop(){}}}}, {get(t,k){return k in t?t[k]:(()=>{})}});
+ const canvasText=new Set(),canvasArcs=[];
+ const context=()=>new Proxy({globalAlpha:1,fillRect(...p){if(!p.slice(0,4).every(Number.isFinite))throw Error('Nonfinite rectangle '+p);rects++},fillText(text){if(options.captureCanvasText)canvasText.add(text)},arc(...args){if(options.captureCanvasArcs)canvasArcs.push(args)},drawImage(){},createRadialGradient(){return {addColorStop(){}}}}, {get(t,k){return k in t?t[k]:(()=>{})}});
  const elements=new Map();
  function element(id=''){
    return {id,value:'',disabled:false,hidden:false,width:800,height:600,clientWidth:800,clientHeight:600,dataset:{},style:{},children:[],scrollTop:0,classList:{add(){},remove(){},contains(){return false}},events:{},
@@ -21,5 +21,5 @@ const worldSource=fs.readFileSync('public/myrren-world.js','utf8'),envSource=fs.
  window,document,localStorage,{open(){throw Error('No IDB in unit test')}},{getGamepads:()=>[]},{now:()=>1000},Image,f=>request=f,()=>{},()=>1,()=>{},window.MyrrenWorld,window.MyrrenEnvironment,class{get(){return null}},{search:options.search||''});
 
  await Promise.resolve();await Promise.resolve();
- return {game:window.__test,memory,elements,canvasText};
+ return {game:window.__test,memory,elements,canvasText,canvasArcs};
 };

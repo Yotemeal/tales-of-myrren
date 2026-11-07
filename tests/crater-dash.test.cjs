@@ -5,12 +5,12 @@ const createGame=require('./game-runtime.cjs');
 
 (async()=>{
  async function encounter(search='?craterPreview=1',type='wolf'){
-  const {game:g}=await createGame({}, {search});
+  const {game:g,canvasArcs}=await createGame({}, {search,captureCanvasArcs:type==='troll'});
   const creature=g.mons.find(m=>m.t===type);
   g.mons.splice(0,g.mons.length,creature);
   Object.assign(creature,{x:1380,y:800,hx:1380,hy:800,cd:g.MT[type].iv,state:'chase',prov:true});
   Object.assign(g.me,{x:1405,y:800,hp:g.hpMax()});
-  return {g,creature};
+  return {g,creature,canvasArcs};
  }
  const random=Math.random;
  try{
@@ -130,6 +130,30 @@ const createGame=require('./game-runtime.cjs');
   g.update(.05,1000);
   g.update(.05,1620);
   assert.equal(g.me.hp,g.hpMax(),'the club does not hit through a barrier');
+
+  let canvasArcs;
+  ({g,creature,canvasArcs}=await encounter('?craterPreview=1','troll'));
+  g.me.x=1402;
+  g.update(.05,1000);
+  g.me.y+=8;
+  g.SOLID.push({x0:1398,x1:1406,y0:803,y1:806});
+  const cameraX=1100,cameraY=600;
+  g.drawOutdoor(cameraX,cameraY,1310);
+  const aimedArcs=canvasArcs.filter(([x,y,r])=>x===302&&y===200&&r===11);
+  assert.equal(aimedArcs.length,2,'warning stays centered where the troll aimed');
+  assert.equal(aimedArcs[1][4]-aimedArcs[1][3],Math.PI,'the ring is half filled halfway through windup');
+  g.update(.05,1620);
+  assert.equal(g.me.hp,g.hpMax(),'cover between the impact and player blocks the hit');
+  canvasArcs.length=0;
+  g.drawOutdoor(cameraX,cameraY,1620);
+  assert(!canvasArcs.some(([x,y,r])=>x===302&&y===200&&r===11),'warning clears at impact');
+
+  ({g,creature}=await encounter('?craterPreview=1','troll'));
+  g.me.x=1402;
+  g.update(.05,1000);
+  creature.x-=8;
+  g.update(.05,1620);
+  assert.equal(g.me.hp,g.hpMax(),'knocking the troll out of reach cancels the marked strike');
 
   ({g,creature}=await encounter('?craterPreview=1','guardian'));
   assert.equal(g.MT.guardian.lv,18);
