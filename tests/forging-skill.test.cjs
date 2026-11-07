@@ -92,4 +92,22 @@ vm.runInContext('smelt(SMELT[0])',ctx);
 assert.equal(ctx.save.xp.forging,xpBefore,'Insufficient ore must not award XP');
 assert.equal(ctx.save.inv.ing_bronze,0,'Insufficient ore must not create ingots');
 
+
+// Economic safety: the NPC's new-item buyback must never exceed ingot sale value.
+const sellBlock=runtime.match(/const SELL=({[^;]+});/);
+assert.ok(sellBlock,'Missing ingot sale price table');
+const ingotPrices=Object.fromEntries([...sellBlock[1].matchAll(/(ing_[a-z]+):(\d+)/g)].map(m=>[m[1],Number(m[2])]));
+const smeltRecipes=[['bronze',2],['iron',3],['steel',4],['cobalt',5],['obsidianite',7],['aether',6],['starsteel',8]];
+const materialNames={2:'bronze',3:'iron',4:'steel',5:'cobalt',6:'aether',7:'obsidianite',8:'starsteel'};
+const costs={axe:3,pick:3,sword:4,shield:5,helm:4,gloves:4,boots:4,legs:5,body:6};
+for(const [id,mat] of smeltRecipes){
+ const ingotPrice=ingotPrices['ing_'+id];
+ assert.ok(ingotPrice>0,'Missing sale price for '+id);
+ for(const [kind,cost] of Object.entries(costs)){
+  const shopPrice=Math.round(2*cost*ingotPrice);
+  const fullValue=Math.floor(shopPrice*.25);
+  assert.ok(fullValue<=cost*ingotPrice,kind+' '+materialNames[mat]+' buyback creates coins');
+ }
+}
+
 console.log('Forging syntax, contracts and isolated production behavior passed');
