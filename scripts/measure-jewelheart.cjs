@@ -15,8 +15,7 @@ async function fight({material,dodge,bossHp,maxHit},seed){
 
  game.save.xp.melee=game.xpTable[30];
  for(const [slot,kind] of Object.entries({weapon:'sword',head:'helm',body:'body',hands:'gloves',legs:'legs',boots:'boots',shield:'shield'})){
-  const armour=material==='cobalt'?'steel':material;
-  const id=(slot==='weapon'?material:armour)+'_'+kind;
+  const id=material+'_'+kind;
   if(!game.DEFS[id]||game.DEFS[id].req>30)throw Error('Gear unavailable at level 30: '+id);
   game.save.eq[slot]=id;
  }
@@ -61,8 +60,7 @@ function median(values){
 (async()=>{
  const runs=Number(process.argv[2]||40);
  if(!Number.isInteger(runs)||runs<1)throw Error('Run count must be a positive integer.');
- for(const [bossHp,maxHit] of [[42,6],[120,6],[120,18],[200,18]])for(const material of ['iron','steel','cobalt'])for(const dodge of [false,true]){
-  // Black Iron armour requires level 45. Use only its level 30 sword.
+ for(const [bossHp,maxHit] of [[42,6],[120,6],[120,18],[200,18]])for(const material of ['iron','steel'])for(const dodge of [false,true]){
   const settings={bossHp,maxHit,material,dodge};
   const results=[];
   for(let seed=1;seed<=runs;seed++)results.push(await fight(settings,seed));

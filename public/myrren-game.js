@@ -103,8 +103,10 @@ const MATS=[null,
   {k:'aether',n:'Myrrenite',M:'#626e60',H:'#a4b29a',D:'#354438',req:75},
   {k:'obsidianite',n:'Obsidianite',M:'#442b3c',H:'#e65456',D:'#201c29',req:40},
   {k:'starsteel',n:'Starsteel',M:'#a2c9e2',H:'#f0f8ff',D:'#41485f',req:70}];
+// Stable material IDs keep existing equipment and saves compatible.
+const COMBAT_GEAR_ORDER=[2,3,4,5,7,6,8],COMBAT_GEAR_LEVELS=[1,10,20,45,40,55,70];
 const KINDS={
-  sword:{slot:'weapon',art:'sword',skill:'melee',mats:[2,3,4,5,7,6,8],reqs:[1,10,20,30,40,55,70],price:[25,150,700,3500,9000,18000,40000],atk:[1,3,6,12,17,22,30],nm:{d:'sword'}},
+  sword:{slot:'weapon',art:'sword',skill:'melee',mats:COMBAT_GEAR_ORDER,reqs:COMBAT_GEAR_LEVELS,price:[25,150,700,3500,9000,18000,40000],atk:[1,3,6,12,17,22,30],nm:{d:'sword'}},
   axe:{slot:'weapon',art:'axe',skill:'woodcutting',mats:[2,3,4,5,6],price:[20,120,600,3000,15000],nm:{d:'hatchet'}},
   pick:{slot:'weapon',art:'pick',skill:'mining',mats:[2,3,4,5,6],price:[20,120,600,3000,15000],nm:{d:'pickaxe'}},
   net:{slot:'weapon',art:'net',skill:'fishing',mats:[1,3,4],price:[12,110,550],full:true,nm:{1:'Small net',3:'Iron-hoop net',4:'Steel-hoop net'}},
@@ -127,12 +129,10 @@ for(const kind in KINDS){
     DEFS[id]={id,kind,slot:K.slot,art:K.art,mat:m,name,req:K.reqs?K.reqs[i]:MATS[m].req,skill:K.skill,price:K.price[i],atk:K.atk?K.atk[i]:0,def:K.def?K.def[i]:0,tool:kind==='axe'||kind==='pick'||kind==='net'||kind==='rod'};
   });
 }
-// Stable material IDs keep existing equipment and saves compatible.
-const ARMOUR_ORDER=[2,3,4,5,7,6,8],ARMOUR_LEVELS=[1,10,20,30,40,55,70];
 const ARMOUR_DEF={helm:[2,4,7,11,14,16,21],body:[4,8,14,22,27,32,42],gloves:[1,2,4,6,8,9,12],legs:[3,6,10,16,20,24,31],boots:[1,2,4,7,9,10,14],shield:[2,4,8,13,16,19,25]};
 for(const kind in ARMOUR_DEF){
- const K=KINDS[kind];K.mats=ARMOUR_ORDER.slice();delete DEFS['leather_'+kind];
- ARMOUR_ORDER.forEach((mat,i)=>{const id=MATS[mat].k+'_'+kind;DEFS[id]={id,kind,slot:K.slot,art:K.art,mat,name:MATS[mat].n+' '+K.nm.d,req:ARMOUR_LEVELS[i],skill:K.skill,price:0,atk:0,def:ARMOUR_DEF[kind][i],tool:false}});
+ const K=KINDS[kind];K.mats=COMBAT_GEAR_ORDER.slice();delete DEFS['leather_'+kind];
+ COMBAT_GEAR_ORDER.forEach((mat,i)=>{const id=MATS[mat].k+'_'+kind;DEFS[id]={id,kind,slot:K.slot,art:K.art,mat,name:MATS[mat].n+' '+K.nm.d,req:COMBAT_GEAR_LEVELS[i],skill:K.skill,price:0,atk:0,def:ARMOUR_DEF[kind][i],tool:false}});
 }
 const SLOTS=['head','body','hands','legs','boots','weapon','shield','ring','neck'];
 const SLOTNAME={head:'Head',body:'Body',hands:'Hands',legs:'Legs',boots:'Boots',weapon:'Weapon',shield:'Shield',ring:'Ring',neck:'Amulet'};
@@ -379,7 +379,7 @@ function wearItem(id,amt){
   if(w>=1){say('Your '+d.name.toLowerCase()+' has broken. Repair it at the Ironmonger.','warn');toast('ITEM BROKEN');blocked.clear();refreshActionButtons();if(tab==='gear')renderModal()}
   else if(b<.8&&w>=.8)say('Your '+d.name.toLowerCase()+' is badly worn.','warn');
 }
-function wearArmour(){const a=['head','body','hands','legs','boots','shield'].map(x=>save.eq[x]).filter(Boolean);if(a.length)wearItem(a[rint(0,a.length-1)],2)}
+function wearArmour(){const a=['head','body','hands','legs','boots','shield'].map(eqDef).filter(d=>d&&usable(d)).map(d=>d.id);if(a.length)wearItem(a[rint(0,a.length-1)],2)}
 const sellVal=id=>Math.floor(DEFS[id].price*.25*(1-wearOf(id)));
 function repairCost(id){const d=DEFS[id],w=wearOf(id),ik=d.mat>=2?'ing_'+MATS[d.mat].k:null;return {coins:Math.ceil(d.price*.35*w),ik,n:(ik&&FORGE[d.kind])?Math.floor(FORGE[d.kind]*w*.5):0}}
 function repairOne(id){
@@ -1221,7 +1221,8 @@ function beginSwing(now){
 function resolveSwing(now){
   if(me.deathAt!=null)return;
   if(inside)return;
-  wearItem(save.eq.weapon,1);
+  const equipped=eqDef('weapon');
+  if(equipped&&usable(equipped))wearItem(equipped.id,1);
   const w=activeDef('weapon'),reach=w?30:22,L=lvlFor(save.xp.melee),atk=atkBonus();
   for(const m of mons){
     if(m.state==='dead')continue;
@@ -1624,7 +1625,8 @@ function doAction(dt,now){
       }
     }else if(!a.swung&&a.t>=a.iv-.2){a.swung=true;startSwing(now)}
     if(a.t>=a.iv){
-      wearItem(save.eq.weapon,1);
+      const equipped=eqDef('weapon');
+  if(equipped&&usable(equipped))wearItem(equipped.id,1);
       a.t-=a.iv;a.swung=false;
       if(fishing){a.casted=false;a.t=-.9}
       burst(n.x,n.y-10,nt.tool==='axe'?['#9a6a38','#5a3a1f','#7ab648']:fishing?['#8cc0f4','#ffffff','#3f7fcc']:['#ffe14a','#ffffff','#c8d2d6'],6,22);
