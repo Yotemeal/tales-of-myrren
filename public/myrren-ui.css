@@ -3229,3 +3229,38 @@ input[type=range] {
   border-color:#e2c28d;
   box-shadow:none;
 }
+
+/* Hard containment for mobile HUD SVGs: no icon may extend outside its tile. */
+#hud #hudR .ibtn {
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 var(--hud-button-width);
+  box-sizing:border-box;
+  width:var(--hud-button-width);
+  height:var(--hud-button-height);
+  min-width:0;
+  min-height:0;
+  padding:0;
+  overflow:hidden;
+  border:1px solid #b99a70;
+  border-radius:8px;
+  background:#453529;
+  box-shadow:none;
+}
+#hud #hudR .ibtn > svg {
+  display:block;
+  flex:none;
+  box-sizing:border-box;
+  width:19px !important;
+  height:19px !important;
+  min-width:0;
+  max-width:calc(100% - 6px) !important;
+  max-height:calc(100% - 6px) !important;
+  margin:0;
+  overflow:visible;
+  stroke:#dfbc86;
+  stroke-width:1.65;
+  filter:none;
+}
