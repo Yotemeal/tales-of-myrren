@@ -90,7 +90,7 @@ const SHOPS={
   fish:{name:'Tidewater Rods',sign:'Fishing',keeper:'Odo',wall:'#9ab0c0',roof:'#3a6a9a',hue:200,hair:'#d8d8c8',bait:true,cats:{Nets:['net'],Rods:['rod']},kinds:['net','rod'],buys:['rshrimp','rtrout','rsalmon','rtuna','reel','shrimp','trout','salmon','tuna','eel'],greet:'Odo: A net for the shallows, a rod and bait for the deep. I buy your catch, raw or cooked.'},
   arms:{name:'Elderwood Blacksmith',sign:'Forge',keeper:'Dorn',wall:'#a89c9c',roof:'#a8422a',hue:0,hair:'#2a2a30',cats:{Axes:['axe'],Weapons:['sword'],Armour:['helm','body','gloves','legs','boots','shield'],Smelt:[],Forge:[],Repair:[]},kinds:['axe','sword','helm','body','gloves','legs','boots','shield','ring','amulet'],buys:['ing_bronze','ing_iron','ing_steel','ing_cobalt','ing_aether','ing_obsidianite','ing_starsteel'],greet:'Dorn: Axes, blades and armour for sale. Use the furnace and anvil to train Forging.'}
 };
-SHOPS.cart={name:'Wandering Trader',sign:'Traveller',keeper:'Rook',cats:{Gathering:['axe','pick','net','rod'],Combat:['sword','shield']},kinds:['axe','pick','net','rod','sword','shield'],buys:[],greet:'Rook: Just the basics, traveller. Better equipment is earned out there.'};
+SHOPS.cart={name:'Wandering Trader',sign:'Traveller',keeper:'Trader Gus',cats:{Gathering:['axe','pick','net','rod'],Combat:['sword','shield']},kinds:['axe','pick','net','rod','sword','shield'],buys:[],greet:'Trader Gus: Just the basics, traveller. Better equipment is earned out there.'};
 for(const k in SHOPS)SHOPS[k].id=k;
 const SHOPMAX={rod:4,net:1,helm:8,body:8,gloves:8,legs:8,boots:8,shield:8};
 function svg(key,size,pal2){
@@ -2543,54 +2543,53 @@ function drawVillageSquare(cx,cy,now){/* Centre kept clear for foot traffic and 
 function drawBuilding(b,x,y,now){MyrrenEnvironment.building(ctx,b,x,y,now)}
 // Low, improvised stalls keep the original shop triggers without a row of houses.
 function drawTraderCart(x,y,now){
-  // Colourful, compact horse cart with the same outlined pixel language as the hero.
-  const bob=Math.round(Math.sin(now/780)*.8);
-  R(x-44,y-6,27,8,'#38403a');R(x-42,y-10,23,5,'#737c72');R(x-39,y-12,15,2,'#a6a99a');
-  // Cart: timber frame, fabric roll and travel goods.
-  R(x-12,y-22,49,20,'#2b2928');R(x-9,y-25,44,17,'#a56e43');
-  R(x-8,y-24,42,4,'#e0ae6a');R(x-7,y-16,40,3,'#624632');
-  R(x-5,y-32,35,8,'#356d67');R(x-2,y-34,29,3,'#74a79a');
-  R(x+3,y-40,16,6,'#cbb77e');R(x+5,y-42,12,2,'#eee0a8');
-  for(const wx of [x-3,x+29]){
-    R(wx-8,y-10,16,15,'#262a29');R(wx-6,y-8,12,11,'#b18b57');
-    R(wx-3,y-5,6,6,'#4d463b');R(wx-1,y-3,2,2,'#d7bd80');
+  // Gus's canvas-covered travelling market wagon, with sacks and produce.
+  const bob=Math.round(Math.sin(now/950)*.7);
+  R(x-15,y-7,55,8,'#332b27');R(x-12,y-26,51,20,'#825432');
+  R(x-10,y-24,47,5,'#c18a51');R(x-9,y-14,44,3,'#4f382b');
+  R(x-15,y-38,55,13,'#3b332c');R(x-12,y-42,49,8,'#e2bd83');
+  for(let i=0;i<5;i++)R(x-10+i*10,y-41,5,11,'#b67f51');
+  R(x-12,y-44,49,3,'#f3d49c');
+  R(x-6,y-35,15,10,'#657d47');R(x+10,y-35,12,10,'#b97b42');
+  R(x+24,y-36,10,12,'#a58b62');R(x+26,y-39,6,4,'#dfc79a');
+  R(x-5,y-34,5,4,'#b7c16d');R(x+14,y-32,5,4,'#d8a15b');
+  for(const wx of [x-4,x+31]){
+    R(wx-9,y-11,18,17,'#292929');R(wx-7,y-9,14,13,'#aa7948');
+    R(wx-4,y-6,8,7,'#40382f');R(wx-2,y-4,4,3,'#d6b67b');
   }
-  // Chestnut horse: shaped silhouette, mane, face, hooves and harness.
-  R(x+40,y-25+bob,26,16,'#3a2929');R(x+43,y-24+bob,22,13,'#b8794b');
-  R(x+57,y-33+bob,10,14,'#b8794b');R(x+62,y-37+bob,10,10,'#3a2929');
-  R(x+64,y-36+bob,8,8,'#c8915c');R(x+65,y-41+bob,3,7,'#a66a44');
-  R(x+71,y-41+bob,3,7,'#a66a44');R(x+70,y-31+bob,6,5,'#e4b47b');
-  R(x+69,y-34+bob,2,2,'#242527');R(x+75,y-29+bob,2,2,'#2d2825');
-  R(x+46,y-12,5,18,'#71472f');R(x+60,y-12,5,18,'#71472f');
-  R(x+45,y+4,8,3,'#2c2b2b');R(x+59,y+4,8,3,'#2c2b2b');
-  R(x+39,y-23,5,4,'#443b31');R(x+37,y-20,8,2,'#ddc394');
-  R(x+65,y-27+bob,3,7,'#39635d');
-  // Rook: rustic wandering farm trader with broad straw hat, overalls,
-  // rolled sleeves, sturdy boots and a stalk of straw between his teeth.
-  const rx=x-29,ry=y-10+Math.round(Math.sin(now/850)*.6);
-  // Boots and denim trouser legs.
-  R(rx-8,ry-2,7,7,'#38332f');R(rx+2,ry-2,7,7,'#38332f');
-  R(rx-7,ry-8,6,8,'#35556a');R(rx+2,ry-8,6,8,'#35556a');
-  // Light rolled-up shirt, denim bib and braces.
-  R(rx-10,ry-22,20,16,'#e3c49b');
-  R(rx-12,ry-20,5,11,'#e3c49b');R(rx+8,ry-20,5,11,'#e3c49b');
-  R(rx-8,ry-17,16,12,'#426b80');R(rx-5,ry-21,10,7,'#426b80');
-  R(rx-8,ry-21,3,9,'#35566b');R(rx+5,ry-21,3,9,'#35566b');
-  R(rx-3,ry-13,6,3,'#a4b9b2');
-  R(rx-11,ry-11,4,4,'#c89570');R(rx+8,ry-11,4,4,'#c89570');
-  // Face, hair and iconic wide straw hat.
-  R(rx-7,ry-32,14,13,'#c88f65');
-  R(rx-8,ry-34,16,5,'#5d4031');
-  R(rx-5,ry-27,2,2,'#292827');R(rx+3,ry-27,2,2,'#292827');
-  R(rx-3,ry-22,5,2,'#8b5b43');
-  R(rx-16,ry-36,32,5,'#9c713c');
-  R(rx-14,ry-39,28,4,'#d6aa61');
-  R(rx-9,ry-46,18,8,'#d8b46e');
-  R(rx-7,ry-48,14,3,'#f1d38b');
-  R(rx-9,ry-39,18,2,'#76543a');
-  // Chewed straw sticks out from one corner of his mouth.
-  R(rx+5,ry-22,9,1,'#e7c76f');R(rx+12,ry-24,2,3,'#b99c50');
-  if(Math.hypot(me.x-TRADER.x,me.y-TRADER.y)<75)label('Rook · Starter Gear',x,y-61,'#e9d5a1');
+  // Chestnut draught horse, cream mane, harness and white socks.
+  R(x+43,y-28+bob,28,19,'#392b28');R(x+45,y-26+bob,25,15,'#b7794c');
+  R(x+63,y-36+bob,11,17,'#9b613f');R(x+68,y-39+bob,11,12,'#b7794c');
+  R(x+70,y-42+bob,5,6,'#e6c18b');R(x+76,y-42+bob,4,7,'#a06d4b');
+  R(x+76,y-30+bob,6,5,'#dfb789');R(x+76,y-36+bob,2,2,'#242526');
+  R(x+65,y-36+bob,4,11,'#f0d29d');R(x+61,y-32+bob,4,9,'#e1bf87');
+  R(x+49,y-12,5,18,'#815137');R(x+64,y-12,5,18,'#815137');
+  R(x+48,y+1,7,5,'#e7d4ae');R(x+63,y+1,7,5,'#e7d4ae');
+  R(x+47,y+5,9,3,'#332f2d');R(x+62,y+5,9,3,'#332f2d');
+  R(x+44,y-25,5,11,'#4e443a');R(x+39,y-19,11,2,'#d8b889');
+  R(x+67,y-28+bob,3,9,'#46665c');
+  // Trader Gus lounges on a travel crate with one leg crossed over the other.
+  const rx=x-35,ry=y-9+Math.round(Math.sin(now/1000)*.5);
+  R(rx-13,ry-2,27,13,'#503829');R(rx-10,ry-5,21,7,'#a5774b');
+  R(rx-11,ry+3,23,3,'#d0a16a');
+  // Seated body, rolled sleeves and blue denim bib.
+  R(rx-10,ry-25,20,16,'#e4c59d');
+  R(rx-13,ry-22,5,13,'#e4c59d');R(rx+9,ry-22,5,11,'#e4c59d');
+  R(rx-9,ry-20,18,12,'#416c85');R(rx-5,ry-24,10,8,'#416c85');
+  R(rx-9,ry-23,3,11,'#31546d');R(rx+6,ry-23,3,11,'#31546d');
+  R(rx-3,ry-15,6,2,'#a5b9b4');
+  // One thigh rests horizontally across the other knee, boots visible.
+  R(rx-7,ry-9,14,6,'#35586f');R(rx+3,ry-8,13,5,'#35586f');
+  R(rx+13,ry-7,8,5,'#45352e');
+  R(rx-6,ry-5,6,8,'#35586f');R(rx-7,ry+1,9,4,'#45352e');
+  // Face, straw hat and a stalk of straw between his teeth.
+  R(rx-7,ry-35,14,13,'#c98f65');R(rx-8,ry-36,16,5,'#654331');
+  R(rx-5,ry-29,2,2,'#2d2928');R(rx+3,ry-29,2,2,'#2d2928');
+  R(rx-15,ry-39,30,5,'#9c713c');R(rx-13,ry-42,26,4,'#e1b96c');
+  R(rx-9,ry-49,18,8,'#d5ae64');R(rx-7,ry-51,14,3,'#f0d38b');
+  R(rx-9,ry-42,18,2,'#76543a');
+  R(rx+5,ry-25,10,1,'#e9cb75');R(rx+13,ry-27,2,3,'#b99c50');
+  if(Math.hypot(me.x-TRADER.x,me.y-TRADER.y)<75)label('Trader Gus · Starter Gear',x,y-63,'#e9d5a1');
 }
 function drawCampPitch(b,x,y,now){
   R(x-27,y-4,54,5,'#443b2e');R(x-23,y-13,46,10,'#826c4e');
