@@ -241,7 +241,21 @@ function spot(minCamp,minGap,x0,y0,x1,y1){
   return null;
 }
 const nodes=[],mons=[],BOX=[EDGE+30,EDGE+30,WW-EDGE-30,WH-EDGE-30];
-function addNodes(k,n,minCamp){for(let i=0;i<n;i++){const s=spot(minCamp,24,BOX[0],BOX[1],BOX[2],BOX[3]);if(s)nodes.push({k,x:s[0],y:s[1],back:0})}}
+function addNodes(k,n,minCamp){for(let i=0;i<n;i++){
+  // Keep all harvestable trees in the outer woodland, away from the crater
+  // and its Camp, so the impact cliffs remain fully visible.
+  let s=null;
+  if(TREEK.includes(k)){
+    for(let attempt=0;attempt<240;attempt++){
+      const x=BOX[0]+rnd()*(BOX[2]-BOX[0]),y=BOX[1]+rnd()*(BOX[3]-BOX[1]);
+      const border=Math.min(x-EDGE,y-EDGE,WW-EDGE-x,WH-EDGE-y);
+      if(border>205||Math.hypot((x-CX)/540,(y-CY)/445)<1.15)continue;
+      if(VILLAGE.waterDistance(x,y)<85||placed.some(p=>Math.abs(p[0]-x)<24&&Math.abs(p[1]-y)<24))continue;
+      placed.push([x,y]);s=[x,y];break;
+    }
+  }else s=spot(minCamp,24,BOX[0],BOX[1],BOX[2],BOX[3]);
+  if(s)nodes.push({k,x:s[0],y:s[1],back:0});
+}}
 addNodes('tree',90,90);addNodes('oak',26,260);addNodes('copper',22,120);addNodes('iron',15,330);
 (function(){const ks=['spot1','spot1','spot2','spot1','spot3','spot2','spot1','spot4','spot2','spot3','spot1','spot5','spot2','spot3','spot4','spot5'];ks.forEach((k,i)=>{const a=i/ks.length*6.2832+.3,p=VILLAGE.fishingPosition(a);nodes.push({k,x:p.x,y:p.y,back:0})})})();
 function addMons(k,n,minCamp){for(let i=0;i<n;i++){const s=spot(minCamp,30,BOX[0],BOX[1],BOX[2],BOX[3]);if(s)mons.push({t:k,x:s[0],y:s[1],hx:s[0],hy:s[1],hp:MT[k].hp,state:'idle',back:0,cd:0,w:rnd()*3,wx:s[0],wy:s[1],face:1,lunge:-9999})}}
@@ -2483,7 +2497,7 @@ function logPile(x,y){for(let r=0;r<3;r++)for(let c=0;c<(r===2?2:3);c++){const l
 function smoke(x,y,now,col){const t=now/800;for(let i=0;i<3;i++){const k=(t+i*.33)%1;ctx.globalAlpha=.5*(1-k);R(x+Math.round(Math.sin(t*3+i)*2),y-Math.round(k*16),4,4,col||'#e8e4dc');ctx.globalAlpha=1}}
 function flagAt(x,y,col,now){const f=Math.floor(now/250)%2;R(x,y-9,1,10,'#3a2410');R(x+1,y-9,5+f,3,col);R(x+1,y-6,3+f,1,col)}
 // Ancient village-side trees are scenery only: no resource or collision changes.
-const VILLAGE_GROVE=[[-270,-130],[275,-155],[-310,170],[260,430],[-165,-265],[160,-295]].map(([dx,dy])=>({x:CX+dx,y:CY+dy,k:'ancient',back:0}));
+const VILLAGE_GROVE=[[-610,-480],[610,-480],[-610,480],[610,480],[-460,-610],[460,-610]].map(([dx,dy])=>({x:CX+dx,y:CY+dy,k:'ancient',back:0}));
 function drawWoodlandShrub(x,y,seed){MyrrenEnvironment.fern(ctx,x,y,seed)}
 // Decorative brook, falls and timber footbridge, placed east of the town services.
 // Water is scenery in this pass; no new impassable collision or save-coordinate changes.
@@ -2595,7 +2609,7 @@ function drawOutdoor(cx,cy,now){
   const rimKinds=['bramblewood','alder','ironbark','redleaf','duskwillow','elderthorn','starroot'];
   for(let i=0;i<24;i++){
     const a=(i+.32)*Math.PI*2/24;
-    const radius=665+((i*37)%55);
+    const radius=725+((i*37)%40);
     const gx=CX+Math.cos(a)*radius,gy=CY+Math.sin(a)*radius*.79;
     if(gx<EDGE+65||gy<EDGE+65||gx>WW-EDGE-65||gy>WH-EDGE-65)continue;
     if(Math.abs(gy-CY)<65)continue; // leave the east/west approach clear
@@ -2682,7 +2696,7 @@ function drawOutdoor(cx,cy,now){
   // Scenery only: no new gatherable nodes, collision, XP or save changes.
   const showcaseTrees=['bramblewood','alder','ironbark','redleaf','duskwillow','elderthorn','starroot'];
   for(let i=0;i<showcaseTrees.length;i++){
-    const a=(i/7)*Math.PI*2+.36,rad=355+(i%2)*55;
+    const a=(i/7)*Math.PI*2+.36,rad=690+(i%2)*45;
     const gx=CX+Math.cos(a)*rad,gy=CY+Math.sin(a)*rad*.82;
     if(!vis(gx,gy)||!VILLAGE.dryFootprint(gx,gy,72,110,3,10))continue;
     const tree={x:gx,y:gy,k:'tree',previewTree:showcaseTrees[i],back:0};
