@@ -2,9 +2,9 @@
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),vm=require('node:vm'),{spawnSync}=require('node:child_process'),{createCanvas,loadImage}=require('@napi-rs/canvas');
 (async()=>{
  const {W,H}=await require('../tests/wardrobe-harness.cjs')(),hero=H.create(W.base,{rawFrames:true});
- const sb={window:{dispatchEvent(){}},Event:class{},fetch:async()=>({ok:true,json:async()=>JSON.parse(fs.readFileSync('public/crater-reference-frames.json','utf8'))}),Image:class{constructor(){const c=createCanvas(1,1);Object.defineProperty(c,'src',{set(url){loadImage('public/'+url.split('/').pop().split('?')[0]).then(im=>{c.width=im.width;c.height=im.height;c.getContext('2d').drawImage(im,0,0);c.onload?.()})}});return c}}};
+ const sb={document:{createElement:()=>createCanvas(1,1)},window:{dispatchEvent(){}},Event:class{},fetch:async()=>({ok:true,json:async()=>JSON.parse(fs.readFileSync('public/crater-reference-frames.json','utf8'))}),Image:class{constructor(){const c=createCanvas(1,1);Object.defineProperty(c,'src',{set(url){loadImage('public/'+url.split('/').pop().split('?')[0]).then(im=>{c.width=im.width;c.height=im.height;c.getContext('2d').drawImage(im,0,0);c.onload?.()})}});return c}}};
  vm.createContext(sb);for(const file of ['skilling-pets.js','crater-animation.js','crater-pet-reference.js'])vm.runInContext(fs.readFileSync('public/'+file,'utf8'),sb);
- const P=sb.window.MyrrenSkillingPets,renderer=sb.window.MyrrenPetReference.create();await renderer.load();
+ const P=sb.window.MyrrenSkillingPets,renderer=sb.window.MyrrenPetReference.create();if(!await renderer.load())throw Error(renderer.error);
  const pets=['woodcutting','mining','fishing'].map(sk=>({sk,x:20,y:0,face:1,trail:[]}));for(const p of pets)P.reset(p,0,{playerMoving:true});
  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'myrren-pet-controller-'));let output=0;
  for(let tick=0;tick<=160;tick++){

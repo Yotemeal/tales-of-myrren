@@ -2,10 +2,39 @@
 (()=>{'use strict';
  function create(){
   let ready=false,error='',metadata=null,atlas=null;const icons=new Map();
+  function makeTransparent(source){
+   const canvas=document.createElement('canvas');
+   canvas.width=source.naturalWidth||source.width;
+   canvas.height=source.naturalHeight||source.height;
+   const ctx=canvas.getContext('2d',{willReadFrequently:true});
+   ctx.drawImage(source,0,0);
+   for(const creature of metadata.creatures.filter(c=>c.category==='Pets')){
+    for(const [state,clip] of Object.entries(creature.states)){
+     for(const frame of clip.frames){
+      const pixels=ctx.getImageData(frame.x,frame.y,frame.w,frame.h);
+      for(let y=0;y<frame.h;y++){
+       const sourceRow=frame.sourceBox[1]+y;
+       const divider=(creature.id==='river_otter'&&(state==='walk'||state==='swim')&&sourceRow>=683)
+        ||(creature.id==='timber_glider'&&state==='climb'&&frame===clip.frames[0]&&sourceRow===251);
+       for(let x=0;x<frame.w;x++){
+        const i=(y*frame.w+x)*4;
+        const r=pixels.data[i],g=pixels.data[i+1],b=pixels.data[i+2];
+        // The R5 board is dark cyan. Retain the warm outlines and blue water effects.
+        const matte=r<=24&&g<=34&&b<=36&&g-r>=3&&Math.abs(b-g)<=7;
+        if(divider||matte)pixels.data[i+3]=0;
+       }
+      }
+      ctx.putImageData(pixels,frame.x,frame.y);
+     }
+    }
+   }
+   return canvas;
+  }
   async function load(){
    if(typeof fetch!=='function'||typeof Image!=='function')return false;
    try{const response=await fetch('/crater-reference-frames.json?v=2');if(!response.ok)throw Error('Pet reference metadata unavailable');metadata=await response.json();
-    atlas=await new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('Pet reference artwork unavailable'));image.src='/'+metadata.references.R5.file+'?v='+metadata.version});
+    const source=await new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('Pet reference artwork unavailable'));image.src='/'+metadata.references.R5.file+'?v='+metadata.version});
+    atlas=makeTransparent(source);
     ready=true;window.dispatchEvent?.(new Event('myrren-pet-reference-ready'));return true;
    }catch(e){error=e.message;return false}
   }
