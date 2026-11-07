@@ -913,8 +913,8 @@ function rSkills(){
  };
  const k=skillFocus,layout=el('div','skills-layout');
  const grid=el('div','grid2 skill-grid');
- for(const skill of SK){const xp=save.xp[skill],level=lvlFor(xp),lo=xpTable[level],hi=level>=MAXL?xpTable[MAXL]:xpTable[level+1],pct=level>=MAXL?100:(xp-lo)/(hi-lo)*100,b=el('button','skill');b.type='button';b.setAttribute('aria-label',NAMES[skill]+' level '+level);b.setAttribute('aria-pressed',String(k===skill));b.innerHTML='<span class="skill-top"><span class="ic">'+svg(SKILL_ART[skill],40)+'</span><span class="level">'+level+'</span></span><b>'+NAMES[skill]+'</b><small>'+Math.floor(xp).toLocaleString()+' xp</small><span class="bar"><i style="width:'+pct+'%"></i><span>'+pct.toFixed(0)+'%</span></span>';b.addEventListener('click',()=>{skillFocus=skillFocus===skill?null:skill;renderModal()});grid.append(b)}
- grid.append(el('div','skill total','<span class="skill-top"><span class="level">'+totalLevel()+'</span></span><b>Total level</b><small>Health '+me.hp+' / '+hpMax()+'</small>'));
+ for(const skill of SK){const xp=save.xp[skill],level=lvlFor(xp),lo=xpTable[level],hi=level>=MAXL?xpTable[MAXL]:xpTable[level+1],pct=level>=MAXL?100:(xp-lo)/(hi-lo)*100,b=el('button','skill');b.type='button';b.setAttribute('aria-label',NAMES[skill]+' level '+level);b.setAttribute('aria-pressed',String(k===skill));b.innerHTML='<span class="skill-top"><span class="ic">'+svg(SKILL_ART[skill],34)+'</span><span class="level">'+level+'</span></span><b>'+NAMES[skill]+'</b><span class="bar" aria-hidden="true"><i style="width:'+pct+'%"></i></span>';b.addEventListener('click',()=>{skillFocus=skillFocus===skill?null:skill;renderModal()});grid.append(b)}
+ grid.append(el('div','skill total','<span class="skill-top"><span class="level">'+totalLevel()+'</span></span><b>Total level</b>'));
  layout.append(grid);
  if(k&&descriptions[k]){
    const info=descriptions[k],L=lvlFor(save.xp[k]),pop=el('section','skill-info-popover'),close=el('button','skill-info-close','×');
