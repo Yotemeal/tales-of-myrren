@@ -45,7 +45,7 @@ const ctx={
  addXp:(skill,xp)=>{ctx.save.xp[skill]+=xp},Math
 };
 vm.createContext(ctx);
-vm.runInContext('const ingName=id=>ITEMS[\'ing_\'+id].name;\n'+production.slice(production.indexOf('/* Production cooldowns')),ctx);
+vm.runInContext('const ingName=id=>ITEMS[\'ing_\'+id].name;\nlet forgeMat=2;\n'+production.slice(production.indexOf('/* Production cooldowns')),ctx);
 vm.runInContext('smelt(SMELT[0])',ctx);
 assert.equal(ctx.save.inv.ing_bronze,1);
 assert.equal(ctx.save.inv.copper,1);
