@@ -35,7 +35,30 @@
     if(!entry.ready)return false;
     const w=isTree?144:35;
     const h=isTree?Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth):Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth);
-    ctx.drawImage(entry.img,Math.round(x-w/2),Math.round(y-h+4),w,h);
+    const dx=Math.round(x-w/2),dy=Math.round(y-h+4);
+    if(!isTree){ctx.drawImage(entry.img,dx,dy,w,h);return true;}
+    // A brief, asynchronous gust every ~10-15 seconds per tree. Trunks never move.
+    const seed=hash(n.x,n.y),cycle=10500+(seed%4500),t=(now+seed%9000)%cycle;
+    const gust=t<2100?Math.sin(Math.PI*t/2100):0;
+    const sway=Math.round(Math.sin(t*.015+seed%19)*gust*2);
+    const split=Math.round(h*.57),srcSplit=Math.round(entry.img.naturalHeight*.57);
+    ctx.drawImage(entry.img,0,srcSplit,entry.img.naturalWidth,entry.img.naturalHeight-srcSplit,dx,dy+split,w,h-split);
+    ctx.drawImage(entry.img,0,0,entry.img.naturalWidth,srcSplit,dx+sway,dy,w,split);
+    // Sparse falling leaves, deterministic from tree position and frame time.
+    if(gust>.12){
+      const leafColors={tree:'#8ba75b',oak:'#9da95c',maple:'#b97843',elder:'#7d9b54',myrren:'#83b9c2'};
+      const color=leafColors[n.k]||'#90a75c';
+      ctx.fillStyle=color;
+      for(let i=0;i<3;i++){
+        const delay=(seed%390+i*430)%1250;
+        const age=t-delay;
+        if(age<0||age>1350)continue;
+        const p=age/1350;
+        const lx=dx+w*(.24+.22*i)+p*(8+i*3)+Math.sin(p*9+i)*3;
+        const ly=dy+h*(.28+.08*i)+p*h*.52;
+        ctx.fillRect(Math.round(lx),Math.round(ly),2,2);
+      }
+    }
     return true;
   }
   function tree(ctx,n,x,y,now,ancient=false){
