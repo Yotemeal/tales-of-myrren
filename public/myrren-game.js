@@ -205,6 +205,7 @@ const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=90,EDGE=100;
 const VILLAGE=MyrrenWorld;
 // Explicit development opt-in; normal encounters and saved progress stay unchanged.
 const craterPreview=!!window.MyrrenCrater?.previewEnabled(location.search);
+const craterBossPreview=craterPreview&&/(?:^|[?&])craterBossPreview=1(?:&|$)/.test(location.search);
 const craterRocks=craterPreview&&window.MyrrenCraterRocks?window.MyrrenCraterRocks.create():null;
 const craterPets=craterPreview&&window.MyrrenSkillingPets||null;
 const craterPetArt=craterPets&&window.MyrrenPetReference?window.MyrrenPetReference.create():null;
@@ -221,6 +222,7 @@ if(craterRocks){
   MT.rat={...MT.slime,name:'Forest Rat'};
   MT.troll={...MT.bear,name:'Forest Troll'};
   MT.guardian={...MT.wolf,name:'Cave Guardian',lv:18};
+  if(craterBossPreview)MT.jewelheart={...MT.bear,name:'Jewelheart Guardian',lv:30};
 }
 window.addEventListener('myrren-pet-reference-ready',()=>{if(tab==='skills')renderModal()});
 // Prototype motion tuning only, not approved Crater balance. Damage/cooldown use MT.
@@ -231,7 +233,8 @@ const CRATER_DASH={
   wolf:{range:30,windup:320,dash:150,recover:260,hitRadius:7},
   boar:{range:42,windup:460,dash:190,recover:380,hitRadius:8},
   troll:{range:22,windup:620,recover:560,impactRadius:11},
-  guardian:{range:24,windup:720,recover:640,impactRadius:13}
+  guardian:{range:24,windup:720,recover:640,impactRadius:13},
+  jewelheart:{range:30,windup:900,recover:760,impactRadius:19}
 };
 const BLD=VILLAGE.buildings.map(b=>({...b}));
 const LAMPS=[[CX-200,CY+14],[CX+200,CY+14],[CX-120,CY+70],[CX+120,CY+70],[CX-40,CY+70],[CX+40,CY+70]];
@@ -959,7 +962,7 @@ let boardOffers=null,boardLv=0;
 function mkObj(sk){
   const L=lvlFor(save.xp[sk]),br=BR(L);
   if(sk==='melee'){
-    let pool=Object.keys(MT).filter(k=>k!=='goblin_guard'&&k!=='rat'&&k!=='troll'&&k!=='guardian'&&MT[k].lv<=L+15);if(!pool.length)pool=['slime'];
+    let pool=Object.keys(MT).filter(k=>k!=='goblin_guard'&&k!=='rat'&&k!=='troll'&&k!=='guardian'&&k!=='jewelheart'&&MT[k].lv<=L+15);if(!pool.length)pool=['slime'];
     const good=pool.filter(k=>MT[k].lv>=L*.4);if(good.length)pool=good;
     return {type:'slay',skill:sk,mon:pool[rint(0,pool.length-1)],need:rint(SLAYQ[br][0],SLAYQ[br][1]),have:0};
   }
@@ -1564,6 +1567,11 @@ function killMon(m,now){
   const mt=MT[m.t];m.rockCast=null;m.guardStrikeAt=null;m.dashAttack=null;m.state='dead';m.back=now+12000;m.dieAt=now;
   decals.push({x:m.x,y:m.y,t:now,c:m.t==='slime'?'#e86a86':'#a82418'});
   say('You have defeated the '+mt.name.toLowerCase()+'.','gold');
+  if(m.t==='jewelheart'){
+    if(act&&act.ref===m)act=null;
+    uiHud();
+    return; // The rehearsal has no progression or loot awards.
+  }
   addXp('melee',combatKillXp(mt));
   const c=rint(mt.coins[0],mt.coins[1]);save.inv.coins+=c;say('You find '+c+' coins.');
   {
@@ -2108,7 +2116,7 @@ function drawMon(m,x,y,now){
   ctx.save();ctx.globalAlpha=al;
   const goblinDrawn=craterGoblins?.draw?.(ctx,m,x,y,now,{moving,hitAge:ha,windup:ROCK_PREVIEW.windup});
   const dashDrawn=craterDash?.draw?.(ctx,m,x,y,now,{moving,hitAge:ha,recover:CRATER_DASH[m.t]?.recover,windup:CRATER_DASH[m.t]?.windup});
-  if(!goblinDrawn&&!dashDrawn&&m.t!=='rat'&&m.t!=='troll'&&m.t!=='guardian'){
+  if(!goblinDrawn&&!dashDrawn&&m.t!=='rat'&&m.t!=='troll'&&m.t!=='guardian'&&m.t!=='jewelheart'){
     ctx.translate(x,y);ctx.scale(f,1);
     if(m.t==='slime')sprSlime(mode,ph,age,flash);else if((m.t==='goblin'||m.t==='goblin_guard'))sprGoblin(mode,ph,age,flash);else if(m.t==='boar')sprBoar(mode,ph,age,flash);else if(m.t==='bear')sprBear(mode,ph,age,flash);else if(m.t==='cave')sprQuad(Q_CAVE,mode,ph,age,flash);else if(m.t==='abear')sprQuad(Q_ABEAR,mode,ph,age,flash);else sprWolf(mode,ph,age,flash);
     // Native-pixel creature finishing pass: fur, eyes, tusks and equipment.
@@ -2136,7 +2144,7 @@ function drawMon(m,x,y,now){
   }
   ctx.restore();ctx.globalAlpha=1;
   if(dead)return;
-  const top=y-(dashDrawn?({rat:19,boar:30,wolf:38,troll:52,guardian:54}[m.t]):goblinDrawn?(m.t==='goblin_guard'?42:34):({goblin:27,wolf:20,boar:18,bear:30,cave:30,abear:30}[m.t]||15));
+  const top=y-(dashDrawn?({rat:19,boar:30,wolf:38,troll:52,guardian:54,jewelheart:78}[m.t]):goblinDrawn?(m.t==='goblin_guard'?42:34):({goblin:27,wolf:20,boar:18,bear:30,cave:30,abear:30}[m.t]||15));
   if(m.hp<mt.hp)bar(x,top,m.hp/mt.hp);
   if(Math.hypot(m.x-me.x,m.y-me.y)<70||me.tgt===m)label((goblinDrawn&&m.t==='goblin'?'Goblin Miner':mt.name)+' (Lv '+mt.lv+')',x,top-5,'#ffffff');
 }
@@ -2584,7 +2592,7 @@ function drawOutdoor(cx,cy,now){
   if(craterRocks)for(const rock of craterRocks.rocks)if(vis(rock.x,rock.y))list.push({y:rock.y,f:()=>{const x=Math.round(rock.x-cx),y=Math.round(rock.y-cy)-10;R(x-2,y-1,5,3,'#302c29');R(x-1,y-2,3,4,'#827368');R(x-1,y-1,2,1,'#baa991')}});
   list.sort((a,b)=>a.y-b.y);
   for(const e of list)e.f();
-  if(craterRocks)label(craterGoblins?.ready?'CRATER MECHANICS PREVIEW':'CRATER MECHANICS PREVIEW · LEGACY GOBLIN ART',cv.width/2,18,'#ffe14a');
+  if(craterRocks)label(craterBossPreview?'CRATER PREVIEW · JEWELHEART COMBAT TEST':craterGoblins?.ready?'CRATER MECHANICS PREVIEW':'CRATER MECHANICS PREVIEW · LEGACY GOBLIN ART',cv.width/2,18,'#ffe14a');
 }
 const GRASS=['#263d31','#344d39','#3b5840'];
 function frame(now){
@@ -2644,6 +2652,7 @@ if(craterRocks){
   addMons('troll',3,560);
   // Temporary outer-world encounters until the cave layout is established.
   addMons('guardian',2,620);
+  if(craterBossPreview)addMons('jewelheart',1,620);
 }
 syncPets();petsTeleport();uiHud();
 let loadDone=false;

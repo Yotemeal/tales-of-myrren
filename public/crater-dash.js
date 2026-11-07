@@ -1,7 +1,7 @@
 /* Approved Crater beast, troll and guardian poses for the Crater combat preview. */
 (()=>{'use strict';
  function create(){
-  const ids={rat:'forest_rat',boar:'wild_boar',wolf:'dire_wolf',troll:'forest_troll',guardian:'cave_guardian'};
+  const ids={rat:'forest_rat',boar:'wild_boar',wolf:'dire_wolf',troll:'forest_troll',guardian:'cave_guardian',jewelheart:'jewelheart_guardian'};
   const artwork=new Map();
   async function load(){
    try{
@@ -38,6 +38,11 @@
       }
       ctx.putImageData(pixels,frame.x,frame.y);
      }
+     if(type==='jewelheart'){
+      // The edge of the following pose overlaps the lower corner of this crop.
+      const raised=creature.states.attack.frames[1];
+      ctx.clearRect(raised.x+79,raised.y+66,raised.w-79,raised.h-66);
+     }
      artwork.set(type,{atlas,creature});
     }));
     return results.some(result=>result.status==='fulfilled');
@@ -48,7 +53,7 @@
    const asset=artwork.get(monster.t);
    if(!asset||!animation)return false;
    const {atlas,creature}=asset;
-   const wolf=monster.t==='wolf',guardian=monster.t==='guardian';
+   const wolf=monster.t==='wolf',guardian=monster.t==='guardian'||monster.t==='jewelheart';
    const {states,draftFitHeight,fitSourceHeight}=creature;
    const releaseAge=now-monster.lunge;
    let frame;

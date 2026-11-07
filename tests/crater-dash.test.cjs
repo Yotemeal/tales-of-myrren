@@ -152,12 +152,50 @@ const createGame=require('./game-runtime.cjs');
   g.update(.05,1720);
   assert.equal(g.me.hp,g.hpMax(),'moving out of the impact area dodges the guardian');
 
+  const bossSearch='?craterPreview=1&craterBossPreview=1';
+  ({g,creature}=await encounter(bossSearch,'jewelheart'));
+  assert.equal(g.MT.jewelheart.lv,30);
+  g.me.x=1410;
+  g.update(.05,1000);
+  assert(creature.dashAttack);
+  g.update(.05,1899);
+  assert.equal(g.me.hp,g.hpMax(),'ground crush waits for the windup');
+  g.update(.05,1900);
+  assert(g.me.hp<g.hpMax());
+  assert.equal(creature.x,1380);
+  const afterCrush=g.me.hp;
+  g.update(.05,2000);
+  assert.equal(g.me.hp,afterCrush);
+  assert.equal(creature.cd,0,'boss recovers after the crush');
+  const xp=g.save.xp.melee,coins=g.save.inv.coins,bag=JSON.stringify(g.save.bag);
+  g.killMon(creature,2100);
+  g.killMon(creature,2101);
+  assert.equal(g.save.xp.melee,xp);
+  assert.equal(g.save.inv.coins,coins);
+  assert.equal(JSON.stringify(g.save.bag),bag);
+  g.update(.05,14100);
+  assert.equal(creature.state,'idle');
+  assert.equal(creature.hp,g.MT.jewelheart.hp);
+
+  ({g,creature}=await encounter(bossSearch,'jewelheart'));
+  g.me.x=1410;
+  g.update(.05,1000);
+  g.me.y+=22;
+  g.update(.05,1900);
+  assert.equal(g.me.hp,g.hpMax(),'leaving the aimed area avoids the ground crush');
+
+  const {game:boss}=await createGame({}, {search:bossSearch});
+  assert.equal(boss.mons.filter(m=>m.t==='jewelheart').length,1);
+  const {game:bossFlagOnly}=await createGame({}, {search:'?craterBossPreview=1'});
+  assert(!bossFlagOnly.mons.some(m=>m.t==='jewelheart'));
+
   const {game:normal}=await createGame();
   assert(!normal.mons.some(m=>m.t==='rat'||m.t==='troll'||m.t==='guardian'));
   const {game:preview}=await createGame({}, {search:'?craterPreview=1'});
   assert(preview.mons.some(m=>m.t==='rat'));
   assert(preview.mons.some(m=>m.t==='troll'));
   assert(preview.mons.some(m=>m.t==='guardian'));
+  assert(!preview.mons.some(m=>m.t==='jewelheart'));
   assert.equal(preview.mons.filter(m=>m.t==='cave').length,normal.mons.filter(m=>m.t==='cave').length);
   assert.equal(preview.mons.filter(m=>m.t==='bear').length,normal.mons.filter(m=>m.t==='bear').length);
   assert.equal(preview.mons.filter(m=>m.t==='slime').length,normal.mons.filter(m=>m.t==='slime').length);
@@ -193,8 +231,8 @@ const createGame=require('./game-runtime.cjs');
  }
  const renderer=window.MyrrenCraterDash.create();
  assert(await renderer.load());
- const surface=createCanvas(560,426),ctx=surface.getContext('2d');
- ctx.fillStyle='#283a32';ctx.fillRect(0,0,560,426);
+ const surface=createCanvas(700,538),ctx=surface.getContext('2d');
+ ctx.fillStyle='#283a32';ctx.fillRect(0,0,700,538);
  const {states}=metadata.creatures.find(c=>c.id==='dire_wolf');
  const draw=window.MyrrenCraterAnimation.drawFrame;
  let frame;
@@ -270,6 +308,22 @@ const createGame=require('./game-runtime.cjs');
   assert(renderer.draw(ctx,{t:'guardian',state:'chase',lunge:-9999,face:i%2?-1:1,...monster},i*80+40,400,now,{moving,hitAge:Infinity,windup:720,recover:640}));
   assert.equal(frame,expected);
  }
+ const bossArt=metadata.creatures.find(c=>c.id==='jewelheart_guardian');
+ assert(bossArt.draftFitHeight>metadata.creatures.find(c=>c.id==='cave_guardian').draftFitHeight);
+ const boss=bossArt.states;
+ for(const [i,[now,pose,expected]] of [
+  [0,{},boss.idle.frames[0]],
+  [0,{moving:true},boss.move.frames[0]],
+  [0,{dashAttack:{at:0}},boss.attack.frames[0]],
+  [300,{dashAttack:{at:0}},boss.attack.frames[1]],
+  [600,{dashAttack:{at:0}},boss.attack.frames[2]],
+  [900,{lunge:900},boss.attack.frames[3]],
+  [1240,{state:'dead',dieAt:900},boss.death.frames[2]]
+ ].entries()){
+  const {moving=false,...monster}=pose;
+  assert(renderer.draw(ctx,{t:'jewelheart',state:'chase',lunge:-9999,face:i%2?-1:1,...monster},i*100+50,515,now,{moving,hitAge:Infinity,windup:900,recover:760}));
+  assert.equal(frame,expected);
+ }
  if(process.env.DASH_CONTACT_SHEET)fs.writeFileSync(process.env.DASH_CONTACT_SHEET,surface.toBuffer('image/png'));
- console.log('PASS: Crater beasts, Forest Troll and Cave Guardian use approved poses and dodgeable attacks. Checked damage, recovery, terrain and cancellation.');
+ console.log('PASS: Crater beasts, Forest Troll and both Guardians use approved poses and dodgeable attacks. Checked damage, recovery, terrain and cancellation.');
 })().catch(e=>{console.error(e);process.exitCode=1});
