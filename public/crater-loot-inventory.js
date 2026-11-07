@@ -27,7 +27,9 @@
  }
  function commit(plan,inventory,gear){
   if(!plan||!inventory||!Array.isArray(gear))throw new TypeError('Invalid reward commit');
+  if(!plan.stack||typeof plan.stack!=='object'||Array.isArray(plan.stack))throw new TypeError('Invalid reward stacks');
   for(const [id,count] of Object.entries(plan.stack)){
+   if(!Number.isSafeInteger(count)||count<1||!Number.isSafeInteger(inventory[id]||0)||inventory[id]<0)throw new TypeError('Invalid stack quantity');
    const value=(inventory[id]||0)+count;
    if(!Number.isSafeInteger(value))throw new RangeError('Inventory overflow');
   }
