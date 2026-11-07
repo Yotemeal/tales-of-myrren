@@ -249,3 +249,15 @@ The seven Crater regular enemies—Forest Rat, Goblin Miner, Wild Boar, Dire Wol
 The **Jewelheart Guardian is the only Crater boss**. Its current preview is a combat rehearsal and intentionally grants no XP or loot. The planned Guardian's Necklace and Guardian's Ring are unconfigured placeholders until exact stats and odds are approved. Boss rewards must be implemented separately behind an explicit activation gate, with contributor/ownership rules and exactly-once settlement validated before progression is enabled.
 
 The earlier instruction to define eight Crater-specific monster loot tables is a *design exercise*, not authorization to replace the seven ordinary monsters' existing loot rules. If the game's ordinary loot system is later upgraded to shared OSRS-style tables, apply that change consistently to ordinary monsters game-wide.
+
+
+## Monster resource drops versus gathering skills
+
+Design direction confirmed: monster kills can supply **some skilling resources** for combat-focused players, but must never make Mining, Forestry, Fishing or other gathering skills obsolete. Treat monster resource rewards as supplementary, not the most efficient source of bulk materials.
+
+- Ordinary monsters may occasionally award small quantities of low-tier ore, logs, food or other appropriate existing resources, in addition to normal combat rewards. Do not turn every kill into a resource payout.
+- Higher-tier and bulk materials remain primarily sourced from the relevant gathering skill. Skilling must provide more reliable quantities and better resource acquisition per comparable playtime.
+- The Jewelheart Guardian's proposed low-tier ore rewards are a supplemental boss drop; steel equipment is merchant-saleable, and the necklace/ring are its unique chase rewards. The exact odds and quantities remain balancing proposals pending a playtest.
+- The town merchant should be the convenient one-stop shop for selling loot and obtaining everyday supplies; retain normal inventory and item-value rules.
+- Before activation, compare resource yield per hour from monster farming against equivalent-level gathering. If combat farming overtakes gathering for core resources, reduce monster quantities/frequency rather than nerfing skilling.
+- Do not add unapproved high-tier resource drops or invent a Bat monster table: the current game branch has no Bat entry to copy. Revisit the Bat reference if its source is identified.
