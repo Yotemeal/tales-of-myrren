@@ -1572,6 +1572,11 @@ function killMon(m,now){
   decals.push({x:m.x,y:m.y,t:now,c:m.t==='slime'?'#e86a86':'#a82418'});
   say('You have defeated the '+mt.name.toLowerCase()+'.','gold');
   if(m.t==='jewelheart'){
+    // Preview combat is a rehearsal: evaluate a local claim, but never grant boss rewards.
+    if(craterBossPreview&&window.MyrrenJewelheartRewards){
+      const rehearsal=window.MyrrenJewelheartRewards.create();
+      rehearsal.evaluate({killId:'jewelheart:'+String(now),bossId:'jewelheart_guardian',eligible:true,ironmanOwner:true,contributor:true});
+    }
     if(act&&act.ref===m)act=null;
     uiHud();
     return; // The rehearsal has no progression or loot awards.
