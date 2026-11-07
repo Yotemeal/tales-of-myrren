@@ -1,6 +1,6 @@
 /* Jewelheart loot proposal. Preview data only: no boss rewards are granted.
  * Coins, low-tier ore and merchant-saleable steel gear use existing item IDs.
- * Rates are initial balancing suggestions, not approved for live activation.
+ * Jewellery targets are 1 in 150 per kill (exact odds); the 67 bps entries are rounded display approximations. Rates remain proposals, not approved for live activation.
  */
 (()=>{'use strict';
  const table=Object.freeze({
@@ -18,8 +18,8 @@
    {itemId:'steel_body',chanceBps:500},
    {itemId:'steel_legs',chanceBps:500},
    {itemId:'steel_shield',chanceBps:500},
-   {itemId:'guardians_necklace',chanceBps:100},
-   {itemId:'guardians_ring',chanceBps:100}
+   {itemId:'guardians_necklace',chanceBps:67},
+   {itemId:'guardians_ring',chanceBps:67}
   ].map(Object.freeze))
  });
  window.MyrrenJewelheartLootProposal=table;
