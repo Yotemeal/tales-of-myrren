@@ -67,4 +67,29 @@ assert.equal(ctx.save.eq.weapon,'bronze_sword');
 vm.runInContext('forge("sword")',ctx);
 assert.equal(ctx.save.bag.length,0,'Rapid forging must not create duplicate gear');
 
+
+// Failed actions must not consume materials, grant XP, or start cooldowns.
+now+=2500;
+ctx.save.xp.forging=0;
+ctx.save.inv.ing_bronze=4;
+const before={xp:ctx.save.xp.forging,ingots:ctx.save.inv.ing_bronze};
+vm.runInContext('forge("sword")',ctx);
+assert.equal(ctx.save.xp.forging,before.xp,'Locked recipe must not award XP');
+assert.equal(ctx.save.inv.ing_bronze,before.ingots,'Locked recipe must not consume ingots');
+ctx.save.xp.forging=100;
+vm.runInContext('forge("sword")',ctx);
+assert.equal(ctx.save.bag.length,1,'Valid crafting should work immediately after rejected attempt');
+assert.equal(ctx.save.xp.forging,196);
+now+=2500;
+ctx.save.inv.ing_bronze=0;
+vm.runInContext('forge("sword")',ctx);
+assert.equal(ctx.save.bag.length,1,'Insufficient materials must not create equipment');
+ctx.save.inv.copper=0;
+ctx.save.inv.tin=0;
+now+=2500;
+const xpBefore=ctx.save.xp.forging;
+vm.runInContext('smelt(SMELT[0])',ctx);
+assert.equal(ctx.save.xp.forging,xpBefore,'Insufficient ore must not award XP');
+assert.equal(ctx.save.inv.ing_bronze,0,'Insufficient ore must not create ingots');
+
 console.log('Forging syntax, contracts and isolated production behavior passed');
