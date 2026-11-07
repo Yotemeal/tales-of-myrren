@@ -1582,15 +1582,24 @@ function killMon(m,now){
     const c=rint(mt.coins[0],mt.coins[1]);
     const table=definition?{...definition,guaranteed:[{itemId:'coins',quantity:c}]}:null;
     if(table)craterLoot.award(m,table,drops=>{
-      for(const drop of drops){
-        if(drop.itemId==='coins'){save.inv.coins+=drop.quantity;say('You find '+drop.quantity+' coins.')}
-        else if(drop.itemId==='bread'){if(canFitInventory({bread:drop.quantity})){save.inv.bread+=drop.quantity;say('It dropped some bread.')}else say('It dropped bread, but your pack is full.','warn')}
-        else if(drop.itemId==='existing_random_gear'){
+      const adapter=window.MyrrenCraterInventory;
+      if(!adapter)throw new Error('Crater inventory adapter missing');
+      const plan=adapter.plan(drops,{
+        inventory:save.inv,gear:save.bag,
+        canFit:(stack,extraGear)=>canFitInventory(stack,extraGear),
+        resolveGear:()=>{
           const mat=Math.max(2,mt.drop.mats[rint(0,mt.drop.mats.length-1)]);
           const kinds=Object.keys(KINDS).filter(k=>KINDS[k].mats.includes(mat));
-          giveGear(MATS[mat].k+'_'+kinds[rint(0,kinds.length-1)]);
+          return MATS[mat].k+'_'+kinds[rint(0,kinds.length-1)];
         }
+      });
+      adapter.commit(plan,save.inv,save.bag);
+      for(const [id,count] of Object.entries(plan.stack)){
+        if(id==='coins')say('You find '+count+' coins.');
+        else if(id==='bread')say('It dropped '+count+' bread.');
       }
+      for(const id of plan.equipment)say('Rare drop: '+DEFS[id].name+'!','gold');
+      for(const drop of plan.rejected)say('Your pack is full; '+drop.itemId+' could not be collected.','warn');
     },Math.random,window.MyrrenCraterLootTables.sharedTables);
     else {save.inv.coins+=c;say('You find '+c+' coins.');}
   }else{
