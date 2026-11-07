@@ -19,5 +19,10 @@ test('boss proposes guaranteed money and existing low-tier ores',()=>{
 test('steel equipment and both jewellery items have independent rare entries',()=>{
  const ids=Array.from(t.bonus,x=>x.itemId);
  for(const id of ['steel_sword','steel_helm','steel_body','steel_legs','steel_shield','guardians_necklace','guardians_ring'])assert.ok(ids.includes(id));
- assert.ok(t.bonus.every(x=>Number.isInteger(x.chanceBps)&&x.chanceBps>0&&x.chanceBps<=10000));
+ assert.ok(t.bonus.filter(x=>x.itemId.startsWith('steel_')).every(x=>Number.isInteger(x.chanceBps)&&x.chanceBps>0&&x.chanceBps<=10000));
+ for(const id of ['guardians_necklace','guardians_ring']){
+  const item=t.bonus.find(x=>x.itemId===id);
+  assert.equal(item.chanceNumerator,1);
+  assert.equal(item.chanceDenominator,150);
+ }
 });
