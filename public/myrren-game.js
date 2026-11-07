@@ -2892,27 +2892,52 @@ function drawMini(now){
   miniRoot.hidden=!started||!!inside;
   if(miniRoot.hidden||now-miniLast<120)return;
   miniLast=now;
-  const g=miniCtx,W=160,H=160,cx=80,cy=80,scale=.24;
-  g.clearRect(0,0,W,H);g.save();g.beginPath();g.arc(cx,cy,77,0,Math.PI*2);g.clip();
-  g.fillStyle='#405143';g.fillRect(0,0,W,H);
-  // The camp's beaten-earth clearing and its southern exit are fixed landmarks.
-  const ox=cx-me.x*scale,oy=cy-me.y*scale;
-  g.fillStyle='#79654a';g.beginPath();g.ellipse(ox+CX*scale,oy+CY*scale,72,54,0,0,Math.PI*2);g.fill();
-  g.fillStyle='#947953';g.fillRect(ox+(CX-17)*scale,oy+(CY+25)*scale,34*scale,270*scale);
-  g.strokeStyle='#8f9480';g.lineWidth=6;
-  g.beginPath();g.ellipse(ox+CX*scale,oy+CY*scale,74,57,0,Math.PI,Math.PI*2);g.stroke();
-  // Town features. Small colour-coded squares are visible even at phone size.
-  const mark=(x,y,color,size=5)=>{const px=ox+x*scale,py=oy+y*scale;if(px>-8&&px<168&&py>-8&&py<168){g.fillStyle='#211b16';g.fillRect(Math.round(px-size/2)-1,Math.round(py-size/2)-1,size+2,size+2);g.fillStyle=color;g.fillRect(Math.round(px-size/2),Math.round(py-size/2),size,size)}};
-  mark(TRADER.x,TRADER.y,'#d7a35e',6);
-  mark(BOARD.x,BOARD.y,'#e8d7a0',5);
-  mark(SPOTS.bank.x,SPOTS.bank.y,'#c3a176',5);
-  for(const lamp of LAMPS)mark(lamp[0],lamp[1],'#e7c46b',3);
-  // The player is always central, with a clear facing-direction pointer.
-  g.fillStyle='#fff0bc';g.beginPath();g.arc(cx,cy,4,0,Math.PI*2);g.fill();
-  g.strokeStyle='#241c18';g.lineWidth=2;g.stroke();
-  g.strokeStyle='#fff0bc';g.lineWidth=2;g.beginPath();g.moveTo(cx,cy);g.lineTo(cx+(me.fx||0)*12,cy+(me.fy||1)*12);g.stroke();
+  const g=miniCtx,cx=80,cy=80;
+  g.clearRect(0,0,160,160);
+  g.save();g.beginPath();g.arc(cx,cy,77,0,Math.PI*2);g.clip();
+  g.fillStyle='#263b2b';g.fillRect(0,0,160,160);
+  // Tiny clustered forest texture, stable across frames.
+  for(let i=0;i<170;i++){
+    const x=(i*73+19)%160,y=(i*47+(i%7)*13)%160;
+    g.fillStyle=i%3?'#334b32':'#53633d';g.fillRect(x,y,i%4+2,i%3+2);
+  }
+  // The crater is a fixed miniature of the camp rather than a generic radar.
+  g.fillStyle='#1b2b24';g.beginPath();g.ellipse(80,77,64,56,0,0,Math.PI*2);g.fill();
+  g.fillStyle='#826a4d';g.beginPath();g.ellipse(80,76,56,47,0,0,Math.PI*2);g.fill();
+  g.fillStyle='#9a7b56';g.beginPath();g.moveTo(70,103);g.lineTo(90,103);g.lineTo(99,160);g.lineTo(61,160);g.closePath();g.fill();
+  // Fractured stone rim with an intentional southern gap.
+  for(let i=0;i<27;i++){
+    const ang=-Math.PI+(i/26)*Math.PI*2;
+    if(Math.sin(ang)>.66)continue;
+    const x=80+60*Math.cos(ang),y=76+51*Math.sin(ang);
+    const w=6+(i*7)%7,h=7+(i*11)%7;
+    g.fillStyle='#252a27';g.fillRect(Math.round(x-w/2)+1,Math.round(y-h/2)+2,w,h);
+    g.fillStyle=i%3===0?'#89877f':'#777b72';g.fillRect(Math.round(x-w/2),Math.round(y-h/2),w,h);
+    g.fillStyle='#a7a197';g.fillRect(Math.round(x-w/2),Math.round(y-h/2),w-2,2);
+  }
+  // A handful of small shrubs and uneven stone chips inside the clearing.
+  for(let i=0;i<27;i++){
+    const x=80+Math.cos(i*2.4)*(11+i%6*6),y=78+Math.sin(i*2.4)*(8+i%5*6);
+    g.fillStyle=i%4?'#6a7450':'#ad9975';g.fillRect(Math.round(x),Math.round(y),i%3+2,2);
+  }
+  const icon=(x,y,col)=>{
+    g.fillStyle='#291e16';g.fillRect(x-5,y-5,11,11);
+    g.fillStyle='#c59a5e';g.fillRect(x-4,y-4,9,9);
+    g.fillStyle=col;g.fillRect(x-2,y-2,5,5);
+  };
+  icon(46,73,'#e5bd6e'); // trader
+  icon(109,73,'#e5d3a0'); // forge
+  icon(81,53,'#d4c9a6'); // notice board
+  icon(53,96,'#ab8863'); // storage chest
+  // Player location is projected into the fixed overview.
+  const px=Math.max(11,Math.min(149,80+(me.x-CX)*.24));
+  const py=Math.max(11,Math.min(149,76+(me.y-CY)*.24));
+  g.fillStyle='#24190d';g.beginPath();g.arc(px,py,7,0,Math.PI*2);g.fill();
+  g.fillStyle='#f0bd36';g.beginPath();g.arc(px,py,5.5,0,Math.PI*2);g.fill();
+  g.fillStyle='#fff7c9';g.beginPath();g.moveTo(px,py-9);g.lineTo(px-5,py-2);g.lineTo(px+5,py-2);g.closePath();g.fill();
   g.restore();
 }
+
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;
   const cssW=cv.clientWidth,cssH=cv.clientHeight;
