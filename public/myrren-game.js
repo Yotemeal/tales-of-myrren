@@ -103,8 +103,10 @@ const MATS=[null,
   {k:'aether',n:'Myrrenite',M:'#626e60',H:'#a4b29a',D:'#354438',req:75},
   {k:'obsidianite',n:'Obsidianite',M:'#442b3c',H:'#e65456',D:'#201c29',req:40},
   {k:'starsteel',n:'Starsteel',M:'#a2c9e2',H:'#f0f8ff',D:'#41485f',req:70}];
+// Stable material IDs keep existing equipment and saves compatible.
+const COMBAT_GEAR_ORDER=[2,3,4,5,7,6,8],COMBAT_GEAR_LEVELS=[1,10,20,30,40,55,70];
 const KINDS={
-  sword:{slot:'weapon',art:'sword',skill:'melee',mats:[2,3,4,5,7,6,8],reqs:[1,10,20,30,40,55,70],price:[25,150,700,3500,9000,18000,40000],atk:[1,3,6,12,17,22,30],nm:{d:'sword'}},
+  sword:{slot:'weapon',art:'sword',skill:'melee',mats:COMBAT_GEAR_ORDER,reqs:COMBAT_GEAR_LEVELS,price:[25,150,700,3500,9000,18000,40000],atk:[1,3,6,12,17,22,30],nm:{d:'sword'}},
   axe:{slot:'weapon',art:'axe',skill:'woodcutting',mats:[2,3,4,5,6],price:[20,120,600,3000,15000],nm:{d:'hatchet'}},
   pick:{slot:'weapon',art:'pick',skill:'mining',mats:[2,3,4,5,6],price:[20,120,600,3000,15000],nm:{d:'pickaxe'}},
   net:{slot:'weapon',art:'net',skill:'fishing',mats:[1,3,4],price:[12,110,550],full:true,nm:{1:'Small net',3:'Iron-hoop net',4:'Steel-hoop net'}},
@@ -127,12 +129,10 @@ for(const kind in KINDS){
     DEFS[id]={id,kind,slot:K.slot,art:K.art,mat:m,name,req:K.reqs?K.reqs[i]:MATS[m].req,skill:K.skill,price:K.price[i],atk:K.atk?K.atk[i]:0,def:K.def?K.def[i]:0,tool:kind==='axe'||kind==='pick'||kind==='net'||kind==='rod'};
   });
 }
-// Stable material IDs keep existing equipment and saves compatible.
-const ARMOUR_ORDER=[2,3,4,5,7,6,8],ARMOUR_LEVELS=[1,10,20,30,40,55,70];
 const ARMOUR_DEF={helm:[2,4,7,11,14,16,21],body:[4,8,14,22,27,32,42],gloves:[1,2,4,6,8,9,12],legs:[3,6,10,16,20,24,31],boots:[1,2,4,7,9,10,14],shield:[2,4,8,13,16,19,25]};
 for(const kind in ARMOUR_DEF){
- const K=KINDS[kind];K.mats=ARMOUR_ORDER.slice();delete DEFS['leather_'+kind];
- ARMOUR_ORDER.forEach((mat,i)=>{const id=MATS[mat].k+'_'+kind;DEFS[id]={id,kind,slot:K.slot,art:K.art,mat,name:MATS[mat].n+' '+K.nm.d,req:ARMOUR_LEVELS[i],skill:K.skill,price:0,atk:0,def:ARMOUR_DEF[kind][i],tool:false}});
+ const K=KINDS[kind];K.mats=COMBAT_GEAR_ORDER.slice();delete DEFS['leather_'+kind];
+ COMBAT_GEAR_ORDER.forEach((mat,i)=>{const id=MATS[mat].k+'_'+kind;DEFS[id]={id,kind,slot:K.slot,art:K.art,mat,name:MATS[mat].n+' '+K.nm.d,req:COMBAT_GEAR_LEVELS[i],skill:K.skill,price:0,atk:0,def:ARMOUR_DEF[kind][i],tool:false}});
 }
 const SLOTS=['head','body','hands','legs','boots','weapon','shield','ring','neck'];
 const SLOTNAME={head:'Head',body:'Body',hands:'Hands',legs:'Legs',boots:'Boots',weapon:'Weapon',shield:'Shield',ring:'Ring',neck:'Amulet'};
@@ -203,6 +203,43 @@ for(const k in MT)MT[k].max=Math.max(1,Math.round(hpAt(MT[k].lv)*(MR[k]||.12)));
 /* ---------- world ---------- */
 const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=90,EDGE=100;
 const VILLAGE=MyrrenWorld;
+// Explicit development opt-in; normal encounters and saved progress stay unchanged.
+const craterPreview=!!window.MyrrenCrater?.previewEnabled(location.search);
+const craterLoot=craterPreview&&window.MyrrenCraterLoot?.create();
+const craterBossPreview=craterPreview&&/(?:^|[?&])craterBossPreview=1(?:&|$)/.test(location.search);
+const craterRocks=craterPreview&&window.MyrrenCraterRocks?window.MyrrenCraterRocks.create():null;
+const craterPets=craterPreview&&window.MyrrenSkillingPets||null;
+const craterPetArt=craterPets&&window.MyrrenPetReference?window.MyrrenPetReference.create():null;
+craterPetArt?.load();
+const craterWildlife=craterPreview&&window.MyrrenCraterWildlife?.create();
+craterWildlife?.load?.();
+const craterGoblins=craterRocks&&window.MyrrenCraterGoblins?.create();
+craterGoblins?.load?.();
+const craterDash=craterRocks&&window.MyrrenCraterDash?.create();
+craterDash?.load?.();
+// First Crater playtest pass. Keep the existing damage and loot rules.
+if(craterRocks){
+  MT.rat={...MT.slime,name:'Forest Rat',killXp:10,respawnMs:4000};
+  Object.assign(MT.goblin,{killXp:16,respawnMs:6000});
+  Object.assign(MT.boar,{killXp:25,respawnMs:8000});
+  MT.goblin_guard={...MT.wolf,name:'Cave Goblin Protector',lv:16,hp:26,killXp:50,respawnMs:12000};
+  MT.guardian={...MT.wolf,name:'Cave Guardian',lv:18,hp:32,killXp:65,respawnMs:14000};
+  Object.assign(MT.wolf,{killXp:40,respawnMs:10000});
+  MT.troll={...MT.bear,name:'Forest Troll',killXp:95,respawnMs:16000};
+  if(craterBossPreview)MT.jewelheart={...MT.bear,name:'Jewelheart Guardian',lv:30,hp:450,max:18};
+}
+window.addEventListener('myrren-pet-reference-ready',()=>{if(tab==='skills')renderModal()});
+// Prototype motion tuning only, not approved Crater balance. Damage/cooldown use MT.
+const ROCK_PREVIEW={range:90,retreat:30,speed:140,distance:120,windup:300};
+// Prototype timings for the preview's charges and slams.
+const CRATER_DASH={
+  rat:{range:12,travel:6,windup:240,dash:90,recover:200,hitRadius:7},
+  wolf:{range:30,windup:320,dash:150,recover:260,hitRadius:7,warnPath:true},
+  boar:{range:42,windup:460,dash:190,recover:380,hitRadius:8,warnPath:true},
+  troll:{range:22,windup:620,recover:560,impactRadius:11},
+  guardian:{range:24,windup:720,recover:640,impactRadius:13},
+  jewelheart:{range:30,windup:900,recover:760,impactRadius:19}
+};
 const BLD=VILLAGE.buildings.map(b=>({...b}));
 const LAMPS=[[CX-200,CY+14],[CX+200,CY+14],[CX-120,CY+70],[CX+120,CY+70],[CX-40,CY+70],[CX+40,CY+70]];
 const DECOR=[['board',CX+70,CY+56],['supply',CX+98,CY+58],['well',CX-70,CY+54],['stall',CX-150,CY+50,'#b8503a'],['stall',CX+150,CY+50,'#3a7a9a'],
@@ -243,7 +280,7 @@ addNodes('obsidianite',8,530);addNodes('meteorite',4,700);
 
 
 /* ---------- save ---------- */
-const KEY='ember-reach-v2';
+const KEY=craterPreview?'myrren-crater-preview-v1':'ember-reach-v2';
 const emptyEq=()=>({head:null,body:null,hands:null,legs:null,boots:null,weapon:null,shield:null,ring:null,neck:null});
 const PACK_CAPACITY=36;
 const nonNegativeCount=value=>Number.isFinite(+value)?Math.min(Number.MAX_SAFE_INTEGER,Math.max(0,Math.floor(+value))):0;
@@ -253,7 +290,7 @@ function parseSavedProgress(raw){
     return o&&typeof o==='object'&&!Array.isArray(o)&&o.xp&&typeof o.xp==='object'&&!Array.isArray(o.xp)?o:null;
   }catch(e){return null}
 }
-let save={notes:{},bank:{},packOrder:[],bankOrder:[],wear:{},jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0},x:CX,y:CY+44};
+let save={notes:{},bank:{},packOrder:[],bankOrder:[],wear:{},jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0},petXpRemainders:{woodcutting:0,mining:0,fishing:0},x:CX,y:CY+44};
 let fresh=true,saveTs=0;
 function migrateArmourSave(source){
  const id=k=>typeof k==='string'&&/^leather_(helm|body|gloves|legs|boots|shield)$/.test(k)?k.replace('leather_','bronze_'):k;
@@ -283,6 +320,7 @@ function applySave(o){
     if(o.wear&&typeof o.wear==='object')for(const k in o.wear)if(DEFS[k])save.wear[k]=clamp(+o.wear[k]||0,0,1);
     save.tokens=nonNegativeCount(o.tokens);if(o.perks&&typeof o.perks==='object')save.perks=Object.assign({},o.perks);save.dye=Number.isInteger(o.dye)?o.dye:null;
     if(o.pets)Object.assign(save.pets,o.pets);
+    save.petXpRemainders=Object.fromEntries(['woodcutting','mining','fishing'].map(k=>{const r=o.petXpRemainders?.[k];return[k,Number.isInteger(r)&&r>=0&&r<100?r:0]}));
     if(Array.isArray(o.bag))save.bag=o.bag.filter(id=>DEFS[id]);
     if(o.tools){
       for(const k of ['axe','pick','sword']){
@@ -308,12 +346,13 @@ function loadLocalProgress(){
   return false;
 }
 if(!loadLocalProgress()){finalizeSave();save.inv.coins=30}
-function snap(){const px=me.deathAt!=null?CX:inside?me.ox:me.x,py=me.deathAt!=null?CY+40:inside?me.oy:me.y;save.x=Math.round(px);save.y=Math.round(py);return{v:3,ts:Date.now(),name:save.name,xp:save.xp,inv:save.inv,eq:save.eq,bag:save.bag,pets:save.pets,notes:save.notes,bank:save.bank,packOrder:save.packOrder,bankOrder:save.bankOrder,wear:save.wear,jobs:save.jobs,tokens:save.tokens,perks:save.perks,dye:save.dye,x:save.x,y:save.y}}
+function snap(){const px=me.deathAt!=null?CX:inside?me.ox:me.x,py=me.deathAt!=null?CY+40:inside?me.oy:me.y;save.x=Math.round(px);save.y=Math.round(py);return{v:3,ts:Date.now(),name:save.name,xp:save.xp,inv:save.inv,eq:save.eq,bag:save.bag,pets:save.pets,petXpRemainders:save.petXpRemainders,notes:save.notes,bank:save.bank,packOrder:save.packOrder,bankOrder:save.bankOrder,wear:save.wear,jobs:save.jobs,tokens:save.tokens,perks:save.perks,dye:save.dye,x:save.x,y:save.y}}
 function idbOpen(){return new Promise((res,rej)=>{try{const r=indexedDB.open('ember-reach',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>res(r.result);r.onerror=()=>rej()}catch(e){rej()}})}
-async function idbPut(str){try{const d=await idbOpen();d.transaction('s','readwrite').objectStore('s').put(str,'save');d.close()}catch(e){}}
-async function idbGet(){try{const d=await idbOpen();const v=await new Promise(res=>{const q=d.transaction('s').objectStore('s').get('save');q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)});d.close();return v}catch(e){return null}}
+async function idbPut(str){if(craterPreview)return;try{const d=await idbOpen();d.transaction('s','readwrite').objectStore('s').put(str,'save');d.close()}catch(e){}}
+async function idbGet(){if(craterPreview)return null;try{const d=await idbOpen();const v=await new Promise(res=>{const q=d.transaction('s').objectStore('s').get('save');q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)});d.close();return v}catch(e){return null}}
 let cdoc=null,cloudState='checking',cloudSig='',cloudAt=0,cloudBusy=false,bakAt=0,lastSavedAt=0;
 async function cloudPush(str,force){
+  if(craterPreview)return;
   if(!cdoc||cloudBusy)return;const sig=str.replace(/"ts":\d+,?/,'');if(sig===cloudSig)return;
   if(!force&&Date.now()-cloudAt<20000)return;
   cloudBusy=true;try{await cdoc.set({json:str,ts:saveTs});cloudSig=sig;cloudAt=Date.now();cloudState='on'}catch(e){cloudState='error'}cloudBusy=false;
@@ -341,7 +380,7 @@ function wearItem(id,amt){
   if(w>=1){say('Your '+d.name.toLowerCase()+' has broken. Repair it at the Ironmonger.','warn');toast('ITEM BROKEN');blocked.clear();refreshActionButtons();if(tab==='gear')renderModal()}
   else if(b<.8&&w>=.8)say('Your '+d.name.toLowerCase()+' is badly worn.','warn');
 }
-function wearArmour(){const a=['head','body','hands','legs','boots','shield'].map(x=>save.eq[x]).filter(Boolean);if(a.length)wearItem(a[rint(0,a.length-1)],2)}
+function wearArmour(){const a=['head','body','hands','legs','boots','shield'].map(eqDef).filter(d=>d&&usable(d)).map(d=>d.id);if(a.length)wearItem(a[rint(0,a.length-1)],2)}
 const sellVal=id=>Math.floor(DEFS[id].price*.25*(1-wearOf(id)));
 function repairCost(id){const d=DEFS[id],w=wearOf(id),ik=d.mat>=2?'ing_'+MATS[d.mat].k:null;return {coins:Math.ceil(d.price*.35*w),ik,n:(ik&&FORGE[d.kind])?Math.floor(FORGE[d.kind]*w*.5):0}}
 function repairOne(id){
@@ -477,6 +516,7 @@ function giveGear(id){
   save.bag.push(id);say('Rare drop: '+DEFS[id].name+'!','gold');
 }
 function addXp(skill,amt){
+  if(craterPets){if(!SK.includes(skill))return;const award=window.MyrrenSkillingPets.award(skill,nonNegativeCount(amt),save.pets,save.petXpRemainders);amt=Math.min(award.amount,Number.MAX_SAFE_INTEGER-nonNegativeCount(save.xp[skill]));save.petXpRemainders=award.remainders;}
   const before=lvlFor(save.xp[skill]),pm=hpMax();save.xp[skill]+=amt;lastSkill=skill;const after=lvlFor(save.xp[skill]);
   if(after>before){say('Congratulations, you just advanced a '+NAMES[skill]+' level. You are now level '+after+'.','gold');toast(NAMES[skill].toUpperCase()+'\nLEVEL '+after);if(skill==='melee')me.hp=Math.min(hpMax(),me.hp+Math.max(1,hpMax()-pm));blocked.clear()}
   if(after>before)sfx('level');else if(skill!=='melee')sfx('gather');
@@ -761,10 +801,12 @@ function rSkills(){
  grid.append(el('div','skill total','<span class="skill-top"><span class="ic">'+svg('coins',40)+'</span><span class="level">'+totalLevel()+'</span></span><b>Total level</b><small>Health '+me.hp+' / '+hpMax()+'</small>'));
  layout.append(guide,grid);mBody.append(layout);
   mBody.append(el('h3','sub','Pets'));
+  if(craterPets){const b=el('button','btn','Preview all three pets');b.type='button';b.addEventListener('click',()=>{for(const sk of Object.keys(PETS))save.pets[sk]=1;syncPets();petsTeleport();persist();renderModal()});mBody.append(b)}
   for(const sk of Object.keys(PETS)){
     const P=PETS[sk],st=save.pets[sk],row=el('div','shoprow');
     const sil=Object.fromEntries(Object.keys(ART[P.art].p).map(k=>[k,'#1d160e']));
-    row.innerHTML=(st?svg(P.art,32):svg(P.art,32,sil))+'<span>'+(st?P.name:'Unknown pet')+'<small>'+(st?(st===1?'Following you':'Resting'):NAMES[sk]+': about 1 in '+petOdds(sk)+' per '+P.what)+'</small></span>';
+    const icon=craterPets&&st?craterPetArt?.icon(sk):'';
+    row.innerHTML=(icon||(st?svg(P.art,32):svg(P.art,32,sil)))+'<span>'+(st?P.name:'Unknown pet')+'<small>'+(st?(st===1?'Following you':'Resting'):NAMES[sk]+': about 1 in '+petOdds(sk)+' per '+P.what)+(craterPets&&st===1?' · +3% '+NAMES[sk]+' XP':'')+'</small></span>';
     if(st){const b=el('button','btn',st===1?'Dismiss':'Call');b.type='button';b.addEventListener('click',()=>{save.pets[sk]=st===1?2:1;syncPets();petsTeleport();persist();renderModal()});row.append(b)}
     else row.append(el('span'));
     mBody.append(row);
@@ -924,7 +966,7 @@ let boardOffers=null,boardLv=0;
 function mkObj(sk){
   const L=lvlFor(save.xp[sk]),br=BR(L);
   if(sk==='melee'){
-    let pool=Object.keys(MT).filter(k=>MT[k].lv<=L+15);if(!pool.length)pool=['slime'];
+    let pool=Object.keys(MT).filter(k=>k!=='goblin_guard'&&k!=='rat'&&k!=='troll'&&k!=='guardian'&&k!=='jewelheart'&&MT[k].lv<=L+15);if(!pool.length)pool=['slime'];
     const good=pool.filter(k=>MT[k].lv>=L*.4);if(good.length)pool=good;
     return {type:'slay',skill:sk,mon:pool[rint(0,pool.length-1)],need:rint(SLAYQ[br][0],SLAYQ[br][1]),have:0};
   }
@@ -1180,7 +1222,8 @@ function beginSwing(now){
 function resolveSwing(now){
   if(me.deathAt!=null)return;
   if(inside)return;
-  wearItem(save.eq.weapon,1);
+  const equipped=eqDef('weapon');
+  if(equipped&&usable(equipped))wearItem(equipped.id,1);
   const w=activeDef('weapon'),reach=w?30:22,L=lvlFor(save.xp.melee),atk=atkBonus();
   for(const m of mons){
     if(m.state==='dead')continue;
@@ -1193,7 +1236,7 @@ function resolveSwing(now){
     m.hp-=dmg;splat(m.x,m.y-16,dmg);sfx(dmg>0?'hit':'miss');if(dmg>0)m.hitAt=now;
     burst(m.x,m.y-8,dmg>0?['#d83a2a','#ffffff','#ffd24a']:['#ffffff','#b5c8d8'],dmg>0?7:3,20);
     me.tgt=m;me.tgtUntil=now+4000;
-    if(m.hp>0&&save.perks.spiked&&w&&w.kind==='sword'){const dd=d||1;m.x+=tx/dd*8;m.y+=ty/dd*8;m.cd=-.5}
+    if(m.hp>0&&save.perks.spiked&&w&&w.kind==='sword'){const dd=d||1;m.x+=tx/dd*8;m.y+=ty/dd*8;m.cd=-.5;if(m.dashAttack?.released)m.dashAttack=null}
     if(m.hp<=0)killMon(m,now);
   }
 }
@@ -1288,7 +1331,7 @@ function ingest(change){
 }
 (async()=>{
   try{
-    if(!window.claude||!window.claude.use)throw 0;
+    if(craterPreview||!window.claude||!window.claude.use)throw 0;
     room=await window.claude.use('room');if(!room)throw 0;
     room.onPeers(ingest);
     room.onConnection(c=>{$('net').textContent=c?'Online with other players':'Reconnecting...'});
@@ -1401,18 +1444,20 @@ const PETS={
   fishing:{name:'Mossback Terrapin',art:'pet_terrapin',what:'catch'},
   mining:{name:'Geode Mole',art:'pet_mole',what:'ore'}
 };
+if(craterPets){PETS.woodcutting={...PETS.woodcutting,art:'axe'};PETS.mining={...PETS.mining,art:'pick'};PETS.fishing={name:'River Otter',art:'net',what:'catch'}}
 const pets=[],petObjs={};
+let craterPetSkillEvent=null;
 function syncPets(){
   pets.length=0;
   for(const sk of Object.keys(PETS)){
-    if(save.pets[sk]!==1)continue;
+    if(save.pets[sk]!==1){if(craterPets&&petObjs[sk])craterPets.reset(petObjs[sk],performance.now());continue}
     let o=petObjs[sk];
     if(!o)o=petObjs[sk]={sk,x:me.x-me.face*10,y:me.y+4,face:1,moving:false,scamper:false,ph:Math.random()*6,wt:0,sx:me.x,sy:me.y,fxT:0,trail:[]};
     pets.push(o);
   }
 }
 function petAnchor(i){return {x:me.x+[-18,18,0][i%3],y:me.y+[7,7,17][i%3]}}
-function petsTeleport(){pets.forEach((p,i)=>{const a=petAnchor(i);p.x=a.x;p.y=a.y;p.sx=a.x;p.sy=a.y;p.trail.length=0})}
+function petsTeleport(){craterPetSkillEvent=null;pets.forEach((p,i)=>{const a=craterPets?craterPetAnchor(p,i):petAnchor(i);p.x=a.x;p.y=a.y;p.sx=a.x;p.sy=a.y;p.trail.length=0;if(craterPets)craterPets.reset(p,performance.now(),{playerMoving:me.moving,dead:me.deathAt!=null})})}
 const petOdds=sk=>Math.max(150,500-3*lvlFor(save.xp[sk]));
 function rollPet(sk){
   if(!PETS[sk]||save.pets[sk])return;
@@ -1421,7 +1466,30 @@ function rollPet(sk){
     say('You have a funny feeling like you are being followed.','gold');say('You found a pet: '+PETS[sk].name+'!','gold');toast('NEW PET\n'+PETS[sk].name);
   }
 }
+function craterPetCanMove(skill,x,y){
+  if(inside)return x>=10&&x<=166&&y>=70&&y<=121;
+  return x>EDGE+5&&x<WW-EDGE-5&&y>EDGE+5&&y<WH-EDGE-5&&
+    !SOLID.some(q=>x>q.x0&&x<q.x1&&y>q.y0&&y<q.y1)&&
+    !BLD.some(b=>!b.open&&Math.abs(x-b.x)<b.w/2+3&&y>b.y-14&&y<b.y)&&
+    (skill==='fishing'||!inWater(x,y));
+}
+function craterPetAnchor(p,i){
+  const base=petAnchor(i);if(craterPetCanMove(p.sk,base.x,base.y))return base;
+  for(let r=8;r<=24;r+=8)for(let j=0;j<8;j++){const x=me.x+Math.cos(j*Math.PI/4)*r,y=me.y+Math.sin(j*Math.PI/4)*r;if(craterPetCanMove(p.sk,x,y))return{x,y}}
+  return{x:me.x,y:me.y};
+}
+function craterPetAction(p,now){
+  if(inside||me.moving||act?.kind!=='node'||!act.checked||!nodeOK(act.ref)||now<act.ref.back)return null;
+  const node=act.ref,skill=NT[node.k].skill;if(skill!==p.sk)return null;
+  let target={x:node.x+(skill==='woodcutting'?12:-10),y:node.y+5};
+  if(skill==='fishing'){
+    target={x:node.x,y:node.y};
+    if(!inWater(target.x,target.y))outer:for(let r=4;r<=20;r+=4)for(let i=0;i<8;i++){const x=node.x+Math.cos(i*Math.PI/4)*r,y=node.y+Math.sin(i*Math.PI/4)*r;if(inWater(x,y)){target={x,y};break outer}}
+  }
+  return{skill,key:node.k+':'+node.x+':'+node.y,target};
+}
 function petsUpdate(dt,now){
+  if(craterPets){for(const [i,p] of pets.entries())craterPets.update(p,{dt,now,player:{x:me.x,y:me.y,moving:me.moving,dead:me.deathAt!=null,inside:!!inside},anchor:craterPetAnchor(p,i),action:craterPetAction(p,now),success:craterPetSkillEvent,activeSkill:act?.kind==='node'?NT[act.ref.k].skill:null,inWater:(x,y)=>!inside&&inWater(x,y),canMove:craterPetCanMove});return}
   pets.forEach((p,i)=>{
     const an=petAnchor(i),ax=an.x,ay=an.y;
     let dx=ax-p.x,dy=ay-p.y,d=Math.hypot(dx,dy);
@@ -1468,9 +1536,10 @@ function cookTick(dt,now){
   }
 }
 function enterBuilding(b,now){
+  craterRocks?.clear();
   if(b.open){openSmithy('trade');return}
   inside=b;me.ox=b.x;me.oy=b.y+6;me.x=88;me.y=112;me.face=1;act=null;marker=null;petsTeleport();
-  for(const m of mons)if(m.state==='chase')m.state='return';
+  for(const m of mons)if(m.state==='chase'){m.state='return';m.rockCast=null;m.guardStrikeAt=null;m.dashAttack=null}
   fade=0;snapCam=true;exitCD=now+700;
   say('You enter '+SHOPS[b.id].name+'.');sendPresence();
 }
@@ -1482,26 +1551,40 @@ function leaveBuilding(now){
 }
 function die(){
   if(me.deathAt!=null)return;
+  craterRocks?.clear();
   me.deathAt=performance.now();me.hp=0;me.moving=false;me.pend=0;me.swing=-99999;
   act=null;marker=null;wantSwing=false;closeModal();
   say('Oh dear, you are dead!','red');toast('YOU DIED');uiHud();
-  for(const m of mons)if(m.state==='chase')m.state='return';
+  for(const m of mons)if(m.state==='chase'){m.state='return';m.rockCast=null;m.guardStrikeAt=null;m.dashAttack=null}
+  if(craterPets)petsTeleport();
 }
 function respawnPlayer(){
+  craterRocks?.clear();
   me.deathAt=null;inside=null;me.x=CX;me.y=CY+40;me.hp=hpMax();me.hurtAt=-99999;
   me.dv='d';me.face=1;me.moving=false;regen=0;snapCam=true;exitCD=performance.now()+700;
   uiHud();petsTeleport();sendPresence();
 }
-// One fixed reward per defeated creature. This is one quarter of the old
-// full-health damage reward, and never includes overkill or regenerated health.
-function combatKillXp(mt){return Math.max(1,Math.round(mt.hp*mt.xpm))}
+// One fixed reward per defeat, independent of overkill or regenerated health.
+function combatKillXp(mt){return mt.killXp??Math.max(1,Math.round(mt.hp*mt.xpm))}
 function killMon(m,now){
   if(m.state==='dead')return;
-  const mt=MT[m.t];m.state='dead';m.back=now+12000;m.dieAt=now;
+  const mt=MT[m.t];m.rockCast=null;m.guardStrikeAt=null;m.dashAttack=null;m.state='dead';m.back=now+(mt.respawnMs??12000);m.dieAt=now;
   decals.push({x:m.x,y:m.y,t:now,c:m.t==='slime'?'#e86a86':'#a82418'});
   say('You have defeated the '+mt.name.toLowerCase()+'.','gold');
+  if(m.t==='jewelheart'){
+    // Preview combat is a rehearsal: evaluate a local claim, but never grant boss rewards.
+    if(craterBossPreview&&window.MyrrenJewelheartRewards){
+      const rehearsal=window.MyrrenJewelheartRewards.create();
+      rehearsal.evaluate({killId:'jewelheart:'+String(now),bossId:'jewelheart_guardian',eligible:true,ironmanOwner:true,contributor:true});
+    }
+    if(act&&act.ref===m)act=null;
+    uiHud();
+    return; // The rehearsal has no progression or loot awards.
+  }
   addXp('melee',combatKillXp(mt));
-  const c=rint(mt.coins[0],mt.coins[1]);save.inv.coins+=c;say('You find '+c+' coins.');
+  const coins=rint(mt.coins[0],mt.coins[1]);
+  save.inv.coins+=coins;
+  say('You find '+coins+' coins.');
   {
     let hit=false;
     for(const j of save.jobs)for(const o of j.objs)if(o.type==='slay'&&o.mon===m.t&&o.have<o.need){o.have++;hit=true}
@@ -1550,7 +1633,8 @@ function doAction(dt,now){
       }
     }else if(!a.swung&&a.t>=a.iv-.2){a.swung=true;startSwing(now)}
     if(a.t>=a.iv){
-      wearItem(save.eq.weapon,1);
+      const equipped=eqDef('weapon');
+  if(equipped&&usable(equipped))wearItem(equipped.id,1);
       a.t-=a.iv;a.swung=false;
       if(fishing){a.casted=false;a.t=-.9}
       burst(n.x,n.y-10,nt.tool==='axe'?['#9a6a38','#5a3a1f','#7ab648']:fishing?['#8cc0f4','#ffffff','#3f7fcc']:['#ffe14a','#ffffff','#c8d2d6'],6,22);
@@ -1559,6 +1643,7 @@ function doAction(dt,now){
         if(n.k==='aether'&&save.perks.magnet&&Math.random()<.05){save.inv.aether++;say('The aether magnet doubles your yield!','gold')}
         say(fishing?'You catch some '+ITEMS[nt.item].name.toLowerCase().replace('raw ','raw ')+'.':'You get some '+ITEMS[nt.item].name.toLowerCase()+'.');
         if(fishing){me.catchFx={t:now,item:nt.item};startSwing(now)}
+        if(craterPets)craterPetSkillEvent={skill:nt.skill,at:now,key:nt.skill+':'+now+':'+n.x+':'+n.y};
         addXp(nt.skill,nt.xp);rollPet(nt.skill);persist();if(tab)renderModal();
         if(Math.random()<nt.dep){n.back=now+rint(nt.rt[0],nt.rt[1])*1000;act=null}
       }else if(fishing)say('The fish gets away.');
@@ -1582,8 +1667,126 @@ function doAction(dt,now){
     }
   }
 }
+function damagePlayerFromMonster(mt){
+  if(me.deathAt!=null||inside)return;
+  const L=lvlFor(save.xp.melee),D=defTotal();
+  let dmg=Math.random()<clamp(.75+(mt.lv-L)*.008-D*.0012,.35,.9)?rint(1,mt.max):0;
+  if(dmg>0){dmg=Math.max(1,Math.round(dmg*(1-defRed())));wearArmour()}
+  me.hp-=dmg;if(dmg>0)me.hurtAt=performance.now();splat(me.x,me.y-18,dmg);uiHud();
+  if(dmg>0&&me.hp>0&&me.hp<=hpMax()*.25&&foodCount()>0)say('You are low on health. Tap the food button to eat.','warn');
+  if(me.hp<=0)die();
+}
+function craterRockBlocked(x,y){
+  return x<EDGE||x>WW-EDGE||y<EDGE||y>WH-EDGE||VILLAGE.inVillage(x,y)||
+    SOLID.some(q=>x>q.x0&&x<q.x1&&y>q.y0&&y<q.y1)||
+    BLD.some(b=>!b.open&&Math.abs(x-b.x)<b.w/2+3&&y>b.y-14&&y<b.y);
+}
+function updateRockThrower(m,mt,dt,now,dp,dx,dy){
+  if(m.rockCast){
+    if(now-m.rockCast.at>=ROCK_PREVIEW.windup){
+      craterRocks.launch({x:m.x,y:m.y,targetX:m.rockCast.x,targetY:m.rockCast.y,speed:ROCK_PREVIEW.speed,maxDistance:ROCK_PREVIEW.distance,owner:m.t});
+      m.rockReleasedAt=now;m.rockCast=null;m.cd=0;
+    }
+    return;
+  }
+  m.cd+=dt;
+  if(dp<ROCK_PREVIEW.retreat||dp>ROCK_PREVIEW.range){
+    const sign=dp<ROCK_PREVIEW.retreat?-1:1,d=dp||1,step=Math.min(mt.sp*dt,Math.abs(dp-(sign<0?ROCK_PREVIEW.retreat:ROCK_PREVIEW.range))),nx=m.x+dx/d*step*sign,ny=m.y+dy/d*step*sign;
+    if(!craterRockBlocked(nx,ny)&&!inWater(nx,ny)){m.x=nx;m.y=ny}
+  }
+  if(Math.abs(dx)>.6)m.face=dx>0?1:-1;
+  if(dp<=ROCK_PREVIEW.range&&m.cd>=mt.iv){m.rockCast={at:now,x:me.x,y:me.y}}
+}
+function updateGoblinGuard(m,mt,dt,now,dp,dx,dy){
+  if(m.state==='return'){
+    const hx=m.hx-m.x,hy=m.hy-m.y,d=Math.hypot(hx,hy);
+    if(d<3){m.state='idle';m.hp=mt.hp;m.prov=false}
+    else moveCraterHostile(m,hx,hy,d,mt.sp*dt);
+    return;
+  }
+  if(m.state==='idle'){
+    const miner=m.miner;
+    if(miner?.state!=='chase'||dp>mt.ag||Math.hypot(miner.x-m.x,miner.y-m.y)>64)return;
+    m.state='chase';m.cd=0;
+  }
+  if(dp>130||Math.hypot(m.x-m.hx,m.y-m.hy)>170){
+    m.state='return';m.guardStrikeAt=null;return;
+  }
+  if(m.guardStrikeAt!=null){
+    if(now-m.guardStrikeAt<ROCK_PREVIEW.windup)return;
+    m.guardStrikeAt=null;m.lunge=now;m.cd=0;
+    if(dp<=14)damagePlayerFromMonster(mt);
+    return;
+  }
+  if(now-m.lunge<220)return;
+  if(Math.abs(dx)>.6)m.face=dx>0?1:-1;
+  if(dp>11){moveCraterHostile(m,dx,dy,dp,mt.sp*dt);return}
+  m.cd+=dt;
+  if(m.cd>=mt.iv)m.guardStrikeAt=now;
+}
+function moveCraterHostile(m,dx,dy,d,step){
+  const x=m.x+dx/d*step,y=m.y+dy/d*step;
+  if(!craterRockBlocked(x,y)&&!inWater(x,y)){m.x=x;m.y=y}
+}
+function traceCraterGround(ax,ay,bx,by){
+  const dx=bx-ax,dy=by-ay;
+  const steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)/2));
+  let x=ax,y=ay;
+  for(let i=1;i<=steps;i++){
+    const nx=ax+dx*i/steps,ny=ay+dy*i/steps;
+    if(craterRockBlocked(nx,ny)||inWater(nx,ny))return{x,y,blocked:true};
+    x=nx;y=ny;
+  }
+  return{x,y,blocked:false};
+}
+function craterDashTarget(m,attack,timing){
+  const dx=attack.x-m.x,dy=attack.y-m.y,distance=Math.hypot(dx,dy);
+  const travel=timing.travel??timing.range;
+  const scale=distance>travel?travel/distance:1;
+  return{x:m.x+dx*scale,y:m.y+dy*scale};
+}
+function updateCraterDash(m,mt,dt,now,dp,dx,dy,timing){
+  const attack=m.dashAttack;
+  if(attack){
+    if(now-attack.at<timing.windup)return;
+    if(!attack.released){
+      attack.released=true;m.lunge=now;m.cd=0;
+      attack.fromX=m.x;attack.fromY=m.y;
+      // Player attacks can knock the creature back during the windup.
+      const ax=attack.x-m.x,ay=attack.y-m.y,dist=Math.hypot(ax,ay);
+      if(Math.abs(ax)>.6)m.face=ax>0?1:-1;
+      if(timing.impactRadius){
+        m.dashAttack=null;
+        // A shove can move the attacker out of reach, but the marked target never shifts.
+        if(dist<=timing.range&&Math.hypot(me.x-attack.x,me.y-attack.y)<=timing.impactRadius&&
+          !traceCraterGround(m.x,m.y,attack.x,attack.y).blocked&&
+          !traceCraterGround(attack.x,attack.y,me.x,me.y).blocked)damagePlayerFromMonster(mt);
+        return;
+      }
+      const target=craterDashTarget(m,attack,timing);
+      const end=traceCraterGround(m.x,m.y,target.x,target.y);
+      attack.x=end.x;attack.y=end.y;
+    }
+    const progress=Math.min(1,(now-m.lunge)/timing.dash);
+    const x=attack.fromX+(attack.x-attack.fromX)*progress;
+    const y=attack.fromY+(attack.y-attack.fromY)*progress;
+    const ox=m.x,oy=m.y;
+    const end=traceCraterGround(ox,oy,x,y);
+    m.x=end.x;m.y=end.y;
+    if(!attack.hit&&window.MyrrenCraterRocks.circleContact(ox,oy,m.x,m.y,me.x,me.y,timing.hitRadius)!==null){
+      attack.hit=true;damagePlayerFromMonster(mt);
+    }
+    if(end.blocked||progress===1)m.dashAttack=null;
+    return;
+  }
+  if(now-m.lunge<timing.recover)return;
+  m.cd+=dt;
+  if(Math.abs(dx)>.6)m.face=dx>0?1:-1;
+  if(dp<=timing.range&&m.cd>=mt.iv)m.dashAttack={at:now,x:me.x,y:me.y};
+  else if(dp>11)moveCraterHostile(m,dx,dy,dp,Math.min(mt.sp*dt,dp-11));
+}
 function update(dt,now){
-  if(me.deathAt!=null){me.moving=false;if(now-me.deathAt>=1050)respawnPlayer();return}
+  if(me.deathAt!=null){craterRocks?.clear();me.moving=false;if(now-me.deathAt>=1050)respawnPlayer();return}
   regen+=dt;if(regen>6){regen=0;if(me.hp<hpMax()){me.hp=Math.min(hpMax(),me.hp+Math.max(1,Math.floor(hpMax()/40)));uiHud()}}
   const pxv=me.x,pyv=me.y;
   refreshHeld();
@@ -1643,6 +1846,14 @@ function update(dt,now){
     const mt=MT[m.t];
     if(m.state==='dead'){if(now>=m.back){m.state='idle';m.prov=false;m.hp=mt.hp;m.x=m.hx;m.y=m.hy}continue}
     const dxp=me.x-m.x,dyp=me.y-m.y,dp=Math.hypot(dxp,dyp);
+    if(m.t==='goblin_guard'){updateGoblinGuard(m,mt,dt,now,dp,dxp,dyp);continue}
+    const dash=CRATER_DASH[m.t];
+    if(craterRocks&&(m.t==='goblin'||dash)&&m.state==='chase'){
+      if((!m.prov&&lvlFor(save.xp.melee)>=2*mt.lv)||Math.hypot(m.x-m.hx,m.y-m.hy)>170||dp>130){m.state='return';m.rockCast=null;m.dashAttack=null}
+      else if(dash)updateCraterDash(m,mt,dt,now,dp,dxp,dyp,dash);
+      else updateRockThrower(m,mt,dt,now,dp,dxp,dyp);
+      continue;
+    }
     if(m.state==='chase'){
       if(!m.prov&&lvlFor(save.xp.melee)>=2*mt.lv)m.state='return';else
       if(Math.hypot(m.x-m.hx,m.y-m.hy)>170||dp>130)m.state='return';
@@ -1651,12 +1862,7 @@ function update(dt,now){
         m.cd+=dt;
         if(m.cd>=mt.iv){
           m.cd=0;m.lunge=now;
-          const L=lvlFor(save.xp.melee),D=defTotal();
-          let dmg=Math.random()<clamp(.75+(mt.lv-L)*.008-D*.0012,.35,.9)?rint(1,mt.max):0;
-          if(dmg>0){dmg=Math.max(1,Math.round(dmg*(1-defRed())));wearArmour()}
-          me.hp-=dmg;if(dmg>0)me.hurtAt=performance.now();splat(me.x,me.y-18,dmg);uiHud();
-          if(dmg>0&&me.hp>0&&me.hp<=hpMax()*.25&&foodCount()>0)say('You are low on health. Tap the food button to eat.','warn');
-          if(me.hp<=0)die();
+          damagePlayerFromMonster(mt);
         }
       }
     }else if(m.state==='return'){
@@ -1668,6 +1874,7 @@ function update(dt,now){
       if(d>1){m.x+=dx/d*10*dt;m.y+=dy/d*10*dt;if(Math.abs(dx)>.4)m.face=dx>0?1:-1}
     }
   }
+  if(craterRocks){if(inside||me.deathAt!=null)craterRocks.clear();else craterRocks.update(dt,{target:{x:me.x,y:me.y,radius:6},isBlocked:craterRockBlocked,onHit:rock=>damagePlayerFromMonster(MT[rock.owner])})}
   peers.forEach(o=>{const k=Math.min(1,dt*9);o.x+=(o.tx-o.x)*k;o.y+=(o.ty-o.y)*k});
   petsUpdate(dt,now);
   for(let i=fx.length-1;i>=0;i--){const p=fx[i];if(now-p.t>520){fx.splice(i,1);continue}p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=70*dt}
@@ -1883,6 +2090,7 @@ function critMode(c,now){return c.mode}
 function drawCritter(c,x,y,now){
   const f=c.face||1,fast=c.mode==='flee'||c.mode==='fly',ph=Math.floor(now/(fast?90:c.mode==='walk'?150:300))%4;
   shadowE(x+1,y,c.t==='bird'?3:c.t==='deer'?8:c.t==='fox'?6:4,2,c.t==='bird'&&c.z>2?.12:.24);
+  if(craterWildlife?.draw?.(ctx,c,x,y,now)||c.t==='squirrel')return;
   ctx.save();ctx.translate(x,y-(c.z||0));ctx.scale(f,1);
   if(c.t==='bunny')sprBunny(c.mode,ph);else if(c.t==='bird')sprBird(c.mode==='fly'?'fly':'idle',c.mode==='fly'?ph:Math.floor(now/320+c.x)%4);
   else if(c.t==='deer')sprQuad(Q_DEER,c.mode,ph,0,false);else sprQuad(Q_FOX,c.mode,ph,0,false);
@@ -1891,12 +2099,14 @@ function drawCritter(c,x,y,now){
 const crits=[];
 function addCrit(t,n,minCamp){for(let i=0;i<n;i++){const s=spot(minCamp,22,BOX[0],BOX[1],BOX[2],BOX[3]);if(s)crits.push({t,x:s[0],y:s[1],hx:s[0],hy:s[1],face:rnd()<.5?-1:1,mode:'idle',w:rnd()*3,wx:s[0],wy:s[1],z:0,fleeT:0,fdx:1,fdy:0})}}
 const CR={bunny:{al:46,sp:20,fs:58,r:30},bird:{al:40,sp:14,fs:56,r:36},deer:{al:78,sp:16,fs:62,r:44},fox:{al:70,sp:22,fs:68,r:40}};
+// The squirrel borrows the rabbit's movement tuning for this preview.
+CR.squirrel=CR.bunny;
 function critUpdate(dt,now){
   for(const c of crits){
     const P=CR[c.t],dx=me.x-c.x,dy=me.y-c.y,dp=Math.hypot(dx,dy);
     let vx=0,vy=0,mode='idle';
     if(dp<P.al){c.fleeT=now+1400;c.fdx=-dx/(dp||1);c.fdy=-dy/(dp||1)}
-    if(now<c.fleeT){vx=c.fdx*P.fs;vy=c.fdy*P.fs;mode=c.t==='bird'?'fly':'flee';if(c.t==='bird')c.z=Math.min(16,c.z+50*dt)}
+    if(now<c.fleeT){vx=c.fdx*P.fs;vy=c.fdy*P.fs;mode=c.t==='bird'?'fly':'flee';if(c.t==='bird'){if(!c.z)c.flightAt=now;c.z=Math.min(16,c.z+50*dt)}}
     else{
       if(c.t==='bird'&&c.z>0)c.z=Math.max(0,c.z-30*dt);
       c.w-=dt;if(c.w<=0){c.w=1.5+Math.random()*5;if(Math.hypot(c.x-c.hx,c.y-c.hy)>P.r)(c.wx=c.hx,c.wy=c.hy);else{c.wx=c.hx+rint(-P.r,P.r);c.wy=c.hy+rint(-P.r,P.r)}if(Math.random()<.4){c.wx=c.x;c.wy=c.y}}
@@ -1904,7 +2114,7 @@ function critUpdate(dt,now){
       if(d>1.5){vx=ex/d*P.sp;vy=ey/d*P.sp;mode=c.t==='bird'&&c.z>0?'fly':'walk'}
     }
     if(vx||vy){const nx=c.x+vx*dt,ny=c.y+vy*dt;
-      if(!inWater(nx,ny)&&nx>EDGE+10&&nx<WW-EDGE-10&&ny>EDGE+10&&ny<WH-EDGE-10){c.x=nx;c.y=ny}else if(now<c.fleeT){c.fdx=-c.fdx;c.fdy=-c.fdy}
+      if(!inWater(nx,ny)&&nx>EDGE+10&&nx<WW-EDGE-10&&ny>EDGE+10&&ny<WH-EDGE-10&&(!craterWildlife||mode==='fly'||craterPetCanMove('wildlife',nx,ny))){c.x=nx;c.y=ny}else if(now<c.fleeT){c.fdx=-c.fdx;c.fdy=-c.fdy}
       if(Math.abs(vx)>.5)c.face=vx>0?1:-1}
     c.mode=mode;
   }
@@ -1925,36 +2135,41 @@ function drawMon(m,x,y,now){
   const ph=Math.floor(now/(mode==='walk'?110:230))%4;
   let al=1;if(dead&&age>1000)al=Math.max(0,1-(age-1000)/600);
   if(al<=0)return;
-  shadowE(x+1,y,mode==='dead'?10:8,2,.28*al);
-  ctx.save();ctx.globalAlpha=al;ctx.translate(x,y);ctx.scale(f,1);
-  if(m.t==='slime')sprSlime(mode,ph,age,flash);else if(m.t==='goblin')sprGoblin(mode,ph,age,flash);else if(m.t==='boar')sprBoar(mode,ph,age,flash);else if(m.t==='bear')sprBear(mode,ph,age,flash);else if(m.t==='cave')sprQuad(Q_CAVE,mode,ph,age,flash);else if(m.t==='abear')sprQuad(Q_ABEAR,mode,ph,age,flash);else sprWolf(mode,ph,age,flash);
-  // Native-pixel creature finishing pass: fur, eyes, tusks and equipment.
-  // Applied after existing animation so movement and combat timing remain intact.
-  if(!dead&&!flash){
-    const bob=mode==='walk'?(ph%2):0;
-    if(m.t==='goblin'){
-      R(-5,-15+bob,10,2,'#293a25');R(-3,-18+bob,6,3,'#66513a');
-      R(-7,-12+bob,3,2,'#a1b96c');R(5,-12+bob,3,2,'#a1b96c');
-      R(-2,-12+bob,1,1,'#e5bc63');R(3,-12+bob,1,1,'#e5bc63');
-      R(-5,-7+bob,3,2,'#6d5540');
-    }else if(m.t==='slime'){
-      R(-4,-10+bob,6,2,'#a9c0a0');R(-3,-11+bob,2,1,'#d3e0c0');
-      R(4,-5+bob,3,1,'#5a765b');
-    }else if(m.t==='wolf'){
-      R(-5,-11+bob,8,2,'#c2c2aa');R(-9,-8+bob,4,2,'#535e55');
-      R(8,-9+bob,2,1,'#f1d183');
-    }else if(m.t==='boar'){
-      R(5,-5+bob,5,2,'#e6d5b3');R(8,-7+bob,2,3,'#f1e2c8');
-      R(-7,-9+bob,5,2,'#7d6952');
-    }else if(m.t==='bear'||m.t==='abear'){
-      R(-5,-10+bob,8,3,'#726955');R(7,-7+bob,2,2,'#e5cfa6');
+  shadowE(x+1,y,m.t==='rat'?4:mode==='dead'?10:8,2,.28*al);
+  ctx.save();ctx.globalAlpha=al;
+  const goblinDrawn=craterGoblins?.draw?.(ctx,m,x,y,now,{moving,hitAge:ha,windup:ROCK_PREVIEW.windup});
+  const dashDrawn=craterDash?.draw?.(ctx,m,x,y,now,{moving,hitAge:ha,recover:CRATER_DASH[m.t]?.recover,windup:CRATER_DASH[m.t]?.windup});
+  if(!goblinDrawn&&!dashDrawn&&m.t!=='rat'&&m.t!=='troll'&&m.t!=='guardian'&&m.t!=='jewelheart'){
+    ctx.translate(x,y);ctx.scale(f,1);
+    if(m.t==='slime')sprSlime(mode,ph,age,flash);else if((m.t==='goblin'||m.t==='goblin_guard'))sprGoblin(mode,ph,age,flash);else if(m.t==='boar')sprBoar(mode,ph,age,flash);else if(m.t==='bear')sprBear(mode,ph,age,flash);else if(m.t==='cave')sprQuad(Q_CAVE,mode,ph,age,flash);else if(m.t==='abear')sprQuad(Q_ABEAR,mode,ph,age,flash);else sprWolf(mode,ph,age,flash);
+    // Native-pixel creature finishing pass: fur, eyes, tusks and equipment.
+    // Applied after existing animation so movement and combat timing remain intact.
+    if(!dead&&!flash){
+      const bob=mode==='walk'?(ph%2):0;
+      if(m.t==='goblin'){
+        R(-5,-15+bob,10,2,'#293a25');R(-3,-18+bob,6,3,'#66513a');
+        R(-7,-12+bob,3,2,'#a1b96c');R(5,-12+bob,3,2,'#a1b96c');
+        R(-2,-12+bob,1,1,'#e5bc63');R(3,-12+bob,1,1,'#e5bc63');
+        R(-5,-7+bob,3,2,'#6d5540');
+      }else if(m.t==='slime'){
+        R(-4,-10+bob,6,2,'#a9c0a0');R(-3,-11+bob,2,1,'#d3e0c0');
+        R(4,-5+bob,3,1,'#5a765b');
+      }else if(m.t==='wolf'){
+        R(-5,-11+bob,8,2,'#c2c2aa');R(-9,-8+bob,4,2,'#535e55');
+        R(8,-9+bob,2,1,'#f1d183');
+      }else if(m.t==='boar'){
+        R(5,-5+bob,5,2,'#e6d5b3');R(8,-7+bob,2,3,'#f1e2c8');
+        R(-7,-9+bob,5,2,'#7d6952');
+      }else if(m.t==='bear'||m.t==='abear'){
+        R(-5,-10+bob,8,3,'#726955');R(7,-7+bob,2,2,'#e5cfa6');
+      }
     }
   }
   ctx.restore();ctx.globalAlpha=1;
   if(dead)return;
-  const top=y-({goblin:27,wolf:20,boar:18,bear:30,cave:30,abear:30}[m.t]||15);
+  const top=y-(dashDrawn?({rat:19,boar:30,wolf:38,troll:52,guardian:54,jewelheart:78}[m.t]):goblinDrawn?(m.t==='goblin_guard'?42:34):({goblin:27,wolf:20,boar:18,bear:30,cave:30,abear:30}[m.t]||15));
   if(m.hp<mt.hp)bar(x,top,m.hp/mt.hp);
-  if(Math.hypot(m.x-me.x,m.y-me.y)<70||me.tgt===m)label(mt.name+' (Lv '+mt.lv+')',x,top-5,'#ffffff');
+  if(Math.hypot(m.x-me.x,m.y-me.y)<70||me.tgt===m)label((goblinDrawn&&m.t==='goblin'?'Goblin Miner':mt.name)+' (Lv '+mt.lv+')',x,top-5,'#ffffff');
 }
 function rrect(x,y,w,h,c,ol){if(ol){R(x,y-1,w,h+2,ol);R(x-1,y,w+2,h,ol)}R(x+1,y,w-2,h,c);R(x,y+1,w,h-2,c)}
 const HAIRS=['#7a4a2a','#d8b45a','#2e2a34','#a8502e','#c8c2c8'];
@@ -2210,6 +2425,7 @@ function drawMole(p,x,y,now){
   }
 }
 function drawPet(p,x,y,now){
+  if(craterPets){if(!craterPetArt?.draw(ctx,p,x,y,now))shadowE(x,y,3,1,.2);return}
   if(p.sk==='woodcutting')drawGlider(p,x,y,now);
   else if(p.sk==='fishing')drawTerrapin(p,x,y,now);
   else drawMole(p,x,y,now);
@@ -2322,6 +2538,38 @@ function drawInterior(cx,cy,now){
   for(const e of list)e.f();
   label('Exit',X(88),Y(112),'#ffe14a');
 }
+const BOSS_BEARINGS=['N','NE','E','SE','S','SW','W','NW'];
+function jewelheartWaypoint(){
+  const boss=mons.find(m=>m.t==='jewelheart');
+  if(!boss)return 'JEWELHEART TEST · SPAWN UNAVAILABLE';
+  const waiting=boss.state==='dead';
+  const dx=(waiting?boss.hx:boss.x)-me.x,dy=(waiting?boss.hy:boss.y)-me.y;
+  const distance=Math.hypot(dx,dy);
+  const name=waiting?'JEWELHEART · RESPAWNING':'JEWELHEART TEST';
+  if(distance<2*T)return name+' · NEARBY';
+  const bearing=BOSS_BEARINGS[(Math.round(Math.atan2(dx,-dy)*4/Math.PI)+8)%8];
+  return name+' · '+bearing+' '+Math.round(distance/T)+' TILES';
+}
+function drawCraterImpactWarning(x,y,radius,progress){
+  ctx.save();
+  ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);
+  ctx.fillStyle='rgba(221, 111, 61, 0.22)';ctx.fill();
+  ctx.lineWidth=1;ctx.strokeStyle='#9d5842';ctx.stroke();
+  ctx.beginPath();ctx.arc(x,y,radius,-Math.PI/2,-Math.PI/2+progress*Math.PI*2);
+  ctx.strokeStyle='#ffd180';ctx.stroke();
+  ctx.restore();
+}
+function drawCraterDashWarning(x,y,endX,endY){
+  ctx.save();
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(endX,endY);
+  ctx.lineWidth=2;ctx.strokeStyle='#5c392a';ctx.stroke();
+  ctx.setLineDash([4,3]);
+  ctx.lineWidth=1;ctx.strokeStyle='#ffd180';ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();ctx.arc(endX,endY,2,0,Math.PI*2);
+  ctx.fillStyle='#ffd180';ctx.fill();
+  ctx.restore();
+}
 function drawOutdoor(cx,cy,now){
   const t0=Math.max(0,Math.floor(cx/T)),t1=Math.min(WW/T-1,Math.floor((cx+cv.width)/T)),u0=Math.max(0,Math.floor(cy/T)),u1=Math.min(WH/T-1,Math.floor((cy+cv.height)/T));
   const pathAt=(tx,ty)=>VILLAGE.pathKind(tx*T+8,ty*T+8);
@@ -2363,6 +2611,17 @@ function drawOutdoor(cx,cy,now){
   }
   // Water and bridge sit below actors and trees in the world depth list.
   drawVillageFalls(cx,cy,now);
+  if(craterRocks)for(const m of mons){
+    const attack=m.dashAttack,timing=CRATER_DASH[m.t];
+    if(m.state!=='chase'||!attack||attack.released||!vis(attack.x,attack.y))continue;
+    if(timing?.impactRadius){
+      drawCraterImpactWarning(attack.x-cx,attack.y-cy,timing.impactRadius,clamp((now-attack.at)/timing.windup,0,1));
+    }else if(timing?.warnPath){
+      const target=craterDashTarget(m,attack,timing);
+      const end=traceCraterGround(m.x,m.y,target.x,target.y);
+      drawCraterDashWarning(m.x-cx,m.y-cy,end.x-cx,end.y-cy);
+    }
+  }
   for(const tree of VILLAGE_GROVE)if(VILLAGE.dryFootprint(tree.x,tree.y,88,174,3,10)&&tree.x>cx-100&&tree.x<cx+cv.width+100&&tree.y>cy-25&&tree.y<cy+cv.height+160)list.push({y:tree.y,f:()=>drawAncientTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
   for(let i=0;i<18;i++){
     const a=i*2.3999632297,r=160+(i%6)*20;
@@ -2396,8 +2655,10 @@ function drawOutdoor(cx,cy,now){
     if(me.hp<hpMax())bar(sx,sy-(eqDef('head')?33:29),me.hp/hpMax());
     drawFishFx(cx,cy,now);
   }});
+  if(craterRocks)for(const rock of craterRocks.rocks)if(vis(rock.x,rock.y))list.push({y:rock.y,f:()=>{const x=Math.round(rock.x-cx),y=Math.round(rock.y-cy)-10;R(x-2,y-1,5,3,'#302c29');R(x-1,y-2,3,4,'#827368');R(x-1,y-1,2,1,'#baa991')}});
   list.sort((a,b)=>a.y-b.y);
   for(const e of list)e.f();
+  if(craterRocks)label(craterBossPreview?jewelheartWaypoint():craterGoblins?.ready?'CRATER MECHANICS PREVIEW':'CRATER MECHANICS PREVIEW · LEGACY GOBLIN ART',cv.width/2,18,'#ffe14a');
 }
 const GRASS=['#263d31','#344d39','#3b5840'];
 function frame(now){
@@ -2442,6 +2703,23 @@ function frame(now){
 }
 let last=performance.now(),sendAt=0,slowAt=0,saveAt=0;
 addCrit('bunny',22,60);addCrit('bird',16,70);addCrit('deer',9,180);addCrit('fox',7,240);
+if(craterWildlife)addCrit('squirrel',8,80);
+if(craterRocks){
+  const miners=mons.filter(m=>m.t==='goblin');
+  let count=0;
+  for(const miner of miners){
+    const x=miner.hx+24,y=miner.hy;
+    if(craterRockBlocked(x,y)||inWater(x,y)||placed.some(p=>Math.hypot(p[0]-x,p[1]-y)<16))continue;
+    mons.push({t:'goblin_guard',miner,x,y,hx:x,hy:y,hp:MT.goblin_guard.hp,state:'idle',cd:0,face:-1,lunge:-9999});
+    placed.push([x,y]);
+    if(++count===4)break;
+  }
+  addMons('rat',6,110);
+  addMons('troll',3,560);
+  // Temporary outer-world encounters until the cave layout is established.
+  addMons('guardian',2,620);
+  if(craterBossPreview)addMons('jewelheart',1,620);
+}
 syncPets();petsTeleport();uiHud();
 let loadDone=false;
 function finishLoad(){
@@ -2450,6 +2728,8 @@ function finishLoad(){
   if(save.name&&!$('nick').value)$('nick').value=save.name;
 }
 function adoptSave(o,why){
+  craterRocks?.clear();
+  if(craterRocks)for(const m of mons){m.rockCast=null;m.rockReleasedAt=null;if(m.t==='goblin_guard'){m.guardStrikeAt=null;m.lunge=-9999}if(CRATER_DASH[m.t]){m.dashAttack=null;m.lunge=-9999}m.cd=0}
   applySave(o);me.x=clamp(save.x,EDGE+8,WW-EDGE-8);me.y=clamp(save.y,EDGE+8,WH-EDGE-8);relocateSavedPosition();
   syncPets();petsTeleport();uiHud();
   try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}
@@ -2460,7 +2740,7 @@ async function bootLoad(){
   const cands=[];
   try{const o=parseSavedProgress(await idbGet());if(o)cands.push(o)}catch(e){}
   try{
-    if(window.claude&&window.claude.use){
+    if(!craterPreview&&window.claude&&window.claude.use){
       const [user,db]=await Promise.all([window.claude.use('user'),window.claude.use('db')]);
       const id=user&&db?await user.id():null;
       if(id){

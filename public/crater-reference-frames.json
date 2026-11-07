@@ -1,0 +1,2919 @@
+{
+  "version": 3,
+  "purpose": "Exact reference crops for inspection; not production sprites",
+  "pixelPolicy": "Original decoded JPEG pixels retained without resizing, masking or redrawing.",
+  "timingPolicy": "Preview timing only; no production durations approved.",
+  "sizePolicy": "draftFitHeight is an adjustable fitting proposal, not an approved scale.",
+  "backgroundPolicy": "Board background, ground strips and scene props remain in crops.",
+  "references": {
+    "R1": {
+      "file": "crater-reference-r1.png",
+      "originalFilename": "449125F1-7C41-4AFA-8D66-4B9E71DC2F3C.jpeg",
+      "sha256": "ed4fda3ddf959848a2775941b0b987c4103eb3a48a94abb20b5575ceaea4f7fd"
+    },
+    "R2": {
+      "file": "crater-reference-r2.png",
+      "originalFilename": "92B94231-3DEA-4D57-8B27-75364FDEEF9A.jpeg",
+      "sha256": "f3fd0bdef8fe6bb7d7ce8fd4a9170f59a7b23d10d42f2c4ac3ead1259cab7204"
+    },
+    "R3": {
+      "file": "crater-reference-r3.png",
+      "originalFilename": "7180DC61-09B0-4A12-B5FB-C80B416E4207.jpeg",
+      "sha256": "6c06f5fafb77abe83360f45a848b3a1871557e5b6aa5cd8bc1743f5c6b04604b"
+    },
+    "R4": {
+      "file": "crater-reference-r4.png",
+      "originalFilename": "F7AA665A-7FB3-40C1-AA2D-B5CA8C5706D3.jpeg",
+      "sha256": "a68af520ee61a1594957e384db980ab5e48a73d1d2aaf1a7a749baccb09ea1a5"
+    },
+    "R5": {
+      "file": "crater-reference-r5.png",
+      "originalFilename": "ABD545E9-3BA7-464E-A816-3BD1084E2AFA.jpeg",
+      "sha256": "b3498cd0bcf18026d802eb9b5b4b656194d5a5a9b78bb64ca87d20eae7b3c8ff"
+    },
+    "R6": {
+      "file": "crater-reference-r6.png",
+      "originalFilename": "E8219F5C-6F89-4540-B171-562015D380CC.jpeg",
+      "sha256": "78303c8415a635e910187f714fa6de7ac444ff1de27cf871cf2cee14ad5b4f9e"
+    }
+  },
+  "creatures": [
+    {
+      "id": "forest_rat",
+      "name": "Forest Rat",
+      "category": "Hostiles",
+      "reference": "R1",
+      "draftFitHeight": 14,
+      "states": {
+        "idle": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 0,
+              "y": 0,
+              "w": 110,
+              "h": 77,
+              "anchorX": 55.0,
+              "anchorY": 72,
+              "sourceBox": [
+                440,
+                165,
+                550,
+                242
+              ]
+            },
+            {
+              "x": 320,
+              "y": 0,
+              "w": 103,
+              "h": 77,
+              "anchorX": 51.5,
+              "anchorY": 72,
+              "sourceBox": [
+                555,
+                165,
+                658,
+                242
+              ]
+            }
+          ]
+        },
+        "move": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 640,
+              "y": 0,
+              "w": 119,
+              "h": 77,
+              "anchorX": 59.5,
+              "anchorY": 72,
+              "sourceBox": [
+                689,
+                165,
+                808,
+                242
+              ]
+            },
+            {
+              "x": 960,
+              "y": 0,
+              "w": 119,
+              "h": 77,
+              "anchorX": 59.5,
+              "anchorY": 72,
+              "sourceBox": [
+                808,
+                165,
+                927,
+                242
+              ]
+            }
+          ]
+        },
+        "attack": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 1280,
+              "y": 0,
+              "w": 113,
+              "h": 77,
+              "anchorX": 56.5,
+              "anchorY": 72,
+              "sourceBox": [
+                943,
+                165,
+                1056,
+                242
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 0,
+              "w": 104,
+              "h": 77,
+              "anchorX": 52.0,
+              "anchorY": 72,
+              "sourceBox": [
+                1057,
+                165,
+                1161,
+                242
+              ]
+            }
+          ]
+        },
+        "hit": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 1920,
+              "y": 0,
+              "w": 122,
+              "h": 77,
+              "anchorX": 61.0,
+              "anchorY": 72,
+              "sourceBox": [
+                1191,
+                165,
+                1313,
+                242
+              ]
+            }
+          ]
+        },
+        "death": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 2240,
+              "y": 0,
+              "w": 178,
+              "h": 77,
+              "anchorX": 89.0,
+              "anchorY": 72,
+              "sourceBox": [
+                1340,
+                165,
+                1518,
+                242
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 77,
+      "level": 1
+    },
+    {
+      "id": "goblin_miner",
+      "name": "Goblin Miner",
+      "category": "Hostiles",
+      "reference": "R3",
+      "draftFitHeight": 26,
+      "states": {
+        "idle": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 0,
+              "y": 0,
+              "w": 95,
+              "h": 75,
+              "anchorX": 47.5,
+              "anchorY": 70,
+              "sourceBox": [
+                675,
+                175,
+                770,
+                250
+              ]
+            },
+            {
+              "x": 320,
+              "y": 0,
+              "w": 100,
+              "h": 75,
+              "anchorX": 50.0,
+              "anchorY": 70,
+              "sourceBox": [
+                790,
+                175,
+                890,
+                250
+              ]
+            },
+            {
+              "x": 640,
+              "y": 0,
+              "w": 114,
+              "h": 75,
+              "anchorX": 57.0,
+              "anchorY": 70,
+              "sourceBox": [
+                916,
+                175,
+                1030,
+                250
+              ]
+            }
+          ]
+        },
+        "move": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 960,
+              "y": 0,
+              "w": 126,
+              "h": 75,
+              "anchorX": 63.0,
+              "anchorY": 70,
+              "sourceBox": [
+                1100,
+                175,
+                1226,
+                250
+              ]
+            },
+            {
+              "x": 1280,
+              "y": 0,
+              "w": 135,
+              "h": 75,
+              "anchorX": 67.5,
+              "anchorY": 70,
+              "sourceBox": [
+                1242,
+                175,
+                1377,
+                250
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 0,
+              "w": 145,
+              "h": 75,
+              "anchorX": 72.5,
+              "anchorY": 70,
+              "sourceBox": [
+                1380,
+                175,
+                1525,
+                250
+              ]
+            }
+          ]
+        },
+        "attack": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 1920,
+              "y": 0,
+              "w": 99,
+              "h": 86,
+              "anchorX": 49.5,
+              "anchorY": 81,
+              "sourceBox": [
+                650,
+                309,
+                749,
+                395
+              ]
+            },
+            {
+              "x": 2240,
+              "y": 0,
+              "w": 101,
+              "h": 86,
+              "anchorX": 50.5,
+              "anchorY": 81,
+              "sourceBox": [
+                760,
+                309,
+                861,
+                395
+              ]
+            },
+            {
+              "x": 0,
+              "y": 128,
+              "w": 164,
+              "h": 86,
+              "anchorX": 82.0,
+              "anchorY": 81,
+              "sourceBox": [
+                874,
+                309,
+                1038,
+                395
+              ]
+            },
+            {
+              "x": 320,
+              "y": 128,
+              "w": 91,
+              "h": 86,
+              "anchorX": 45.5,
+              "anchorY": 81,
+              "sourceBox": [
+                1040,
+                309,
+                1131,
+                395
+              ]
+            }
+          ]
+        },
+        "hit": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 640,
+              "y": 128,
+              "w": 95,
+              "h": 86,
+              "anchorX": 47.5,
+              "anchorY": 81,
+              "sourceBox": [
+                1155,
+                309,
+                1250,
+                395
+              ]
+            }
+          ]
+        },
+        "death": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 960,
+              "y": 128,
+              "w": 107,
+              "h": 66,
+              "anchorX": 53.5,
+              "anchorY": 61,
+              "sourceBox": [
+                1287,
+                329,
+                1394,
+                395
+              ]
+            },
+            {
+              "x": 1280,
+              "y": 128,
+              "w": 124,
+              "h": 66,
+              "anchorX": 62.0,
+              "anchorY": 61,
+              "sourceBox": [
+                1401,
+                329,
+                1525,
+                395
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 75,
+      "level": 5
+    },
+    {
+      "id": "wild_boar",
+      "name": "Wild Boar",
+      "category": "Hostiles",
+      "reference": "R1",
+      "draftFitHeight": 24,
+      "states": {
+        "idle": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 0,
+              "y": 128,
+              "w": 110,
+              "h": 81,
+              "anchorX": 55.0,
+              "anchorY": 76,
+              "sourceBox": [
+                440,
+                426,
+                550,
+                507
+              ]
+            },
+            {
+              "x": 320,
+              "y": 128,
+              "w": 103,
+              "h": 81,
+              "anchorX": 51.5,
+              "anchorY": 76,
+              "sourceBox": [
+                555,
+                426,
+                658,
+                507
+              ]
+            }
+          ]
+        },
+        "move": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 640,
+              "y": 128,
+              "w": 119,
+              "h": 81,
+              "anchorX": 59.5,
+              "anchorY": 76,
+              "sourceBox": [
+                689,
+                426,
+                808,
+                507
+              ]
+            },
+            {
+              "x": 960,
+              "y": 128,
+              "w": 119,
+              "h": 81,
+              "anchorX": 59.5,
+              "anchorY": 76,
+              "sourceBox": [
+                808,
+                426,
+                927,
+                507
+              ]
+            }
+          ]
+        },
+        "attack": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 1280,
+              "y": 128,
+              "w": 113,
+              "h": 81,
+              "anchorX": 56.5,
+              "anchorY": 76,
+              "sourceBox": [
+                943,
+                426,
+                1056,
+                507
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 128,
+              "w": 104,
+              "h": 81,
+              "anchorX": 52.0,
+              "anchorY": 76,
+              "sourceBox": [
+                1057,
+                426,
+                1161,
+                507
+              ]
+            }
+          ]
+        },
+        "hit": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 1920,
+              "y": 128,
+              "w": 122,
+              "h": 81,
+              "anchorX": 61.0,
+              "anchorY": 76,
+              "sourceBox": [
+                1191,
+                426,
+                1313,
+                507
+              ]
+            }
+          ]
+        },
+        "death": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 2240,
+              "y": 128,
+              "w": 178,
+              "h": 81,
+              "anchorX": 89.0,
+              "anchorY": 76,
+              "sourceBox": [
+                1340,
+                426,
+                1518,
+                507
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 81,
+      "level": 8
+    },
+    {
+      "id": "dire_wolf",
+      "name": "Dire Wolf",
+      "category": "Hostiles",
+      "reference": "R6",
+      "draftFitHeight": 30,
+      "states": {
+        "idle": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 0,
+              "y": 0,
+              "w": 135,
+              "h": 89,
+              "anchorX": 67.5,
+              "anchorY": 84,
+              "sourceBox": [
+                640,
+                165,
+                775,
+                254
+              ]
+            },
+            {
+              "x": 320,
+              "y": 0,
+              "w": 126,
+              "h": 89,
+              "anchorX": 63.0,
+              "anchorY": 84,
+              "sourceBox": [
+                783,
+                165,
+                909,
+                254
+              ]
+            },
+            {
+              "x": 640,
+              "y": 0,
+              "w": 116,
+              "h": 89,
+              "anchorX": 58.0,
+              "anchorY": 84,
+              "sourceBox": [
+                912,
+                165,
+                1028,
+                254
+              ]
+            }
+          ]
+        },
+        "move": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 960,
+              "y": 0,
+              "w": 138,
+              "h": 89,
+              "anchorX": 69.0,
+              "anchorY": 84,
+              "sourceBox": [
+                1070,
+                165,
+                1208,
+                254
+              ]
+            },
+            {
+              "x": 1280,
+              "y": 0,
+              "w": 145,
+              "h": 89,
+              "anchorX": 72.5,
+              "anchorY": 84,
+              "sourceBox": [
+                1215,
+                165,
+                1360,
+                254
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 0,
+              "w": 150,
+              "h": 89,
+              "anchorX": 75.0,
+              "anchorY": 84,
+              "sourceBox": [
+                1370,
+                165,
+                1520,
+                254
+              ]
+            }
+          ]
+        },
+        "attack": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 1920,
+              "y": 0,
+              "w": 134,
+              "h": 103,
+              "anchorX": 67.0,
+              "anchorY": 98,
+              "sourceBox": [
+                632,
+                310,
+                766,
+                413
+              ]
+            },
+            {
+              "x": 2240,
+              "y": 0,
+              "w": 150,
+              "h": 103,
+              "anchorX": 75.0,
+              "anchorY": 98,
+              "sourceBox": [
+                770,
+                310,
+                920,
+                413
+              ]
+            },
+            {
+              "x": 0,
+              "y": 128,
+              "w": 166,
+              "h": 111,
+              "anchorX": 83.0,
+              "anchorY": 106,
+              "sourceBox": [
+                922,
+                302,
+                1088,
+                413
+              ]
+            }
+          ]
+        },
+        "hit": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 320,
+              "y": 128,
+              "w": 143,
+              "h": 97,
+              "anchorX": 71.5,
+              "anchorY": 92,
+              "sourceBox": [
+                1125,
+                315,
+                1268,
+                412
+              ]
+            }
+          ]
+        },
+        "death": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 640,
+              "y": 128,
+              "w": 200,
+              "h": 62,
+              "anchorX": 100.0,
+              "anchorY": 57,
+              "sourceBox": [
+                1310,
+                350,
+                1510,
+                412
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Animated rocky/cave camouflage variants",
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 89,
+      "level": 12
+    },
+    {
+      "id": "goblin_guard",
+      "name": "Goblin Guard",
+      "category": "Hostiles",
+      "reference": "R3",
+      "draftFitHeight": 32,
+      "states": {
+        "idle": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 1600,
+              "y": 128,
+              "w": 120,
+              "h": 103,
+              "anchorX": 60.0,
+              "anchorY": 98,
+              "sourceBox": [
+                660,
+                471,
+                780,
+                574
+              ]
+            },
+            {
+              "x": 1920,
+              "y": 128,
+              "w": 120,
+              "h": 103,
+              "anchorX": 60.0,
+              "anchorY": 98,
+              "sourceBox": [
+                790,
+                471,
+                910,
+                574
+              ]
+            },
+            {
+              "x": 2240,
+              "y": 128,
+              "w": 114,
+              "h": 103,
+              "anchorX": 57.0,
+              "anchorY": 98,
+              "sourceBox": [
+                916,
+                471,
+                1030,
+                574
+              ]
+            }
+          ]
+        },
+        "move": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 0,
+              "y": 256,
+              "w": 126,
+              "h": 103,
+              "anchorX": 63.0,
+              "anchorY": 98,
+              "sourceBox": [
+                1100,
+                471,
+                1226,
+                574
+              ]
+            },
+            {
+              "x": 320,
+              "y": 256,
+              "w": 135,
+              "h": 103,
+              "anchorX": 67.5,
+              "anchorY": 98,
+              "sourceBox": [
+                1242,
+                471,
+                1377,
+                574
+              ]
+            },
+            {
+              "x": 640,
+              "y": 256,
+              "w": 145,
+              "h": 103,
+              "anchorX": 72.5,
+              "anchorY": 98,
+              "sourceBox": [
+                1380,
+                471,
+                1525,
+                574
+              ]
+            }
+          ]
+        },
+        "attack": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 960,
+              "y": 256,
+              "w": 127,
+              "h": 110,
+              "anchorX": 63.5,
+              "anchorY": 105,
+              "sourceBox": [
+                650,
+                615,
+                777,
+                725
+              ]
+            },
+            {
+              "x": 1280,
+              "y": 256,
+              "w": 113,
+              "h": 110,
+              "anchorX": 56.5,
+              "anchorY": 105,
+              "sourceBox": [
+                780,
+                615,
+                893,
+                725
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 256,
+              "w": 116,
+              "h": 110,
+              "anchorX": 58.0,
+              "anchorY": 105,
+              "sourceBox": [
+                895,
+                615,
+                1011,
+                725
+              ]
+            },
+            {
+              "x": 1920,
+              "y": 256,
+              "w": 120,
+              "h": 110,
+              "anchorX": 60.0,
+              "anchorY": 105,
+              "sourceBox": [
+                1012,
+                615,
+                1132,
+                725
+              ]
+            }
+          ]
+        },
+        "hit": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 2240,
+              "y": 256,
+              "w": 119,
+              "h": 100,
+              "anchorX": 59.5,
+              "anchorY": 95,
+              "sourceBox": [
+                1150,
+                625,
+                1269,
+                725
+              ]
+            }
+          ]
+        },
+        "death": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 0,
+              "y": 384,
+              "w": 108,
+              "h": 71,
+              "anchorX": 54.0,
+              "anchorY": 66,
+              "sourceBox": [
+                1287,
+                654,
+                1395,
+                725
+              ]
+            },
+            {
+              "x": 320,
+              "y": 384,
+              "w": 124,
+              "h": 71,
+              "anchorX": 62.0,
+              "anchorY": 66,
+              "sourceBox": [
+                1401,
+                654,
+                1525,
+                725
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 103,
+      "level": 16
+    },
+    {
+      "id": "cave_guardian",
+      "name": "Cave Guardian",
+      "category": "Hostiles",
+      "reference": "R2",
+      "draftFitHeight": 46,
+      "states": {
+        "idle": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 0,
+              "y": 0,
+              "w": 104,
+              "h": 76,
+              "anchorX": 52.0,
+              "anchorY": 71,
+              "sourceBox": [
+                620,
+                155,
+                724,
+                231
+              ]
+            },
+            {
+              "x": 320,
+              "y": 0,
+              "w": 104,
+              "h": 76,
+              "anchorX": 52.0,
+              "anchorY": 71,
+              "sourceBox": [
+                724,
+                155,
+                828,
+                231
+              ]
+            },
+            {
+              "x": 640,
+              "y": 0,
+              "w": 103,
+              "h": 76,
+              "anchorX": 51.5,
+              "anchorY": 71,
+              "sourceBox": [
+                828,
+                155,
+                931,
+                231
+              ]
+            },
+            {
+              "x": 960,
+              "y": 0,
+              "w": 104,
+              "h": 76,
+              "anchorX": 52.0,
+              "anchorY": 71,
+              "sourceBox": [
+                931,
+                155,
+                1035,
+                231
+              ]
+            }
+          ]
+        },
+        "move": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 1280,
+              "y": 0,
+              "w": 107,
+              "h": 78,
+              "anchorX": 53.5,
+              "anchorY": 73,
+              "sourceBox": [
+                1085,
+                153,
+                1192,
+                231
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 0,
+              "w": 107,
+              "h": 78,
+              "anchorX": 53.5,
+              "anchorY": 73,
+              "sourceBox": [
+                1192,
+                153,
+                1299,
+                231
+              ]
+            },
+            {
+              "x": 1920,
+              "y": 0,
+              "w": 107,
+              "h": 78,
+              "anchorX": 53.5,
+              "anchorY": 73,
+              "sourceBox": [
+                1299,
+                153,
+                1406,
+                231
+              ]
+            },
+            {
+              "x": 2240,
+              "y": 0,
+              "w": 109,
+              "h": 78,
+              "anchorX": 54.5,
+              "anchorY": 73,
+              "sourceBox": [
+                1406,
+                153,
+                1515,
+                231
+              ]
+            }
+          ]
+        },
+        "attack": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 0,
+              "y": 128,
+              "w": 94,
+              "h": 83,
+              "anchorX": 47.0,
+              "anchorY": 78,
+              "sourceBox": [
+                610,
+                282,
+                704,
+                365
+              ]
+            },
+            {
+              "x": 320,
+              "y": 128,
+              "w": 120,
+              "h": 83,
+              "anchorX": 60.0,
+              "anchorY": 78,
+              "sourceBox": [
+                713,
+                282,
+                833,
+                365
+              ]
+            },
+            {
+              "x": 640,
+              "y": 128,
+              "w": 112,
+              "h": 83,
+              "anchorX": 56.0,
+              "anchorY": 78,
+              "sourceBox": [
+                837,
+                282,
+                949,
+                365
+              ]
+            },
+            {
+              "x": 960,
+              "y": 128,
+              "w": 145,
+              "h": 83,
+              "anchorX": 72.5,
+              "anchorY": 78,
+              "sourceBox": [
+                950,
+                282,
+                1095,
+                365
+              ]
+            }
+          ]
+        },
+        "hit": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 1280,
+              "y": 128,
+              "w": 133,
+              "h": 83,
+              "anchorX": 66.5,
+              "anchorY": 78,
+              "sourceBox": [
+                1135,
+                282,
+                1268,
+                365
+              ]
+            }
+          ]
+        },
+        "death": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 1600,
+              "y": 128,
+              "w": 117,
+              "h": 68,
+              "anchorX": 58.5,
+              "anchorY": 63,
+              "sourceBox": [
+                1285,
+                297,
+                1402,
+                365
+              ]
+            },
+            {
+              "x": 1920,
+              "y": 128,
+              "w": 117,
+              "h": 68,
+              "anchorX": 58.5,
+              "anchorY": 63,
+              "sourceBox": [
+                1403,
+                297,
+                1520,
+                365
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 76,
+      "level": 18
+    },
+    {
+      "id": "forest_troll",
+      "name": "Forest Troll",
+      "category": "Hostiles",
+      "reference": "R1",
+      "draftFitHeight": 44,
+      "states": {
+        "idle": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 0,
+              "y": 256,
+              "w": 110,
+              "h": 109,
+              "anchorX": 55.0,
+              "anchorY": 104,
+              "sourceBox": [
+                440,
+                684,
+                550,
+                793
+              ]
+            },
+            {
+              "x": 320,
+              "y": 256,
+              "w": 103,
+              "h": 109,
+              "anchorX": 51.5,
+              "anchorY": 104,
+              "sourceBox": [
+                555,
+                684,
+                658,
+                793
+              ]
+            }
+          ]
+        },
+        "move": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 640,
+              "y": 256,
+              "w": 119,
+              "h": 109,
+              "anchorX": 59.5,
+              "anchorY": 104,
+              "sourceBox": [
+                689,
+                684,
+                808,
+                793
+              ]
+            },
+            {
+              "x": 960,
+              "y": 256,
+              "w": 119,
+              "h": 109,
+              "anchorX": 59.5,
+              "anchorY": 104,
+              "sourceBox": [
+                808,
+                684,
+                927,
+                793
+              ]
+            }
+          ]
+        },
+        "attack": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 1280,
+              "y": 256,
+              "w": 113,
+              "h": 109,
+              "anchorX": 56.5,
+              "anchorY": 104,
+              "sourceBox": [
+                943,
+                684,
+                1056,
+                793
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 256,
+              "w": 104,
+              "h": 109,
+              "anchorX": 52.0,
+              "anchorY": 104,
+              "sourceBox": [
+                1057,
+                684,
+                1161,
+                793
+              ]
+            }
+          ]
+        },
+        "hit": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 1920,
+              "y": 256,
+              "w": 122,
+              "h": 109,
+              "anchorX": 61.0,
+              "anchorY": 104,
+              "sourceBox": [
+                1191,
+                684,
+                1313,
+                793
+              ]
+            }
+          ]
+        },
+        "death": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 2240,
+              "y": 256,
+              "w": 178,
+              "h": 109,
+              "anchorX": 89.0,
+              "anchorY": 104,
+              "sourceBox": [
+                1340,
+                684,
+                1518,
+                793
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 89,
+      "level": 22
+    },
+    {
+      "id": "jewelheart_guardian",
+      "name": "Jewelheart Guardian",
+      "category": "Hostiles",
+      "reference": "R2",
+      "draftFitHeight": 68,
+      "states": {
+        "idle": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 2240,
+              "y": 128,
+              "w": 100,
+              "h": 94,
+              "anchorX": 50.0,
+              "anchorY": 89,
+              "sourceBox": [
+                671,
+                425,
+                771,
+                519
+              ]
+            },
+            {
+              "x": 0,
+              "y": 256,
+              "w": 99,
+              "h": 94,
+              "anchorX": 49.5,
+              "anchorY": 89,
+              "sourceBox": [
+                782,
+                425,
+                881,
+                519
+              ]
+            },
+            {
+              "x": 320,
+              "y": 256,
+              "w": 96,
+              "h": 94,
+              "anchorX": 48.0,
+              "anchorY": 89,
+              "sourceBox": [
+                893,
+                425,
+                989,
+                519
+              ]
+            },
+            {
+              "x": 640,
+              "y": 256,
+              "w": 94,
+              "h": 94,
+              "anchorX": 47.0,
+              "anchorY": 89,
+              "sourceBox": [
+                1002,
+                425,
+                1096,
+                519
+              ]
+            }
+          ]
+        },
+        "move": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 960,
+              "y": 256,
+              "w": 107,
+              "h": 94,
+              "anchorX": 53.5,
+              "anchorY": 89,
+              "sourceBox": [
+                1115,
+                425,
+                1222,
+                519
+              ]
+            },
+            {
+              "x": 1280,
+              "y": 256,
+              "w": 111,
+              "h": 94,
+              "anchorX": 55.5,
+              "anchorY": 89,
+              "sourceBox": [
+                1222,
+                425,
+                1333,
+                519
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 256,
+              "w": 94,
+              "h": 94,
+              "anchorX": 47.0,
+              "anchorY": 89,
+              "sourceBox": [
+                1335,
+                425,
+                1429,
+                519
+              ]
+            },
+            {
+              "x": 1920,
+              "y": 256,
+              "w": 97,
+              "h": 94,
+              "anchorX": 48.5,
+              "anchorY": 89,
+              "sourceBox": [
+                1428,
+                425,
+                1525,
+                519
+              ]
+            }
+          ]
+        },
+        "attack": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 2240,
+              "y": 256,
+              "w": 110,
+              "h": 111,
+              "anchorX": 55.0,
+              "anchorY": 106,
+              "sourceBox": [
+                665,
+                571,
+                775,
+                682
+              ]
+            },
+            {
+              "x": 0,
+              "y": 384,
+              "w": 94,
+              "h": 111,
+              "anchorX": 47.0,
+              "anchorY": 106,
+              "sourceBox": [
+                777,
+                571,
+                871,
+                682
+              ]
+            },
+            {
+              "x": 320,
+              "y": 384,
+              "w": 95,
+              "h": 111,
+              "anchorX": 47.5,
+              "anchorY": 106,
+              "sourceBox": [
+                876,
+                571,
+                971,
+                682
+              ]
+            },
+            {
+              "x": 640,
+              "y": 384,
+              "w": 136,
+              "h": 111,
+              "anchorX": 68.0,
+              "anchorY": 106,
+              "sourceBox": [
+                974,
+                571,
+                1110,
+                682
+              ]
+            }
+          ]
+        },
+        "hit": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 960,
+              "y": 384,
+              "w": 122,
+              "h": 101,
+              "anchorX": 61.0,
+              "anchorY": 96,
+              "sourceBox": [
+                1128,
+                581,
+                1250,
+                682
+              ]
+            }
+          ]
+        },
+        "death": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 1280,
+              "y": 384,
+              "w": 105,
+              "h": 81,
+              "anchorX": 52.5,
+              "anchorY": 76,
+              "sourceBox": [
+                1260,
+                601,
+                1365,
+                682
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 384,
+              "w": 87,
+              "h": 81,
+              "anchorX": 43.5,
+              "anchorY": 76,
+              "sourceBox": [
+                1366,
+                601,
+                1453,
+                682
+              ]
+            },
+            {
+              "x": 1920,
+              "y": 384,
+              "w": 71,
+              "h": 81,
+              "anchorX": 35.5,
+              "anchorY": 76,
+              "sourceBox": [
+                1454,
+                601,
+                1525,
+                682
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 94,
+      "level": 30
+    },
+    {
+      "id": "forest_deer",
+      "name": "Forest Deer",
+      "category": "Wildlife",
+      "reference": "R4",
+      "draftFitHeight": 31,
+      "states": {
+        "idle": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 0,
+              "y": 0,
+              "w": 120,
+              "h": 93,
+              "anchorX": 60.0,
+              "anchorY": 88,
+              "sourceBox": [
+                545,
+                151,
+                665,
+                244
+              ]
+            },
+            {
+              "x": 320,
+              "y": 0,
+              "w": 119,
+              "h": 93,
+              "anchorX": 59.5,
+              "anchorY": 88,
+              "sourceBox": [
+                675,
+                151,
+                794,
+                244
+              ]
+            },
+            {
+              "x": 640,
+              "y": 0,
+              "w": 117,
+              "h": 93,
+              "anchorX": 58.5,
+              "anchorY": 88,
+              "sourceBox": [
+                805,
+                151,
+                922,
+                244
+              ]
+            }
+          ]
+        },
+        "flee": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 960,
+              "y": 0,
+              "w": 150,
+              "h": 93,
+              "anchorX": 75.0,
+              "anchorY": 88,
+              "sourceBox": [
+                980,
+                151,
+                1130,
+                244
+              ]
+            },
+            {
+              "x": 1280,
+              "y": 0,
+              "w": 145,
+              "h": 93,
+              "anchorX": 72.5,
+              "anchorY": 88,
+              "sourceBox": [
+                1150,
+                151,
+                1295,
+                244
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 0,
+              "w": 142,
+              "h": 93,
+              "anchorX": 71.0,
+              "anchorY": 88,
+              "sourceBox": [
+                1320,
+                151,
+                1462,
+                244
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 93
+    },
+    {
+      "id": "rabbit",
+      "name": "Rabbit",
+      "category": "Wildlife",
+      "reference": "R4",
+      "draftFitHeight": 13,
+      "states": {
+        "idle": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 1920,
+              "y": 0,
+              "w": 74,
+              "h": 82,
+              "anchorX": 37.0,
+              "anchorY": 77,
+              "sourceBox": [
+                558,
+                298,
+                632,
+                380
+              ]
+            },
+            {
+              "x": 2240,
+              "y": 0,
+              "w": 72,
+              "h": 82,
+              "anchorX": 36.0,
+              "anchorY": 77,
+              "sourceBox": [
+                680,
+                298,
+                752,
+                380
+              ]
+            },
+            {
+              "x": 0,
+              "y": 128,
+              "w": 73,
+              "h": 82,
+              "anchorX": 36.5,
+              "anchorY": 77,
+              "sourceBox": [
+                798,
+                298,
+                871,
+                380
+              ]
+            }
+          ]
+        },
+        "flee": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 320,
+              "y": 128,
+              "w": 133,
+              "h": 82,
+              "anchorX": 66.5,
+              "anchorY": 77,
+              "sourceBox": [
+                947,
+                298,
+                1080,
+                380
+              ]
+            },
+            {
+              "x": 640,
+              "y": 128,
+              "w": 116,
+              "h": 82,
+              "anchorX": 58.0,
+              "anchorY": 77,
+              "sourceBox": [
+                1102,
+                298,
+                1218,
+                380
+              ]
+            },
+            {
+              "x": 960,
+              "y": 128,
+              "w": 128,
+              "h": 82,
+              "anchorX": 64.0,
+              "anchorY": 77,
+              "sourceBox": [
+                1220,
+                298,
+                1348,
+                380
+              ]
+            },
+            {
+              "x": 1280,
+              "y": 128,
+              "w": 126,
+              "h": 82,
+              "anchorX": 63.0,
+              "anchorY": 77,
+              "sourceBox": [
+                1350,
+                298,
+                1476,
+                380
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 82
+    },
+    {
+      "id": "squirrel",
+      "name": "Squirrel",
+      "category": "Wildlife",
+      "reference": "R4",
+      "draftFitHeight": 16,
+      "states": {
+        "idle": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 1600,
+              "y": 128,
+              "w": 111,
+              "h": 82,
+              "anchorX": 55.5,
+              "anchorY": 77,
+              "sourceBox": [
+                545,
+                439,
+                656,
+                521
+              ]
+            },
+            {
+              "x": 1920,
+              "y": 128,
+              "w": 111,
+              "h": 82,
+              "anchorX": 55.5,
+              "anchorY": 77,
+              "sourceBox": [
+                675,
+                439,
+                786,
+                521
+              ]
+            },
+            {
+              "x": 2240,
+              "y": 128,
+              "w": 99,
+              "h": 82,
+              "anchorX": 49.5,
+              "anchorY": 77,
+              "sourceBox": [
+                809,
+                439,
+                908,
+                521
+              ]
+            }
+          ]
+        },
+        "flee": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 0,
+              "y": 256,
+              "w": 123,
+              "h": 82,
+              "anchorX": 61.5,
+              "anchorY": 77,
+              "sourceBox": [
+                955,
+                439,
+                1078,
+                521
+              ]
+            },
+            {
+              "x": 320,
+              "y": 256,
+              "w": 118,
+              "h": 82,
+              "anchorX": 59.0,
+              "anchorY": 77,
+              "sourceBox": [
+                1095,
+                439,
+                1213,
+                521
+              ]
+            },
+            {
+              "x": 640,
+              "y": 256,
+              "w": 131,
+              "h": 82,
+              "anchorX": 65.5,
+              "anchorY": 77,
+              "sourceBox": [
+                1228,
+                439,
+                1359,
+                521
+              ]
+            },
+            {
+              "x": 960,
+              "y": 256,
+              "w": 124,
+              "h": 82,
+              "anchorX": 62.0,
+              "anchorY": 77,
+              "sourceBox": [
+                1375,
+                439,
+                1499,
+                521
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Tree-climb frames",
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 82
+    },
+    {
+      "id": "raven",
+      "name": "Raven",
+      "category": "Wildlife",
+      "reference": "R4",
+      "draftFitHeight": 18,
+      "states": {
+        "idle": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 1280,
+              "y": 256,
+              "w": 113,
+              "h": 98,
+              "anchorX": 56.5,
+              "anchorY": 93,
+              "sourceBox": [
+                539,
+                567,
+                652,
+                665
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 256,
+              "w": 119,
+              "h": 98,
+              "anchorX": 59.5,
+              "anchorY": 93,
+              "sourceBox": [
+                661,
+                567,
+                780,
+                665
+              ]
+            },
+            {
+              "x": 1920,
+              "y": 256,
+              "w": 117,
+              "h": 98,
+              "anchorX": 58.5,
+              "anchorY": 93,
+              "sourceBox": [
+                788,
+                567,
+                905,
+                665
+              ]
+            }
+          ]
+        },
+        "takeoff": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 2240,
+              "y": 256,
+              "w": 112,
+              "h": 98,
+              "anchorX": 56.0,
+              "anchorY": 93,
+              "sourceBox": [
+                950,
+                567,
+                1062,
+                665
+              ]
+            },
+            {
+              "x": 0,
+              "y": 384,
+              "w": 118,
+              "h": 98,
+              "anchorX": 59.0,
+              "anchorY": 93,
+              "sourceBox": [
+                1078,
+                567,
+                1196,
+                665
+              ]
+            },
+            {
+              "x": 320,
+              "y": 384,
+              "w": 121,
+              "h": 103,
+              "anchorX": 60.5,
+              "anchorY": 98,
+              "sourceBox": [
+                1220,
+                562,
+                1341,
+                665
+              ]
+            },
+            {
+              "x": 640,
+              "y": 384,
+              "w": 126,
+              "h": 109,
+              "anchorX": 63.0,
+              "anchorY": 104,
+              "sourceBox": [
+                1359,
+                556,
+                1485,
+                665
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 98
+    },
+    {
+      "id": "fox",
+      "name": "Fox",
+      "category": "Wildlife",
+      "reference": "R4",
+      "draftFitHeight": 22,
+      "states": {
+        "idle": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 960,
+              "y": 384,
+              "w": 111,
+              "h": 85,
+              "anchorX": 55.5,
+              "anchorY": 80,
+              "sourceBox": [
+                545,
+                722,
+                656,
+                807
+              ]
+            },
+            {
+              "x": 1280,
+              "y": 384,
+              "w": 107,
+              "h": 85,
+              "anchorX": 53.5,
+              "anchorY": 80,
+              "sourceBox": [
+                676,
+                722,
+                783,
+                807
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 384,
+              "w": 111,
+              "h": 85,
+              "anchorX": 55.5,
+              "anchorY": 80,
+              "sourceBox": [
+                800,
+                722,
+                911,
+                807
+              ]
+            }
+          ]
+        },
+        "flee": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 1920,
+              "y": 384,
+              "w": 166,
+              "h": 85,
+              "anchorX": 83.0,
+              "anchorY": 80,
+              "sourceBox": [
+                965,
+                722,
+                1131,
+                807
+              ]
+            },
+            {
+              "x": 2240,
+              "y": 384,
+              "w": 167,
+              "h": 85,
+              "anchorX": 83.5,
+              "anchorY": 80,
+              "sourceBox": [
+                1149,
+                722,
+                1316,
+                807
+              ]
+            },
+            {
+              "x": 0,
+              "y": 512,
+              "w": 181,
+              "h": 85,
+              "anchorX": 90.5,
+              "anchorY": 80,
+              "sourceBox": [
+                1326,
+                722,
+                1507,
+                807
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 85
+    },
+    {
+      "id": "timber_glider",
+      "name": "Timber Glider",
+      "category": "Pets",
+      "reference": "R5",
+      "draftFitHeight": 18,
+      "states": {
+        "walk": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 0,
+              "y": 0,
+              "w": 97,
+              "h": 68,
+              "anchorX": 48.5,
+              "anchorY": 63,
+              "sourceBox": [
+                528,
+                145,
+                625,
+                213
+              ]
+            },
+            {
+              "x": 320,
+              "y": 0,
+              "w": 96,
+              "h": 68,
+              "anchorX": 48.0,
+              "anchorY": 63,
+              "sourceBox": [
+                638,
+                145,
+                734,
+                213
+              ]
+            },
+            {
+              "x": 640,
+              "y": 0,
+              "w": 96,
+              "h": 68,
+              "anchorX": 48.0,
+              "anchorY": 63,
+              "sourceBox": [
+                748,
+                145,
+                844,
+                213
+              ]
+            },
+            {
+              "x": 960,
+              "y": 0,
+              "w": 98,
+              "h": 68,
+              "anchorX": 49.0,
+              "anchorY": 63,
+              "sourceBox": [
+                856,
+                145,
+                954,
+                213
+              ]
+            }
+          ]
+        },
+        "glide": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 1280,
+              "y": 0,
+              "w": 108,
+              "h": 68,
+              "anchorX": 54.0,
+              "anchorY": 63,
+              "sourceBox": [
+                1008,
+                145,
+                1116,
+                213
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 0,
+              "w": 129,
+              "h": 68,
+              "anchorX": 64.5,
+              "anchorY": 63,
+              "sourceBox": [
+                1125,
+                145,
+                1254,
+                213
+              ]
+            },
+            {
+              "x": 1920,
+              "y": 0,
+              "w": 128,
+              "h": 76,
+              "anchorX": 64.0,
+              "anchorY": 71,
+              "sourceBox": [
+                1260,
+                137,
+                1388,
+                213
+              ]
+            },
+            {
+              "x": 2240,
+              "y": 0,
+              "w": 115,
+              "h": 76,
+              "anchorX": 57.5,
+              "anchorY": 71,
+              "sourceBox": [
+                1395,
+                137,
+                1510,
+                213
+              ]
+            }
+          ]
+        },
+        "idle": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 0,
+              "y": 128,
+              "w": 110,
+              "h": 72,
+              "anchorX": 55.0,
+              "anchorY": 67,
+              "sourceBox": [
+                528,
+                260,
+                638,
+                332
+              ]
+            },
+            {
+              "x": 320,
+              "y": 128,
+              "w": 105,
+              "h": 72,
+              "anchorX": 52.5,
+              "anchorY": 67,
+              "sourceBox": [
+                650,
+                260,
+                755,
+                332
+              ]
+            },
+            {
+              "x": 640,
+              "y": 128,
+              "w": 105,
+              "h": 72,
+              "anchorX": 52.5,
+              "anchorY": 67,
+              "sourceBox": [
+                765,
+                260,
+                870,
+                332
+              ]
+            }
+          ]
+        },
+        "climb": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 960,
+              "y": 128,
+              "w": 127,
+              "h": 82,
+              "anchorX": 63.5,
+              "anchorY": 77,
+              "sourceBox": [
+                950,
+                251,
+                1077,
+                333
+              ]
+            },
+            {
+              "x": 1280,
+              "y": 128,
+              "w": 128,
+              "h": 82,
+              "anchorX": 64.0,
+              "anchorY": 77,
+              "sourceBox": [
+                1093,
+                251,
+                1221,
+                333
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 128,
+              "w": 126,
+              "h": 82,
+              "anchorX": 63.0,
+              "anchorY": 77,
+              "sourceBox": [
+                1234,
+                251,
+                1360,
+                333
+              ]
+            },
+            {
+              "x": 1920,
+              "y": 128,
+              "w": 132,
+              "h": 82,
+              "anchorX": 66.0,
+              "anchorY": 77,
+              "sourceBox": [
+                1373,
+                251,
+                1505,
+                333
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 68
+    },
+    {
+      "id": "geode_mole",
+      "name": "Geode Mole",
+      "category": "Pets",
+      "reference": "R5",
+      "draftFitHeight": 16,
+      "states": {
+        "burrow": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 2240,
+              "y": 128,
+              "w": 106,
+              "h": 67,
+              "anchorX": 53.0,
+              "anchorY": 62,
+              "sourceBox": [
+                523,
+                386,
+                629,
+                453
+              ]
+            },
+            {
+              "x": 0,
+              "y": 256,
+              "w": 106,
+              "h": 67,
+              "anchorX": 53.0,
+              "anchorY": 62,
+              "sourceBox": [
+                629,
+                386,
+                735,
+                453
+              ]
+            },
+            {
+              "x": 320,
+              "y": 256,
+              "w": 105,
+              "h": 67,
+              "anchorX": 52.5,
+              "anchorY": 62,
+              "sourceBox": [
+                735,
+                386,
+                840,
+                453
+              ]
+            },
+            {
+              "x": 640,
+              "y": 256,
+              "w": 106,
+              "h": 67,
+              "anchorX": 53.0,
+              "anchorY": 62,
+              "sourceBox": [
+                840,
+                386,
+                946,
+                453
+              ]
+            },
+            {
+              "x": 960,
+              "y": 256,
+              "w": 106,
+              "h": 67,
+              "anchorX": 53.0,
+              "anchorY": 62,
+              "sourceBox": [
+                946,
+                386,
+                1052,
+                453
+              ]
+            }
+          ]
+        },
+        "surface": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 1280,
+              "y": 256,
+              "w": 112,
+              "h": 67,
+              "anchorX": 56.0,
+              "anchorY": 62,
+              "sourceBox": [
+                1070,
+                386,
+                1182,
+                453
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 256,
+              "w": 113,
+              "h": 67,
+              "anchorX": 56.5,
+              "anchorY": 62,
+              "sourceBox": [
+                1182,
+                386,
+                1295,
+                453
+              ]
+            },
+            {
+              "x": 1920,
+              "y": 256,
+              "w": 113,
+              "h": 67,
+              "anchorX": 56.5,
+              "anchorY": 62,
+              "sourceBox": [
+                1295,
+                386,
+                1408,
+                453
+              ]
+            },
+            {
+              "x": 2240,
+              "y": 256,
+              "w": 112,
+              "h": 67,
+              "anchorX": 56.0,
+              "anchorY": 62,
+              "sourceBox": [
+                1408,
+                386,
+                1520,
+                453
+              ]
+            }
+          ]
+        },
+        "dig": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 0,
+              "y": 384,
+              "w": 277,
+              "h": 66,
+              "anchorX": 138.5,
+              "anchorY": 61,
+              "sourceBox": [
+                550,
+                496,
+                827,
+                562
+              ]
+            },
+            {
+              "x": 320,
+              "y": 384,
+              "w": 207,
+              "h": 66,
+              "anchorX": 103.5,
+              "anchorY": 61,
+              "sourceBox": [
+                853,
+                496,
+                1060,
+                562
+              ]
+            },
+            {
+              "x": 640,
+              "y": 384,
+              "w": 195,
+              "h": 66,
+              "anchorX": 97.5,
+              "anchorY": 61,
+              "sourceBox": [
+                1100,
+                496,
+                1295,
+                562
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 67
+    },
+    {
+      "id": "river_otter",
+      "name": "River Otter",
+      "category": "Pets",
+      "reference": "R5",
+      "draftFitHeight": 18,
+      "states": {
+        "walk": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 960,
+              "y": 384,
+              "w": 99,
+              "h": 68,
+              "anchorX": 49.5,
+              "anchorY": 63,
+              "sourceBox": [
+                523,
+                621,
+                622,
+                689
+              ]
+            },
+            {
+              "x": 1280,
+              "y": 384,
+              "w": 93,
+              "h": 68,
+              "anchorX": 46.5,
+              "anchorY": 63,
+              "sourceBox": [
+                633,
+                621,
+                726,
+                689
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 384,
+              "w": 95,
+              "h": 73,
+              "anchorX": 47.5,
+              "anchorY": 68,
+              "sourceBox": [
+                740,
+                616,
+                835,
+                689
+              ]
+            },
+            {
+              "x": 1920,
+              "y": 384,
+              "w": 96,
+              "h": 69,
+              "anchorX": 48.0,
+              "anchorY": 64,
+              "sourceBox": [
+                851,
+                620,
+                947,
+                689
+              ]
+            }
+          ]
+        },
+        "swim": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 2240,
+              "y": 384,
+              "w": 121,
+              "h": 71,
+              "anchorX": 60.5,
+              "anchorY": 66,
+              "sourceBox": [
+                990,
+                618,
+                1111,
+                689
+              ]
+            },
+            {
+              "x": 0,
+              "y": 512,
+              "w": 124,
+              "h": 71,
+              "anchorX": 62.0,
+              "anchorY": 66,
+              "sourceBox": [
+                1117,
+                618,
+                1241,
+                689
+              ]
+            },
+            {
+              "x": 320,
+              "y": 512,
+              "w": 125,
+              "h": 71,
+              "anchorX": 62.5,
+              "anchorY": 66,
+              "sourceBox": [
+                1247,
+                618,
+                1372,
+                689
+              ]
+            },
+            {
+              "x": 640,
+              "y": 512,
+              "w": 124,
+              "h": 71,
+              "anchorX": 62.0,
+              "anchorY": 66,
+              "sourceBox": [
+                1379,
+                618,
+                1503,
+                689
+              ]
+            }
+          ]
+        },
+        "idle": {
+          "loop": true,
+          "frames": [
+            {
+              "x": 960,
+              "y": 512,
+              "w": 106,
+              "h": 88,
+              "anchorX": 53.0,
+              "anchorY": 83,
+              "sourceBox": [
+                526,
+                722,
+                632,
+                810
+              ]
+            },
+            {
+              "x": 1280,
+              "y": 512,
+              "w": 102,
+              "h": 91,
+              "anchorX": 51.0,
+              "anchorY": 86,
+              "sourceBox": [
+                650,
+                719,
+                752,
+                810
+              ]
+            },
+            {
+              "x": 1600,
+              "y": 512,
+              "w": 110,
+              "h": 95,
+              "anchorX": 55.0,
+              "anchorY": 90,
+              "sourceBox": [
+                765,
+                715,
+                875,
+                810
+              ]
+            }
+          ]
+        },
+        "dive-catch": {
+          "loop": false,
+          "frames": [
+            {
+              "x": 1920,
+              "y": 512,
+              "w": 156,
+              "h": 85,
+              "anchorX": 78.0,
+              "anchorY": 80,
+              "sourceBox": [
+                946,
+                725,
+                1102,
+                810
+              ]
+            },
+            {
+              "x": 2240,
+              "y": 512,
+              "w": 146,
+              "h": 85,
+              "anchorX": 73.0,
+              "anchorY": 80,
+              "sourceBox": [
+                1098,
+                725,
+                1244,
+                810
+              ]
+            },
+            {
+              "x": 0,
+              "y": 640,
+              "w": 125,
+              "h": 89,
+              "anchorX": 62.5,
+              "anchorY": 84,
+              "sourceBox": [
+                1247,
+                721,
+                1372,
+                810
+              ]
+            },
+            {
+              "x": 320,
+              "y": 640,
+              "w": 136,
+              "h": 94,
+              "anchorX": 68.0,
+              "anchorY": 89,
+              "sourceBox": [
+                1375,
+                716,
+                1511,
+                810
+              ]
+            }
+          ]
+        }
+      },
+      "missing": [
+        "Front/back views",
+        "Exact production frame timings"
+      ],
+      "fitSourceHeight": 68
+    }
+  ]
+}
