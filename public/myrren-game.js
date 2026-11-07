@@ -2097,6 +2097,14 @@ function critUpdate(dt,now){
       const ex=c.wx-c.x,ey=c.wy-c.y,d=Math.hypot(ex,ey);
       if(d>1.5){vx=ex/d*P.sp;vy=ey/d*P.sp;mode=c.t==='bird'&&c.z>0?'fly':'walk'}
     }
+    if(c.t==='fox'&&Math.hypot(c.x-CX,c.y-CY)<485){
+      // Existing foxes from earlier sessions can walk out instead of becoming
+      // trapped beside the forge or returning to the crater on their patrol.
+      const away=Math.atan2(c.y-CY,c.x-CX);
+      c.wx=c.hx=c.x+Math.cos(away)*100;
+      c.wy=c.hy=c.y+Math.sin(away)*100;
+      vx=Math.cos(away)*P.fs;vy=Math.sin(away)*P.fs;mode='flee';
+    }
     if(vx||vy){const nx=c.x+vx*dt,ny=c.y+vy*dt;
       if(!inWater(nx,ny)&&nx>EDGE+10&&nx<WW-EDGE-10&&ny>EDGE+10&&ny<WH-EDGE-10){c.x=nx;c.y=ny}else if(now<c.fleeT){c.fdx=-c.fdx;c.fdy=-c.fdy}
       if(Math.abs(vx)>.5)c.face=vx>0?1:-1}
@@ -3013,7 +3021,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 let last=performance.now(),sendAt=0,slowAt=0,saveAt=0;
-addCrit('bunny',22,60);addCrit('bird',16,70);addCrit('deer',9,180);addCrit('fox',7,240);
+addCrit('bunny',22,60);addCrit('bird',16,70);addCrit('deer',9,180);addCrit('fox',7,520); // foxes roam the outer woodland, well clear of the busy crater forge
 syncPets();petsTeleport();uiHud();
 let loadDone=false;
 function finishLoad(){
