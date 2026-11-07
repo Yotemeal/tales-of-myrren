@@ -209,6 +209,8 @@ const craterRocks=craterPreview&&window.MyrrenCraterRocks?window.MyrrenCraterRoc
 const craterPets=craterPreview&&window.MyrrenSkillingPets||null;
 const craterPetArt=craterPets&&window.MyrrenPetReference?window.MyrrenPetReference.create():null;
 craterPetArt?.load();
+const craterWildlife=craterPreview&&window.MyrrenCraterWildlife?.create();
+craterWildlife?.load?.();
 window.addEventListener('myrren-pet-reference-ready',()=>{if(tab==='skills')renderModal()});
 // Prototype motion tuning only, not approved Crater balance. Damage/cooldown use MT.
 const ROCK_PREVIEW={range:90,retreat:30,speed:140,distance:120,windup:300};
@@ -1958,6 +1960,7 @@ function critMode(c,now){return c.mode}
 function drawCritter(c,x,y,now){
   const f=c.face||1,fast=c.mode==='flee'||c.mode==='fly',ph=Math.floor(now/(fast?90:c.mode==='walk'?150:300))%4;
   shadowE(x+1,y,c.t==='bird'?3:c.t==='deer'?8:c.t==='fox'?6:4,2,c.t==='bird'&&c.z>2?.12:.24);
+  if(craterWildlife?.draw?.(ctx,c,x,y,now)||c.t==='squirrel')return;
   ctx.save();ctx.translate(x,y-(c.z||0));ctx.scale(f,1);
   if(c.t==='bunny')sprBunny(c.mode,ph);else if(c.t==='bird')sprBird(c.mode==='fly'?'fly':'idle',c.mode==='fly'?ph:Math.floor(now/320+c.x)%4);
   else if(c.t==='deer')sprQuad(Q_DEER,c.mode,ph,0,false);else sprQuad(Q_FOX,c.mode,ph,0,false);
@@ -1966,12 +1969,14 @@ function drawCritter(c,x,y,now){
 const crits=[];
 function addCrit(t,n,minCamp){for(let i=0;i<n;i++){const s=spot(minCamp,22,BOX[0],BOX[1],BOX[2],BOX[3]);if(s)crits.push({t,x:s[0],y:s[1],hx:s[0],hy:s[1],face:rnd()<.5?-1:1,mode:'idle',w:rnd()*3,wx:s[0],wy:s[1],z:0,fleeT:0,fdx:1,fdy:0})}}
 const CR={bunny:{al:46,sp:20,fs:58,r:30},bird:{al:40,sp:14,fs:56,r:36},deer:{al:78,sp:16,fs:62,r:44},fox:{al:70,sp:22,fs:68,r:40}};
+// The squirrel borrows the rabbit's movement tuning for this preview.
+CR.squirrel=CR.bunny;
 function critUpdate(dt,now){
   for(const c of crits){
     const P=CR[c.t],dx=me.x-c.x,dy=me.y-c.y,dp=Math.hypot(dx,dy);
     let vx=0,vy=0,mode='idle';
     if(dp<P.al){c.fleeT=now+1400;c.fdx=-dx/(dp||1);c.fdy=-dy/(dp||1)}
-    if(now<c.fleeT){vx=c.fdx*P.fs;vy=c.fdy*P.fs;mode=c.t==='bird'?'fly':'flee';if(c.t==='bird')c.z=Math.min(16,c.z+50*dt)}
+    if(now<c.fleeT){vx=c.fdx*P.fs;vy=c.fdy*P.fs;mode=c.t==='bird'?'fly':'flee';if(c.t==='bird'){if(!c.z)c.flightAt=now;c.z=Math.min(16,c.z+50*dt)}}
     else{
       if(c.t==='bird'&&c.z>0)c.z=Math.max(0,c.z-30*dt);
       c.w-=dt;if(c.w<=0){c.w=1.5+Math.random()*5;if(Math.hypot(c.x-c.hx,c.y-c.hy)>P.r)(c.wx=c.hx,c.wy=c.hy);else{c.wx=c.hx+rint(-P.r,P.r);c.wy=c.hy+rint(-P.r,P.r)}if(Math.random()<.4){c.wx=c.x;c.wy=c.y}}
@@ -1979,7 +1984,7 @@ function critUpdate(dt,now){
       if(d>1.5){vx=ex/d*P.sp;vy=ey/d*P.sp;mode=c.t==='bird'&&c.z>0?'fly':'walk'}
     }
     if(vx||vy){const nx=c.x+vx*dt,ny=c.y+vy*dt;
-      if(!inWater(nx,ny)&&nx>EDGE+10&&nx<WW-EDGE-10&&ny>EDGE+10&&ny<WH-EDGE-10){c.x=nx;c.y=ny}else if(now<c.fleeT){c.fdx=-c.fdx;c.fdy=-c.fdy}
+      if(!inWater(nx,ny)&&nx>EDGE+10&&nx<WW-EDGE-10&&ny>EDGE+10&&ny<WH-EDGE-10&&(!craterWildlife||mode==='fly'||craterPetCanMove('wildlife',nx,ny))){c.x=nx;c.y=ny}else if(now<c.fleeT){c.fdx=-c.fdx;c.fdy=-c.fdy}
       if(Math.abs(vx)>.5)c.face=vx>0?1:-1}
     c.mode=mode;
   }
@@ -2520,6 +2525,7 @@ function frame(now){
 }
 let last=performance.now(),sendAt=0,slowAt=0,saveAt=0;
 addCrit('bunny',22,60);addCrit('bird',16,70);addCrit('deer',9,180);addCrit('fox',7,240);
+if(craterWildlife)addCrit('squirrel',8,80);
 syncPets();petsTeleport();uiHud();
 let loadDone=false;
 function finishLoad(){
