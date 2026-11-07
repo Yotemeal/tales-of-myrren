@@ -1577,7 +1577,9 @@ function killMon(m,now){
     return; // The rehearsal has no progression or loot awards.
   }
   addXp('melee',combatKillXp(mt));
-  const definition=craterLoot?window.MyrrenCraterLootTables?.tableFor(m.t,mt):null;
+  // Regular Crater enemies use the same ordinary-monster reward path as the rest of Myrren.
+  // Keep the structured Crater loot roller available for isolated preview tests only.
+  const definition=null;
   const useCraterRewards=!!(craterLoot&&definition);
   if(useCraterRewards){
     const c=rint(mt.coins[0],mt.coins[1]);
