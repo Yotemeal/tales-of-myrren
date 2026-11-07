@@ -22,3 +22,18 @@ test('invalid loot and overflow do not mutate inventory',()=>{
  assert.throws(()=>a.commit(p,inv,bag),/overflow/);
  assert.equal(inv.coins,Number.MAX_SAFE_INTEGER);assert.equal(bag.length,0);
 });
+
+test('invalid planned equipment never partially commits coins',()=>{
+ const a=api(),inv={coins:4},bag=[];
+ const bad={stack:{coins:3},equipment:[''],rejected:[]};
+ assert.throws(()=>a.commit(bad,inv,bag),/Invalid equipment/);
+ assert.equal(inv.coins,4);assert.equal(bag.length,0);
+});
+test('two separate gear rewards occupy two pack slots',()=>{
+ const a=api(),inv={coins:0},bag=[];
+ const p=a.plan([{itemId:'existing_random_gear',quantity:2}],{
+  inventory:inv,canFit:(stack,gear)=>gear<=1,resolveGear:()=> 'steel_sword'
+ });
+ a.commit(p,inv,bag);
+ assert.deepEqual(bag,['steel_sword']);assert.equal(p.rejected.length,1);
+});
