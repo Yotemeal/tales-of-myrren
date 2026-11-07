@@ -753,7 +753,7 @@ function rSkills(){
  const descriptions={
   melee:['Combat','Train by defeating creatures with your equipped weapon. Combat experience is awarded only when you get the kill, never for individual hits.','Stronger equipment needs a higher Combat level. Keep an eye on your health and eat when you need to recover.'],
   woodcutting:['Forestry','Equip a hatchet, stand beside a tree and face it. Use the tool button or E to gather timber.','Higher levels unlock tougher trees. Timber can be sold in town, and rare gathering pets can follow you.'],
-  mining:['Delving','Equip a pickaxe and face an ore rock to gather metal. Higher levels unlock richer ores.','Use the outdoor blacksmith furnace to smelt ore into ingots, then the anvil to forge equipment.'],
+  mining:['Delving','Equip a pickaxe and face an ore rock to gather metal. Higher levels unlock richer ores.','Ore is used at the furnace and anvil, where production trains the separate Forging skill.'],
   fishing:['Fishing','Use a net at shallow fishing spots, or a rod for deeper shoals. Rod casts use bait from the fishing shop.','Face the ripples from the bank and use your tool. Better fishing spots need a higher Fishing level.'],
   cooking:['Cooking','Cook raw fish at the village fire or bakery oven. Cooked food restores health when eaten.','Higher levels unlock more catches to cook and improve your chance of preparing a meal successfully.'],
   forging:['Forging','Smelt ore into ingots at the furnace for modest XP, then forge weapons and armour at the anvil for much higher XP.','Buying ingots is fast but expensive; mining your own ore takes longer. Equipment recipes unlock gradually within each metal tier.']
@@ -1065,12 +1065,20 @@ function buyFood(k){
   save.inv.coins-=foodPrice(k);save.inv[k]++;say('You buy some '+ITEMS[k].name.toLowerCase()+'.');persist();renderModal();uiHud();
 }
 const ingName=id=>ITEMS['ing_'+id].name;
+/* Production cooldowns prevent rapid click/repeat inputs from bypassing intended training pace. */
+const PRODUCTION_MS={smelt:1500,forge:2500};
+let productionReadyAt=0;
+function productionReady(action){if(Date.now()<productionReadyAt){say('The forge is still cooling.','warn');return false}return true}
+function markProduction(action){productionReadyAt=Date.now()+PRODUCTION_MS[action]}
+
 function smelt(r){
+  if(!productionReady('smelt'))return;
   if(lvlFor(save.xp.forging)<r.req){say('You need '+NAMES.forging+' '+r.req+' to smelt that.','warn');return}
   for(const k in r.in)if(save.inv[k]<r.in[k]){say('You do not have enough materials.','warn');return}
   const key='ing_'+r.id,changes={[key]:1};
   for(const k in r.in)changes[k]=-r.in[k];
   if(!canFitInventory(changes)){say('Your pack is full.','warn');return}
+  markProduction('smelt');
   for(const k in r.in)save.inv[k]-=r.in[k];save.inv[key]++;
   say('You smelt a '+ITEMS[key].name.toLowerCase()+'.');burst(inside?88:me.x,inside?60:me.y-8,['#ff7b3a','#ffd24a','#fff2b0'],8,22);
   addXp('forging',r.xp);persist();renderModal();uiHud();
@@ -1088,11 +1096,13 @@ function rSmelt(){
 }
 let forgeMat=2;
 function forge(kind){
+  if(!productionReady('forge'))return;
   const r=SMELT.find(x=>x.mat===forgeMat),id=MATS[forgeMat]?.k+'_'+kind,d=DEFS[id],cost=FORGE[kind];
   if(!r||!d||!cost)return;const key='ing_'+r.id;
   if(lvlFor(save.xp.forging)<forgeReq(r,kind)){say('You need '+NAMES.forging+' '+forgeReq(r,kind)+' to forge with that.','warn');return}
   if(save.inv[key]<cost){say('You need '+cost+' '+ITEMS[key].name.toLowerCase()+'s.','warn');return}
   if(!canFitInventory({[key]:-cost},!save.eq[d.slot]&&usable(d)?0:1)){say('Your pack is full.','warn');return}
+  markProduction('forge');
   save.inv[key]-=cost;
   if(!save.eq[d.slot]&&usable(d)){save.eq[d.slot]=id;say('You forge and equip a '+d.name.toLowerCase()+'.','gold')}
   else{save.bag.push(id);say('You forge a '+d.name.toLowerCase()+'.','gold')}
