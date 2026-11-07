@@ -42,7 +42,7 @@ const ctx={
  NAMES:{forging:'Forging'},lvlFor:xp=>xp>=100?5:1,
  canFitInventory:()=>true,usable:()=>true,inside:false,me:{x:0,y:0},
  say:()=>{},burst:()=>{},persist:()=>{},renderModal:()=>{},uiHud:()=>{},onGearChange:()=>{},
- addXp:(skill,xp)=>{ctx.save.xp[skill]+=xp},Math
+ addXp:(skill,xp)=>{ctx.save.xp[skill]+=xp},rollPet:()=>{},Math
 };
 vm.createContext(ctx);
 vm.runInContext('const ingName=id=>ITEMS[\'ing_\'+id].name;\nlet forgeMat=2;\n'+production.slice(production.indexOf('/* Production cooldowns')),ctx);
@@ -129,4 +129,10 @@ assert.equal(normalizeXp({forging:-5}).forging,0,'Corrupt negative Forging XP sh
 assert.ok(runtime.includes('for(const k of SK)save.xp[k]=nonNegativeCount(save.xp[k]);'),'Runtime must normalize every registered skill');
 assert.ok(runtime.includes('xp:save.xp,inv:save.inv'),'Save snapshot must include all skill XP');
 
+
+// Forging pet must be earned only after a successful production action.
+assert.ok(runtime.includes("forging:{name:'Cinder Wisp'"),'Forging pet registration missing');
+assert.ok(runtime.includes("rollPet('forging')"),'Forging must roll for the pet');
+assert.ok(runtime.includes("function drawCinderWisp("),'Forging pet sprite missing');
+assert.ok(runtime.includes("save.pets={woodcutting:0,fishing:0,mining:0,forging:0}"),'Legacy save migration must initialise pet ownership');
 console.log('Forging syntax, contracts and isolated production behavior passed');
