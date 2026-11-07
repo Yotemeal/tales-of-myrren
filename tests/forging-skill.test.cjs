@@ -131,8 +131,8 @@ assert.ok(runtime.includes('xp:save.xp,inv:save.inv'),'Save snapshot must includ
 
 
 // Forging pet must be earned only after a successful production action.
-assert.ok(runtime.includes("forging:{name:'Cinder Wisp'"),'Forging pet registration missing');
+assert.ok(runtime.includes("forging:{name:'Living Anvil'"),'Forging pet registration missing');
 assert.ok(runtime.includes("rollPet('forging')"),'Forging must roll for the pet');
-assert.ok(runtime.includes("function drawCinderWisp("),'Forging pet sprite missing');
+assert.ok(runtime.includes("function drawLivingAnvil("),'Forging pet sprite missing');
 assert.ok(runtime.includes("save.pets={woodcutting:0,fishing:0,mining:0,forging:0}"),'Legacy save migration must initialise pet ownership');
 console.log('Forging syntax, contracts and isolated production behavior passed');
