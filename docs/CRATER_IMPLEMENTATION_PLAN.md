@@ -224,3 +224,19 @@ The current room connection exchanges player presence. Boss HP, target selection
 The Jewelheart reward policy gives coins to each player who dealt positive damage. The highest actual damage earns the best rare odds, with equal odds for tied leaders. The host supplies the coin amount and each rare item's two chances. Each item has its own roll. The service saves the resulting player awards in the same transaction as defeat, under the encounter ID. Reset leaves those awards available for the eventual inventory claim flow. Test fixtures use illustrative amounts and item IDs. The live transport, inventory claims and final economy values remain pending.
 
 `src/jewelheart-claims.mjs` prepares inventory delivery. It reads the saved award for a verified player, then writes the coin and item grant together with a claim receipt in one player-inventory transaction. Concurrent retries return the same receipt. A full pack defers an award that includes gear and allows retry after space is cleared. Coin-only awards can be collected with a full pack. The adapter still needs authoritative player storage and the game's full pack-capacity check before connecting this to the browser.
+
+
+## Approved loot-table architecture — 7 November 2026
+
+User explicitly approved an Old School RuneScape-inspired loot system for **all hostile creatures**, not just Jewelheart. This section is a binding design requirement for subsequent implementation; example item names and odds discussed in chat are **not** final balance approvals.
+
+- **Guaranteed drops:** A 100% roll such as coins is awarded on each eligible kill, independently of other loot rolls. Coin amounts may vary by monster and must be configured.
+- **Weighted main table:** Each eligible kill rolls one outcome from a configurable weighted pool (including an explicit nothing outcome where desired). Weights determine relative probabilities; this is separate from guaranteed drops.
+- **Independent bonus tables:** Roll each configured bonus/rare entry independently after the main roll, allowing multiple rewards from one kill, including coins, main loot and rare items together. Support clear 1/N and percentage odds.
+- **Duplicates and farming:** Never suppress an item because the player owns it or previously received it. Equipment duplicates are separate inventory items; stackable drops aggregate in stacks. No collection-based rare protection, pity timer, or once-only rewards unless separately authorised.
+- **Ironman:** A player may repeatedly farm and receive duplicate drops needed for progression; enforce any Ironman loot ownership/eligibility rules separately without blocking repeated self-earned drops.
+- **Safety and correctness:** Award drops once per eligible kill, on the authoritative reward boundary; prevent duplicate awards from animation/combat callbacks. Preserve existing save/inventory semantics, capacity handling and multiplayer eligibility. Define and test how full inventories and ground loot are handled before activation.
+- **Coverage:** Define per-monster tables for all eight approved Crater hostiles; retain Jewelheart's existing guaranteed contributor coins and separate rare rolls as a starting point, reconciling them with the shared system without accidentally double-awarding rewards. Jewellery rates and exact drop amounts remain unapproved.
+- **Verification:** Deterministic seeded/controlled-roll tests for 100% coins, weighted main selection, independent rares, simultaneous multi-drops, repeat duplicate equipment, stacking, Ironman farming, and exactly-once grants; balance review before deployment.
+
+Implement this in the existing draft branch and keep it preview-only until the user approves activation. Do not merge or deploy without explicit approval.
