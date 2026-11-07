@@ -3000,3 +3000,15 @@ input[type=range] {
   #hud { height: 48px; }
   #hudBottom { gap: 4px; }
 }
+
+/* Food action above Attack, keeping the gather button beside Attack. */
+#acts { position: absolute; }
+#acts #aEat {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 9px);
+  margin: 0;
+}
+@media (max-width: 620px) {
+  #acts #aEat { bottom: calc(100% + 7px); }
+}
