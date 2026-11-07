@@ -26,13 +26,13 @@ function waterDistance(x,y){const l=lakeR(x,y);return (l.r-l.f)*108}
 function onBridge(x,y){return false}
 // Rockfall ring surrounding the Camp, with one clear opening to the south.
 function craterWall(x,y){
- const r=Math.hypot((x-CX)/485,(y-CY)/370);
+ const r=Math.hypot((x-CX)/355,(y-CY)/275);
  // A collapsed section of the southern rim forms the sole entrance.
- const southGate=Math.abs(x-CX)<58&&y>CY+285;
+ const southGate=Math.abs(x-CX)<58&&y>CY+205;
  return !southGate&&r>.895&&r<1.085;
 }
 function inWater(x,y){return waterDistance(x,y)<0||craterWall(x,y)}
-function inVillage(x,y){return Math.hypot((x-CX)/485,(y-CY)/370)<.895}
+function inVillage(x,y){return Math.hypot((x-CX)/355,(y-CY)/275)<.895}
 const paths=buildings.map(b=>[[800,830],[b.x,b.y+7]]);
 paths.push([[800,830],[800,1180]],[[800,1180],[800,1450]]);
 function bridgeApproach(x,y){return false}
