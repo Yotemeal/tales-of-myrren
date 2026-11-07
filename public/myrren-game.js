@@ -1578,16 +1578,22 @@ function killMon(m,now){
   }
   addXp('melee',combatKillXp(mt));
   if(craterLoot){
-    // Existing coin and bread probabilities, now routed through the preview table.
-    // The existing gear drop remains below until final per-creature tables are approved.
+    // Temporary preview table uses existing monster probabilities; no new rates.
+    // Equipment is an independent bonus roll, so it can coexist with bread.
     const c=rint(mt.coins[0],mt.coins[1]);
     const breadBps=Math.round(mt.bread*10000);
+    const gearBps=Math.round(mt.drop.p*10000);
     craterLoot.award(m,{guaranteed:[{itemId:'coins',quantity:c}],main:[
       {itemId:'bread',weight:breadBps},{itemId:'nothing',weight:10000-breadBps}
-    ]},drops=>{
+    ],bonus:[{itemId:'existing_random_gear',chanceBps:gearBps}]},drops=>{
       for(const drop of drops){
         if(drop.itemId==='coins'){save.inv.coins+=drop.quantity;say('You find '+drop.quantity+' coins.')}
         else if(drop.itemId==='bread'){if(canFitInventory({bread:drop.quantity})){save.inv.bread+=drop.quantity;say('It dropped some bread.')}else say('It dropped bread, but your pack is full.','warn')}
+        else if(drop.itemId==='existing_random_gear'){
+          const mat=Math.max(2,mt.drop.mats[rint(0,mt.drop.mats.length-1)]);
+          const kinds=Object.keys(KINDS).filter(k=>KINDS[k].mats.includes(mat));
+          giveGear(MATS[mat].k+'_'+kinds[rint(0,kinds.length-1)]);
+        }
       }
     });
   }else{
@@ -1599,7 +1605,7 @@ function killMon(m,now){
     if(hit)for(const j of save.jobs){const was=j.done;j.done=jobDone(j);if(j.done&&!was){say('Odd job complete! Claim it in your Jobs tab.','gold');toast('ODD JOB DONE\nOpen your Jobs tab')}}
   }
   if(!craterLoot&&Math.random()<mt.bread){if(canFitInventory({bread:1})){save.inv.bread++;say('It dropped some bread.')}else say('It dropped bread, but your pack is full.','warn')}
-  if(Math.random()<mt.drop.p){
+  if(!craterLoot&&Math.random()<mt.drop.p){
     const mat=Math.max(2,mt.drop.mats[rint(0,mt.drop.mats.length-1)]);
     const kinds=Object.keys(KINDS).filter(k=>KINDS[k].mats.includes(mat));
     giveGear(MATS[mat].k+'_'+kinds[rint(0,kinds.length-1)]);
