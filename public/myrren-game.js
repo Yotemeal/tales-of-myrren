@@ -376,6 +376,7 @@ try{sbSession=JSON.parse(localStorage.getItem(SB_SESSION_KEY)||'null')}catch(e){
 async function sbRequest(path,method='GET',body=null,token=null){
   const headers={'apikey':SB_KEY,'Content-Type':'application/json'};
   if(token)headers.Authorization='Bearer '+token;
+  if(path.includes('on_conflict='))headers.Prefer='resolution=merge-duplicates,return=minimal';
   const response=await fetch(SB_URL+path,{method,headers,body:body==null?undefined:JSON.stringify(body)});
   const data=await response.json().catch(()=>null);
   if(!response.ok)throw Error((data&&(data.msg||data.error_description||data.message||data.error))||'Cloud request failed ('+response.status+')');
