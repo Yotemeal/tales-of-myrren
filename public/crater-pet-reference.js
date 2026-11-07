@@ -4,8 +4,8 @@
   let ready=false,error='',metadata=null,atlas=null;const icons=new Map();
   async function load(){
    if(typeof fetch!=='function'||typeof Image!=='function')return false;
-   try{const response=await fetch('/crater-reference-frames.json?v=1');if(!response.ok)throw Error('Pet reference metadata unavailable');metadata=await response.json();
-    atlas=await new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('Pet reference artwork unavailable'));image.src='/'+metadata.references.R5.file+'?v=1'});
+   try{const response=await fetch('/crater-reference-frames.json?v=2');if(!response.ok)throw Error('Pet reference metadata unavailable');metadata=await response.json();
+    atlas=await new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('Pet reference artwork unavailable'));image.src='/'+metadata.references.R5.file+'?v='+metadata.version});
     ready=true;window.dispatchEvent?.(new Event('myrren-pet-reference-ready'));return true;
    }catch(e){error=e.message;return false}
   }

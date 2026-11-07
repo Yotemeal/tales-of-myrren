@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "purpose": "Exact reference crops for inspection; not production sprites",
   "pixelPolicy": "Original decoded JPEG pixels retained without resizing, masking or redrawing.",
   "timingPolicy": "Preview timing only; no production durations approved.",
@@ -2235,7 +2235,7 @@
       "name": "Timber Glider",
       "category": "Pets",
       "reference": "R5",
-      "draftFitHeight": 30,
+      "draftFitHeight": 18,
       "states": {
         "walk": {
           "loop": true,
@@ -2479,7 +2479,7 @@
       "name": "Geode Mole",
       "category": "Pets",
       "reference": "R5",
-      "draftFitHeight": 26,
+      "draftFitHeight": 16,
       "states": {
         "burrow": {
           "loop": true,
@@ -2676,7 +2676,7 @@
       "name": "River Otter",
       "category": "Pets",
       "reference": "R5",
-      "draftFitHeight": 28,
+      "draftFitHeight": 18,
       "states": {
         "walk": {
           "loop": true,
@@ -2684,56 +2684,56 @@
             {
               "x": 960,
               "y": 384,
-              "w": 97,
+              "w": 99,
               "h": 68,
-              "anchorX": 48.5,
+              "anchorX": 49.5,
               "anchorY": 63,
               "sourceBox": [
-                529,
+                523,
                 621,
-                626,
+                622,
                 689
               ]
             },
             {
               "x": 1280,
               "y": 384,
-              "w": 98,
+              "w": 93,
               "h": 68,
-              "anchorX": 49.0,
+              "anchorX": 46.5,
               "anchorY": 63,
               "sourceBox": [
-                639,
+                633,
                 621,
-                737,
+                726,
                 689
               ]
             },
             {
               "x": 1600,
               "y": 384,
-              "w": 99,
-              "h": 68,
-              "anchorX": 49.5,
-              "anchorY": 63,
+              "w": 95,
+              "h": 73,
+              "anchorX": 47.5,
+              "anchorY": 68,
               "sourceBox": [
-                749,
-                621,
-                848,
+                740,
+                616,
+                835,
                 689
               ]
             },
             {
               "x": 1920,
               "y": 384,
-              "w": 94,
-              "h": 68,
-              "anchorX": 47.0,
-              "anchorY": 63,
+              "w": 96,
+              "h": 69,
+              "anchorX": 48.0,
+              "anchorY": 64,
               "sourceBox": [
-                859,
-                621,
-                953,
+                851,
+                620,
+                947,
                 689
               ]
             }
@@ -2745,56 +2745,56 @@
             {
               "x": 2240,
               "y": 384,
-              "w": 112,
-              "h": 68,
-              "anchorX": 56.0,
-              "anchorY": 63,
+              "w": 121,
+              "h": 71,
+              "anchorX": 60.5,
+              "anchorY": 66,
               "sourceBox": [
-                1000,
-                621,
-                1112,
+                990,
+                618,
+                1111,
                 689
               ]
             },
             {
               "x": 0,
               "y": 512,
-              "w": 115,
-              "h": 68,
-              "anchorX": 57.5,
-              "anchorY": 63,
+              "w": 124,
+              "h": 71,
+              "anchorX": 62.0,
+              "anchorY": 66,
               "sourceBox": [
-                1125,
-                621,
-                1240,
+                1117,
+                618,
+                1241,
                 689
               ]
             },
             {
               "x": 320,
               "y": 512,
-              "w": 117,
-              "h": 68,
-              "anchorX": 58.5,
-              "anchorY": 63,
+              "w": 125,
+              "h": 71,
+              "anchorX": 62.5,
+              "anchorY": 66,
               "sourceBox": [
-                1253,
-                621,
-                1370,
+                1247,
+                618,
+                1372,
                 689
               ]
             },
             {
               "x": 640,
               "y": 512,
-              "w": 122,
-              "h": 68,
-              "anchorX": 61.0,
-              "anchorY": 63,
+              "w": 124,
+              "h": 71,
+              "anchorX": 62.0,
+              "anchorY": 66,
               "sourceBox": [
-                1386,
-                621,
-                1508,
+                1379,
+                618,
+                1503,
                 689
               ]
             }
@@ -2806,42 +2806,42 @@
             {
               "x": 960,
               "y": 512,
-              "w": 105,
-              "h": 78,
-              "anchorX": 52.5,
-              "anchorY": 73,
+              "w": 106,
+              "h": 88,
+              "anchorX": 53.0,
+              "anchorY": 83,
               "sourceBox": [
-                530,
-                732,
-                635,
+                526,
+                722,
+                632,
                 810
               ]
             },
             {
               "x": 1280,
               "y": 512,
-              "w": 98,
-              "h": 78,
-              "anchorX": 49.0,
-              "anchorY": 73,
+              "w": 102,
+              "h": 91,
+              "anchorX": 51.0,
+              "anchorY": 86,
               "sourceBox": [
-                652,
-                732,
-                750,
+                650,
+                719,
+                752,
                 810
               ]
             },
             {
               "x": 1600,
               "y": 512,
-              "w": 96,
-              "h": 78,
-              "anchorX": 48.0,
-              "anchorY": 73,
+              "w": 110,
+              "h": 95,
+              "anchorX": 55.0,
+              "anchorY": 90,
               "sourceBox": [
-                770,
-                732,
-                866,
+                765,
+                715,
+                875,
                 810
               ]
             }
@@ -2853,13 +2853,13 @@
             {
               "x": 1920,
               "y": 512,
-              "w": 153,
-              "h": 64,
-              "anchorX": 76.5,
-              "anchorY": 59,
+              "w": 156,
+              "h": 85,
+              "anchorX": 78.0,
+              "anchorY": 80,
               "sourceBox": [
-                949,
-                746,
+                946,
+                725,
                 1102,
                 810
               ]
@@ -2867,13 +2867,13 @@
             {
               "x": 2240,
               "y": 512,
-              "w": 139,
-              "h": 64,
-              "anchorX": 69.5,
-              "anchorY": 59,
+              "w": 146,
+              "h": 85,
+              "anchorX": 73.0,
+              "anchorY": 80,
               "sourceBox": [
-                1105,
-                746,
+                1098,
+                725,
                 1244,
                 810
               ]
@@ -2882,12 +2882,12 @@
               "x": 0,
               "y": 640,
               "w": 125,
-              "h": 64,
+              "h": 89,
               "anchorX": 62.5,
-              "anchorY": 59,
+              "anchorY": 84,
               "sourceBox": [
                 1247,
-                746,
+                721,
                 1372,
                 810
               ]
@@ -2896,12 +2896,12 @@
               "x": 320,
               "y": 640,
               "w": 136,
-              "h": 64,
+              "h": 94,
               "anchorX": 68.0,
-              "anchorY": 59,
+              "anchorY": 89,
               "sourceBox": [
                 1375,
-                746,
+                716,
                 1511,
                 810
               ]

@@ -64,15 +64,15 @@ for id,name,top,bottom,height,count in [('forest_deer','Forest Deer',151,244,31,
         'takeoff' if id=='raven' else 'flee':group([976,top,1520,bottom],count,True)
     },(['Tree-climb frames'] if id=='squirrel' else [])+['Front/back views','Exact production frame timings'])
 
-creature('timber_glider','Timber Glider','Pets','R5',30,{
+creature('timber_glider','Timber Glider','Pets','R5',18,{
     'walk':group([525,145,955,213],4,True),'glide':group([1002,137,1520,213],4),
     'idle':group([525,260,955,332],3,True),'climb':group([1002,245,1520,332],4)
 },['Front/back views','Exact production frame timings'])
-creature('geode_mole','Geode Mole','Pets','R5',26,{
+creature('geode_mole','Geode Mole','Pets','R5',16,{
     'burrow':group([523,386,1052,453],5,True),'surface':group([1070,386,1520,453],4),
     'dig':group([523,477,1052,562],5)
 },['Front/back views','Exact production frame timings'])
-creature('river_otter','River Otter','Pets','R5',28,{
+creature('river_otter','River Otter','Pets','R5',18,{
     'walk':group([525,621,955,689],4,True),'swim':group([1002,621,1520,689],4,True),
     'idle':group([525,732,955,810],3,True),'dive-catch':group([1002,727,1520,810],4)
 },['Front/back views','Exact production frame timings'])
@@ -117,10 +117,10 @@ boxes('timber_glider','glide',[[1008,145,1116,213],[1125,145,1254,213],[1260,137
 boxes('timber_glider','idle',[[528,260,638,332],[650,260,755,332],[765,260,870,332]])
 boxes('timber_glider','climb',[[950,251,1077,333],[1093,251,1221,333],[1234,251,1360,333],[1373,251,1505,333]])
 boxes('geode_mole','dig',[[550,496,827,562],[853,496,1060,562],[1100,496,1295,562]])
-boxes('river_otter','walk',[[529,621,626,689],[639,621,737,689],[749,621,848,689],[859,621,953,689]])
-boxes('river_otter','swim',[[1000,621,1112,689],[1125,621,1240,689],[1253,621,1370,689],[1386,621,1508,689]])
-boxes('river_otter','idle',[[530,732,635,810],[652,732,750,810],[770,732,866,810]])
-boxes('river_otter','dive-catch',[[949,746,1102,810],[1105,746,1244,810],[1247,746,1372,810],[1375,746,1511,810]])
+boxes('river_otter','walk',[[523,621,622,689],[633,621,726,689],[740,616,835,689],[851,620,947,689]])
+boxes('river_otter','swim',[[990,618,1111,689],[1117,618,1241,689],[1247,618,1372,689],[1379,618,1503,689]])
+boxes('river_otter','idle',[[526,722,632,810],[650,719,752,810],[765,715,875,810]])
+boxes('river_otter','dive-catch',[[946,725,1102,810],[1098,725,1244,810],[1247,721,1372,810],[1375,716,1511,810]])
 
 # Final crop audit: isolate each complete pose instead of neighbouring limbs.
 boxes('jewelheart_guardian','idle',[[671,425,771,519],[782,425,881,519],[893,425,989,519],[1002,425,1096,519]])
@@ -167,8 +167,9 @@ levels=dict(zip(order[:8],[1,5,8,12,16,18,22,30]))
 creatures.sort(key=lambda c:order.index(c['id']))
 for c in creatures:
     if c['id'] in levels:c['level']=levels[c['id']]
+    if c['id']=='river_otter':c['fitSourceHeight']=68 # Expanded crops must not change the established source-pixel scale.
 
-data=dict(version=1,purpose='Exact reference crops for inspection; not production sprites',
+data=dict(version=2,purpose='Exact reference crops for inspection; not production sprites',
     pixelPolicy='Original decoded JPEG pixels retained without resizing, masking or redrawing.',
     timingPolicy='Preview timing only; no production durations approved.',
     sizePolicy='draftFitHeight is an adjustable fitting proposal, not an approved scale.',
