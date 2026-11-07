@@ -2883,6 +2883,36 @@ function drawOutdoor(cx,cy,now){
   for(const e of list)e.f();
 }
 const GRASS=['#263d31','#344d39','#3b5840'];
+/* Crater compass: lightweight player-centred map, north always up. */
+const miniRoot=$('minimap'),miniCanvas=$('miniCanvas');
+const miniCtx=miniCanvas&&miniCanvas.getContext('2d');
+let miniLast=0;
+function drawMini(now){
+  if(!miniRoot||!miniCtx)return;
+  miniRoot.hidden=!started||!!inside;
+  if(miniRoot.hidden||now-miniLast<120)return;
+  miniLast=now;
+  const g=miniCtx,W=160,H=160,cx=80,cy=80,scale=.24;
+  g.clearRect(0,0,W,H);g.save();g.beginPath();g.arc(cx,cy,77,0,Math.PI*2);g.clip();
+  g.fillStyle='#405143';g.fillRect(0,0,W,H);
+  // The camp's beaten-earth clearing and its southern exit are fixed landmarks.
+  const ox=cx-me.x*scale,oy=cy-me.y*scale;
+  g.fillStyle='#79654a';g.beginPath();g.ellipse(ox+CX*scale,oy+CY*scale,72,54,0,0,Math.PI*2);g.fill();
+  g.fillStyle='#947953';g.fillRect(ox+(CX-17)*scale,oy+(CY+25)*scale,34*scale,270*scale);
+  g.strokeStyle='#8f9480';g.lineWidth=6;
+  g.beginPath();g.ellipse(ox+CX*scale,oy+CY*scale,74,57,0,Math.PI,Math.PI*2);g.stroke();
+  // Town features. Small colour-coded squares are visible even at phone size.
+  const mark=(x,y,color,size=5)=>{const px=ox+x*scale,py=oy+y*scale;if(px>-8&&px<168&&py>-8&&py<168){g.fillStyle='#211b16';g.fillRect(Math.round(px-size/2)-1,Math.round(py-size/2)-1,size+2,size+2);g.fillStyle=color;g.fillRect(Math.round(px-size/2),Math.round(py-size/2),size,size)}};
+  mark(TRADER.x,TRADER.y,'#d7a35e',6);
+  mark(BOARD.x,BOARD.y,'#e8d7a0',5);
+  mark(SPOTS.bank.x,SPOTS.bank.y,'#c3a176',5);
+  for(const lamp of LAMPS)mark(lamp[0],lamp[1],'#e7c46b',3);
+  // The player is always central, with a clear facing-direction pointer.
+  g.fillStyle='#fff0bc';g.beginPath();g.arc(cx,cy,4,0,Math.PI*2);g.fill();
+  g.strokeStyle='#241c18';g.lineWidth=2;g.stroke();
+  g.strokeStyle='#fff0bc';g.lineWidth=2;g.beginPath();g.moveTo(cx,cy);g.lineTo(cx+(me.fx||0)*12,cy+(me.fy||1)*12);g.stroke();
+  g.restore();
+}
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;
   const cssW=cv.clientWidth,cssH=cv.clientHeight;
@@ -2893,6 +2923,7 @@ function frame(now){
   if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}
   ctx.imageSmoothingEnabled=false;
   update(dt,now);
+  drawMini(now);
 
   const tx=inside?RX/2-cv.width/2:me.x-cv.width/2,ty=inside?RY/2-cv.height*.36:me.y-cv.height*.47;
   const k=snapCam?1:Math.min(1,dt*7);snapCam=false;cam.x+=(tx-cam.x)*k;cam.y+=(ty-cam.y)*k;
