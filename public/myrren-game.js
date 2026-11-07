@@ -2462,13 +2462,21 @@ function drawLamp(x,y,now){
   R(x+sway-3,y-19,7,8,'#e6ad56');R(x+sway-1,y-17,3,5,'#ffe6a0');
 }
 function drawBankChest(x,y){
-  // Weather-beaten travelling storage trunk; bank inventory stays intact.
-  R(x-19,y-4,38,6,'#34342e');R(x-18,y-22,36,19,'#473729');
-  R(x-17,y-24,34,9,'#70553b');R(x-14,y-26,28,4,'#8a6947');
-  R(x-16,y-17,32,3,'#302b27');R(x-15,y-10,30,3,'#594531');
-  R(x-12,y-22,3,17,'#777366');R(x+9,y-22,3,17,'#777366');
-  R(x-4,y-16,8,8,'#3a3831');R(x-2,y-14,4,5,'#a69b78');
-  R(x-16,y-7,5,3,'#2d302c');R(x+11,y-7,5,3,'#2d302c');
+  // Hand-worn survivor's trunk: layered oak lid, riveted iron bands and brass lock.
+  // Preserve the existing bank interaction and proximity label.
+  R(x-20,y-3,40,5,'#252522');
+  R(x-18,y-20,36,18,'#302b25');R(x-16,y-18,32,14,'#705139');
+  for(let i=0;i<4;i++)R(x-14+i*9,y-17,1,12,'#8e6745');
+  R(x-20,y-24,40,9,'#2c2a26');R(x-18,y-25,36,8,'#715238');
+  R(x-16,y-27,32,4,'#9d7650');R(x-14,y-26,28,2,'#bb9060');
+  R(x-18,y-19,36,3,'#3c322a');
+  for(const dx of [-13,12]){
+    R(x+dx-2,y-25,4,21,'#434641');R(x+dx-1,y-23,2,16,'#8b8b77');
+    R(x+dx-1,y-23,1,1,'#d1c5a1');R(x+dx-1,y-7,1,1,'#d1c5a1');
+  }
+  R(x-6,y-18,12,11,'#322f2b');R(x-5,y-17,10,9,'#ab8554');
+  R(x-3,y-15,6,5,'#3b352b');R(x-1,y-14,2,3,'#e6c477');
+  R(x-16,y-4,6,3,'#292a27');R(x+10,y-4,6,3,'#292a27');
   if(Math.hypot(me.x-SPOTS.bank.x,me.y-SPOTS.bank.y)<70)label('Storage Chest',x,y-33,'#e8d9ae');
 }
 function drawSupply(x,y){
@@ -2477,18 +2485,20 @@ function drawSupply(x,y){
   if(Math.hypot(me.x-SPOTS.crate.x,me.y-SPOTS.crate.y)<64)label('Supply Crate',x,y-30,'#ffffff');
 }
 function drawBoard(x,y){
-  // Compact Aros-inspired village board: short posts, dark shingled cap,
-  // pinned notices and a readable timber frame. No towering legs.
-  R(x-22,y-5,5,13,'#49382a');R(x+17,y-5,5,13,'#49382a');
-  R(x-27,y-34,54,31,'#292b28');R(x-24,y-31,48,25,'#785a3d');
-  R(x-21,y-28,42,19,'#b49a70');
-  R(x-30,y-36,60,5,'#384441');R(x-25,y-40,50,5,'#54645e');
-  R(x-18,y-43,36,4,'#73817a');
+  // Low weathered community board with three separate pinned parchment notices.
+  R(x-22,y-5,5,13,'#382c25');R(x+17,y-5,5,13,'#382c25');
+  R(x-25,y-34,50,30,'#292923');R(x-23,y-31,46,25,'#795638');
+  R(x-20,y-28,40,19,'#b49a70');
+  R(x-29,y-36,58,6,'#343b37');R(x-26,y-40,52,5,'#53615b');
+  R(x-19,y-43,38,4,'#78857b');R(x-22,y-31,44,2,'#a78258');
   for(let i=0;i<3;i++){
     const px=x-17+i*13,py=y-25+(i%2)*2;
-    R(px,py,11,13,i===1?'#e1d2a9':'#d4c099');
-    R(px+2,py+4,7,1,'#796d59');R(px+2,py+8,6,1,'#8b7a60');
-    R(px+5,py+1,2,2,'#76533a');
+    R(px+1,py+2,11,13,'#69533b');
+    R(px,py,11,13,i===1?'#ead8b1':'#d8c49d');
+    R(px+1,py+1,9,1,'#f4e5c2');
+    R(px+2,py+4,7,1,'#806b51');R(px+2,py+7,6,1,'#927b5c');
+    R(px+2,py+10,5,1,'#927b5c');
+    R(px+5,py+1,2,2,'#ab6845');
   }
   R(x-25,y-5,50,3,'#3c3229');
   if(save.jobs.some(j=>j.done))R(x+19,y-26,3,4,'#f3d477');
