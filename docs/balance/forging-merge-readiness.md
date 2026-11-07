@@ -31,3 +31,12 @@ Do not merge or deploy until these checks pass.
 - XP thresholds calculated from runtime: level 70 = 3,253,985; level 78 = 10,602,570; level 90 = 60,554,361; level 100 = 249,604,271.
 - At 12,000 XP per Starsteel body, 2.5-second forging cooldown alone gives a theoretical 14.4-hour lower bound from zero XP, excluding gathering, smelting, travel, banking, unlocks and failed actions. This does NOT establish the 35 EHP target.
 - The PR must remain draft until checks run successfully and browser save/import/economy checks complete.
+
+## Verified CI and first progression calculation (2026-11-07)
+GitHub Actions run **42363759799** for commit `39fc894` completed successfully. Its JavaScript syntax, Forging regression contracts, and core save/inventory regression steps all passed.
+
+An optimistic tier-by-tier simulation (unlimited purchased ingots, best 6-ingot body recipe available at each tier's base level, no banking or travel, 2.5s per craft) estimates only **14.63 hours** to level 100. This is a *lower bound*, not a playable route: body recipes actually require tier base +8, and materials are finite. The final Starsteel segment dominates (~14.26h).
+
+Important: the original 35 EHP target cannot be claimed from the current XP/cooldown parameters. Do not set an arbitrary longer click cooldown without assessing gameplay feel. Consider production batches, crafting durations and bank/ingot supply, then benchmark a valid unlock-by-unlock route. Separate purchasing (efficient EHP) from self-mining (Delving + Forging combined hours).
+
+A browser smoke test and real saved-character migration are still needed; successful CI is not a substitute.
