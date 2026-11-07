@@ -483,7 +483,8 @@ function addXp(skill,amt){
   const before=lvlFor(save.xp[skill]),pm=hpMax();
   // Skill-pet bonus applies only while its owner has called the pet (state 1).
   const awarded=skill==='forging'&&save.pets.forging===1?Math.floor(amt*1.03):amt;
-  save.xp[skill]+=awarded;lastSkill=skill;const after=lvlFor(save.xp[skill]);
+  save.xp[skill]+=awarded;lastSkill=skill;
+  if(skill==='forging'&&save.pets.forging===1)reactForgingPet(awarded-amt);const after=lvlFor(save.xp[skill]);
   if(after>before){say('Congratulations, you just advanced a '+NAMES[skill]+' level. You are now level '+after+'.','gold');toast(NAMES[skill].toUpperCase()+'\nLEVEL '+after);if(skill==='melee')me.hp=Math.min(hpMax(),me.hp+Math.max(1,hpMax()-pm));blocked.clear()}
   if(after>before)sfx('level');else if(skill!=='melee')sfx('gather');
   uiHud();if(tab==='skills')renderModal();
@@ -1439,6 +1440,13 @@ function rollPet(sk){
     say('You have a funny feeling like you are being followed.','gold');say('You found a pet: '+PETS[sk].name+'!','gold');toast('NEW PET\n'+PETS[sk].name);
   }
 }
+function reactForgingPet(bonusXp){
+  const p=petObjs.forging;
+  if(!p||save.pets.forging!==1)return;
+  p.forgeReactUntil=performance.now()+850;
+  p.forgeBonusXp=bonusXp;
+  burst(p.x,p.y-15,['#fff0a0','#ffb340','#ff642e'],9,17);
+}
 function petsUpdate(dt,now){
   pets.forEach((p,i)=>{
     const an=petAnchor(i),ax=an.x,ay=an.y;
@@ -2229,11 +2237,12 @@ function drawMole(p,x,y,now){
 }
 /* Living Anvil: native pixel-art follower; idle glow, alternating steel feet, rare forge sparks. */
 function drawLivingAnvil(p,x,y,now){
-  const walking=p.moving;
+  const reacting=(p.forgeReactUntil||0)>now;
+  const walking=p.moving&&!reacting;
   const step=walking?Math.floor(now/135)%2:0;
   const bob=walking?(step?1:0):Math.round(Math.sin(now/340+p.ph)*.7);
   const cy=y-5+bob;
-  const glow=Math.floor(now/220)%4===0?'#fff1a3':'#ff9d38';
+  const glow=reacting?'#fff6bc':Math.floor(now/220)%4===0?'#fff1a3':'#ff9d38';
   // Feet and shadow (each leg alternates when following).
   R(x-8,y-1,16,2,'rgba(0,0,0,.22)');
   R(x-6,y-5+(walking?step:0),5,4,'#27232e');
@@ -2255,6 +2264,13 @@ function drawLivingAnvil(p,x,y,now){
   // Forged rune and seams brighten and dim with idle breathing.
   R(x,cy-6,2,1,glow);R(x-1,cy-5,1,1,'#ed742b');R(x+2,cy-5,1,1,'#ed742b');
   R(x-5,cy-3,2,1,'#b65b2d');R(x+4,cy-3,2,1,'#b65b2d');
+  // React immediately to a successful craft while the +3% bonus is active.
+  if(reacting){
+    R(x-8,cy-9,2,2,'#ffb74c');R(x+8,cy-8,2,2,'#ffb74c');
+    R(x-2,cy-14,4,2,'#ffe3a0');
+    if(Math.floor(now/95)%2===0){R(x-6,cy-17,1,2,'#ffeb8b');R(x+5,cy-19,1,2,'#ff8c36')}
+    if(p.forgeBonusXp>0)label('+'+p.forgeBonusXp+' XP',x,cy-24,'#ffe49a');
+  }
   // A brief spark burst every few seconds; never affects gameplay.
   const spark=(now+Math.floor(p.ph*1000))%4200;
   if(spark<460){
