@@ -2209,7 +2209,7 @@ function drawLightweightKez(x,y,o,now){
   const bob=walking?(phase%2):Math.floor(now/650)%2;
   const age=now-(o.swingAt??-99999),attack=age>=0&&age<320;
   const hurt=o.isMe&&now-(me.hurtAt||-99999)<220;
-  const dead=o.isMe&&me.deathAt!=null&&now-me.deathAt>=0;
+  const dead=o.isMe&&me.deathAt>0&&now-me.deathAt>=0;
   const skin='#eec39a',shade='#bf8c6f',ink='#282322';
   const hair='#443431',hairLight='#65504a';
   const dye=o.dye!=null&&DYES[o.dye]&&Math.max(...g)>=4?DYES[o.dye]:null;
