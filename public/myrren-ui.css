@@ -2337,3 +2337,94 @@ input[type=range] {
     max-height: min(75dvh, 340px);
   }
 }
+
+/* Equipment: compact content-first panel with on-demand slot information. */
+#modal[data-screen="gear"] .win {
+  width: min(100%, 520px);
+  height: auto;
+  max-height: min(76dvh, 560px);
+  grid-template-rows: 34px minmax(0,auto) 32px;
+  gap: 5px;
+  padding: 6px;
+}
+#modal[data-screen="gear"] #mBody {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 6px;
+}
+#modal[data-screen="gear"] .character-sheet {
+  position: relative;
+  grid-template-columns: 132px minmax(0,1fr);
+  align-items: center;
+  gap: 9px;
+  padding: 8px;
+  margin-bottom: 0;
+}
+#modal[data-screen="gear"] .character-portrait { display: none; }
+#modal[data-screen="gear"] .paper { gap: 3px; }
+#modal[data-screen="gear"] .character-sheet .paper .slot {
+  min-height: 0;
+  aspect-ratio: 1;
+  padding: 2px;
+}
+#modal[data-screen="gear"] .character-stats {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 5px;
+}
+#modal[data-screen="gear"] .character-stats .eqtot { padding: 5px; }
+#modal[data-screen="gear"] .character-stats .eqtot b { font-size: 17px; }
+#modal[data-screen="gear"] .gear-info-popover {
+  position: absolute;
+  z-index: 3;
+  top: 8px;
+  right: 8px;
+  width: min(280px,calc(100% - 16px));
+  max-height: calc(100% - 16px);
+  overflow-y: auto;
+  border: 2px solid #d8c99b;
+  border-radius: 10px;
+  background: rgba(43,44,33,.97);
+  box-shadow: 0 8px 20px #0007;
+  padding: 6px;
+}
+#modal[data-screen="gear"] .gear-info-popover .detail {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 25px 5px 5px;
+  min-height: 0;
+}
+#modal[data-screen="gear"] .gear-info-popover .detail b { font-size: 19px; }
+#modal[data-screen="gear"] .gear-info-popover .detail small { font-size: 14px; }
+#modal[data-screen="gear"] .gear-info-close {
+  position: absolute;
+  right: 6px;
+  top: 5px;
+  min-width: 28px;
+  min-height: 28px;
+  color: #f6e8bd;
+  background: #5b5946;
+  border-radius: 6px;
+}
+#modal[data-screen="gear"] .pane-heading { margin-bottom: 6px; }
+#modal[data-screen="gear"] .owned-gear .slot { width: 44px; min-height: 44px; }
+@media (max-width:620px) {
+  #modal[data-screen="gear"] .win {
+    width: min(100%, 340px);
+    height: auto;
+    max-height: min(70dvh, 490px);
+    grid-template-rows: 32px minmax(0,auto) 30px;
+  }
+  #modal[data-screen="gear"] .character-sheet {
+    grid-template-columns: 112px minmax(0,1fr);
+    gap: 7px;
+    padding: 6px;
+  }
+  #modal[data-screen="gear"] .character-stats { gap: 4px; }
+  #modal[data-screen="gear"] .character-stats .eqtot { padding: 3px; }
+  #modal[data-screen="gear"] .character-stats .eqtot span { font-size: 11px; }
+  #modal[data-screen="gear"] .character-stats .eqtot b { font-size: 15px; }
+  #modal[data-screen="gear"] .gear-info-popover { right: 5px; top: 5px; width: min(235px,calc(100% - 10px)); }
+}
