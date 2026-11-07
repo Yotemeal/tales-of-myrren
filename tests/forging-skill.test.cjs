@@ -28,4 +28,43 @@ for(const base of tiers)for(const [kind,offset] of Object.entries(requirements))
  const level=base+offset;
  assert.ok(level>=base&&level<=base+8,kind+' unlock invalid');
 }
-console.log('Forging static contracts and syntax passed');
+
+/* Execute the real production functions in isolation with deterministic mocks. */
+const runtime=fs.readFileSync(require('node:path').join(__dirname,'../public/myrren-game.js'),'utf8');
+function extract(start,end){const a=runtime.indexOf(start),b=runtime.indexOf(end,a+start.length);assert.ok(a>=0&&b>a,'Cannot extract '+start);return runtime.slice(a,b)}
+const production=extract('const ingName=id=>','function rSmelt()')+ '\n'+extract('function forge(kind){','function rForge(){');
+let now=10000;
+const ctx={
+ Date:{now:()=>now},save:{xp:{forging:0,mining:12345},inv:{copper:2,tin:2,ing_bronze:0},eq:{weapon:null},bag:[]},
+ SMELT:[{id:'bronze',mat:2,req:1,xp:12,in:{copper:1,tin:1}}],
+ MATS:{2:{k:'bronze'}},DEFS:{bronze_sword:{id:'bronze_sword',name:'Bronze sword',slot:'weapon',kind:'sword'}},
+ FORGE:{sword:4},FORGE_UNLOCK:{sword:4},ITEMS:{ing_bronze:{name:'Bronze Ingot'}},
+ NAMES:{forging:'Forging'},lvlFor:xp=>xp>=100?5:1,
+ canFitInventory:()=>true,usable:()=>true,inside:false,me:{x:0,y:0},
+ say:()=>{},burst:()=>{},persist:()=>{},renderModal:()=>{},uiHud:()=>{},onGearChange:()=>{},
+ addXp:(skill,xp)=>{ctx.save.xp[skill]+=xp},Math
+};
+vm.createContext(ctx);
+vm.runInContext('const ingName=id=>ITEMS[\'ing_\'+id].name;\n'+production.slice(production.indexOf('/* Production cooldowns')),ctx);
+vm.runInContext('smelt(SMELT[0])',ctx);
+assert.equal(ctx.save.inv.ing_bronze,1);
+assert.equal(ctx.save.inv.copper,1);
+assert.equal(ctx.save.xp.forging,12);
+assert.equal(ctx.save.xp.mining,12345);
+vm.runInContext('smelt(SMELT[0])',ctx);
+assert.equal(ctx.save.inv.ing_bronze,1,'Rapid smelt must not duplicate items');
+now+=1500;
+vm.runInContext('smelt(SMELT[0])',ctx);
+assert.equal(ctx.save.inv.ing_bronze,2);
+ctx.save.inv.ing_bronze=4;
+ctx.save.xp.forging=100;
+now+=1500;
+vm.runInContext('forge("sword")',ctx);
+assert.equal(ctx.save.inv.ing_bronze,0);
+assert.equal(ctx.save.xp.forging,196);
+assert.equal(ctx.save.xp.mining,12345);
+assert.equal(ctx.save.eq.weapon,'bronze_sword');
+vm.runInContext('forge("sword")',ctx);
+assert.equal(ctx.save.bag.length,0,'Rapid forging must not create duplicate gear');
+
+console.log('Forging syntax, contracts and isolated production behavior passed');
