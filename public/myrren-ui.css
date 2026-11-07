@@ -3187,3 +3187,22 @@ input[type=range] {
   #modal[data-screen="skills"] .skill .level {font-size:21px}
   #modal[data-screen="skills"] .skill b {font-size:13px}
 }
+
+/* Approved minimalist HUD navigation: flat cocoa tiles, muted gold outlines. */
+#hudR .ibtn {
+  background:#443429;
+  border:2px solid #b99a6e;
+  border-radius:12px;
+  box-shadow:inset 0 0 0 1px #6e5239;
+  padding:4px;
+}
+#hudR .ibtn svg {
+  width:26px;
+  height:26px;
+  filter:none;
+}
+#hudR .ibtn[aria-pressed="true"] {
+  background:#5a4531;
+  border-color:#e3c38d;
+  box-shadow:inset 0 0 0 1px #aa8658;
+}
