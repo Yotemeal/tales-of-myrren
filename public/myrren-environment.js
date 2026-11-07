@@ -33,8 +33,8 @@
       img.src='/assets/resources/'+key+'.png';
     }
     if(!entry.ready)return false;
-    const w=isTree?Math.min(82,Math.round(entry.img.naturalWidth*0.48)):35;
-    const h=isTree?Math.min(96,Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth)):Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth);
+    const w=isTree?144:35;
+    const h=isTree?Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth):Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth);
     ctx.drawImage(entry.img,Math.round(x-w/2),Math.round(y-h+4),w,h);
     return true;
   }
