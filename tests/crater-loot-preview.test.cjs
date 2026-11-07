@@ -49,3 +49,22 @@ test('ineligible kills and non-owner Ironman kills cannot award preview loot',()
  assert.equal(loot.award(m,table,grant,()=>0,{}, {eligible:true,ironmanOwner:true}),true);
  assert.equal(grants,1);
 });
+
+test('reward grant reentrancy cannot settle the same death twice',()=>{
+ const loot=api().create(),m={dieAt:501},table={guaranteed:[{itemId:'coins',quantity:1}]};
+ let grants=0;
+ assert.equal(loot.award(m,table,()=>{
+  grants++;
+  assert.equal(loot.award(m,table,()=>{grants++}),false);
+ }),true);
+ assert.equal(grants,1);
+});
+test('failed grant unlocks same death for retry',()=>{
+ const loot=api().create(),m={dieAt:502},table={guaranteed:[{itemId:'coins',quantity:1}]};
+ assert.throws(()=>loot.award(m,table,()=>{throw new Error('capacity failure')}),/capacity failure/);
+ let count=0;assert.equal(loot.award(m,table,()=>count++),true);assert.equal(count,1);
+});
+test('unconfirmed death timestamps cannot grant rewards',()=>{
+ const loot=api().create(),table={guaranteed:[{itemId:'coins',quantity:1}]};
+ assert.throws(()=>loot.award({},table,()=>{}),/Confirmed death/);
+});
