@@ -225,7 +225,7 @@ if(craterRocks){
   MT.guardian={...MT.wolf,name:'Cave Guardian',lv:18,hp:32,killXp:65,respawnMs:14000};
   Object.assign(MT.wolf,{killXp:40,respawnMs:10000});
   MT.troll={...MT.bear,name:'Forest Troll',killXp:95,respawnMs:16000};
-  if(craterBossPreview)MT.jewelheart={...MT.bear,name:'Jewelheart Guardian',lv:30};
+  if(craterBossPreview)MT.jewelheart={...MT.bear,name:'Jewelheart Guardian',lv:30,hp:120,max:18};
 }
 window.addEventListener('myrren-pet-reference-ready',()=>{if(tab==='skills')renderModal()});
 // Prototype motion tuning only, not approved Crater balance. Damage/cooldown use MT.
