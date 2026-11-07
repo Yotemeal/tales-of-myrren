@@ -131,11 +131,34 @@ const createGame=require('./game-runtime.cjs');
   g.update(.05,1620);
   assert.equal(g.me.hp,g.hpMax(),'the club does not hit through a barrier');
 
+  ({g,creature}=await encounter('?craterPreview=1','guardian'));
+  assert.equal(g.MT.guardian.lv,18);
+  g.me.x=1404;
+  g.update(.05,1000);
+  assert(creature.dashAttack);
+  g.update(.05,1719);
+  assert.equal(g.me.hp,g.hpMax());
+  g.update(.05,1720);
+  assert.equal(creature.x,1380,'guardian stays planted during the slam');
+  const afterGuardian=g.me.hp;
+  assert(afterGuardian<g.hpMax());
+  g.update(.05,1900);
+  assert.equal(g.me.hp,afterGuardian,'slam can only hit once');
+
+  ({g,creature}=await encounter('?craterPreview=1','guardian'));
+  g.me.x=1404;
+  g.update(.05,1000);
+  g.me.y+=18;
+  g.update(.05,1720);
+  assert.equal(g.me.hp,g.hpMax(),'moving out of the impact area dodges the guardian');
+
   const {game:normal}=await createGame();
-  assert(!normal.mons.some(m=>m.t==='rat'||m.t==='troll'));
+  assert(!normal.mons.some(m=>m.t==='rat'||m.t==='troll'||m.t==='guardian'));
   const {game:preview}=await createGame({}, {search:'?craterPreview=1'});
   assert(preview.mons.some(m=>m.t==='rat'));
   assert(preview.mons.some(m=>m.t==='troll'));
+  assert(preview.mons.some(m=>m.t==='guardian'));
+  assert.equal(preview.mons.filter(m=>m.t==='cave').length,normal.mons.filter(m=>m.t==='cave').length);
   assert.equal(preview.mons.filter(m=>m.t==='bear').length,normal.mons.filter(m=>m.t==='bear').length);
   assert.equal(preview.mons.filter(m=>m.t==='slime').length,normal.mons.filter(m=>m.t==='slime').length);
 
@@ -146,7 +169,7 @@ const createGame=require('./game-runtime.cjs');
  }finally{Math.random=random}
 
  const metadata=JSON.parse(fs.readFileSync('public/crater-reference-frames.json','utf8'));
- const sources=new Map(await Promise.all(['R1','R6'].map(async ref=>{
+ const sources=new Map(await Promise.all(['R1','R2','R6'].map(async ref=>{
   const file=metadata.references[ref].file;
   return ['/'+file,await loadImage('public/'+file)];
  })));
@@ -170,8 +193,8 @@ const createGame=require('./game-runtime.cjs');
  }
  const renderer=window.MyrrenCraterDash.create();
  assert(await renderer.load());
- const surface=createCanvas(560,336),ctx=surface.getContext('2d');
- ctx.fillStyle='#283a32';ctx.fillRect(0,0,560,336);
+ const surface=createCanvas(560,426),ctx=surface.getContext('2d');
+ ctx.fillStyle='#283a32';ctx.fillRect(0,0,560,426);
  const {states}=metadata.creatures.find(c=>c.id==='dire_wolf');
  const draw=window.MyrrenCraterAnimation.drawFrame;
  let frame;
@@ -233,6 +256,20 @@ const createGame=require('./game-runtime.cjs');
   assert(renderer.draw(ctx,{t:'troll',state:'chase',lunge:-9999,face:i%2?-1:1,...monster},i*80+40,312,0,{moving,hitAge,recover:560}));
   assert.equal(frame,expected);
  }
+ const guardian=metadata.creatures.find(c=>c.id==='cave_guardian').states;
+ for(const [i,[now,pose,expected]] of [
+  [0,{},guardian.idle.frames[0]],
+  [0,{moving:true},guardian.move.frames[0]],
+  [0,{dashAttack:{at:0}},guardian.attack.frames[0]],
+  [240,{dashAttack:{at:0}},guardian.attack.frames[1]],
+  [480,{dashAttack:{at:0}},guardian.attack.frames[2]],
+  [720,{lunge:720},guardian.attack.frames[3]],
+  [890,{state:'dead',dieAt:720},guardian.death.frames[1]]
+ ].entries()){
+  const {moving=false,...monster}=pose;
+  assert(renderer.draw(ctx,{t:'guardian',state:'chase',lunge:-9999,face:i%2?-1:1,...monster},i*80+40,400,now,{moving,hitAge:Infinity,windup:720,recover:640}));
+  assert.equal(frame,expected);
+ }
  if(process.env.DASH_CONTACT_SHEET)fs.writeFileSync(process.env.DASH_CONTACT_SHEET,surface.toBuffer('image/png'));
- console.log('PASS: Crater beasts and Forest Troll use approved poses and dodgeable attacks. Checked damage, recovery, terrain and cancellation.');
+ console.log('PASS: Crater beasts, Forest Troll and Cave Guardian use approved poses and dodgeable attacks. Checked damage, recovery, terrain and cancellation.');
 })().catch(e=>{console.error(e);process.exitCode=1});

@@ -1,7 +1,7 @@
-/* Approved Forest Rat, Wild Boar, Dire Wolf and Forest Troll poses for the Crater combat preview. */
+/* Approved Crater beast, troll and guardian poses for the Crater combat preview. */
 (()=>{'use strict';
  function create(){
-  const ids={rat:'forest_rat',boar:'wild_boar',wolf:'dire_wolf',troll:'forest_troll'};
+  const ids={rat:'forest_rat',boar:'wild_boar',wolf:'dire_wolf',troll:'forest_troll',guardian:'cave_guardian'};
   const artwork=new Map();
   async function load(){
    try{
@@ -43,18 +43,21 @@
     return results.some(result=>result.status==='fulfilled');
    }catch{return false}
   }
-  function draw(ctx,monster,x,y,now,{moving,hitAge,recover=260}){
+  function draw(ctx,monster,x,y,now,{moving,hitAge,recover=260,windup}){
    const animation=window.MyrrenCraterAnimation;
    const asset=artwork.get(monster.t);
    if(!asset||!animation)return false;
    const {atlas,creature}=asset;
-   const wolf=monster.t==='wolf';
+   const wolf=monster.t==='wolf',guardian=monster.t==='guardian';
    const {states,draftFitHeight,fitSourceHeight}=creature;
    const releaseAge=now-monster.lunge;
    let frame;
-   if(monster.state==='dead')frame=states.death.frames[0];
-   else if(monster.dashAttack&&!monster.dashAttack.released)frame=states.attack.frames[0];
-   else if(monster.state==='chase'&&releaseAge>=0&&releaseAge<recover)frame=states.attack.frames[wolf&&releaseAge>=90?2:1];
+   if(monster.state==='dead')frame=animation.frameAt(states.death,now-(monster.dieAt??now),170).frame;
+   else if(monster.dashAttack&&!monster.dashAttack.released){
+    const elapsed=now-monster.dashAttack.at;
+    const index=guardian?Math.min(2,Math.max(0,Math.floor(elapsed/(windup/3)))):0;
+    frame=states.attack.frames[index];
+   }else if(monster.state==='chase'&&releaseAge>=0&&releaseAge<recover)frame=states.attack.frames[guardian?3:wolf&&releaseAge>=90?2:1];
    else if(hitAge>=0&&hitAge<260)frame=states.hit.frames[0];
    else frame=animation.frameAt(moving?states.move:states.idle,now,moving?130:290).frame;
    animation.drawFrame(ctx,atlas,frame,x,y,draftFitHeight/fitSourceHeight,monster.face<0);
