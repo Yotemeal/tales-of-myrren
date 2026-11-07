@@ -2552,3 +2552,95 @@ input[type=range] {
     width: min(220px,calc(100% - 6px));
   }
 }
+
+/* Inventory and Skills density pass: iPhone 16 and landscape. */
+#modal[data-screen="pack"] .win {
+  width: min(100%, 355px);
+  height: auto;
+  max-height: min(74dvh, 520px);
+  grid-template-rows: 32px minmax(0,auto) 30px;
+}
+#modal[data-screen="pack"] .pack-pane { position: relative; }
+#modal[data-screen="pack"] .pack { gap: 3px; }
+#modal[data-screen="pack"] .pack .slot {
+  min-height: 0;
+  aspect-ratio: 1;
+  padding: 1px;
+}
+#modal[data-screen="pack"] .pack-info-popover {
+  position: absolute;
+  z-index: 5;
+  top: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(285px,calc(100% - 8px));
+  max-height: calc(100% - 34px);
+  overflow-y: auto;
+  border: 2px solid #d8c99b;
+  border-radius: 10px;
+  background: rgba(43,44,33,.98);
+  box-shadow: 0 8px 22px #0008;
+  padding: 6px;
+}
+#modal[data-screen="pack"] .pack-info-popover .detail {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  min-height: 0;
+  padding: 28px 5px 5px;
+}
+#modal[data-screen="pack"] .pack-info-popover .detail b { font-size: 19px; }
+#modal[data-screen="pack"] .pack-info-popover .detail small { font-size: 14px; }
+#modal[data-screen="pack"] .pack-info-close {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  min-width: 30px;
+  min-height: 30px;
+  border-radius: 6px;
+  background: #5b5946;
+  color: #f6e8bd;
+}
+@media (max-width: 620px) {
+  #modal[data-screen="pack"] .win {
+    width: min(100%, 292px);
+    max-height: min(68dvh, 475px);
+  }
+  #modal[data-screen="pack"] .pane-heading { font-size: 14px; margin-bottom: 4px; }
+  #modal[data-screen="skills"] .win {
+    width: min(100%, 350px);
+    max-height: min(72dvh, 520px);
+    height: auto;
+    grid-template-rows: 32px minmax(0,1fr) 30px;
+  }
+  #modal[data-screen="skills"] .skill-grid { gap: 4px; }
+  #modal[data-screen="skills"] .skill {
+    min-height: 68px;
+    padding: 4px 2px 10px;
+    gap: 2px;
+  }
+  #modal[data-screen="skills"] .skill .ic svg { width: 21px; height: 21px; }
+  #modal[data-screen="skills"] .skill .level { font-size: 23px; }
+  #modal[data-screen="skills"] .skill b { font-size: 13px; }
+  #modal[data-screen="skills"] .skill small { font-size: 10px; }
+  #modal[data-screen="skills"] .skill .bar { height: 5px; }
+}
+@media (max-height: 540px) and (min-width: 621px) {
+  #modal[data-screen="pack"] .win {
+    width: min(100%, 345px);
+    max-height: min(78dvh, 340px);
+  }
+  #modal[data-screen="skills"] .win {
+    width: min(100%, 520px);
+    max-height: min(80dvh, 350px);
+    height: auto;
+    grid-template-rows: 29px minmax(0,1fr) 27px;
+  }
+  #modal[data-screen="skills"] .skill {
+    min-height: 58px;
+    padding: 3px 2px 9px;
+    gap: 2px;
+  }
+  #modal[data-screen="skills"] .skill .ic svg { width: 19px; height: 19px; }
+  #modal[data-screen="skills"] .skill .level { font-size: 21px; }
+}
