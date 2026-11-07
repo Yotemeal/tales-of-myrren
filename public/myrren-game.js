@@ -2565,9 +2565,25 @@ function drawTraderCart(x,y,now){
   R(x+45,y+4,8,3,'#2c2b2b');R(x+59,y+4,8,3,'#2c2b2b');
   R(x+39,y-23,5,4,'#443b31');R(x+37,y-20,8,2,'#ddc394');
   R(x+65,y-27+bob,3,7,'#39635d');
-  // Trader uses the exact same character renderer and atlas as players.
-  drawPerson(x-29,y-12,{dv:'d',f:1,moving:false,g:[0,0,0,0,0],hue:150,hair:'#8b4b29',name:'',col:'#f2d4a2'},now);
-  R(x-38,y-10,16,5,'#47554b');R(x-35,y-8,12,3,'#65715a');
+  // Rook has a unique hooded wanderer silhouette: deep plum cloak,
+  // shadowed face, amber eyes, leather travel gear and a faint breathing sway.
+  // Kept close to the hero's pixel scale rather than a miniature block NPC.
+  const rx=x-29,ry=y-10+Math.round(Math.sin(now/850)*.6);
+  R(rx-9,ry-25,18,20,'#29272e');
+  R(rx-7,ry-29,14,8,'#463c4b');
+  R(rx-5,ry-31,10,4,'#685466');
+  R(rx-6,ry-23,12,11,'#171c22');
+  R(rx-4,ry-19,2,2,'#d5a365');R(rx+3,ry-19,2,2,'#d5a365');
+  R(rx-8,ry-13,16,14,'#332d3c');
+  R(rx-11,ry-12,5,14,'#4c3548');R(rx+7,ry-12,5,14,'#4c3548');
+  R(rx-8,ry-11,16,3,'#a05d57');
+  R(rx-4,ry-9,8,9,'#4a443d');
+  R(rx-5,ry-4,10,3,'#866d53');
+  R(rx-7,ry+1,6,5,'#272a2d');R(rx+2,ry+1,6,5,'#272a2d');
+  R(rx-9,ry-13,4,5,'#a17957');R(rx+6,ry-13,4,5,'#a17957');
+  R(rx+7,ry-6,3,7,'#b69c69');
+  R(rx+8,ry-18,2,11,'#5d5247');
+  R(rx+7,ry-20,4,4,'#a9a69b');
   if(Math.hypot(me.x-TRADER.x,me.y-TRADER.y)<75)label('Rook · Starter Gear',x,y-61,'#e9d5a1');
 }
 function drawCampPitch(b,x,y,now){
