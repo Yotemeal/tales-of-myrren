@@ -480,7 +480,10 @@ function giveGear(id){
   save.bag.push(id);say('Rare drop: '+DEFS[id].name+'!','gold');
 }
 function addXp(skill,amt){
-  const before=lvlFor(save.xp[skill]),pm=hpMax();save.xp[skill]+=amt;lastSkill=skill;const after=lvlFor(save.xp[skill]);
+  const before=lvlFor(save.xp[skill]),pm=hpMax();
+  // Skill-pet bonus applies only while its owner has called the pet (state 1).
+  const awarded=skill==='forging'&&save.pets.forging===1?Math.floor(amt*1.03):amt;
+  save.xp[skill]+=awarded;lastSkill=skill;const after=lvlFor(save.xp[skill]);
   if(after>before){say('Congratulations, you just advanced a '+NAMES[skill]+' level. You are now level '+after+'.','gold');toast(NAMES[skill].toUpperCase()+'\nLEVEL '+after);if(skill==='melee')me.hp=Math.min(hpMax(),me.hp+Math.max(1,hpMax()-pm));blocked.clear()}
   if(after>before)sfx('level');else if(skill!=='melee')sfx('gather');
   uiHud();if(tab==='skills')renderModal();
@@ -768,7 +771,7 @@ function rSkills(){
   for(const sk of Object.keys(PETS)){
     const P=PETS[sk],st=save.pets[sk],row=el('div','shoprow');
     const sil=Object.fromEntries(Object.keys(ART[P.art].p).map(k=>[k,'#1d160e']));
-    row.innerHTML=(st?svg(P.art,32):svg(P.art,32,sil))+'<span>'+(st?P.name:'Unknown pet')+'<small>'+(st?(st===1?'Following you':'Resting'):NAMES[sk]+': about 1 in '+petOdds(sk)+' per '+P.what)+'</small></span>';
+    row.innerHTML=(st?svg(P.art,32):svg(P.art,32,sil))+'<span>'+(st?P.name:'Unknown pet')+'<small>'+(st?(st===1?(sk==='forging'?'Following you · +3% Forging XP':'Following you'):'Resting'):NAMES[sk]+': about 1 in '+petOdds(sk)+' per '+P.what)+'</small></span>';
     if(st){const b=el('button','btn',st===1?'Dismiss':'Call');b.type='button';b.addEventListener('click',()=>{save.pets[sk]=st===1?2:1;syncPets();petsTeleport();persist();renderModal()});row.append(b)}
     else row.append(el('span'));
     mBody.append(row);
