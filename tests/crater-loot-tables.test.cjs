@@ -23,3 +23,15 @@ test('boss rehearsal cannot award unapproved uniques or loot',()=>{
  assert.equal(r.bossUniques.length,2);
  assert.ok(r.bossUniques.every(x=>x.status==='pending-rates-and-stats'));
 });
+
+test('non-Crater monsters use legacy drops, not preview reward tables',()=>{
+ const r=registry();
+ const mt={coins:[1,3],bread:.2,drop:{p:.1,mats:[2]}};
+ assert.equal(r.tableFor('slime',mt),null);
+ assert.equal(r.tableFor('jewelheart',mt),null);
+});
+test('invalid monster odds never produce preview tables',()=>{
+ const r=registry();
+ assert.equal(r.tableFor('rat',{coins:[1,2],bread:NaN,drop:{p:.1}}),null);
+ assert.equal(r.tableFor('rat',{coins:[1,2],bread:.2,drop:{p:Infinity}}),null);
+});
