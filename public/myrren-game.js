@@ -104,7 +104,7 @@ const MATS=[null,
   {k:'obsidianite',n:'Obsidianite',M:'#442b3c',H:'#e65456',D:'#201c29',req:40},
   {k:'starsteel',n:'Starsteel',M:'#a2c9e2',H:'#f0f8ff',D:'#41485f',req:70}];
 // Stable material IDs keep existing equipment and saves compatible.
-const COMBAT_GEAR_ORDER=[2,3,4,5,7,6,8],COMBAT_GEAR_LEVELS=[1,10,20,45,40,55,70];
+const COMBAT_GEAR_ORDER=[2,3,4,5,7,6,8],COMBAT_GEAR_LEVELS=[1,10,20,30,40,55,70];
 const KINDS={
   sword:{slot:'weapon',art:'sword',skill:'melee',mats:COMBAT_GEAR_ORDER,reqs:COMBAT_GEAR_LEVELS,price:[25,150,700,3500,9000,18000,40000],atk:[1,3,6,12,17,22,30],nm:{d:'sword'}},
   axe:{slot:'weapon',art:'axe',skill:'woodcutting',mats:[2,3,4,5,6],price:[20,120,600,3000,15000],nm:{d:'hatchet'}},
