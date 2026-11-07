@@ -367,6 +367,64 @@ async function cloudPush(str,force){
   if(!force&&Date.now()-cloudAt<20000)return;
   cloudBusy=true;try{await cdoc.set({json:str,ts:saveTs});cloudSig=sig;cloudAt=Date.now();cloudState='on'}catch(e){cloudState='error'}cloudBusy=false;
 }
+/* Standalone/PWA Supabase account saves. Publishable key only; RLS protects rows. */
+const SB_URL='https://mwhpgxyluezkfulqpaiy.supabase.co';
+const SB_KEY='sb_publishable_VQBJbObZObBq6dR3hAPkdg_ASiHeXph';
+const SB_SESSION_KEY='myrren-supabase-session';
+let sbSession=null,sbStatus='Sign in to enable cloud saves',sbReady=false,sbRemote=null,sbBusy=false,sbLastSig='',sbLastAt=0;
+try{sbSession=JSON.parse(localStorage.getItem(SB_SESSION_KEY)||'null')}catch(e){}
+async function sbRequest(path,method='GET',body=null,token=null){
+  const headers={'apikey':SB_KEY,'Content-Type':'application/json'};
+  if(token)headers.Authorization='Bearer '+token;
+  const response=await fetch(SB_URL+path,{method,headers,body:body==null?undefined:JSON.stringify(body)});
+  const data=await response.json().catch(()=>null);
+  if(!response.ok)throw Error((data&&(data.msg||data.error_description||data.message||data.error))||'Cloud request failed ('+response.status+')');
+  return data;
+}
+function sbStoreSession(session){
+  sbSession=session;
+  try{if(session)localStorage.setItem(SB_SESSION_KEY,JSON.stringify(session));else localStorage.removeItem(SB_SESSION_KEY)}catch(e){}
+}
+async function sbToken(){
+  if(!sbSession)return null;
+  if(Date.now()/1000<(sbSession.expires_at||0)-90)return sbSession.access_token;
+  try{
+    const data=await sbRequest('/auth/v1/token?grant_type=refresh_token','POST',{refresh_token:sbSession.refresh_token});
+    sbStoreSession({...data,expires_at:Math.floor(Date.now()/1000)+data.expires_in});
+    return data.access_token;
+  }catch(e){sbReady=false;sbStatus='Session expired. Sign in again.';sbStoreSession(null);return null}
+}
+async function sbLoad(){
+  const token=await sbToken();if(!token)return;
+  const rows=await sbRequest('/rest/v1/player_saves?select=save_data,updated_at&limit=1','GET',null,token);
+  sbRemote=Array.isArray(rows)&&rows[0]?parseSavedProgress(rows[0].save_data):null;
+  sbReady=!sbRemote;
+  sbStatus=sbRemote?'Cloud character found — choose which save to keep.':'Cloud connected — autosaving';
+  if(!sbRemote&&!fresh)await sbPush(JSON.stringify(snap()),true);
+}
+async function sbPush(str,force){
+  if(!sbSession||!sbReady||sbBusy)return;
+  const sig=str.replace(/"ts":\\d+,?/,'');
+  if(sig===sbLastSig||(!force&&Date.now()-sbLastAt<20000))return;
+  sbBusy=true;
+  try{
+    const token=await sbToken();if(!token)return;
+    await sbRequest('/rest/v1/player_saves?on_conflict=user_id','POST',{user_id:sbSession.user.id,save_data:JSON.parse(str),updated_at:new Date().toISOString()},token);
+    sbLastSig=sig;sbLastAt=Date.now();sbStatus='Cloud connected — autosaving';
+  }catch(e){sbStatus='Cloud save error: '+e.message}
+  finally{sbBusy=false}
+}
+async function sbLogin(email,password,signup){
+  const data=await sbRequest(signup?'/auth/v1/signup':'/auth/v1/token?grant_type=password','POST',{email,password});
+  if(!data.access_token){
+    sbStatus='Check your email to confirm your account, then sign in.';
+    return;
+  }
+  sbStoreSession({...data,expires_at:Math.floor(Date.now()/1000)+data.expires_in});
+  sbRemote=null;sbReady=false;sbStatus='Checking cloud character...';
+  await sbLoad();
+}
+function sbLogout(){sbStoreSession(null);sbReady=false;sbRemote=null;sbStatus='Signed out — local saves still work'}
 function persist(force){
   try{
     const o=snap(),str=JSON.stringify(o);saveTs=o.ts;
@@ -380,7 +438,7 @@ function persist(force){
       }
       localStorage.setItem(KEY,str);
     }catch(e){}
-    idbPut(str);cloudPush(str,force);lastSavedAt=Date.now();
+    idbPut(str);cloudPush(str,force);sbPush(str,force);lastSavedAt=Date.now();
   }catch(e){}
 }
 const eqDef=slot=>save.eq[slot]?DEFS[save.eq[slot]]:null;
@@ -966,7 +1024,27 @@ function rSettings(){
   const mk=(t,fn)=>{const b=el('button','btn',t);b.type='button';b.style.cssText='width:49%;height:38px;margin:6px 1% 0 0';b.addEventListener('click',fn);return b};
   const bExp=mk('Export code',()=>{persist(true);box.value='ER1.'+btoa(unescape(encodeURIComponent(JSON.stringify(snap()))));box.select();try{navigator.clipboard.writeText(box.value).then(()=>toast('Save code copied'),()=>toast('Code ready: copy it from the box'))}catch(e){toast('Code ready: copy it from the box')}});
   const bImp=mk('Restore code',()=>{try{const c=box.value.trim().replace(/^ER1\./,'');const o=JSON.parse(decodeURIComponent(escape(atob(c))));if(!o||!o.xp)throw 0;o.ts=Date.now();adoptSave(o);persist(true);toast('Save restored');renderModal()}catch(e){toast('That code is not valid')}});
-  sv.append(box,bExp,bImp);mBody.append(sv);
+  const auth=el('div','');auth.style.cssText='margin:8px 0;padding:7px;border:1px solid #73502c';
+  const authStatus=el('p','note','Account cloud save: '+sbStatus);auth.append(authStatus);
+  const action=(label,fn)=>{const b=el('button','btn',label);b.type='button';b.style.cssText='margin:3px;min-height:35px';b.onclick=async()=>{b.disabled=true;try{await fn();renderModal()}catch(e){toast(e.message);authStatus.textContent='Account cloud save: '+e.message}finally{b.disabled=false}};return b};
+  if(!sbSession){
+    const email=el('input',''),password=el('input','');
+    email.type='email';email.placeholder='Email address';email.autocomplete='email';
+    password.type='password';password.placeholder='Password (6+ characters)';password.autocomplete='current-password';
+    for(const field of [email,password])field.style.cssText='display:block;width:100%;box-sizing:border-box;margin:4px 0;padding:7px;background:#21160e;color:#fff0c5;border:1px solid #89643d;font-size:16px';
+    auth.append(email,password,action('Sign in',()=>sbLogin(email.value.trim(),password.value,false)),action('Create account',()=>sbLogin(email.value.trim(),password.value,true)));
+  }else{
+    auth.append(el('p','note','Signed in: '+(sbSession.user&&sbSession.user.email||'Account')));
+    if(sbRemote){
+      auth.append(el('p','note','A cloud character exists. Select carefully: restoring replaces this device progress; keeping local replaces the cloud character.'));
+      auth.append(action('Restore cloud',async()=>{adoptSave(sbRemote);persist(false);sbRemote=null;sbReady=true;sbLastSig='';await sbPush(JSON.stringify(snap()),true);toast('Cloud character restored')}));
+      auth.append(action('Keep this device',async()=>{sbRemote=null;sbReady=true;sbLastSig='';await sbPush(JSON.stringify(snap()),true);toast('Device progress uploaded')}));
+    }else{
+      auth.append(action('Save to cloud now',async()=>{persist(true);await sbPush(JSON.stringify(snap()),true);toast(sbStatus)}));
+    }
+    auth.append(action('Sign out',async()=>sbLogout()));
+  }
+  sv.append(auth,box,bExp,bImp);mBody.append(sv);
 
   rSettingsTail();
 }
@@ -2609,6 +2687,7 @@ async function bootLoad(){
   if(best&&!started&&(fresh||(+best.ts||0)>saveTs))adoptSave(best);
   finishLoad();
   if(!fresh&&cdoc&&cloudState==='on')cloudPush(JSON.stringify(snap()),true);
+  if(sbSession)sbLoad().then(()=>{if(tab==='settings')renderModal()}).catch(e=>{sbStatus='Cloud unavailable: '+e.message;if(tab==='settings')renderModal()});
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&started)persist(true)});
 window.addEventListener('pagehide',()=>{if(started)persist(true)});
