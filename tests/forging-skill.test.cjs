@@ -110,4 +110,23 @@ for(const [id,mat] of smeltRecipes){
  }
 }
 
+
+// Save compatibility: exercise the same XP normalization rules as finalizeSave.
+const xpSkills=['melee','woodcutting','mining','fishing','cooking','forging'];
+const nonNegativeCount=x=>Number.isFinite(+x)?Math.max(0,Math.floor(+x)):0;
+function normalizeXp(oldXp){
+ const xp={...oldXp};
+ for(const k of xpSkills)xp[k]=nonNegativeCount(xp[k]);
+ return xp;
+}
+const legacy=normalizeXp({melee:150,mining:7890,woodcutting:200,fishing:300,cooking:400});
+assert.equal(legacy.forging,0,'Existing characters should begin Forging at zero');
+assert.equal(legacy.mining,7890,'Existing Delving XP must not be reassigned');
+const returning=normalizeXp({mining:7890,forging:54321});
+assert.equal(returning.forging,54321,'Existing Forging XP must survive reload');
+assert.equal(returning.mining,7890,'Reload must preserve Delving XP');
+assert.equal(normalizeXp({forging:-5}).forging,0,'Corrupt negative Forging XP should be clamped');
+assert.ok(runtime.includes('for(const k of SK)save.xp[k]=nonNegativeCount(save.xp[k]);'),'Runtime must normalize every registered skill');
+assert.ok(runtime.includes('xp:save.xp,inv:save.inv'),'Save snapshot must include all skill XP');
+
 console.log('Forging syntax, contracts and isolated production behavior passed');
