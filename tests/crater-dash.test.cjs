@@ -5,13 +5,14 @@ const createGame=require('./game-runtime.cjs');
 
 (async()=>{
  async function encounter(search='?craterPreview=1',type='wolf'){
-  const {game:g,canvasArcs}=await createGame({}, {search,captureCanvasArcs:type==='troll'});
+  const {game:g,canvasArcs}=await createGame({}, {search,captureCanvasArcs:['troll','wolf','boar'].includes(type)});
   const creature=g.mons.find(m=>m.t===type);
   g.mons.splice(0,g.mons.length,creature);
   Object.assign(creature,{x:1380,y:800,hx:1380,hy:800,cd:g.MT[type].iv,state:'chase',prov:true});
   Object.assign(g.me,{x:1405,y:800,hp:g.hpMax()});
   return {g,creature,canvasArcs};
  }
+ let canvasArcs;
  const random=Math.random;
  try{
   Math.random=()=>0;
@@ -41,12 +42,18 @@ const createGame=require('./game-runtime.cjs');
   assert.equal(creature.y,800,'the lunge stays aimed at the original position');
   assert.equal(g.me.hp,g.hpMax(),'the player can dodge sideways');
 
-  ({g,creature}=await encounter());
+  ({g,creature,canvasArcs}=await encounter());
   g.SOLID.push({x0:1389,x1:1394,y0:795,y1:805});
   g.update(.05,1000);
+  g.drawOutdoor(1100,600,1100);
+  const warning=canvasArcs.find(([x,y,r])=>x>280&&x<289&&y===200&&r===2);
+  assert(warning,'wolf path ends before the wall');
   g.update(.05,1320);
+  canvasArcs.length=0;
+  g.drawOutdoor(1100,600,1320);
+  assert(!canvasArcs.some(([x,y,r])=>x===warning[0]&&y===200&&r===2),'path clears when the lunge starts');
   g.update(.05,1470);
-  assert(creature.x<1389);
+  assert.equal(creature.x,1100+warning[0],'wolf stops at the marked endpoint');
   assert.equal(g.me.hp,g.hpMax());
 
   ({g,creature}=await encounter());
@@ -56,10 +63,12 @@ const createGame=require('./game-runtime.cjs');
   g.update(.05,1470);
   assert.equal(g.me.hp,g.hpMax());
 
-  ({g,creature}=await encounter('?craterPreview=1','boar'));
+  ({g,creature,canvasArcs}=await encounter('?craterPreview=1','boar'));
   g.me.x=1420;
   g.update(.05,1000);
   assert(creature.dashAttack,'boar starts its charge from further away');
+  g.drawOutdoor(1100,600,1100);
+  assert(canvasArcs.some(([x,y,r])=>x===320&&y===200&&r===2),'boar shows the charge endpoint');
   g.update(.05,1459);
   assert.equal(creature.x,1380);
   assert.equal(g.me.hp,g.hpMax());
@@ -131,7 +140,6 @@ const createGame=require('./game-runtime.cjs');
   g.update(.05,1620);
   assert.equal(g.me.hp,g.hpMax(),'the club does not hit through a barrier');
 
-  let canvasArcs;
   ({g,creature,canvasArcs}=await encounter('?craterPreview=1','troll'));
   g.me.x=1402;
   g.update(.05,1000);

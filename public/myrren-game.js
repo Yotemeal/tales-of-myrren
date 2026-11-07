@@ -230,8 +230,8 @@ const ROCK_PREVIEW={range:90,retreat:30,speed:140,distance:120,windup:300};
 // Prototype timings for the preview's charges and slams.
 const CRATER_DASH={
   rat:{range:12,travel:6,windup:240,dash:90,recover:200,hitRadius:7},
-  wolf:{range:30,windup:320,dash:150,recover:260,hitRadius:7},
-  boar:{range:42,windup:460,dash:190,recover:380,hitRadius:8},
+  wolf:{range:30,windup:320,dash:150,recover:260,hitRadius:7,warnPath:true},
+  boar:{range:42,windup:460,dash:190,recover:380,hitRadius:8,warnPath:true},
   troll:{range:22,windup:620,recover:560,impactRadius:11},
   guardian:{range:24,windup:720,recover:640,impactRadius:13},
   jewelheart:{range:30,windup:900,recover:760,impactRadius:19}
@@ -1716,14 +1716,22 @@ function moveCraterHostile(m,dx,dy,d,step){
   const x=m.x+dx/d*step,y=m.y+dy/d*step;
   if(!craterRockBlocked(x,y)&&!inWater(x,y)){m.x=x;m.y=y}
 }
-function craterImpactPathClear(ax,ay,bx,by){
+function traceCraterGround(ax,ay,bx,by){
   const dx=bx-ax,dy=by-ay;
   const steps=Math.max(1,Math.ceil(Math.hypot(dx,dy)/2));
+  let x=ax,y=ay;
   for(let i=1;i<=steps;i++){
-    const x=ax+dx*i/steps,y=ay+dy*i/steps;
-    if(craterRockBlocked(x,y)||inWater(x,y))return false;
+    const nx=ax+dx*i/steps,ny=ay+dy*i/steps;
+    if(craterRockBlocked(nx,ny)||inWater(nx,ny))return{x,y,blocked:true};
+    x=nx;y=ny;
   }
-  return true;
+  return{x,y,blocked:false};
+}
+function craterDashTarget(m,attack,timing){
+  const dx=attack.x-m.x,dy=attack.y-m.y,distance=Math.hypot(dx,dy);
+  const travel=timing.travel??timing.range;
+  const scale=distance>travel?travel/distance:1;
+  return{x:m.x+dx*scale,y:m.y+dy*scale};
 }
 function updateCraterDash(m,mt,dt,now,dp,dx,dy,timing){
   const attack=m.dashAttack;
@@ -1739,28 +1747,24 @@ function updateCraterDash(m,mt,dt,now,dp,dx,dy,timing){
         m.dashAttack=null;
         // A shove can move the attacker out of reach, but the marked target never shifts.
         if(dist<=timing.range&&Math.hypot(me.x-attack.x,me.y-attack.y)<=timing.impactRadius&&
-          craterImpactPathClear(m.x,m.y,attack.x,attack.y)&&
-          craterImpactPathClear(attack.x,attack.y,me.x,me.y))damagePlayerFromMonster(mt);
+          !traceCraterGround(m.x,m.y,attack.x,attack.y).blocked&&
+          !traceCraterGround(attack.x,attack.y,me.x,me.y).blocked)damagePlayerFromMonster(mt);
         return;
       }
-      const travel=timing.travel??timing.range;
-      const scale=dist>travel?travel/dist:1;
-      attack.x=m.x+ax*scale;attack.y=m.y+ay*scale;
+      const target=craterDashTarget(m,attack,timing);
+      const end=traceCraterGround(m.x,m.y,target.x,target.y);
+      attack.x=end.x;attack.y=end.y;
     }
     const progress=Math.min(1,(now-m.lunge)/timing.dash);
     const x=attack.fromX+(attack.x-attack.fromX)*progress;
     const y=attack.fromY+(attack.y-attack.fromY)*progress;
-    const ox=m.x,oy=m.y,steps=Math.max(1,Math.ceil(Math.hypot(x-ox,y-oy)/2));
-    let blocked=false;
-    for(let i=1;i<=steps;i++){
-      const nx=ox+(x-ox)*i/steps,ny=oy+(y-oy)*i/steps;
-      if(craterRockBlocked(nx,ny)||inWater(nx,ny)){blocked=true;break}
-      m.x=nx;m.y=ny;
-    }
+    const ox=m.x,oy=m.y;
+    const end=traceCraterGround(ox,oy,x,y);
+    m.x=end.x;m.y=end.y;
     if(!attack.hit&&window.MyrrenCraterRocks.circleContact(ox,oy,m.x,m.y,me.x,me.y,timing.hitRadius)!==null){
       attack.hit=true;damagePlayerFromMonster(mt);
     }
-    if(blocked||progress===1)m.dashAttack=null;
+    if(end.blocked||progress===1)m.dashAttack=null;
     return;
   }
   if(now-m.lunge<timing.recover)return;
@@ -2543,6 +2547,17 @@ function drawCraterImpactWarning(x,y,radius,progress){
   ctx.strokeStyle='#ffd180';ctx.stroke();
   ctx.restore();
 }
+function drawCraterDashWarning(x,y,endX,endY){
+  ctx.save();
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(endX,endY);
+  ctx.lineWidth=2;ctx.strokeStyle='#5c392a';ctx.stroke();
+  ctx.setLineDash([4,3]);
+  ctx.lineWidth=1;ctx.strokeStyle='#ffd180';ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();ctx.arc(endX,endY,2,0,Math.PI*2);
+  ctx.fillStyle='#ffd180';ctx.fill();
+  ctx.restore();
+}
 function drawOutdoor(cx,cy,now){
   const t0=Math.max(0,Math.floor(cx/T)),t1=Math.min(WW/T-1,Math.floor((cx+cv.width)/T)),u0=Math.max(0,Math.floor(cy/T)),u1=Math.min(WH/T-1,Math.floor((cy+cv.height)/T));
   const pathAt=(tx,ty)=>VILLAGE.pathKind(tx*T+8,ty*T+8);
@@ -2586,8 +2601,13 @@ function drawOutdoor(cx,cy,now){
   drawVillageFalls(cx,cy,now);
   if(craterRocks)for(const m of mons){
     const attack=m.dashAttack,timing=CRATER_DASH[m.t];
-    if(m.state==='chase'&&timing?.impactRadius&&attack&&!attack.released&&vis(attack.x,attack.y)){
+    if(m.state!=='chase'||!attack||attack.released||!vis(attack.x,attack.y))continue;
+    if(timing?.impactRadius){
       drawCraterImpactWarning(attack.x-cx,attack.y-cy,timing.impactRadius,clamp((now-attack.at)/timing.windup,0,1));
+    }else if(timing?.warnPath){
+      const target=craterDashTarget(m,attack,timing);
+      const end=traceCraterGround(m.x,m.y,target.x,target.y);
+      drawCraterDashWarning(m.x-cx,m.y-cy,end.x-cx,end.y-cy);
     }
   }
   for(const tree of VILLAGE_GROVE)if(VILLAGE.dryFootprint(tree.x,tree.y,88,174,3,10)&&tree.x>cx-100&&tree.x<cx+cv.width+100&&tree.y>cy-25&&tree.y<cy+cv.height+160)list.push({y:tree.y,f:()=>drawAncientTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
