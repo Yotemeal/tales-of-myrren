@@ -2582,6 +2582,16 @@ function drawOutdoor(cx,cy,now){
     if(Math.abs(gx-CX)<240&&gy>CY-95&&gy<CY+95)continue;
     if(vis(gx,gy)&&VILLAGE.dryFootprint(gx,gy,14,19,2,5))list.push({y:gy,f:()=>drawWoodlandShrub(Math.round(gx-cx),Math.round(gy-cy),i)});
   }
+  // Decorative showcase: all seven tree appearances around the village outskirts.
+  // Scenery only: no new gatherable nodes, collision, XP or save changes.
+  const showcaseTrees=['bramblewood','alder','ironbark','redleaf','duskwillow','elderthorn','starroot'];
+  for(let i=0;i<showcaseTrees.length;i++){
+    const a=(i/7)*Math.PI*2+.36,rad=355+(i%2)*55;
+    const gx=CX+Math.cos(a)*rad,gy=CY+Math.sin(a)*rad*.82;
+    if(!vis(gx,gy)||!VILLAGE.dryFootprint(gx,gy,72,110,3,10))continue;
+    const tree={x:gx,y:gy,k:'tree',previewTree:showcaseTrees[i],back:0};
+    list.push({y:gy,f:()=>drawTree(tree,Math.round(gx-cx),Math.round(gy-cy),now)});
+  }
   for(const tree of forestEdge)list.push({y:tree.y,f:()=>drawTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
   for(const n of nodes)if(vis(n.x,n.y))list.push({y:n.y,f:()=>{const sx=Math.round(n.x-cx),sy=Math.round(n.y-cy);n.k.startsWith('spot')?drawSpot(n,sx,sy,now):TREEK.includes(n.k)?drawTree(n,sx,sy,now):drawRock(n,sx,sy,now);nodeTip(n,sx,sy,now)}});
   for(const m of mons)if((m.state!=='dead'||now-(m.dieAt||-99999)<1600)&&vis(m.x,m.y))list.push({y:m.y,f:()=>drawMon(m,Math.round(m.x-cx),Math.round(m.y-cy),now)});
