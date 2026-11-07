@@ -38,3 +38,14 @@ test('browser rejects unknown and circular shared table references',()=>{
 test('browser rejects invalid bonus probabilities',()=>{
  assert.throws(()=>api().roll({bonus:[{itemId:'ring',chanceBps:10001}]}),/Invalid bonus odds/);
 });
+
+test('ineligible kills and non-owner Ironman kills cannot award preview loot',()=>{
+ const loot=api().create(),m={dieAt:300},table={guaranteed:[{itemId:'coins',quantity:4}]};
+ let grants=0;
+ const grant=()=>grants++;
+ assert.equal(loot.award(m,table,grant,()=>0,{}, {eligible:false}),false);
+ assert.equal(loot.award(m,table,grant,()=>0,{}, {ironmanOwner:false}),false);
+ assert.equal(grants,0);
+ assert.equal(loot.award(m,table,grant,()=>0,{}, {eligible:true,ironmanOwner:true}),true);
+ assert.equal(grants,1);
+});
