@@ -43,11 +43,13 @@
  }
  function create(){const settled=new WeakMap();return {award(monster,table,grant,random=Math.random,sharedTables={},eligibility={}){
   if(eligibility.eligible===false||eligibility.ironmanOwner===false)return false;
+  if(!monster||typeof monster!=='object'||!Number.isFinite(monster.dieAt))throw new TypeError('Confirmed death timestamp required');
+  if(typeof grant!=='function')throw new TypeError('Reward grant callback required');
   const death=monster.dieAt;
   if(settled.get(monster)===death)return false;
   const drops=roll(table,random,sharedTables);
   settled.set(monster,death);
-  try{grant(drops)}catch(error){settled.delete(monster);throw error}
+  try{grant(drops)}catch(error){if(settled.get(monster)===death)settled.delete(monster);throw error}
   return true;
  }}}
  window.MyrrenCraterLoot={roll,create,validate};
