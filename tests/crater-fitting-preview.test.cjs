@@ -7,7 +7,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
  for(const [id,v] of [['category','Hostiles'],['armour','0'],['size','1'],['duration','160'],['frame','0']])elements.get(id).value=v;
  const canvas=createCanvas(960,432);elements.set('stage',canvas);let nextFrame;
  const sb={window:{MyrrenWardrobe:W,MyrrenHero:H},document:{getElementById:id=>elements.get(id),createElement:()=>element('')},requestAnimationFrame:f=>nextFrame=f,
-  fetch:async url=>{assert.equal(url,'/crater-reference-frames.json?v=2');return{ok:true,json:async()=>metadata}},
+  fetch:async url=>{assert.equal(url,'/crater-reference-frames.json?v=3');return{ok:true,json:async()=>metadata}},
   Image:class{constructor(){const c=createCanvas(1,1);Object.defineProperty(c,'src',{set(url){loadImage('public/'+url.split('/').pop().split('?')[0]).then(im=>{c.width=im.width;c.height=im.height;c.getContext('2d').drawImage(im,0,0);c.onload?.()}).catch(e=>c.onerror?.(e))}});return c}},
   localStorage:{getItem(){throw Error('Fitting preview must never read player saves')},setItem(){throw Error('Fitting preview must never save progress')}}};
  vm.createContext(sb);vm.runInContext(fs.readFileSync('public/crater-animation.js','utf8'),sb);vm.runInContext(fs.readFileSync('public/crater-fitting-preview.js','utf8'),sb);

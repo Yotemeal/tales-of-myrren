@@ -1,11 +1,11 @@
-/* Approved Forest Rat, Wild Boar and Dire Wolf poses for the Crater combat preview. */
+/* Approved Forest Rat, Wild Boar, Dire Wolf and Forest Troll poses for the Crater combat preview. */
 (()=>{'use strict';
  function create(){
-  const ids={rat:'forest_rat',boar:'wild_boar',wolf:'dire_wolf'};
+  const ids={rat:'forest_rat',boar:'wild_boar',wolf:'dire_wolf',troll:'forest_troll'};
   const artwork=new Map();
   async function load(){
    try{
-    const response=await fetch('/crater-reference-frames.json?v=2');
+    const response=await fetch('/crater-reference-frames.json?v=3');
     if(!response.ok)return false;
     const metadata=await response.json();
     const atlases=new Map();

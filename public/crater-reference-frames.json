@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "purpose": "Exact reference crops for inspection; not production sprites",
   "pixelPolicy": "Original decoded JPEG pixels retained without resizing, masking or redrawing.",
   "timingPolicy": "Preview timing only; no production durations approved.",
@@ -1245,12 +1245,12 @@
               "x": 0,
               "y": 256,
               "w": 110,
-              "h": 89,
+              "h": 109,
               "anchorX": 55.0,
-              "anchorY": 84,
+              "anchorY": 104,
               "sourceBox": [
                 440,
-                704,
+                684,
                 550,
                 793
               ]
@@ -1259,12 +1259,12 @@
               "x": 320,
               "y": 256,
               "w": 103,
-              "h": 89,
+              "h": 109,
               "anchorX": 51.5,
-              "anchorY": 84,
+              "anchorY": 104,
               "sourceBox": [
                 555,
-                704,
+                684,
                 658,
                 793
               ]
@@ -1278,12 +1278,12 @@
               "x": 640,
               "y": 256,
               "w": 119,
-              "h": 89,
+              "h": 109,
               "anchorX": 59.5,
-              "anchorY": 84,
+              "anchorY": 104,
               "sourceBox": [
                 689,
-                704,
+                684,
                 808,
                 793
               ]
@@ -1292,12 +1292,12 @@
               "x": 960,
               "y": 256,
               "w": 119,
-              "h": 89,
+              "h": 109,
               "anchorX": 59.5,
-              "anchorY": 84,
+              "anchorY": 104,
               "sourceBox": [
                 808,
-                704,
+                684,
                 927,
                 793
               ]
@@ -1311,12 +1311,12 @@
               "x": 1280,
               "y": 256,
               "w": 113,
-              "h": 89,
+              "h": 109,
               "anchorX": 56.5,
-              "anchorY": 84,
+              "anchorY": 104,
               "sourceBox": [
                 943,
-                704,
+                684,
                 1056,
                 793
               ]
@@ -1325,12 +1325,12 @@
               "x": 1600,
               "y": 256,
               "w": 104,
-              "h": 89,
+              "h": 109,
               "anchorX": 52.0,
-              "anchorY": 84,
+              "anchorY": 104,
               "sourceBox": [
                 1057,
-                704,
+                684,
                 1161,
                 793
               ]
@@ -1344,12 +1344,12 @@
               "x": 1920,
               "y": 256,
               "w": 122,
-              "h": 89,
+              "h": 109,
               "anchorX": 61.0,
-              "anchorY": 84,
+              "anchorY": 104,
               "sourceBox": [
                 1191,
-                704,
+                684,
                 1313,
                 793
               ]
@@ -1363,12 +1363,12 @@
               "x": 2240,
               "y": 256,
               "w": 178,
-              "h": 89,
+              "h": 109,
               "anchorX": 89.0,
-              "anchorY": 84,
+              "anchorY": 104,
               "sourceBox": [
                 1340,
-                704,
+                684,
                 1518,
                 793
               ]

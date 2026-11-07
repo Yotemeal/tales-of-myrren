@@ -28,7 +28,7 @@ def creature(id, name, category, ref, height, states, gaps=()):
 def group(box, count, loop=False):
     return dict(box=box, count=count, loop=loop)
 
-for id,name,top,bottom,height in [('forest_rat','Forest Rat',165,242,14),('wild_boar','Wild Boar',426,507,24),('forest_troll','Forest Troll',704,793,44)]:
+for id,name,top,bottom,height in [('forest_rat','Forest Rat',165,242,14),('wild_boar','Wild Boar',426,507,24),('forest_troll','Forest Troll',684,793,44)]:
     creature(id,name,'Hostiles','R1',height,{
         'idle':group([449,top,655,bottom],2,True),
         'move':group([689,top,927,bottom],2,True),
@@ -80,7 +80,7 @@ creature('river_otter','River Otter','Pets','R5',18,{
 # Hand-measured crop boundaries: these boards do not use uniform frame grids.
 def boxes(id,state,coords):
     c=next(c for c in creatures if c['id']==id);c['states'][state]={'boxes':coords,'loop':c['states'][state]['loop']}
-for id,top,bottom in [('forest_rat',165,242),('wild_boar',426,507),('forest_troll',704,793)]:
+for id,top,bottom in [('forest_rat',165,242),('wild_boar',426,507),('forest_troll',684,793)]:
     boxes(id,'idle',[[440,top,550,bottom],[555,top,658,bottom]])
     boxes(id,'attack',[[943,top,1056,bottom],[1057,top,1161,bottom]])
 for id,top,bottom in [('goblin_miner',175,250),('goblin_guard',471,574)]:
@@ -167,9 +167,10 @@ levels=dict(zip(order[:8],[1,5,8,12,16,18,22,30]))
 creatures.sort(key=lambda c:order.index(c['id']))
 for c in creatures:
     if c['id'] in levels:c['level']=levels[c['id']]
+    if c['id']=='forest_troll':c['fitSourceHeight']=89 # Keep the scale after restoring the top of the club.
     if c['id']=='river_otter':c['fitSourceHeight']=68 # Expanded crops must not change the established source-pixel scale.
 
-data=dict(version=2,purpose='Exact reference crops for inspection; not production sprites',
+data=dict(version=3,purpose='Exact reference crops for inspection; not production sprites',
     pixelPolicy='Original decoded JPEG pixels retained without resizing, masking or redrawing.',
     timingPolicy='Preview timing only; no production durations approved.',
     sizePolicy='draftFitHeight is an adjustable fitting proposal, not an approved scale.',

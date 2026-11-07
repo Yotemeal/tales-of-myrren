@@ -102,10 +102,41 @@ const createGame=require('./game-runtime.cjs');
   g.update(.05,1330);
   assert.equal(g.me.hp,g.hpMax(),'stepping away avoids the bite');
 
+  ({g,creature}=await encounter('?craterPreview=1','troll'));
+  assert.equal(g.MT.troll.lv,22);
+  g.me.x=1402;
+  g.update(.05,1000);
+  assert(creature.dashAttack);
+  g.update(.05,1619);
+  assert.equal(g.me.hp,g.hpMax(),'raised club deals no damage before impact');
+  g.update(.05,1620);
+  assert.equal(creature.x,1380,'the troll plants its feet');
+  assert(g.me.hp<g.hpMax());
+  const afterSlam=g.me.hp;
+  g.update(.05,1800);
+  assert.equal(g.me.hp,afterSlam);
+  assert.equal(creature.cd,0,'the troll recovers after impact');
+
+  ({g,creature}=await encounter('?craterPreview=1','troll'));
+  g.me.x=1402;
+  g.update(.05,1000);
+  g.me.y+=14;
+  g.update(.05,1620);
+  assert.equal(g.me.hp,g.hpMax(),'moving away from the aimed point dodges the slam');
+
+  ({g,creature}=await encounter('?craterPreview=1','troll'));
+  g.me.x=1402;
+  g.SOLID.push({x0:1389,x1:1394,y0:795,y1:805});
+  g.update(.05,1000);
+  g.update(.05,1620);
+  assert.equal(g.me.hp,g.hpMax(),'the club does not hit through a barrier');
+
   const {game:normal}=await createGame();
-  assert(!normal.mons.some(m=>m.t==='rat'));
+  assert(!normal.mons.some(m=>m.t==='rat'||m.t==='troll'));
   const {game:preview}=await createGame({}, {search:'?craterPreview=1'});
   assert(preview.mons.some(m=>m.t==='rat'));
+  assert(preview.mons.some(m=>m.t==='troll'));
+  assert.equal(preview.mons.filter(m=>m.t==='bear').length,normal.mons.filter(m=>m.t==='bear').length);
   assert.equal(preview.mons.filter(m=>m.t==='slime').length,normal.mons.filter(m=>m.t==='slime').length);
 
   ({g,creature}=await encounter(''));
@@ -139,8 +170,8 @@ const createGame=require('./game-runtime.cjs');
  }
  const renderer=window.MyrrenCraterDash.create();
  assert(await renderer.load());
- const surface=createCanvas(560,252),ctx=surface.getContext('2d');
- ctx.fillStyle='#283a32';ctx.fillRect(0,0,560,252);
+ const surface=createCanvas(560,336),ctx=surface.getContext('2d');
+ ctx.fillStyle='#283a32';ctx.fillRect(0,0,560,336);
  const {states}=metadata.creatures.find(c=>c.id==='dire_wolf');
  const draw=window.MyrrenCraterAnimation.drawFrame;
  let frame;
@@ -189,6 +220,19 @@ const createGame=require('./game-runtime.cjs');
   assert(renderer.draw(ctx,{t:'rat',state:'chase',lunge:-9999,face:i%2?-1:1,...monster},i*80+40,228,0,{moving,hitAge,recover:200}));
   assert.equal(frame,expected);
  }
+ const troll=metadata.creatures.find(c=>c.id==='forest_troll').states;
+ for(const [i,[pose,expected]] of [
+  [{},troll.idle.frames[0]],
+  [{moving:true},troll.move.frames[0]],
+  [{dashAttack:{}},troll.attack.frames[0]],
+  [{lunge:0},troll.attack.frames[1]],
+  [{hitAge:0},troll.hit.frames[0]],
+  [{state:'dead'},troll.death.frames[0]]
+ ].entries()){
+  const {moving=false,hitAge=Infinity,...monster}=pose;
+  assert(renderer.draw(ctx,{t:'troll',state:'chase',lunge:-9999,face:i%2?-1:1,...monster},i*80+40,312,0,{moving,hitAge,recover:560}));
+  assert.equal(frame,expected);
+ }
  if(process.env.DASH_CONTACT_SHEET)fs.writeFileSync(process.env.DASH_CONTACT_SHEET,surface.toBuffer('image/png'));
- console.log('PASS: Dire Wolf, Wild Boar and Forest Rat use approved poses and dodgeable attacks. Checked damage, recovery, terrain and cancellation.');
+ console.log('PASS: Crater beasts and Forest Troll use approved poses and dodgeable attacks. Checked damage, recovery, terrain and cancellation.');
 })().catch(e=>{console.error(e);process.exitCode=1});

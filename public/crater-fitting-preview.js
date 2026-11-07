@@ -40,7 +40,7 @@
   if($('mirror').checked)ctx.fillText('Mirrored source study — no new directional artwork',24,54);
  }
  async function init(){
-  try{const response=await fetch('/crater-reference-frames.json?v=2');if(!response.ok)throw Error('Cannot load reference metadata');data=await response.json();await Promise.all(Object.entries(data.references).map(async([ref,r])=>images.set(ref,await loadImage('/'+r.file+'?v='+data.version))));
+  try{const response=await fetch('/crater-reference-frames.json?v=3');if(!response.ok)throw Error('Cannot load reference metadata');data=await response.json();await Promise.all(Object.entries(data.references).map(async([ref,r])=>images.set(ref,await loadImage('/'+r.file+'?v='+data.version))));
    selectCategory();$('category').addEventListener('change',selectCategory);$('creature').addEventListener('change',selectCreature);$('state').addEventListener('change',()=>{reset();updateDetails()});
    $('frame').addEventListener('input',()=>{playing=false;index=Number($('frame').value);$('play').textContent='Play'});
    $('play').addEventListener('click',()=>{playing=!playing;$('play').textContent=playing?'Pause':'Play'});$('replay').addEventListener('click',()=>{reset();playing=true;$('play').textContent='Pause'});
