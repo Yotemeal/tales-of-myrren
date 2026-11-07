@@ -3206,3 +3206,26 @@ input[type=range] {
   border-color:#e3c38d;
   box-shadow:inset 0 0 0 1px #aa8658;
 }
+
+/* Phone screenshot refinement: match the approved thin-line, quiet tile treatment.
+   Keep touch targets and existing HUD layout dimensions unchanged. */
+#hud #hudR .ibtn {
+  padding:3px;
+  background:#453529;
+  border:1.5px solid #b99a70;
+  border-radius:10px;
+  box-shadow:none;
+}
+#hud #hudR .ibtn svg {
+  width:22px;
+  height:22px;
+  max-width:75%;
+  max-height:75%;
+  filter:none;
+  stroke-width:1.55;
+}
+#hud #hudR .ibtn[aria-pressed="true"] {
+  background:#574332;
+  border-color:#e2c28d;
+  box-shadow:none;
+}
