@@ -38,7 +38,7 @@ const ctx={
  Date:{now:()=>now},save:{xp:{forging:0,mining:12345},inv:{copper:2,tin:2,ing_bronze:0},eq:{weapon:null},bag:[]},
  SMELT:[{id:'bronze',mat:2,req:1,xp:12,in:{copper:1,tin:1}}],
  MATS:{2:{k:'bronze'}},DEFS:{bronze_sword:{id:'bronze_sword',name:'Bronze sword',slot:'weapon',kind:'sword'}},
- FORGE:{sword:4},FORGE_UNLOCK:{sword:4},ITEMS:{ing_bronze:{name:'Bronze Ingot'}},
+ FORGE:{sword:4},FORGE_UNLOCK:{sword:4},forgeReq:(r,kind)=>r.req+4,forgeXp:(r,cost)=>cost*r.xp*2,ITEMS:{ing_bronze:{name:'Bronze Ingot'}},
  NAMES:{forging:'Forging'},lvlFor:xp=>xp>=100?5:1,
  canFitInventory:()=>true,usable:()=>true,inside:false,me:{x:0,y:0},
  say:()=>{},burst:()=>{},persist:()=>{},renderModal:()=>{},uiHud:()=>{},onGearChange:()=>{},
