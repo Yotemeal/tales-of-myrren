@@ -3079,3 +3079,41 @@ input[type=range] {
   #modal[data-screen="skills"] .skill { height: 62px; }
   #modal[data-screen="skills"] .skill.total { height: 62px; }
 }
+
+/* The Crater: approved compact bronze-and-charcoal HUD treatment.
+   Visual-only; leaves all control IDs, actions and responsive positioning intact. */
+#hud {
+  background: linear-gradient(180deg,rgba(61,49,37,.95),rgba(32,29,27,.95));
+  border-color:#211c1b;
+  border-top-color:#b79a6c;
+  border-radius:14px;
+  box-shadow:0 0 0 2px #80684c,inset 0 0 0 1px #d1b47b,0 5px 12px #0b0b0b88;
+}
+#hud .ibtn {
+  border-radius:9px;
+  background:linear-gradient(145deg,#6e553a,#302c2b);
+  border-top-color:#d1b383;
+  border-left-color:#b49665;
+  border-right-color:#2b2421;
+  border-bottom-color:#231e1c;
+  box-shadow:inset 0 0 0 1px #806a4d,0 1px 2px #1118;
+}
+#hud .ibtn svg {filter:drop-shadow(0 1px 0 #17120e)}
+#lvl {
+  border-radius:9px;
+  background:linear-gradient(145deg,#75583b,#332b26);
+  border-color:#a98b5f;
+}
+#hp {
+  border-radius:8px;
+  overflow:hidden;
+  background:#1e1c1c;
+  border-color:#aa8961;
+}
+#hpFill {background:linear-gradient(180deg,#f96d63,#bc2e36)}
+#chat {
+  border-radius:9px;
+  background:linear-gradient(90deg,#141414ad,#14141408);
+}
+#pad {background:#24251e40;border-color:#c7ac7c78;box-shadow:0 0 0 2px #241b1970,inset 0 0 0 2px #a9945540}
+#knob {background:#938458aa;border-color:#d2c095}
