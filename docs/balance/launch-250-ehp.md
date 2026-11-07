@@ -3,7 +3,7 @@
 Status: design and calibration targets only. No live XP or reward rates changed.
 
 ## Target
-Five launch skills total **250 efficient hours to max**, measured using sustainable best-available methods and including ordinary banking, travel and respawn downtime.
+Six launch skills total **285 efficient hours to max**, measured using sustainable best-available methods and including ordinary banking, travel and respawn downtime.
 
 | Skill | EHP |
 | --- | ---: |
@@ -12,7 +12,8 @@ Five launch skills total **250 efficient hours to max**, measured using sustaina
 | Delving (mining) | 50 |
 | Fishing | 45 |
 | Cooking | 45 |
-| **Total** | **250** |
+| Forging | 35 |
+| **Total** | **285** |
 
 These are budgets, not XP multipliers. Preserve existing saved XP, level thresholds and character saves until measured migration can be tested.
 
@@ -44,3 +45,13 @@ These are budgets, not XP multipliers. Preserve existing saved XP, level thresho
 
 ## Before changing live XP
 Record current cap and per-level XP table; record real action times and highest sustainable XP/h at every training tier. Apply smallest necessary rate changes, preserve saves, and rerun progression/economy regression tests.
+
+## Forging (formerly proposed Smithing)
+- Player-facing skill name: **Forging**; use **ingot**, not 'ignot'.
+- Smelting ore into ingots grants low XP; crafting weapons and armour from ingots grants the majority of XP. Initial target: approximately 15% of XP from smelting and 85% from equipment production per comparable material quantity, subject to balance tests.
+- Slow early levels due to low-tier recipe access and slow smelting; high-tier forging should be fast XP/hour once materials are ready.
+- Buying ingots from players is the fast but expensive route; self-mining saves coins but adds significant Delving time. Do not count gathering time in Forging EHP; report combined self-sufficient time separately.
+- Target ~35 efficient hours to max Forging with a steady supply of materials, pending real XP curve measurements. This is not a promise of affordable maxing.
+- XP scales with recipe tier and ingot quantity, with diminishing opportunities for trivial low-tier recipe abuse. Avoid profitable unlimited vendor loops: compare input material market value, sale price, coin sinks and equipment demand.
+- Never grant both smelting and crafting XP for the same action; award once upon successful completion and prevent inventory duplication or canceled-action XP.
+- Add tests for per-recipe XP, material consumption, failure/cancel cases, skill requirements, buying-vs-mining time, coins per XP, and supply-driven inflation.
