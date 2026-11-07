@@ -211,6 +211,8 @@ const craterPetArt=craterPets&&window.MyrrenPetReference?window.MyrrenPetReferen
 craterPetArt?.load();
 const craterWildlife=craterPreview&&window.MyrrenCraterWildlife?.create();
 craterWildlife?.load?.();
+const craterMiner=craterRocks&&window.MyrrenCraterMiner?.create();
+craterMiner?.load?.();
 window.addEventListener('myrren-pet-reference-ready',()=>{if(tab==='skills')renderModal()});
 // Prototype motion tuning only, not approved Crater balance. Damage/cooldown use MT.
 const ROCK_PREVIEW={range:90,retreat:30,speed:140,distance:120,windup:300};
@@ -1646,7 +1648,7 @@ function updateRockThrower(m,mt,dt,now,dp,dx,dy){
   if(m.rockCast){
     if(now-m.rockCast.at>=ROCK_PREVIEW.windup){
       craterRocks.launch({x:m.x,y:m.y,targetX:m.rockCast.x,targetY:m.rockCast.y,speed:ROCK_PREVIEW.speed,maxDistance:ROCK_PREVIEW.distance,owner:m.t});
-      m.rockCast=null;m.cd=0;
+      m.rockReleasedAt=now;m.rockCast=null;m.cd=0;
     }
     return;
   }
@@ -2006,35 +2008,39 @@ function drawMon(m,x,y,now){
   let al=1;if(dead&&age>1000)al=Math.max(0,1-(age-1000)/600);
   if(al<=0)return;
   shadowE(x+1,y,mode==='dead'?10:8,2,.28*al);
-  ctx.save();ctx.globalAlpha=al;ctx.translate(x,y);ctx.scale(f,1);
-  if(m.t==='slime')sprSlime(mode,ph,age,flash);else if(m.t==='goblin')sprGoblin(mode,ph,age,flash);else if(m.t==='boar')sprBoar(mode,ph,age,flash);else if(m.t==='bear')sprBear(mode,ph,age,flash);else if(m.t==='cave')sprQuad(Q_CAVE,mode,ph,age,flash);else if(m.t==='abear')sprQuad(Q_ABEAR,mode,ph,age,flash);else sprWolf(mode,ph,age,flash);
-  // Native-pixel creature finishing pass: fur, eyes, tusks and equipment.
-  // Applied after existing animation so movement and combat timing remain intact.
-  if(!dead&&!flash){
-    const bob=mode==='walk'?(ph%2):0;
-    if(m.t==='goblin'){
-      R(-5,-15+bob,10,2,'#293a25');R(-3,-18+bob,6,3,'#66513a');
-      R(-7,-12+bob,3,2,'#a1b96c');R(5,-12+bob,3,2,'#a1b96c');
-      R(-2,-12+bob,1,1,'#e5bc63');R(3,-12+bob,1,1,'#e5bc63');
-      R(-5,-7+bob,3,2,'#6d5540');
-    }else if(m.t==='slime'){
-      R(-4,-10+bob,6,2,'#a9c0a0');R(-3,-11+bob,2,1,'#d3e0c0');
-      R(4,-5+bob,3,1,'#5a765b');
-    }else if(m.t==='wolf'){
-      R(-5,-11+bob,8,2,'#c2c2aa');R(-9,-8+bob,4,2,'#535e55');
-      R(8,-9+bob,2,1,'#f1d183');
-    }else if(m.t==='boar'){
-      R(5,-5+bob,5,2,'#e6d5b3');R(8,-7+bob,2,3,'#f1e2c8');
-      R(-7,-9+bob,5,2,'#7d6952');
-    }else if(m.t==='bear'||m.t==='abear'){
-      R(-5,-10+bob,8,3,'#726955');R(7,-7+bob,2,2,'#e5cfa6');
+  ctx.save();ctx.globalAlpha=al;
+  const minerDrawn=craterMiner?.draw?.(ctx,m,x,y,now,{moving,hitAge:ha,windup:ROCK_PREVIEW.windup});
+  if(!minerDrawn){
+    ctx.translate(x,y);ctx.scale(f,1);
+    if(m.t==='slime')sprSlime(mode,ph,age,flash);else if(m.t==='goblin')sprGoblin(mode,ph,age,flash);else if(m.t==='boar')sprBoar(mode,ph,age,flash);else if(m.t==='bear')sprBear(mode,ph,age,flash);else if(m.t==='cave')sprQuad(Q_CAVE,mode,ph,age,flash);else if(m.t==='abear')sprQuad(Q_ABEAR,mode,ph,age,flash);else sprWolf(mode,ph,age,flash);
+    // Native-pixel creature finishing pass: fur, eyes, tusks and equipment.
+    // Applied after existing animation so movement and combat timing remain intact.
+    if(!dead&&!flash){
+      const bob=mode==='walk'?(ph%2):0;
+      if(m.t==='goblin'){
+        R(-5,-15+bob,10,2,'#293a25');R(-3,-18+bob,6,3,'#66513a');
+        R(-7,-12+bob,3,2,'#a1b96c');R(5,-12+bob,3,2,'#a1b96c');
+        R(-2,-12+bob,1,1,'#e5bc63');R(3,-12+bob,1,1,'#e5bc63');
+        R(-5,-7+bob,3,2,'#6d5540');
+      }else if(m.t==='slime'){
+        R(-4,-10+bob,6,2,'#a9c0a0');R(-3,-11+bob,2,1,'#d3e0c0');
+        R(4,-5+bob,3,1,'#5a765b');
+      }else if(m.t==='wolf'){
+        R(-5,-11+bob,8,2,'#c2c2aa');R(-9,-8+bob,4,2,'#535e55');
+        R(8,-9+bob,2,1,'#f1d183');
+      }else if(m.t==='boar'){
+        R(5,-5+bob,5,2,'#e6d5b3');R(8,-7+bob,2,3,'#f1e2c8');
+        R(-7,-9+bob,5,2,'#7d6952');
+      }else if(m.t==='bear'||m.t==='abear'){
+        R(-5,-10+bob,8,3,'#726955');R(7,-7+bob,2,2,'#e5cfa6');
+      }
     }
   }
   ctx.restore();ctx.globalAlpha=1;
   if(dead)return;
-  const top=y-({goblin:27,wolf:20,boar:18,bear:30,cave:30,abear:30}[m.t]||15);
+  const top=y-(minerDrawn?34:({goblin:27,wolf:20,boar:18,bear:30,cave:30,abear:30}[m.t]||15));
   if(m.hp<mt.hp)bar(x,top,m.hp/mt.hp);
-  if(Math.hypot(m.x-me.x,m.y-me.y)<70||me.tgt===m)label(mt.name+' (Lv '+mt.lv+')',x,top-5,'#ffffff');
+  if(Math.hypot(m.x-me.x,m.y-me.y)<70||me.tgt===m)label((minerDrawn?'Goblin Miner':mt.name)+' (Lv '+mt.lv+')',x,top-5,'#ffffff');
 }
 function rrect(x,y,w,h,c,ol){if(ol){R(x,y-1,w,h+2,ol);R(x-1,y,w+2,h,ol)}R(x+1,y,w-2,h,c);R(x,y+1,w,h-2,c)}
 const HAIRS=['#7a4a2a','#d8b45a','#2e2a34','#a8502e','#c8c2c8'];
@@ -2480,7 +2486,7 @@ function drawOutdoor(cx,cy,now){
   if(craterRocks)for(const rock of craterRocks.rocks)if(vis(rock.x,rock.y))list.push({y:rock.y,f:()=>{const x=Math.round(rock.x-cx),y=Math.round(rock.y-cy)-10;R(x-2,y-1,5,3,'#302c29');R(x-1,y-2,3,4,'#827368');R(x-1,y-1,2,1,'#baa991')}});
   list.sort((a,b)=>a.y-b.y);
   for(const e of list)e.f();
-  if(craterRocks)label('CRATER MECHANICS PREVIEW · LEGACY GOBLIN ART',cv.width/2,18,'#ffe14a');
+  if(craterRocks)label(craterMiner?.ready?'CRATER MECHANICS PREVIEW':'CRATER MECHANICS PREVIEW · LEGACY GOBLIN ART',cv.width/2,18,'#ffe14a');
 }
 const GRASS=['#263d31','#344d39','#3b5840'];
 function frame(now){
@@ -2535,7 +2541,7 @@ function finishLoad(){
 }
 function adoptSave(o,why){
   craterRocks?.clear();
-  if(craterRocks)for(const m of mons){m.rockCast=null;m.cd=0}
+  if(craterRocks)for(const m of mons){m.rockCast=null;m.rockReleasedAt=null;m.cd=0}
   applySave(o);me.x=clamp(save.x,EDGE+8,WW-EDGE-8);me.y=clamp(save.y,EDGE+8,WH-EDGE-8);relocateSavedPosition();
   syncPets();petsTeleport();uiHud();
   try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}

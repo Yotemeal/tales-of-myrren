@@ -10,7 +10,7 @@ const goblin=(g,x=1385,y=800)=>({t:'goblin',x,y,hx:x,hy:y,hp:g.MT.goblin.hp,stat
   const legacy=normal.game;legacy.me.x=1450;legacy.me.y=800;legacy.me.hp=legacy.hpMax();legacy.mons.length=0;legacy.mons.push(goblin(legacy,1445));const legacyHp=legacy.me.hp;legacy.update(.05,1000);assert(legacy.me.hp<legacyHp,'normal goblin retains melee damage with preview disabled');
   let g=await make(),m=goblin(g);g.mons.push(m);const before=g.me.hp,xp=g.save.xp.melee;
   g.update(.05,1000);assert(m.rockCast,'goblin telegraphs before throwing');assert.equal(g.craterRocks.rocks.length,0);assert.equal(g.me.hp,before);
-  g.update(.05,1300);assert.equal(g.craterRocks.rocks.length,1);assert.equal(g.me.hp,before,'launch is not instant damage');
+  g.update(.05,1300);assert.equal(m.rockReleasedAt,1300);assert.equal(g.craterRocks.rocks.length,1);assert.equal(g.me.hp,before,'launch is not instant damage');
   for(let i=1;i<=12;i++)g.update(.05,1300+i*50);
   assert(g.me.hp<before,'rock collision actually damages the player');assert.equal(g.save.xp.melee,xp,'enemy rock creates no combat XP');assert.equal(g.craterRocks.rocks.length,0);
   const after=g.me.hp;for(let i=1;i<=3;i++)g.update(.05,1900+i*50);assert.equal(g.me.hp,after,'impact cannot hit repeatedly');
