@@ -736,11 +736,22 @@ function rGear(){
  const sheet=el('div','character-sheet'),portrait=el('div','character-portrait'),canvas=document.createElement('canvas');canvas.width=128;canvas.height=160;canvas.setAttribute('aria-label','Your equipped character');portrait.append(canvas);
  if(approvedHero&&window.MyrrenHero.supports(gearArr())){const c=canvas.getContext('2d');c.save();const scale=window.MyrrenWardrobe?.ready?3:4;c.scale(scale,scale);const weapon=activeDef('weapon'),o={dv:'d',f:1,nativeScale:true,g:gearArr(),weaponMat:weapon?.kind==='sword'?weapon.mat:0,weaponAngle:-.35,armourDye:save.dye!=null?DYES[save.dye]:null};if(o.weaponMat)approvedHero.drawEquipped(c,64/scale,158/scale,o,0);else approvedHero.draw(c,64/scale,158/scale,o,0);c.restore()}
  else if(myrrenV31Ready){const g=gearArr(),sprite=myrrenV31Equipment?myrrenV31Equipment.get(g[2],g[3],save.dye!=null?DYES[save.dye]:null,g[1],g[0],g[4],0,g[5]):myrrenV31FeetAtlas,c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(sprite,0,0,32,40,0,0,128,160)}
- sheet.append(equipmentPaper(),portrait,equipmentStats('character-stats'));mBody.append(sheet);mBody.append(detail());
+ sheet.append(equipmentPaper(),portrait,equipmentStats('character-stats'));mBody.append(sheet);
+ if(sel&&sel.src==='eq'){
+   const pop=el('div','gear-info-popover'),close=el('button','gear-info-close','×');
+   close.type='button';close.setAttribute('aria-label','Close equipment information');
+   close.addEventListener('click',()=>{sel=null;renderModal()});
+   pop.append(close,detail());sheet.append(pop);
+ }else if(sel&&sel.src==='bag'){
+   const pop=el('div','gear-info-popover'),close=el('button','gear-info-close','×');
+   close.type='button';close.setAttribute('aria-label','Close item information');
+   close.addEventListener('click',()=>{sel=null;renderModal()});
+   pop.append(close,detail());sheet.append(pop);
+ }
  const candidates=save.bag.map((id,i)=>({id,i,d:DEFS[id]})).filter(o=>o.d&&(!(sel&&sel.src==='eq')||o.d.slot===sel.key));
- mBody.append(el('h3','sub',sel&&sel.src==='eq'?'IN YOUR PACK · '+SLOTNAME[sel.key]:'EQUIPMENT IN YOUR PACK'));
- if(!candidates.length)mBody.append(el('p','note',sel&&sel.src==='eq'?'No spare equipment fits this slot.':'Buy or craft equipment, then equip it from your inventory.'));
- const grid=el('div','owned-gear');candidates.forEach(o=>{const b=el('button','slot'+(!usable(o.d)?' dim':''));b.type='button';b.innerHTML=gearSvg(o.d,44);b.title=o.d.name;b.setAttribute('aria-label',o.d.name);b.addEventListener('click',()=>{sel={src:'bag',kind:'gear',idx:o.i};renderModal()});grid.append(b)});mBody.append(grid);
+ if(sel&&sel.src==='eq')mBody.append(el('h3','sub','IN YOUR PACK · '+SLOTNAME[sel.key]));
+ if(sel&&sel.src==='eq'&&!candidates.length)mBody.append(el('p','note','No spare equipment fits this slot.'));
+ const grid=el('div','owned-gear');candidates.forEach(o=>{const b=el('button','slot'+(!usable(o.d)?' dim':''));b.type='button';b.innerHTML=gearSvg(o.d,44);b.title=o.d.name;b.setAttribute('aria-label',o.d.name);b.addEventListener('click',()=>{sel={src:'bag',kind:'gear',idx:o.i};renderModal()});grid.append(b)});if(sel&&sel.src==='eq'&&candidates.length)mBody.append(grid);
 }
 function rPack(){
  const layout=el('div','inventory-layout'),pack=el('section','pack-pane'),item=el('div','item-detail');
