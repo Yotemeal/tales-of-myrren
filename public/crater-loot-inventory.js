@@ -31,6 +31,8 @@
    const value=(inventory[id]||0)+count;
    if(!Number.isSafeInteger(value))throw new RangeError('Inventory overflow');
   }
+  if(!Array.isArray(plan.equipment)||!Array.isArray(plan.rejected))throw new TypeError('Invalid reward plan');
+  for(const id of plan.equipment)if(typeof id!=='string'||!id)throw new TypeError('Invalid equipment');
   for(const [id,count] of Object.entries(plan.stack))inventory[id]=(inventory[id]||0)+count;
   gear.push(...plan.equipment);
   return plan;
