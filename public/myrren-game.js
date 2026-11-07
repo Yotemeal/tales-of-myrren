@@ -216,12 +216,15 @@ const craterGoblins=craterRocks&&window.MyrrenCraterGoblins?.create();
 craterGoblins?.load?.();
 const craterDash=craterRocks&&window.MyrrenCraterDash?.create();
 craterDash?.load?.();
-// Borrow existing combat values for these isolated encounters.
+// First Crater playtest pass. Keep the existing damage and loot rules.
 if(craterRocks){
-  MT.goblin_guard={...MT.wolf,name:'Cave Goblin Protector',lv:16};
-  MT.rat={...MT.slime,name:'Forest Rat'};
-  MT.troll={...MT.bear,name:'Forest Troll'};
-  MT.guardian={...MT.wolf,name:'Cave Guardian',lv:18};
+  MT.rat={...MT.slime,name:'Forest Rat',killXp:10,respawnMs:4000};
+  Object.assign(MT.goblin,{killXp:16,respawnMs:6000});
+  Object.assign(MT.boar,{killXp:25,respawnMs:8000});
+  MT.goblin_guard={...MT.wolf,name:'Cave Goblin Protector',lv:16,hp:26,killXp:50,respawnMs:12000};
+  MT.guardian={...MT.wolf,name:'Cave Guardian',lv:18,hp:32,killXp:65,respawnMs:14000};
+  Object.assign(MT.wolf,{killXp:40,respawnMs:10000});
+  MT.troll={...MT.bear,name:'Forest Troll',killXp:95,respawnMs:16000};
   if(craterBossPreview)MT.jewelheart={...MT.bear,name:'Jewelheart Guardian',lv:30};
 }
 window.addEventListener('myrren-pet-reference-ready',()=>{if(tab==='skills')renderModal()});
@@ -1559,12 +1562,11 @@ function respawnPlayer(){
   me.dv='d';me.face=1;me.moving=false;regen=0;snapCam=true;exitCD=performance.now()+700;
   uiHud();petsTeleport();sendPresence();
 }
-// One fixed reward per defeated creature. This is one quarter of the old
-// full-health damage reward, and never includes overkill or regenerated health.
-function combatKillXp(mt){return Math.max(1,Math.round(mt.hp*mt.xpm))}
+// One fixed reward per defeat, independent of overkill or regenerated health.
+function combatKillXp(mt){return mt.killXp??Math.max(1,Math.round(mt.hp*mt.xpm))}
 function killMon(m,now){
   if(m.state==='dead')return;
-  const mt=MT[m.t];m.rockCast=null;m.guardStrikeAt=null;m.dashAttack=null;m.state='dead';m.back=now+12000;m.dieAt=now;
+  const mt=MT[m.t];m.rockCast=null;m.guardStrikeAt=null;m.dashAttack=null;m.state='dead';m.back=now+(mt.respawnMs??12000);m.dieAt=now;
   decals.push({x:m.x,y:m.y,t:now,c:m.t==='slime'?'#e86a86':'#a82418'});
   say('You have defeated the '+mt.name.toLowerCase()+'.','gold');
   if(m.t==='jewelheart'){
