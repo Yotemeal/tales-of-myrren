@@ -23,3 +23,18 @@ test('weighted nothing outcome can still award guaranteed coins',()=>{
  const loot=api(),table={guaranteed:[{itemId:'coins',quantity:2}],main:[{itemId:'bread',weight:1},{itemId:'nothing',weight:9}],bonus:[{itemId:'gear',chanceBps:100}]};
  assert.deepEqual(Array.from(loot.roll(table,()=>0.99),x=>x.itemId),['coins']);
 });
+
+test('browser shared tables roll nested rewards without replacing guaranteed coins',()=>{
+ const loot=api(),shared={rare:{guaranteed:[{itemId:'guardian_ring',quantity:1}]}};
+ const table={guaranteed:[{itemId:'coins',quantity:3}],bonus:[{tableId:'rare',chanceBps:10000,quantity:2}]};
+ assert.deepEqual(Array.from(loot.roll(table,()=>0,shared),d=>d.itemId),['coins','guardian_ring','guardian_ring']);
+});
+test('browser rejects unknown and circular shared table references',()=>{
+ const loot=api();
+ assert.throws(()=>loot.roll({main:[{tableId:'missing',weight:1}]},()=>0),/Unknown shared/);
+ const shared={a:{guaranteed:[{tableId:'b'}]},b:{guaranteed:[{tableId:'a'}]}};
+ assert.throws(()=>loot.roll({guaranteed:[{tableId:'a'}]},()=>0,shared),/Circular shared/);
+});
+test('browser rejects invalid bonus probabilities',()=>{
+ assert.throws(()=>api().roll({bonus:[{itemId:'ring',chanceBps:10001}]}),/Invalid bonus odds/);
+});
