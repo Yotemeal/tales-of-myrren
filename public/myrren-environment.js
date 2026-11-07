@@ -255,10 +255,37 @@
     if(kind==='floor'){smithyFloor(ctx,x,y);return}
     const {r,poly,shadow}=kit(ctx);
     if(kind==='anvil'){
-      shadow(x,y+1,23);r(x-13,y-5,26,7,P.ink);r(x-11,y-4,22,5,P.wood);r(x-8,y-3,16,1,P.woodL);
-      poly([[x-10,y-17],[x+16,y-17],[x+14,y-13],[x+4,y-11],[x+3,y-5],[x-6,y-5],[x-7,y-11],[x-12,y-13]],P.ink);
-      r(x-10,y-16,24,3,'#9eaaa5');r(x-8,y-13,12,3,'#637875');r(x-5,y-10,7,5,'#526460');r(x-7,y-6,12,2,'#8c9c94');
-      r(x-16,y-9,2,9,P.woodL);r(x-18,y-12,6,4,P.stone);r(x-18,y-12,5,1,P.stoneL);
+      // Recognisable blacksmith's anvil: long tapered horn, flat steel face,
+      // thick waist and a solid stump. World scale matches the furnace.
+      shadow(x,y+1,25);
+      // Solid timber stump, visible end grain and heavy iron retaining bands.
+      r(x-10,y-12,21,13,'#2b2825');
+      r(x-8,y-11,17,11,'#75553b');
+      r(x-7,y-10,15,2,'#9c7953');
+      r(x-8,y-7,17,3,'#3f3e39');
+      r(x-7,y-3,15,2,'#a07a50');
+      r(x-11,y,23,3,'#302a26');
+      // Forged metal body, distinctly narrower than its broad top.
+      r(x-6,y-20,14,12,'#303a3c');
+      r(x-4,y-18,10,9,'#647577');
+      r(x-8,y-11,18,4,'#39464a');
+      r(x-10,y-8,22,3,'#252e32');
+      // Flat working face, left-facing pointed horn and square heel.
+      poly([[x-20,y-23],[x-14,y-25],[x-8,y-27],[x+13,y-27],
+            [x+16,y-24],[x+16,y-20],[x-8,y-20],
+            [x-14,y-21]],'#283236');
+      poly([[x-18,y-24],[x-9,y-26],[x+13,y-26],[x+14,y-23],
+            [x-8,y-23],[x-13,y-22]],'#a3b2ae');
+      r(x-8,y-26,20,2,'#d1d4c7');
+      r(x+12,y-23,5,4,'#526369');
+      r(x+15,y-24,2,2,'#b6c1b7');
+      // Small hardy hole and crisp metal edge.
+      r(x+8,y-25,2,2,'#384446');
+      r(x-8,y-21,20,2,'#657b7e');
+      // Smith's hammer resting beside the stump, not covering the anvil.
+      r(x-19,y-9,3,9,'#735039');
+      r(x-22,y-12,10,4,'#333c3e');
+      r(x-21,y-12,8,2,'#a7b2ad');
     }else if(kind==='furnace'){
       shadow(x,y+2,31);r(x-17,y-6,34,8,P.ink);r(x-15,y-7,30,7,P.stone);
       r(x+5,y-54,13,28,P.ink);r(x+7,y-53,9,26,'#737764');r(x+5,y-55,13,3,P.stoneL);
