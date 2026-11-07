@@ -36,6 +36,7 @@ const back=front.map((r,i)=>i>=9&&i<=15?r.replace(/[SsE]/g,'H').replace(/H/g,'H'
 const side=front.map((r,i)=>{if(i<9)return r;if(i<16)return '....KHHSSSSSK...'.padEnd(16,'.');return r});
 const build=(rows,walk,phase)=>{
  const a=rows.map(r=>r.split(''));
+ while(a.length<28)a.push(Array(16).fill('.'));
  if(walk){
   const kick=phase===1?1:phase===3?-1:0;
   for(let y=22;y<=26;y++){
