@@ -743,10 +743,9 @@ function rGear(){
  const grid=el('div','owned-gear');candidates.forEach(o=>{const b=el('button','slot'+(!usable(o.d)?' dim':''));b.type='button';b.innerHTML=gearSvg(o.d,44);b.title=o.d.name;b.setAttribute('aria-label',o.d.name);b.addEventListener('click',()=>{sel={src:'bag',kind:'gear',idx:o.i};renderModal()});grid.append(b)});mBody.append(grid);
 }
 function rPack(){
- const layout=el('div','inventory-layout'),pack=el('section','pack-pane'),side=el('section','equipment-side'),item=el('div','item-detail');
+ const layout=el('div','inventory-layout'),pack=el('section','pack-pane'),item=el('div','item-detail');
  pack.append(inventoryHeading('BACKPACK',slotsUsed()+' / '+PACK_CAPACITY),backpackGrid());
- const eq=el('div','equipment-grid');eq.append(equipmentPaper(),equipmentStats());side.append(inventoryHeading('EQUIPMENT'),eq);
- item.append(detail());layout.append(pack,side,item);mBody.append(layout);
+ item.append(detail());layout.append(pack,item);mBody.append(layout);
 }
 let skillFocus='mining';
 function rSkills(){
@@ -768,7 +767,7 @@ function rSkills(){
   for(const sk of Object.keys(PETS)){
     const P=PETS[sk],st=save.pets[sk],row=el('div','shoprow');
     const sil=Object.fromEntries(Object.keys(ART[P.art].p).map(k=>[k,'#1d160e']));
-    row.innerHTML=(st?svg(P.art,32):svg(P.art,32,sil))+'<span>'+(st?P.name:'Unknown pet')+'<small>'+(st?(st===1?(sk==='forging'?'Following you · +3% Forging XP':'Following you'):'Resting'):NAMES[sk]+': about 1 in '+petOdds(sk)+' per '+P.what)+'</small></span>';
+    row.innerHTML=(st?svg(P.art,32):svg(P.art,32,sil))+'<span>'+(st?P.name:'Unknown pet')+'<small>'+(st?(st===1?(sk==='forging'?'Following you · +3% Forging XP':'Following you'):'Resting'):'Not yet discovered')+'</small></span>';
     if(st){const b=el('button','btn',st===1?'Dismiss':'Call');b.type='button';b.addEventListener('click',()=>{save.pets[sk]=st===1?2:1;syncPets();petsTeleport();persist();renderModal()});row.append(b)}
     else row.append(el('span'));
     mBody.append(row);
