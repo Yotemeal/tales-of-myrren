@@ -37,13 +37,21 @@
     const h=isTree?Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth):Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth);
     const dx=Math.round(x-w/2),dy=Math.round(y-h+4);
     if(!isTree){ctx.drawImage(entry.img,dx,dy,w,h);return true;}
-    // A brief, asynchronous gust every ~10-15 seconds per tree. Trunks never move.
+    // Short staggered gusts. A gradual bend avoids cutting the trunk in half.
     const seed=hash(n.x,n.y),cycle=10500+(seed%4500),t=(now+seed%9000)%cycle;
-    const gust=t<2100?Math.sin(Math.PI*t/2100):0;
-    const sway=Math.round(Math.sin(t*.015+seed%19)*gust*2);
-    const split=Math.round(h*.57),srcSplit=Math.round(entry.img.naturalHeight*.57);
-    ctx.drawImage(entry.img,0,srcSplit,entry.img.naturalWidth,entry.img.naturalHeight-srcSplit,dx,dy+split,w,h-split);
-    ctx.drawImage(entry.img,0,0,entry.img.naturalWidth,srcSplit,dx+sway,dy,w,split);
+    const gust=t<2100?Math.pow(Math.sin(Math.PI*t/2100),2):0;
+    const sway=Math.sin(t*.009+seed%19)*gust*2.5;
+    // Render in horizontal bands; movement fades smoothly to zero near the roots.
+    // A 2px overlap prevents subpixel gaps between adjacent bands.
+    const sourceH=entry.img.naturalHeight,sourceW=entry.img.naturalWidth;
+    const bands=24;
+    for(let i=0;i<bands;i++){
+      const top=Math.floor(i*sourceH/bands),bottom=Math.ceil((i+1)*sourceH/bands);
+      const y0=Math.round(i*h/bands),y1=Math.round((i+1)*h/bands);
+      const bend=Math.pow(Math.max(0,1-i/(bands*.84)),2);
+      const shift=Math.round(sway*bend);
+      ctx.drawImage(entry.img,0,top,sourceW,bottom-top,dx+shift,dy+y0,w,Math.max(1,y1-y0));
+    }
     // Sparse falling leaves, deterministic from tree position and frame time.
     if(gust>.12){
       const leafColors={tree:'#8ba75b',oak:'#9da95c',maple:'#b97843',elder:'#7d9b54',myrren:'#83b9c2'};
