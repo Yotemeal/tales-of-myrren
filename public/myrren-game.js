@@ -216,9 +216,9 @@ const VILLAGE=MyrrenWorld;
 const BLD=VILLAGE.buildings.map(b=>({...b}));
 const LAMPS=[[CX-116,CY+12],[CX+116,CY+12],[CX-82,CY+108],[CX+82,CY+108]];
 // A maintained camp: keep only essential community fixtures.
-const DECOR=[['board',CX+108,CY-38],['provisions',CX-185,CY-111],['provisions',CX+175,CY-112]];
+const DECOR=[['board',CX-8,CY-72],['provisions',CX-185,CY-111],['provisions',CX+175,CY-112]];
 const SOLID=DECOR.filter(d=>d[0]==='fence').map(d=>d[4]==='v'?{x0:d[1]-3,x1:d[1]+3,y0:d[2]-d[3]-2,y1:d[2]+1}:{x0:d[1]-2,x1:d[1]+d[3]+2,y0:d[2]-3,y1:d[2]+2});
-const BOARD={x:CX+108,y:CY-38};
+const BOARD={x:CX-8,y:CY-72};
 const TRADER={x:CX-142,y:CY-38,id:'cart'};
 const RX=176,RY=128;
 function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -1370,7 +1370,7 @@ function resolveSwing(now){
 }
 function nearFire(){return Math.hypot(me.x-(CX+176),me.y-(CY-90))<36}
 function nearestDoor(r){let best=null,bd=r;for(const b of BLD){if(!b.open)continue;const d=Math.hypot(b.x-me.x,b.y-me.y);if(d<bd){bd=d;best=b}}return best}
-const SPOTS={bank:{x:CX-133,y:CY+64},board:{x:BOARD.x,y:BOARD.y}};
+const SPOTS={bank:{x:CX-150,y:CY+114},board:{x:BOARD.x,y:BOARD.y}};
 function nearSpot(){let best=null,bd=36;for(const k in SPOTS){const d=Math.hypot(me.x-SPOTS[k].x,me.y-SPOTS[k].y);if(d<bd){bd=d;best=k}}return best}
 function nodeOK(n){
   const tx=n.x-me.x,ty=(n.y-(n.k.startsWith('spot')?0:2))-me.y,d=Math.hypot(tx,ty);
@@ -2464,19 +2464,22 @@ function drawSupply(x,y){
   if(Math.hypot(me.x-SPOTS.crate.x,me.y-SPOTS.crate.y)<64)label('Supply Crate',x,y-30,'#ffffff');
 }
 function drawBoard(x,y){
-  // Modest community noticeboard, returned to the side of the clearing.
-  R(x-22,y-5,4,30,'#4a382a');R(x+18,y-5,4,30,'#4a382a');
-  R(x-27,y-42,54,37,'#302b25');R(x-24,y-39,48,31,'#826446');
-  R(x-21,y-36,42,25,'#a68b62');
-  R(x-29,y-46,58,6,'#51402e');R(x-24,y-49,48,4,'#92714b');
+  // Compact Aros-inspired village board: short posts, dark shingled cap,
+  // pinned notices and a readable timber frame. No towering legs.
+  R(x-22,y-5,5,13,'#49382a');R(x+17,y-5,5,13,'#49382a');
+  R(x-27,y-34,54,31,'#292b28');R(x-24,y-31,48,25,'#785a3d');
+  R(x-21,y-28,42,19,'#b49a70');
+  R(x-30,y-36,60,5,'#384441');R(x-25,y-40,50,5,'#54645e');
+  R(x-18,y-43,36,4,'#73817a');
   for(let i=0;i<3;i++){
-    const px=x-17+i*13,py=y-32+(i%2)*3;
-    R(px,py,12,17,i===1?'#ded1a9':'#d0bd91');
-    R(px+2,py+5,8,1,'#7f7056');R(px+2,py+9,6,1,'#7f7056');
-    R(px+5,py+2,2,2,'#a07045');
+    const px=x-17+i*13,py=y-25+(i%2)*2;
+    R(px,py,11,13,i===1?'#e1d2a9':'#d4c099');
+    R(px+2,py+4,7,1,'#796d59');R(px+2,py+8,6,1,'#8b7a60');
+    R(px+5,py+1,2,2,'#76533a');
   }
-  if(save.jobs.some(j=>j.done))R(x+17,y-33,3,5,'#e5c97d');
-  if(Math.hypot(me.x-BOARD.x,me.y-BOARD.y)<65)label('Community Board',x,y-55,'#e4dfc3');
+  R(x-25,y-5,50,3,'#3c3229');
+  if(save.jobs.some(j=>j.done))R(x+19,y-26,3,4,'#f3d477');
+  if(Math.hypot(me.x-BOARD.x,me.y-BOARD.y)<65)label('Community Board',x,y-49,'#e4dfc3');
 }
 function drawWell(x,y){MyrrenEnvironment.prop(ctx,'well',x,y)}
 function drawStall(x,y,col){MyrrenEnvironment.prop(ctx,'stall',x,y,col)}
