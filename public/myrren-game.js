@@ -1470,7 +1470,7 @@ function start(){
   $('hud').hidden=false;$('chat').hidden=false;$('pad').hidden=false;$('acts').hidden=false;
   started=true;uiHud();refreshActionButtons();
   say('Welcome to Myrren, '+save.name+'.');
-  if(!(eqDef('weapon')&&eqDef('weapon').tool)&&!save.bag.some(id=>DEFS[id].tool))say('Buy a hatchet or pickaxe in town and equip it as your weapon. Face a tree or rock and press the tool button. Hold the sword button to fight. The lake is east of town.','gold');
+  if(!(eqDef('weapon')&&eqDef('weapon').tool)&&!save.bag.some(id=>DEFS[id].tool))say('Buy a hatchet or pickaxe in town and equip it as your weapon. Face a tree or rock and press the tool button. Hold the sword button to fight. Follow the southern path through the collapsed crater wall.','gold');
   persist();sendPresence();
 }
 $('go').addEventListener('click',start);
@@ -2603,27 +2603,44 @@ function drawOutdoor(cx,cy,now){
     const n={x:gx,y:gy,k:'tree',previewTree:rimKinds[i%rimKinds.length],back:0};
     list.push({y:gy,f:()=>drawTree(n,Math.round(gx-cx),Math.round(gy-cy),now)});
   }
-  // Monumental blast rim: overlapping tiers of fractured bedrock, radial
-  // ejecta slabs and stakes. Drawn in world-depth order like all other scenery.
-  for(let i=0;i<180;i++){
-    const a=i*Math.PI*2/180;
-    const wobble=Math.sin(i*2.31)*8+Math.cos(i*.71)*6;
+  // Impact crater escarpment: a continuous, high, fractured cliff rather
+  // than a row of pebble-sized sprites. All geometry stays scenery-only;
+  // collision is shared with MyrrenWorld.craterWall.
+  for(let i=0;i<112;i++){
+    const a=i*Math.PI*2/112;
+    const wobble=Math.sin(i*2.31)*7+Math.cos(i*.71)*5;
     const gx=CX+Math.cos(a)*(355+wobble),gy=CY+Math.sin(a)*(275+wobble*.7);
-    if(gy>CY+205&&Math.abs(gx-CX)<65)continue;
+    if(gy>CY+205&&Math.abs(gx-CX)<67)continue; // collapsed southern breach
     if(!vis(gx,gy))continue;
     list.push({y:gy,f:()=>{
-      const x=Math.round(gx-cx),y=Math.round(gy-cy),k=(i*17)%11;
-      // Dark impact scar beneath huge angular slabs; higher exposed rock face.
-      R(x-19,y-4,38,12,'#303c39');
-      R(x-18,y-21-k%7,36,23+k%7,'#505e57');
-      R(x-15,y-26-k%8,29,11,'#788177');
-      R(x-12,y-28-k%8,22,4,'#a5a394');
-      R(x-17,y-12,6,9,'#3d4a45');R(x+10,y-17,4,13,'#3a4844');
-      if(i%4===0){
-        R(x+3,y-38,5,21,'#48392f');R(x+4,y-44,3,8,'#a78b65');
-        R(x+3,y-32,1,11,'#9c7958');
-      }
-      if(i%5===0){R(x-11,y-23,7,3,'#5f7b56');R(x+8,y-9,5,2,'#6c8b61')}
+      const x=Math.round(gx-cx),y=Math.round(gy-cy),k=(i*17)%13;
+      const h=57+k*3,top=y-h;
+      // Ground shadow and rubble apron anchor the cliff to the terrain.
+      R(x-30,y-9,60,18,'#263630');
+      R(x-33,y-15,66,10,'#394b42');
+      R(x-28,y-27,56,20,'#4c5b50');
+      // Tall strata with broken, stepped edges and alternating stone faces.
+      R(x-28,top+13,56,h-26,'#47534c');
+      R(x-25,top+15,13,h-31,'#667066');
+      R(x-10,top+21,18,h-37,'#59665c');
+      R(x+12,top+17,12,h-33,'#384941');
+      R(x-31,top+12,18,16,'#778176');
+      R(x-14,top+5,24,18,'#929587');
+      R(x+9,top+10,23,16,'#747f74');
+      R(x-10,top+2,18,6,'#b1ad97');
+      R(x-25,top+14,7,3,'#aaa994');
+      // Vertical impact fractures and angled-looking split edges.
+      R(x-15,top+29,3,h-50,'#303e38');
+      R(x+10,top+25,3,h-48,'#303e38');
+      R(x-14,top+31,2,12,'#8c9383');
+      R(x+12,top+38,2,9,'#858c7b');
+      // Moss and roots slowly reclaim the shattered stone.
+      if(i%3===0){R(x-26,top+18,11,4,'#52794e');R(x+16,top+28,8,3,'#648659')}
+      // Defensive spikes are human additions, not the crater itself.
+      if(i%7===0){R(x+19,y-29,5,23,'#4c372c');R(x+20,y-35,3,8,'#a68a62')}
+      // Fractured foot: fallen blocks larger than the old rock sprites.
+      R(x-26,y-15,20,13,'#677168');R(x-23,y-17,15,4,'#999b89');
+      R(x+7,y-13,24,12,'#515e55');R(x+10,y-15,17,4,'#7f897b');
     }});
   }
   // Ejecta scattered away from the impact, increasingly sparse at distance.
