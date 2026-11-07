@@ -37,3 +37,9 @@ test('two separate gear rewards occupy two pack slots',()=>{
  a.commit(p,inv,bag);
  assert.deepEqual(bag,['steel_sword']);assert.equal(p.rejected.length,1);
 });
+
+test('invalid stack quantities never partially mutate other rewards',()=>{
+ const a=api(),inv={coins:10,bread:1},bag=[];
+ assert.throws(()=>a.commit({stack:{coins:2,bread:-1},equipment:[],rejected:[]},inv,bag),/Invalid stack quantity/);
+ assert.equal(inv.coins,10);assert.equal(inv.bread,1);
+});
