@@ -764,7 +764,7 @@ function rPack(){
  }
  layout.append(pack);mBody.append(layout);
 }
-let skillFocus='mining';
+let skillFocus=null;
 function rSkills(){
  const descriptions={
   melee:['Combat','Train by defeating creatures with your equipped weapon. Combat experience is awarded only when you get the kill, never for individual hits.','Stronger equipment needs a higher Combat level. Keep an eye on your health and eat when you need to recover.'],
@@ -774,12 +774,18 @@ function rSkills(){
   cooking:['Cooking','Cook raw fish at the village fire or bakery oven. Cooked food restores health when eaten.','Higher levels unlock more catches to cook and improve your chance of preparing a meal successfully.'],
   forging:['Forging','Smelt ore into ingots at the furnace for modest XP, then forge weapons and armour at the anvil for much higher XP.','Buying ingots is fast but expensive; mining your own ore takes longer. Equipment recipes unlock gradually within each metal tier.']
  };
- const k=skillFocus,info=descriptions[k],L=lvlFor(save.xp[k]),layout=el('div','skills-layout'),guide=el('section','skill-guide');
- guide.append(el('h3','',info[0].toUpperCase()),el('p','',info[1]),el('p','',info[2]),el('p','skill-xp','Level '+L+' · '+Math.floor(save.xp[k]).toLocaleString()+' experience'));
+ const k=skillFocus,layout=el('div','skills-layout');
  const grid=el('div','grid2 skill-grid');
- for(const skill of SK){const xp=save.xp[skill],level=lvlFor(xp),lo=xpTable[level],hi=level>=MAXL?xpTable[MAXL]:xpTable[level+1],pct=level>=MAXL?100:(xp-lo)/(hi-lo)*100,b=el('button','skill');b.type='button';b.setAttribute('aria-label',NAMES[skill]+' level '+level);b.setAttribute('aria-pressed',String(k===skill));b.innerHTML='<span class="skill-top"><span class="ic">'+svg(SKILL_ART[skill],40)+'</span><span class="level">'+level+'</span></span><b>'+NAMES[skill]+'</b><small>'+Math.floor(xp).toLocaleString()+' xp</small><span class="bar"><i style="width:'+pct+'%"></i><span>'+pct.toFixed(0)+'%</span></span>';b.addEventListener('click',()=>{skillFocus=skill;renderModal()});grid.append(b)}
+ for(const skill of SK){const xp=save.xp[skill],level=lvlFor(xp),lo=xpTable[level],hi=level>=MAXL?xpTable[MAXL]:xpTable[level+1],pct=level>=MAXL?100:(xp-lo)/(hi-lo)*100,b=el('button','skill');b.type='button';b.setAttribute('aria-label',NAMES[skill]+' level '+level);b.setAttribute('aria-pressed',String(k===skill));b.innerHTML='<span class="skill-top"><span class="ic">'+svg(SKILL_ART[skill],40)+'</span><span class="level">'+level+'</span></span><b>'+NAMES[skill]+'</b><small>'+Math.floor(xp).toLocaleString()+' xp</small><span class="bar"><i style="width:'+pct+'%"></i><span>'+pct.toFixed(0)+'%</span></span>';b.addEventListener('click',()=>{skillFocus=skillFocus===skill?null:skill;renderModal()});grid.append(b)}
  grid.append(el('div','skill total','<span class="skill-top"><span class="ic">'+svg('coins',40)+'</span><span class="level">'+totalLevel()+'</span></span><b>Total level</b><small>Health '+me.hp+' / '+hpMax()+'</small>'));
- layout.append(guide,grid);mBody.append(layout);
+ layout.append(grid);
+ if(k&&descriptions[k]){
+   const info=descriptions[k],L=lvlFor(save.xp[k]),pop=el('section','skill-info-popover'),close=el('button','skill-info-close','×');
+   close.type='button';close.setAttribute('aria-label','Close skill information');close.addEventListener('click',()=>{skillFocus=null;renderModal()});
+   pop.append(close,el('h3','',info[0].toUpperCase()),el('p','',info[1]),el('p','',info[2]),el('p','skill-xp','Level '+L+' · '+Math.floor(save.xp[k]).toLocaleString()+' experience'));
+   layout.append(pop);
+ }
+ mBody.append(layout);
 
 }
 const peers=new Map();
