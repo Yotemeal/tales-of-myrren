@@ -763,15 +763,7 @@ function rSkills(){
  for(const skill of SK){const xp=save.xp[skill],level=lvlFor(xp),lo=xpTable[level],hi=level>=MAXL?xpTable[MAXL]:xpTable[level+1],pct=level>=MAXL?100:(xp-lo)/(hi-lo)*100,b=el('button','skill');b.type='button';b.setAttribute('aria-label',NAMES[skill]+' level '+level);b.setAttribute('aria-pressed',String(k===skill));b.innerHTML='<span class="skill-top"><span class="ic">'+svg(SKILL_ART[skill],40)+'</span><span class="level">'+level+'</span></span><b>'+NAMES[skill]+'</b><small>'+Math.floor(xp).toLocaleString()+' xp</small><span class="bar"><i style="width:'+pct+'%"></i><span>'+pct.toFixed(0)+'%</span></span>';b.addEventListener('click',()=>{skillFocus=skill;renderModal()});grid.append(b)}
  grid.append(el('div','skill total','<span class="skill-top"><span class="ic">'+svg('coins',40)+'</span><span class="level">'+totalLevel()+'</span></span><b>Total level</b><small>Health '+me.hp+' / '+hpMax()+'</small>'));
  layout.append(guide,grid);mBody.append(layout);
-  mBody.append(el('h3','sub','Pets'));
-  for(const sk of Object.keys(PETS)){
-    const P=PETS[sk],st=save.pets[sk],row=el('div','shoprow');
-    const sil=Object.fromEntries(Object.keys(ART[P.art].p).map(k=>[k,'#1d160e']));
-    row.innerHTML=(st?svg(P.art,32):svg(P.art,32,sil))+'<span>'+(st?P.name:'Unknown pet')+'<small>'+(st?(st===1?(sk==='forging'?'Following you · +3% Forging XP':'Following you'):'Resting'):'Not yet discovered')+'</small></span>';
-    if(st){const b=el('button','btn',st===1?'Dismiss':'Call');b.type='button';b.addEventListener('click',()=>{save.pets[sk]=st===1?2:1;syncPets();petsTeleport();persist();renderModal()});row.append(b)}
-    else row.append(el('span'));
-    mBody.append(row);
-  }
+
 }
 const peers=new Map();
 function rPlayers(){
