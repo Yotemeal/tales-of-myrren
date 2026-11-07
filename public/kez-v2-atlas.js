@@ -61,7 +61,7 @@ window.MyrrenKezV2Atlas={
   ctx.save();ctx.imageSmoothingEnabled=false;
   ctx.translate(Math.round(x),Math.round(y));
   if(o.dv==='s'&&(o.f||1)<0)ctx.scale(-1,1);
-  ctx.drawImage(atlas,phase*16,dir*28,16,28,-8,-28,16,28);
+  ctx.drawImage(atlas,phase*16,dir*28,16,28,-7,-23,14,23);
   ctx.restore();
  }
 };
