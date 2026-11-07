@@ -24,4 +24,5 @@ jobs:
       - run: node --check public/crater-loot-preview.js
       - run: node --check public/crater-loot-tables.js
       - run: node --check public/crater-loot-inventory.js
-      - run: node --test tests/crater-loot*.test.*
+      - run: node --check public/crater-boss-rewards.js
+      - run: node --test tests/crater-loot*.test.* tests/crater-boss-rewards.test.cjs
