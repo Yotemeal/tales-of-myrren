@@ -1,0 +1,51 @@
+const assert=require('node:assert/strict');
+const createGame=require('./game-runtime.cjs');
+
+(async()=>{
+ const {game:normal}=await createGame();
+ assert(!normal.mons.some(m=>m.t==='goblin_guard'));
+ const {game:g}=await createGame({}, {search:'?craterPreview=1'});
+ const guards=g.mons.filter(m=>m.t==='goblin_guard');
+ assert(guards.length>0);
+ assert(guards.every(m=>m.miner?.t==='goblin'));
+ assert.equal(g.MT.goblin_guard.lv,16);
+ const guard=guards[0],miner=guard.miner;
+ g.mons.splice(0,g.mons.length,miner,guard);
+ Object.assign(guard,{x:1400,y:800,hx:1400,hy:800});
+ Object.assign(miner,{x:1380,y:800,hx:1380,hy:800,state:'idle',wx:1380,wy:800,w:10});
+ Object.assign(g.me,{x:1410,y:800,hp:g.hpMax()});
+ g.update(.05,1000);
+ assert.equal(guard.state,'idle','protector waits until its miner is threatened');
+ miner.state='chase';
+ g.update(.05,1050);
+ assert.equal(guard.state,'chase');
+ miner.state='dead';
+ miner.back=20000;
+ guard.cd=g.MT.goblin_guard.iv;
+ g.update(.05,1100);
+ assert.equal(guard.guardStrikeAt,1100,'protector keeps fighting and telegraphs a slash');
+ const hp=g.me.hp,random=Math.random;
+ try{
+  Math.random=()=>0;
+  g.update(.05,1399);
+  assert.equal(g.me.hp,hp);
+  g.update(.05,1400);
+  assert(g.me.hp<hp);
+  const after=g.me.hp;
+  g.update(.05,1450);
+  assert.equal(g.me.hp,after,'one hit per slash');
+  guard.cd=g.MT.goblin_guard.iv;
+  g.update(.05,1700);
+  assert.equal(guard.guardStrikeAt,1700);
+  g.me.y=825;
+  g.update(.05,2000);
+  assert.equal(g.me.hp,after,'stepping away dodges the slash');
+  assert.equal(g.craterRocks.rocks.length,0,'protector attacks in melee');
+  guard.guardStrikeAt=2100;
+  g.me.x=1200;
+  g.update(.05,2200);
+  assert.equal(guard.state,'return');
+  assert.equal(guard.guardStrikeAt,null);
+ }finally{Math.random=random}
+ console.log('PASS: preview-only protectors defend nearby miners, wind up, hit once, can be dodged and cancel on leash.');
+})().catch(e=>{console.error(e);process.exitCode=1});

@@ -1,13 +1,15 @@
-/* The R3 gatherer poses follow the preview's simulation-driven rock throw. */
+/* Approved R3 gatherer and protector poses for the combat preview. */
 (()=>{'use strict';
  function create(){
-  let atlas=null,creature=null;
+  let atlas=null;
+  const creatures=new Map();
   async function load(){
    try{
     const response=await fetch('/crater-reference-frames.json?v=2');
     if(!response.ok)return false;
     const metadata=await response.json();
     const miner=metadata.creatures.find(c=>c.id==='goblin_miner');
+    const guard=metadata.creatures.find(c=>c.id==='goblin_guard');
     const image=await new Promise((resolve,reject)=>{
      const source=new Image();
      source.onload=()=>resolve(source);
@@ -19,7 +21,7 @@
     canvas.height=image.naturalHeight;
     const ctx=canvas.getContext('2d',{willReadFrequently:true});
     ctx.drawImage(image,0,0);
-    for(const clip of Object.values(miner.states))for(const frame of clip.frames){
+    for(const creature of [miner,guard])for(const clip of Object.values(creature.states))for(const frame of clip.frames){
      const pixels=ctx.getImageData(frame.x,frame.y,frame.w,frame.h);
      for(let i=0;i<pixels.data.length;i+=4){
       const r=pixels.data[i],g=pixels.data[i+1],b=pixels.data[i+2];
@@ -33,18 +35,27 @@
     release.anchorX=36;
     // Trim the board divider at the right edge of the recovery crop.
     miner.states.attack.frames[3].w-=5;
+    const guardAttack=guard.states.attack.frames;
+    guardAttack[0].w-=10;
+    guardAttack[1].w-=5;
+    guardAttack[3].w-=5;
     atlas=canvas;
-    creature=miner;
+    creatures.set('goblin',miner);
+    creatures.set('goblin_guard',guard);
     return true;
    }catch{return false}
   }
   function draw(ctx,monster,x,y,now,{moving,hitAge,windup}){
    const animation=window.MyrrenCraterAnimation;
-   if(!atlas||!animation||monster.t!=='goblin')return false;
+   const creature=creatures.get(monster.t);
+   if(!atlas||!animation||!creature)return false;
    const {states,draftFitHeight,fitSourceHeight}=creature;
-   const releaseAge=now-(monster.rockReleasedAt??-Infinity);
+   const guard=monster.t==='goblin_guard';
+   const releaseAge=now-((guard?monster.lunge:monster.rockReleasedAt)??-Infinity);
    let frame;
-   if(monster.state==='dead')frame=animation.frameAt(states.death,now-monster.dieAt,170).frame;
+   // The protector death cells on R3 show the gatherer. Keep its own silhouette on fade.
+   if(monster.state==='dead')frame=guard?states.hit.frames[0]:animation.frameAt(states.death,now-monster.dieAt,170).frame;
+   else if(monster.guardStrikeAt!=null)frame=states.attack.frames[now-monster.guardStrikeAt<windup/2?0:1];
    else if(monster.rockCast)frame=states.attack.frames[now-monster.rockCast.at<windup/2?0:1];
    else if(monster.state==='chase'&&releaseAge>=0&&releaseAge<220)frame=states.attack.frames[releaseAge<110?2:3];
    else if(hitAge>=0&&hitAge<260)frame=states.hit.frames[0];
@@ -54,5 +65,5 @@
   }
   return {load,draw,get ready(){return !!atlas}};
  }
- window.MyrrenCraterMiner={create};
+ window.MyrrenCraterGoblins={create};
 })();
