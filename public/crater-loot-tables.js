@@ -20,6 +20,7 @@
   if(!id||!mt)return null;
   if(id==='jewelheart_guardian')return null; // Boss rehearsal never awards progression.
   if(!Array.isArray(mt.coins)||!mt.drop)return null;
+  if(!Number.isFinite(mt.bread)||!Number.isFinite(mt.drop.p))return null;
   const breadBps=Math.round(mt.bread*10000);
   const gearBps=Math.round(mt.drop.p*10000);
   if(!Number.isInteger(breadBps)||breadBps<0||breadBps>10000||
