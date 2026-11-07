@@ -1,5 +1,6 @@
 /* Atomic planning for Crater rewards: no mutation until the entire plan is valid.
  * Equipment stays separate (duplicates are never silently converted to coins).
+ * Capacity checks receive inventory deltas, not absolute quantities.
  * When a bag is full, coins and existing stacks may still be awarded.
  */
 (()=>{'use strict';
