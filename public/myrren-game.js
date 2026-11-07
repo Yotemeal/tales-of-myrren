@@ -547,20 +547,19 @@ function uiHud(){
   uiCurrencies();
 }
 document.querySelectorAll('[data-i]').forEach(e=>{const k=e.dataset.i;e.innerHTML=ITEMS[k]?itemSvg(k,22):svg(k,22)});
-// Approved Crater HUD icons: visual-only keys, separate from equipment/item art.
-// Each icon is a crisp 12px pixel grid, scaled by the existing SVG renderer.
-Object.assign(ART,{
-  hud_helm:{m:["............","....DDDD....","...DHHHHD...","..DHHLLHHD..",".DHHLLLLHHD.",".DHHLLLLHHD.","DHHHDDDDHHHD","DHHDD..DDHHD","DHHDD..DDHHD",".DDD....DDD.","..D......D..","............"],p:{D:'#342d2e',H:'#84939a',L:'#e4e5d7'}},
-  hud_skills:{m:["............","..G.....G...","..GG...GG...","...G...G....","...GG.GG....","....GGG.....","..DDGGGDD...","..DGGGGGD...","..DDGGGDD...","....DDD.....",".....D......","............"],p:{G:'#c9dce0',D:'#6d5038'}},
-  hud_jobs:{m:["............","..DDDDDD....","..DHHHHD....","..DHHHHD....","..DHHHHD....","..DHHHHD....","..DHHHHD....","..DHHHHD....","..DHHHHD....","..DHHHHD....","..DDDDDD....","............"],p:{D:'#835532',H:'#f0dfb5'}},
-  hud_settings:{m:["....DDDD....","...DHHHHD...","..DDHDDHDD..",".DHHHHHHHHD.","DDHHDDDDHHDD","DHHHD..DHHHD","DHHHD..DHHHD","DDHHDDDDHHDD",".DHHHHHHHHD.","..DDHDDHDD..","...DHHHHD...","....DDDD...."],p:{D:'#695036',H:'#e0ba72'}},
-  hud_bag:{m:["............","....DDDD....","...DHHHHD...","...DHHHHD...","..DDDDDDDD..",".DHHHHHHHHD.",".DHHHHHHHHD.",".DHHDDHHHHD.",".DHHDDHHHHD.",".DHHHHHHHHD.","..DDDDDDDD..","............"],p:{D:'#54351e',H:'#d6a15a'}}
-});
+// Minimal Crater menu icons: single-weight gold outlines matching approved UI.
+// These affect HUD navigation only, never equipment or inventory item sprites.
+const HUD_LINE_ICONS={
+  helm:'<path d="M12 3 4.5 6.5V13c0 5 3.2 7.7 7.5 9 4.3-1.3 7.5-4 7.5-9V6.5L12 3Z"/>',
+  pick:'<path d="M5 20v-5M12 20V9M19 20V4"/>',
+  scroll:'<path d="M7 4h11a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3V7a3 3 0 0 0-3-3h5Zm-5 0a3 3 0 0 1 3 3v2h5V7a3 3 0 0 0-3-3M9 10h8M9 14h7M9 18h6"/>',
+  cog:'<path d="M10 2h4l.7 2.3 1.8.8 2.1-1.1 2.8 2.8-1.1 2.1.8 1.8L23 11v4l-2.3.7-.8 1.8 1.1 2.1-2.8 2.8-2.1-1.1-1.8.8L14 23h-4l-.7-2.3-1.8-.8-2.1 1.1-2.8-2.8 1.1-2.1-.8-1.8L1 15v-4l2.3-.7.8-1.8L3 6.4l2.8-2.8 2.1 1.1 1.8-.8L10 2Z"/><circle cx="12" cy="13" r="3"/>',
+  bag:'<rect x="4" y="7" width="16" height="15" rx="3"/><path d="M9 7V5a3 3 0 0 1 6 0v2M8 13h8v6H8zM10 16h4"/>'
+};
 document.querySelectorAll('#hudR [data-i]').forEach(e=>{
-  const icon={helm:'hud_helm',pick:'hud_skills',scroll:'hud_jobs',cog:'hud_settings',bag:'hud_bag'}[e.dataset.i];
-  if(icon)e.innerHTML=svg(icon,27);
+  const art=HUD_LINE_ICONS[e.dataset.i];
+  if(art)e.innerHTML='<svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="#dfbc86" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+art+'</svg>';
 });
-
 
 /* ---------- gear actions ---------- */
 let tab='',sel=null,shopCat='weapons',lastTab='gear';
