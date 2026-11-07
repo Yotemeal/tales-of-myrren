@@ -61,7 +61,7 @@ function median(values){
 (async()=>{
  const runs=Number(process.argv[2]||40);
  if(!Number.isInteger(runs)||runs<1)throw Error('Run count must be a positive integer.');
- for(const [bossHp,maxHit] of [[42,6],[120,6],[120,18]])for(const material of ['iron','steel','cobalt'])for(const dodge of [false,true]){
+ for(const [bossHp,maxHit] of [[42,6],[120,6],[120,18],[200,18]])for(const material of ['iron','steel','cobalt'])for(const dodge of [false,true]){
   // Black Iron armour requires level 45. Use only its level 30 sword.
   const settings={bossHp,maxHit,material,dodge};
   const results=[];
