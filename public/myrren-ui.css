@@ -3032,3 +3032,50 @@ input[type=range] {
 #modal[data-screen="skills"] .skill {
   padding-bottom: 15px;
 }
+
+/* Skills polish: consistent compact tiles and no excess blank space. */
+#modal[data-screen="skills"] .win {
+  grid-template-rows: 32px minmax(0,auto) 30px;
+  gap: 3px;
+}
+#modal[data-screen="skills"] #mBody { padding: 3px 4px; }
+#modal[data-screen="skills"] .skills-layout { margin: 0; }
+#modal[data-screen="skills"] .skill-grid {
+  gap: 4px;
+  align-content: start;
+}
+#modal[data-screen="skills"] .skill {
+  height: 70px;
+  padding: 3px 2px 16px;
+  gap: 1px;
+}
+#modal[data-screen="skills"] .skill .skill-top {
+  min-height: 25px;
+  gap: 3px;
+}
+#modal[data-screen="skills"] .skill .bar {
+  height: 11px;
+  bottom: 3px;
+}
+#modal[data-screen="skills"] .skill.total {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding: 5px 2px;
+}
+#modal[data-screen="skills"] .skill.total .skill-top {
+  justify-content: center;
+  min-height: 0;
+}
+#modal[data-screen="skills"] .skill.total .level { font-size: 23px; }
+#modal[data-screen="skills"] .skill.total small { white-space: nowrap; }
+@media (max-width:620px) {
+  #modal[data-screen="skills"] .skill-grid { gap: 3px; }
+  #modal[data-screen="skills"] .skill { height: 66px; }
+  #modal[data-screen="skills"] .skill.total { height: 66px; }
+}
+@media (orientation:landscape) and (max-height:600px) {
+  #modal[data-screen="skills"] .skill { height: 62px; }
+  #modal[data-screen="skills"] .skill.total { height: 62px; }
+}
