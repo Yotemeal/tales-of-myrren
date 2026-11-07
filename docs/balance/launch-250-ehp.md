@@ -55,3 +55,15 @@ Record current cap and per-level XP table; record real action times and highest 
 - XP scales with recipe tier and ingot quantity, with diminishing opportunities for trivial low-tier recipe abuse. Avoid profitable unlimited vendor loops: compare input material market value, sale price, coin sinks and equipment demand.
 - Never grant both smelting and crafting XP for the same action; award once upon successful completion and prevent inventory duplication or canceled-action XP.
 - Add tests for per-recipe XP, material consumption, failure/cancel cases, skill requirements, buying-vs-mining time, coins per XP, and supply-driven inflation.
+
+## Runtime audit (2026-11-07)
+- Source: public/myrren-game.js on this branch.
+- Current skill registry is exactly melee, woodcutting, mining, fishing, cooking. Forging is NOT implemented as a sixth skill.
+- Current smelt() and forge() award mining XP, and both gate on mining level. This must change to Forging XP/level for production while preserving Delving for ore gathering.
+- Existing SMELT tier requirements and smelt XP: bronze 1/12, iron 10/30, steel 20/55, black iron 30/140, obsidian 40/300, myrrenite 55/600, starsteel 70/1000.
+- Existing equipment ingot costs: axe 3, pick 3, sword 4, shield 5, helm 4, gloves 4, boots 4, legs 5, body 6.
+- Existing forge() grants mining XP equal to ingot cost * round(smelt XP / 2), so current craft XP is only roughly 1.5x–3x smelting per ingot, contrary to the new intended 85% crafting share.
+- MAXL=100 and XPK=24 in current runtime; do not change XP curve until EHP simulation has measured action times and unlock requirements.
+- Migration required: initialize forging XP to zero on new and old saves; include in save/export and skill UI; ensure old mining XP remains unchanged (no retroactive reassignment).
+- Existing equipment shop pricing is derived from 2x ingot sell value, while sellVal applies a 0.25 factor; test profit loops before changing XP or shop prices.
+- Suggested implementation sequence: add Forging registry and save migration, reassign production XP and level gates, add dedicated skill UI, calibrate XP per recipe and duration, then test economy and save compatibility. Do not deploy partial changes.
