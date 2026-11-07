@@ -1414,7 +1414,7 @@ const PETS={
   woodcutting:{name:'Timber Glider',art:'pet_glider',what:'log'},
   fishing:{name:'Mossback Terrapin',art:'pet_terrapin',what:'catch'},
   mining:{name:'Geode Mole',art:'pet_mole',what:'ore'},
-  forging:{name:'Cinder Wisp',art:'ingot',what:'forge'}
+  forging:{name:'Living Anvil',art:'ingot',what:'forge'}
 };
 const pets=[],petObjs={};
 function syncPets(){
@@ -2224,20 +2224,47 @@ function drawMole(p,x,y,now){
     }
   }
 }
-function drawCinderWisp(p,x,y,now){
-  const bob=Math.round(Math.sin(now/230+p.ph)*2),cy=y-7+bob;
-  R(x-5,y-1,10,2,'rgba(0,0,0,.18)');
-  R(x-3,cy-2,6,6,'#602f29');
-  R(x-2,cy-4,4,7,'#e66b28');
-  R(x-1,cy-6,2,7,'#ffd15a');
-  R(x,cy-7,1,3,'#fff2ad');
-  R(x-2,cy,1,1,'#241a23');R(x+1,cy,1,1,'#241a23');
-  if(Math.floor(now/180)%3===0)R(x+4,cy-5,1,2,'#ffcf64');
+/* Living Anvil: native pixel-art follower; idle glow, alternating steel feet, rare forge sparks. */
+function drawLivingAnvil(p,x,y,now){
+  const walking=p.moving;
+  const step=walking?Math.floor(now/135)%2:0;
+  const bob=walking?(step?1:0):Math.round(Math.sin(now/340+p.ph)*.7);
+  const cy=y-5+bob;
+  const glow=Math.floor(now/220)%4===0?'#fff1a3':'#ff9d38';
+  // Feet and shadow (each leg alternates when following).
+  R(x-8,y-1,16,2,'rgba(0,0,0,.22)');
+  R(x-6,y-5+(walking?step:0),5,4,'#27232e');
+  R(x+2,y-5+(walking?1-step:0),5,4,'#27232e');
+  R(x-6,y-3+(walking?step:0),5,2,'#c96b30');
+  R(x+2,y-3+(walking?1-step:0),5,2,'#c96b30');
+  // Face housing and orange eyes.
+  R(x-5,cy-3,10,6,'#171a24');R(x-4,cy-2,8,4,'#42424d');
+  R(x-3,cy,2,2,glow);R(x+2,cy,2,2,glow);
+  // Broad anvil silhouette: horn to the left, heel to the right.
+  R(x-10,cy-12,19,4,'#171923');
+  R(x-11,cy-11,20,2,'#656573');
+  R(x-9,cy-13,16,2,'#a3a3ad');
+  R(x-11,cy-10,5,2,'#34333e');
+  R(x+7,cy-11,4,3,'#555361');
+  R(x-6,cy-8,13,6,'#242631');
+  R(x-5,cy-8,11,2,'#646370');
+  R(x-4,cy-6,9,3,'#3c3b47');
+  // Forged rune and seams brighten and dim with idle breathing.
+  R(x,cy-6,2,1,glow);R(x-1,cy-5,1,1,'#ed742b');R(x+2,cy-5,1,1,'#ed742b');
+  R(x-5,cy-3,2,1,'#b65b2d');R(x+4,cy-3,2,1,'#b65b2d');
+  // A brief spark burst every few seconds; never affects gameplay.
+  const spark=(now+Math.floor(p.ph*1000))%4200;
+  if(spark<460){
+    const rise=Math.floor(spark/85);
+    R(x+2,cy-14-rise,1,2,'#ffd46a');
+    if(spark<300)R(x-5,cy-13-Math.floor(spark/100),1,1,'#ff8c37');
+    if(spark<180)R(x+6,cy-15,1,1,'#fff1b2');
+  }
 }
 function drawPet(p,x,y,now){
   if(p.sk==='woodcutting')drawGlider(p,x,y,now);
   else if(p.sk==='fishing')drawTerrapin(p,x,y,now);
-  else if(p.sk==='forging')drawCinderWisp(p,x,y,now);
+  else if(p.sk==='forging')drawLivingAnvil(p,x,y,now);
   else drawMole(p,x,y,now);
 }
 function drawLamp(x,y,now){MyrrenEnvironment.prop(ctx,'lamp',x,y,null,null,now)}
