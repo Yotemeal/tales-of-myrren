@@ -25,5 +25,5 @@
  ].map(p=>({...p,reference:'R5',bonusPercent:3,bonusRequiresSummoned:true,atlas:null}));
  function freeze(value){if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value)}return value}
  window.MyrrenCrater=freeze({hostiles,wildlife,pets,rockDamageApproved:true,
-  previewEnabled:search=>/(?:^|[?&])craterPreview=1(?:&|$)/.test(String(search||''))});
+  previewEnabled:search=>!/(?:^|[?&])craterPreview=0(?:&|$)/.test(String(search||''))});
 })();
