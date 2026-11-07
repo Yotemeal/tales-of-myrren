@@ -2506,6 +2506,17 @@ function drawVillageFalls(cx,cy,now){for(const bridge of VILLAGE.bridges)MyrrenE
 function drawVillageArchitecture(b,x,y,now){/* Architecture is composed once in the environment atlas. */}
 function drawVillageSquare(cx,cy,now){ctx.save();if(Math.abs(me.x-CX)<14&&me.y<CY+57&&me.y>CY+18)ctx.globalAlpha=.45;MyrrenEnvironment.square(ctx,Math.round(CX-cx),Math.round(CY+57-cy),now);ctx.restore()}
 function drawBuilding(b,x,y,now){MyrrenEnvironment.building(ctx,b,x,y,now)}
+// Low, improvised stalls keep the original shop triggers without a row of houses.
+function drawCampPitch(b,x,y,now){
+  R(x-27,y-4,54,5,'#443b2e');R(x-23,y-13,46,10,'#826c4e');
+  R(x-25,y-29,3,25,'#66513a');R(x+22,y-29,3,25,'#66513a');
+  R(x-29,y-34,58,6,'#4b5d4e');R(x-25,y-39,50,6,'#788069');
+  R(x-20,y-43,40,5,'#9b9573');
+  R(x-18,y-16,36,4,'#b19870');R(x-13,y-12,26,3,'#65513b');
+  const icon=b.id==='pick'?'#9da7a0':b.id==='food'?'#b77b48':'#6c99a1';
+  R(x-6,y-23,12,6,icon);R(x-3,y-26,6,3,'#d4c29b');
+}
+
 
 function drawInterior(cx,cy,now){
   const S=SHOPS[inside.id],X=v=>Math.round(v-cx),Y=v=>Math.round(v-cy);
@@ -2557,9 +2568,21 @@ function drawOutdoor(cx,cy,now){
     const d=VILLAGE.waterDistance(wx+8,wy+8),kind=boundary?'boundary':pathAt(tx,ty);
     const edge=kind==='path'||kind==='plaza'?(pathAt(tx,ty-1)==='grass'?1:0)|(pathAt(tx,ty+1)==='grass'?2:0)|(pathAt(tx-1,ty)==='grass'?4:0)|(pathAt(tx+1,ty)==='grass'?8:0):0;
     MyrrenEnvironment.terrain(ctx,tx,ty,x,y,d<-18?'water':kind,now,edge);
+    // Cleared, lived-in crater floor: compacted earth, ash, and recovering growth.
+    // Townsfolk maintain the basin; no uninterrupted dark-green lawn.
+    const basin=Math.hypot((wx+8-CX)/305,(wy+8-CY)/235);
+    if(basin<.84&&kind==='grass'){
+      const grain=H2(tx+93,ty-71)%13;
+      R(x,y,16,16,grain<3?'#74634c':grain<7?'#796b53':grain<10?'#807158':'#6c614e');
+      if(grain%3===0){R(x+2,y+5,5,2,'#948369');R(x+10,y+12,4,2,'#5d5647')}
+      if(grain===1||grain===8){
+        R(x+8,y+11,2,4,'#668258');R(x+5,y+12,3,2,'#789663');
+        R(x+10,y+13,2,2,'#4b704b');
+      }
+    }
     // The Camp lies inside the overgrown impact crater of the lost trading city.
     // Subtle rocky terraces, not a solid wall: all existing routes stay open.
-    const craterR=Math.hypot((wx+8-CX)/355,(wy+8-CY)/275);
+    const craterR=Math.hypot((wx+8-CX)/305,(wy+8-CY)/235);
     if(d>25&&kind==='grass'&&craterR>.70&&craterR<1.35){
       const grit=H2(tx+731,ty-391)%17;
       // Two softly staggered rock shelves form the crater's visible inner wall.
@@ -2578,7 +2601,18 @@ function drawOutdoor(cx,cy,now){
     if(kind==='grass'&&d>24&&VILLAGE.dryFootprint(wx+8,wy+15,14,19,2,4)&&H2(tx,ty)%113===0)MyrrenEnvironment.fern(ctx,x+8,y+15,H2(tx,ty)%4);
   }
   const smithy=BLD.find(b=>b.open);
-  MyrrenEnvironment.smithyFloor(ctx,Math.round(smithy.x-cx),Math.round(smithy.y-cy));
+  // Compact stone-and-timber forge courtyard instead of a featureless slab.
+  const sx=Math.round(smithy.x-cx),sy=Math.round(smithy.y-cy);
+  R(sx-65,sy-13,129,30,'#625849');
+  for(let j=0;j<8;j++){
+    const px=sx-61+j*16;
+    R(px,sy-12,14,2,j%2?'#8e806a':'#9c8b71');
+    R(px+3,sy+7,10,2,'#50483d');
+  }
+  R(sx-66,sy-17,133,5,'#3d423b');
+  R(sx-64,sy+15,129,4,'#343e38');
+  R(sx-58,sy-25,4,12,'#68513a');R(sx+56,sy-25,4,12,'#68513a');
+
   for(const d of decals){const a=1-(now-d.t)/25000;ctx.globalAlpha=Math.max(0,a);const x=Math.round(d.x-cx),y=Math.round(d.y-cy);R(x-5,y-1,10,3,d.c);R(x-2,y-3,5,2,d.c);R(x+3,y+2,3,2,d.c);R(x-7,y+1,2,2,d.c);ctx.globalAlpha=1}
 
   const list=[];
@@ -2623,8 +2657,8 @@ function drawOutdoor(cx,cy,now){
   for(let i=0;i<112;i++){
     const a=i*Math.PI*2/112;
     const wobble=Math.sin(i*2.31)*7+Math.cos(i*.71)*5;
-    const gx=CX+Math.cos(a)*(355+wobble),gy=CY+Math.sin(a)*(275+wobble*.7);
-    if(gy>CY+205&&Math.abs(gx-CX)<67)continue; // collapsed southern breach
+    const gx=CX+Math.cos(a)*(305+wobble),gy=CY+Math.sin(a)*(235+wobble*.7);
+    if(gy>CY+172&&Math.abs(gx-CX)<65)continue; // collapsed southern breach
     if(!vis(gx,gy))continue;
     list.push({y:gy,f:()=>{
       const x=Math.round(gx-cx),y=Math.round(gy-cy),k=(i*17)%13;
@@ -2659,9 +2693,9 @@ function drawOutdoor(cx,cy,now){
   }
   // Ejecta scattered away from the impact, increasingly sparse at distance.
   for(let i=0;i<78;i++){
-    const a=i*2.3999632297,r=395+(i%7)*22;
+    const a=i*2.3999632297,r=350+(i%7)*22;
     const gx=CX+Math.cos(a)*r,gy=CY+Math.sin(a)*r*.76;
-    if(gy>CY+195&&Math.abs(gx-CX)<85)continue;
+    if(gy>CY+170&&Math.abs(gx-CX)<85)continue;
     if(!vis(gx,gy)||VILLAGE.waterDistance(gx,gy)<20)continue;
     list.push({y:gy,f:()=>{
       const x=Math.round(gx-cx),y=Math.round(gy-cy),w=8+(i%4)*4;
@@ -2708,7 +2742,13 @@ function drawOutdoor(cx,cy,now){
   for(const c of crits)if(vis(c.x,c.y))list.push({y:c.y,f:()=>drawCritter(c,Math.round(c.x-cx),Math.round(c.y-cy),now)});
   list.push({y:CY+57,f:()=>drawVillageSquare(cx,cy,now)});
   if(vis(SPOTS.bank.x,SPOTS.bank.y))list.push({y:SPOTS.bank.y,f:()=>drawBankChest(Math.round(SPOTS.bank.x-cx),Math.round(SPOTS.bank.y-cy))});
-  for(const b of BLD)if(!b.open)list.push({y:b.y,f:()=>drawBuilding(b,Math.round(b.x-cx),Math.round(b.y-cy),now)});
+  // Only the general store is a permanent building. Other existing shops
+  // remain usable as small canvas trade pitches instead of extra houses.
+  for(const b of BLD)if(!b.open)list.push({y:b.y,f:()=>{
+    const x=Math.round(b.x-cx),y=Math.round(b.y-cy);
+    if(b.id==='axe')drawBuilding(b,x,y,now);
+    else drawCampPitch(b,x,y,now);
+  }});
   for(const station of VILLAGE.stations)list.push({y:station.y,f:()=>{
     const x=Math.round(station.x-cx),y=Math.round(station.y-cy);
     MyrrenEnvironment.smithyPart(ctx,station.kind,x,y,now);
