@@ -2,14 +2,15 @@
 const MAX_WEIGHT = Number.MAX_SAFE_INTEGER;
 function validCount(n){return Number.isSafeInteger(n)&&n>=1}
 function chance(n){return Number.isInteger(n)&&n>=0&&n<=10000}
+function validTarget(e){return (typeof e.itemId==='string'&&e.itemId.trim()&&!e.tableId)||(typeof e.tableId==='string'&&e.tableId.trim()&&!e.itemId)}
 function entry(e, weighted=false){
-  if(!e||typeof e!=='object'||(!e.tableId&&(typeof e.itemId!=='string'||!e.itemId.trim()))||!validCount(e.quantity??1)) throw new TypeError('Invalid loot entry');
+  if(!e||typeof e!=='object'||!validTarget(e)||!validCount(e.quantity??1)) throw new TypeError('Invalid loot entry');
   if(weighted?(!validCount(e.weight)||e.weight>MAX_WEIGHT):!chance(e.chanceBps)) throw new TypeError('Invalid loot odds');
   return Object.freeze({...e,quantity:e.quantity??1});
 }
 function validate(table){
   if(!table||typeof table!=='object')throw new TypeError('Loot table required');
-  const guaranteed=(table.guaranteed??[]).map(e=>{if(!e||typeof e.itemId!=='string'||!e.itemId.trim()||!validCount(e.quantity??1))throw new TypeError('Invalid guaranteed drop');return Object.freeze({...e,quantity:e.quantity??1})});
+  const guaranteed=(table.guaranteed??[]).map(e=>{if(!e||!validTarget(e)||!validCount(e.quantity??1))throw new TypeError('Invalid guaranteed drop');return Object.freeze({...e,quantity:e.quantity??1})});
   const main=(table.main??[]).map(e=>entry(e,true));
   const bonus=(table.bonus??[]).map(e=>entry(e,false));
   const total=main.reduce((n,e)=>{if(n>MAX_WEIGHT-e.weight)throw new RangeError('Main weights exceed safe integer');return n+e.weight},0);
