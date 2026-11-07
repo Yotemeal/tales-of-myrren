@@ -2543,6 +2543,17 @@ function drawOutdoor(cx,cy,now){
     const d=VILLAGE.waterDistance(wx+8,wy+8),kind=boundary?'boundary':pathAt(tx,ty);
     const edge=kind==='path'||kind==='plaza'?(pathAt(tx,ty-1)==='grass'?1:0)|(pathAt(tx,ty+1)==='grass'?2:0)|(pathAt(tx-1,ty)==='grass'?4:0)|(pathAt(tx+1,ty)==='grass'?8:0):0;
     MyrrenEnvironment.terrain(ctx,tx,ty,x,y,d<-18?'water':kind,now,edge);
+    // The Camp lies inside the overgrown impact crater of the lost trading city.
+    // Subtle rocky terraces, not a solid wall: all existing routes stay open.
+    const craterR=Math.hypot((wx+8-CX)/555,(wy+8-CY)/455);
+    if(d>25&&kind==='grass'&&craterR>.78&&craterR<1.13){
+      const grit=H2(tx+731,ty-391)%17;
+      if(grit<9){
+        R(x+2,y+12,12,2,craterR>1?'#64705a':'#7b8063');
+        R(x+3,y+10,8,2,craterR>1?'#777b65':'#96917b');
+        if(grit<4){R(x+4,y+8,5,2,'#9d9a85');R(x+9,y+12,4,2,'#4b5d4d')}
+      }
+    }
     if(d>=-18&&d<18)MyrrenEnvironment.waterTile(ctx,tx,ty,x,y,now,VILLAGE);
     if(kind==='grass'&&d>24&&VILLAGE.dryFootprint(wx+8,wy+15,14,19,2,4)&&H2(tx,ty)%113===0)MyrrenEnvironment.fern(ctx,x+8,y+15,H2(tx,ty)%4);
   }
@@ -2576,11 +2587,25 @@ function drawOutdoor(cx,cy,now){
   // Water and bridge sit below actors and trees in the world depth list.
   drawVillageFalls(cx,cy,now);
   for(const tree of VILLAGE_GROVE)if(VILLAGE.dryFootprint(tree.x,tree.y,88,174,3,10)&&tree.x>cx-100&&tree.x<cx+cv.width+100&&tree.y>cy-25&&tree.y<cy+cv.height+160)list.push({y:tree.y,f:()=>drawAncientTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
-  for(let i=0;i<18;i++){
-    const a=i*2.3999632297,r=160+(i%6)*20;
+  // Keep the camp centre readable: vegetation belongs on the crater slopes.
+  for(let i=0;i<12;i++){
+    const a=i*2.3999632297,r=295+(i%5)*28;
     const gx=CX+Math.cos(a)*r,gy=CY+Math.sin(a)*r*.72;
     if(Math.abs(gx-CX)<240&&gy>CY-95&&gy<CY+95)continue;
     if(vis(gx,gy)&&VILLAGE.dryFootprint(gx,gy,14,19,2,5))list.push({y:gy,f:()=>drawWoodlandShrub(Math.round(gx-cx),Math.round(gy-cy),i)});
+  }
+  // Small mossy remnants of the lost city, scattered beyond the safe camp.
+  // Decorative only; no new collision or interactions.
+  for(let i=0;i<11;i++){
+    const a=i*2.3999632297+.4,r=435+(i%3)*35;
+    const gx=CX+Math.cos(a)*r,gy=CY+Math.sin(a)*r*.86;
+    if(!vis(gx,gy)||!VILLAGE.dryFootprint(gx,gy,22,20,3,15))continue;
+    list.push({y:gy,f:()=>{
+      const x=Math.round(gx-cx),y=Math.round(gy-cy);
+      R(x-14,y-4,28,5,'#424c43');R(x-12,y-8,24,5,'#777c6e');
+      R(x-9,y-11,7,4,'#9b9b87');R(x+3,y-12,7,5,'#8c917d');
+      R(x-12,y-9,4,2,'#6d8b5c');R(x+5,y-13,5,2,'#66865b');
+    }});
   }
   // Decorative showcase: all seven tree appearances around the village outskirts.
   // Scenery only: no new gatherable nodes, collision, XP or save changes.
