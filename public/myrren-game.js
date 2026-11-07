@@ -205,6 +205,7 @@ const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=90,EDGE=100;
 const VILLAGE=MyrrenWorld;
 // Explicit development opt-in; normal encounters and saved progress stay unchanged.
 const craterPreview=!!window.MyrrenCrater?.previewEnabled(location.search);
+const craterLoot=craterPreview&&window.MyrrenCraterLoot?.create();
 const craterBossPreview=craterPreview&&/(?:^|[?&])craterBossPreview=1(?:&|$)/.test(location.search);
 const craterRocks=craterPreview&&window.MyrrenCraterRocks?window.MyrrenCraterRocks.create():null;
 const craterPets=craterPreview&&window.MyrrenSkillingPets||null;
@@ -1576,13 +1577,28 @@ function killMon(m,now){
     return; // The rehearsal has no progression or loot awards.
   }
   addXp('melee',combatKillXp(mt));
-  const c=rint(mt.coins[0],mt.coins[1]);save.inv.coins+=c;say('You find '+c+' coins.');
+  if(craterLoot){
+    // Existing coin and bread probabilities, now routed through the preview table.
+    // The existing gear drop remains below until final per-creature tables are approved.
+    const c=rint(mt.coins[0],mt.coins[1]);
+    const breadBps=Math.round(mt.bread*10000);
+    craterLoot.award(m,{guaranteed:[{itemId:'coins',quantity:c}],main:[
+      {itemId:'bread',weight:breadBps},{itemId:'nothing',weight:10000-breadBps}
+    ]},drops=>{
+      for(const drop of drops){
+        if(drop.itemId==='coins'){save.inv.coins+=drop.quantity;say('You find '+drop.quantity+' coins.')}
+        else if(drop.itemId==='bread'){if(canFitInventory({bread:drop.quantity})){save.inv.bread+=drop.quantity;say('It dropped some bread.')}else say('It dropped bread, but your pack is full.','warn')}
+      }
+    });
+  }else{
+    const c=rint(mt.coins[0],mt.coins[1]);save.inv.coins+=c;say('You find '+c+' coins.');
+  }
   {
     let hit=false;
     for(const j of save.jobs)for(const o of j.objs)if(o.type==='slay'&&o.mon===m.t&&o.have<o.need){o.have++;hit=true}
     if(hit)for(const j of save.jobs){const was=j.done;j.done=jobDone(j);if(j.done&&!was){say('Odd job complete! Claim it in your Jobs tab.','gold');toast('ODD JOB DONE\nOpen your Jobs tab')}}
   }
-  if(Math.random()<mt.bread){if(canFitInventory({bread:1})){save.inv.bread++;say('It dropped some bread.')}else say('It dropped bread, but your pack is full.','warn')}
+  if(!craterLoot&&Math.random()<mt.bread){if(canFitInventory({bread:1})){save.inv.bread++;say('It dropped some bread.')}else say('It dropped bread, but your pack is full.','warn')}
   if(Math.random()<mt.drop.p){
     const mat=Math.max(2,mt.drop.mats[rint(0,mt.drop.mats.length-1)]);
     const kinds=Object.keys(KINDS).filter(k=>KINDS[k].mats.includes(mat));
