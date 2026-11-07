@@ -8,6 +8,12 @@ function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className
 
 /* ---------- pixel art for icons ---------- */
 const ART={
+  skill_combat:{m:["............","........HH..",".......HLLH.","......HLLH..",".....HLLH...","..GG.HLLH...","...GGLLH....","....DD......","...DMD......","..DMD.......",".DDD........","............"],p:{H:'#55616a',L:'#d9e5df',G:'#e3b65d',D:'#463224',M:'#94623a'}},
+  skill_forestry:{m:["............",".......DDDD.","......DHHHD","......DHHLD",".....DHHLD.","....DHHLD..","...DMMMD...","..DMMMD.....",".DMMMD......","DMMMD.......","DDD.........","............"],p:{D:'#4d3426',H:'#8e9da0',L:'#dbe1d4',M:'#a87543'}},
+  skill_delving:{m:["............","...DDDDDD...","..DHHLLHDD..","...DHHLLHDD.","......M..DD.",".....M......","....M.......","...M........","..M.........",".M..........","D...........","............"],p:{D:'#455057',H:'#9eabb0',L:'#dce2d7',M:'#98633e'}},
+  skill_fishing:{m:["............","...DDDDDD...","..DHLHLHDD..",".DHLHLHLHDD.","..DHLHLHDD..","...DDDDDD...","......M.....",".....M......","....M.......","...M........","..M.........","............"],p:{D:'#536e73',H:'#c2d4c6',L:'#789a9c',M:'#9a7045'}},
+  skill_cooking:{m:["............","............","...DDDDDD...","..DHHHHHHD..",".DHHLLHHHHD.","DHHHLLHHHHHD","DHHHHHHHHHHD",".DMMMMMMMMD.","..DDDDDDDD..","............","............","............"],p:{D:'#6d3d2c',H:'#d58c4b',L:'#f2b96a',M:'#a85c39'}},
+  skill_forging:{m:["............","............","...LLLLLL...","..LHHHHHHL..",".LHHHHHHHHL.","DMMMMMMMMMDD","DDMMMMMMMDD.","..DDDDDDDD..","............","............","............","............"],p:{D:'#65402c',H:'#e4a55c',L:'#f5d18a',M:'#b8753c'}},
   sword:{m:[".......S","......S.",".....S..","..G.S...","...S....","..H.G...",".H......","P......."],p:{S:'#d7e0e4',G:'#ffd24a',H:'#7a5230',P:'#ffd24a'}},
   axe:{m:["........","....SSS.",".....HSS","....H.S.","...H....","..H.....",".H......","H......."],p:{S:'#c8d2d6',H:'#8a5a30'}},
   pick:{m:["...S....","....S...",".....S..","....H.S.","...H...S","..H.....",".H......","H......."],p:{S:'#c8d2d6',H:'#8a5a30'}},
@@ -88,8 +94,8 @@ for(const k in SHOPS)SHOPS[k].id=k;
 const SHOPMAX={rod:4,net:1,helm:8,body:8,gloves:8,legs:8,boots:8,shield:8};
 function svg(key,size,pal2){
   const a=ART[key],pal=Object.assign({},a.p,pal2||{});let r='';
-  a.m.forEach((row,y)=>{for(let x=0;x<8;x++){const c=row[x];if(c!=='.'&&pal[c])r+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+pal[c]+'"/>'}});
-  return '<svg viewBox="0 0 8 8" width="'+size+'" height="'+size+'" shape-rendering="crispEdges" aria-hidden="true">'+r+'</svg>';
+  a.m.forEach((row,y)=>{for(let x=0;x<row.length;x++){const c=row[x];if(c!=='.'&&pal[c])r+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+pal[c]+'"/>'}});
+  return '<svg viewBox="0 0 '+a.m[0].length+' '+a.m.length+'" width="'+size+'" height="'+size+'" shape-rendering="crispEdges" aria-hidden="true">'+r+'</svg>';
 }
 const itemSvg=(k,s)=>svg(ITEMS[k].art,s,ITEMS[k].pal);
 
@@ -156,7 +162,7 @@ const gearSvg=(d,s)=>{if(d.kind==='sword'&&window.MyrrenSwords?.ready)return win
 /* ---------- rules ---------- */
 const NAMES={melee:'Combat',woodcutting:'Forestry',mining:'Delving',fishing:'Fishing',cooking:'Cooking',forging:'Forging'};
 const SK=['melee','woodcutting','mining','fishing','cooking','forging'];
-const SKILL_ART={melee:'sword',woodcutting:'axe',mining:'pick',fishing:'net',cooking:'bowl',forging:'ingot'};
+const SKILL_ART={melee:'skill_combat',woodcutting:'skill_forestry',mining:'skill_delving',fishing:'skill_fishing',cooking:'skill_cooking',forging:'skill_forging'};
 const MAXL=100,XPK=24;
 const hpAt=L=>10+Math.round(L*1.5+L*L/40);
 const xpTable=[0,0];
