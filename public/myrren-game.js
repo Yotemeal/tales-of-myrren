@@ -547,6 +547,20 @@ function uiHud(){
   uiCurrencies();
 }
 document.querySelectorAll('[data-i]').forEach(e=>{const k=e.dataset.i;e.innerHTML=ITEMS[k]?itemSvg(k,22):svg(k,22)});
+// Approved Crater HUD icons: visual-only keys, separate from equipment/item art.
+// Each icon is a crisp 12px pixel grid, scaled by the existing SVG renderer.
+Object.assign(ART,{
+  hud_helm:{m:["............","....DDDD....","...DHHHHD...","..DHHLLHHD..",".DHHLLLLHHD.",".DHHLLLLHHD.","DHHHDDDDHHHD","DHHDD..DDHHD","DHHDD..DDHHD",".DDD....DDD.","..D......D..","............"],p:{D:'#342d2e',H:'#84939a',L:'#e4e5d7'}},
+  hud_skills:{m:["............","..G.....G...","..GG...GG...","...G...G....","...GG.GG....","....GGG.....","..DDGGGDD...","..DGGGGGD...","..DDGGGDD...","....DDD.....",".....D......","............"],p:{G:'#c9dce0',D:'#6d5038'}},
+  hud_jobs:{m:["............","..DDDDDD....","..DHHHHD....","..DHHHHD....","..DHHHHD....","..DHHHHD....","..DHHHHD....","..DHHHHD....","..DHHHHD....","..DHHHHD....","..DDDDDD....","............"],p:{D:'#835532',H:'#f0dfb5'}},
+  hud_settings:{m:["....DDDD....","...DHHHHD...","..DDHDDHDD..",".DHHHHHHHHD.","DDHHDDDDHHDD","DHHHD..DHHHD","DHHHD..DHHHD","DDHHDDDDHHDD",".DHHHHHHHHD.","..DDHDDHDD..","...DHHHHD...","....DDDD...."],p:{D:'#695036',H:'#e0ba72'}},
+  hud_bag:{m:["............","....DDDD....","...DHHHHD...","...DHHHHD...","..DDDDDDDD..",".DHHHHHHHHD.",".DHHHHHHHHD.",".DHHDDHHHHD.",".DHHDDHHHHD.",".DHHHHHHHHD.","..DDDDDDDD..","............"],p:{D:'#54351e',H:'#d6a15a'}}
+});
+document.querySelectorAll('#hudR [data-i]').forEach(e=>{
+  const icon={helm:'hud_helm',pick:'hud_skills',scroll:'hud_jobs',cog:'hud_settings',bag:'hud_bag'}[e.dataset.i];
+  if(icon)e.innerHTML=svg(icon,27);
+});
+
 
 /* ---------- gear actions ---------- */
 let tab='',sel=null,shopCat='weapons',lastTab='gear';
