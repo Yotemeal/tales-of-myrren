@@ -2545,11 +2545,11 @@ function drawOutdoor(cx,cy,now){
     MyrrenEnvironment.terrain(ctx,tx,ty,x,y,d<-18?'water':kind,now,edge);
     // The Camp lies inside the overgrown impact crater of the lost trading city.
     // Subtle rocky terraces, not a solid wall: all existing routes stay open.
-    const craterR=Math.hypot((wx+8-CX)/555,(wy+8-CY)/455);
-    if(d>25&&kind==='grass'&&craterR>.78&&craterR<1.13){
+    const craterR=Math.hypot((wx+8-CX)/485,(wy+8-CY)/370);
+    if(d>25&&kind==='grass'&&craterR>.70&&craterR<1.35){
       const grit=H2(tx+731,ty-391)%17;
       // Two softly staggered rock shelves form the crater's visible inner wall.
-      const shelf=craterR>.91&&craterR<1.055;
+      const shelf=craterR>.83&&craterR<1.18;
       if(shelf&&grit<12){
         R(x,y+11,16,5,'#46544b');
         R(x,y+8,16,4,'#697465');
@@ -2595,7 +2595,7 @@ function drawOutdoor(cx,cy,now){
   const rimKinds=['bramblewood','alder','ironbark','redleaf','duskwillow','elderthorn','starroot'];
   for(let i=0;i<24;i++){
     const a=(i+.32)*Math.PI*2/24;
-    const radius=610+((i*37)%65);
+    const radius=665+((i*37)%55);
     const gx=CX+Math.cos(a)*radius,gy=CY+Math.sin(a)*radius*.79;
     if(gx<EDGE+65||gy<EDGE+65||gx>WW-EDGE-65||gy>WH-EDGE-65)continue;
     if(Math.abs(gy-CY)<65)continue; // leave the east/west approach clear
@@ -2603,26 +2603,39 @@ function drawOutdoor(cx,cy,now){
     const n={x:gx,y:gy,k:'tree',previewTree:rimKinds[i%rimKinds.length],back:0};
     list.push({y:gy,f:()=>drawTree(n,Math.round(gx-cx),Math.round(gy-cy),now)});
   }
-  // Fallen masonry and sharpened timber protect the Camp. The southern gap
-  // is the only route through; the shared world geometry handles collision.
-  for(let i=0;i<96;i++){
-    const a=i*Math.PI*2/96;
-    const gx=CX+Math.cos(a)*310,gy=CY+Math.sin(a)*235;
-    if(gy>CY+160&&Math.abs(gx-CX)<49)continue;
+  // Monumental blast rim: overlapping tiers of fractured bedrock, radial
+  // ejecta slabs and stakes. Drawn in world-depth order like all other scenery.
+  for(let i=0;i<180;i++){
+    const a=i*Math.PI*2/180;
+    const wobble=Math.sin(i*2.31)*8+Math.cos(i*.71)*6;
+    const gx=CX+Math.cos(a)*(485+wobble),gy=CY+Math.sin(a)*(370+wobble*.7);
+    if(gy>CY+285&&Math.abs(gx-CX)<65)continue;
     if(!vis(gx,gy))continue;
     list.push({y:gy,f:()=>{
-      const x=Math.round(gx-cx),y=Math.round(gy-cy);
-      const k=(i*13)%7;
-      // Dark foundation, irregular stone tops, moss and occasional stakes.
-      R(x-10,y-5,20,9,'#3f4b45');
-      R(x-9,y-10-k%3,18,8,'#697369');
-      R(x-7,y-12-k%3,12,3,'#989987');
-      R(x-7,y-8,4,2,'#536f50');
-      if(i%3===0){
-        R(x-2,y-19,4,14,'#4c392d');
-        R(x-1,y-22,2,5,'#a58b64');
-        R(x-3,y-15,1,7,'#8e7655');
+      const x=Math.round(gx-cx),y=Math.round(gy-cy),k=(i*17)%11;
+      // Dark impact scar beneath huge angular slabs; higher exposed rock face.
+      R(x-19,y-4,38,12,'#303c39');
+      R(x-18,y-21-k%7,36,23+k%7,'#505e57');
+      R(x-15,y-26-k%8,29,11,'#788177');
+      R(x-12,y-28-k%8,22,4,'#a5a394');
+      R(x-17,y-12,6,9,'#3d4a45');R(x+10,y-17,4,13,'#3a4844');
+      if(i%4===0){
+        R(x+3,y-38,5,21,'#48392f');R(x+4,y-44,3,8,'#a78b65');
+        R(x+3,y-32,1,11,'#9c7958');
       }
+      if(i%5===0){R(x-11,y-23,7,3,'#5f7b56');R(x+8,y-9,5,2,'#6c8b61')}
+    }});
+  }
+  // Ejecta scattered away from the impact, increasingly sparse at distance.
+  for(let i=0;i<78;i++){
+    const a=i*2.3999632297,r=525+(i%7)*22;
+    const gx=CX+Math.cos(a)*r,gy=CY+Math.sin(a)*r*.76;
+    if(gy>CY+275&&Math.abs(gx-CX)<85)continue;
+    if(!vis(gx,gy)||VILLAGE.waterDistance(gx,gy)<20)continue;
+    list.push({y:gy,f:()=>{
+      const x=Math.round(gx-cx),y=Math.round(gy-cy),w=8+(i%4)*4;
+      R(x-w/2,y-3,w,5,'#424c45');R(x-w/2+2,y-7,w-4,5,'#747c70');
+      R(x-w/2+4,y-9,Math.max(3,w-9),2,'#a19e89');
     }});
   }
   // Water and bridge sit below actors and trees in the world depth list.
