@@ -1577,11 +1577,12 @@ function killMon(m,now){
     return; // The rehearsal has no progression or loot awards.
   }
   addXp('melee',combatKillXp(mt));
-  if(craterLoot){
-    const definition=window.MyrrenCraterLootTables?.tableFor(m.t,mt);
+  const definition=craterLoot?window.MyrrenCraterLootTables?.tableFor(m.t,mt):null;
+  const useCraterRewards=!!(craterLoot&&definition);
+  if(useCraterRewards){
     const c=rint(mt.coins[0],mt.coins[1]);
-    const table=definition?{...definition,guaranteed:[{itemId:'coins',quantity:c}]}:null;
-    if(table)craterLoot.award(m,table,drops=>{
+    const table={...definition,guaranteed:[{itemId:'coins',quantity:c}]};
+    craterLoot.award(m,table,drops=>{
       const adapter=window.MyrrenCraterInventory;
       if(!adapter)throw new Error('Crater inventory adapter missing');
       const plan=adapter.plan(drops,{
@@ -1601,7 +1602,6 @@ function killMon(m,now){
       for(const id of plan.equipment)say('Rare drop: '+DEFS[id].name+'!','gold');
       for(const drop of plan.rejected)say('Your pack is full; '+drop.itemId+' could not be collected.','warn');
     },Math.random,window.MyrrenCraterLootTables.sharedTables,{eligible:true,ironmanOwner:true});
-    else {save.inv.coins+=c;say('You find '+c+' coins.');}
   }else{
     const c=rint(mt.coins[0],mt.coins[1]);save.inv.coins+=c;say('You find '+c+' coins.');
   }
@@ -1610,8 +1610,8 @@ function killMon(m,now){
     for(const j of save.jobs)for(const o of j.objs)if(o.type==='slay'&&o.mon===m.t&&o.have<o.need){o.have++;hit=true}
     if(hit)for(const j of save.jobs){const was=j.done;j.done=jobDone(j);if(j.done&&!was){say('Odd job complete! Claim it in your Jobs tab.','gold');toast('ODD JOB DONE\nOpen your Jobs tab')}}
   }
-  if(!craterLoot&&Math.random()<mt.bread){if(canFitInventory({bread:1})){save.inv.bread++;say('It dropped some bread.')}else say('It dropped bread, but your pack is full.','warn')}
-  if(!craterLoot&&Math.random()<mt.drop.p){
+  if(!useCraterRewards&&Math.random()<mt.bread){if(canFitInventory({bread:1})){save.inv.bread++;say('It dropped some bread.')}else say('It dropped bread, but your pack is full.','warn')}
+  if(!useCraterRewards&&Math.random()<mt.drop.p){
     const mat=Math.max(2,mt.drop.mats[rint(0,mt.drop.mats.length-1)]);
     const kinds=Object.keys(KINDS).filter(k=>KINDS[k].mats.includes(mat));
     giveGear(MATS[mat].k+'_'+kinds[rint(0,kinds.length-1)]);
