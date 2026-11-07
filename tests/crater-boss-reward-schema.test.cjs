@@ -20,3 +20,9 @@ test('missing stats, duplicate uniques and wrong boss are rejected',()=>{
  const q=proposed();q.uniques[1].itemId='guardians_necklace';assert.throws(()=>a.validate(q),/duplicate/);
  const t=proposed();t.bossId='forest_troll';assert.throws(()=>a.validate(t),/Wrong boss/);
 });
+
+test('approval must be a boolean and stats must use known attributes',()=>{
+ const a=api(),p=proposed();p.approved='yes';assert.throws(()=>a.validate(p),/approval/);
+ const q=proposed();q.uniques[0].stats={unknownStat:4};assert.throws(()=>a.validate(q),/Unknown item stat/);
+ const t=proposed();t.uniques[1].stats={health:Infinity};assert.throws(()=>a.validate(t),/Invalid item stat/);
+});
