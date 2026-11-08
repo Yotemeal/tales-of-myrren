@@ -1529,7 +1529,7 @@ function start(){
   $('hud').hidden=false;$('chat').hidden=false;$('pad').hidden=false;$('acts').hidden=false;
   started=true;uiHud();refreshActionButtons();
   say('Welcome to Myrren, '+save.name+'.');
-  if(!(eqDef('weapon')&&eqDef('weapon').tool)&&!save.bag.some(id=>DEFS[id].tool))say('Buy a hatchet or pickaxe in town and equip it as your weapon. Face a tree or rock and press the tool button. Hold the sword button to fight. Follow the southern path through the collapsed crater wall.','gold');
+  if(!(eqDef('weapon')&&eqDef('weapon').tool)&&!save.bag.some(id=>DEFS[id].tool))say('Starter tools: Trader Gus. Gather with the tool button.','gold');
   persist();sendPresence();
 }
 $('go').addEventListener('click',start);
