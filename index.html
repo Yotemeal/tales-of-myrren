@@ -270,6 +270,8 @@ button{font-family:inherit;font-size:inherit;color:inherit}
   </div>
 </div>
 
+<script src="/approved-armour.js"></script>
+<script src="/approved-character.js"></script>
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
@@ -1932,67 +1934,30 @@ function drawMon(m,x,y,now){
 }
 function rrect(x,y,w,h,c,ol){if(ol){R(x,y-1,w,h+2,ol);R(x-1,y,w+2,h,ol)}R(x+1,y,w-2,h,c);R(x,y+1,w,h-2,c)}
 const HAIRS=['#7a4a2a','#d8b45a','#2e2a34','#a8502e','#c8c2c8'];
+// Kez V2 is the sole playable-character renderer. The old procedural drawPerson has been retired.
+const kezV2Image=new Image();
+let kezV2=null;
+kezV2Image.onload=()=>{
+  try{kezV2=window.MyrrenHero.create(kezV2Image);window.dispatchEvent(new Event('myrren-hero-ready'))}
+  catch(err){console.error('Kez V2 atlas failed validation',err)}
+};
+kezV2Image.onerror=()=>console.error('Kez V2 atlas missing: /hero_32x40_v31.png');
+kezV2Image.src='/hero_32x40_v31.png';
 function drawPerson(x,y,o,now){
-  const f=o.f,mv=!!o.moving,ph=Math.floor(now/110)%4,g=o.g||[0,0,0,0,0],dv=o.dv||'d';
-  let gh=MATS[g[0]],gb=MATS[g[1]],gl=MATS[g[2]],gt=MATS[g[3]],gs=MATS[g[4]];
-  if(o.dye!=null&&DYES[o.dye]){const dp=DYES[o.dye],dz=(m,t)=>(m&&t>=4)?dp:m;gh=dz(gh,g[0]);gb=dz(gb,g[1]);gl=dz(gl,g[2]);gt=dz(gt,g[3]);gs=dz(gs,g[4])}
-  const OL='#2a1c18',skin='#f0c49c',skD='#cf9a74',eye='#2a1c18';
-  const hurtAge=o.isMe?now-(me.hurtAt||-99999):9999,hurt=hurtAge>=0&&hurtAge<260;
-  const hair=o.hair||HAIRS[Math.floor((o.hue||0)/72)%5],hue=o.hue||0;
-  const bob=mv?[0,-1,0,-1][ph]:0,hb=(!mv&&Math.floor(now/520)%2)?1:0,hy0=bob+hb;
-  const tn=gb?gb.M:'hsl('+hue+',55%,46%)',tl=gb?gb.H:'hsl('+hue+',55%,60%)',td=gb?gb.D:'hsl('+hue+',55%,32%)';
-  const pc=gl?gl.M:'#4a4660',pH=gl?gl.H:'#62607e',pD=gl?gl.D:'#322e44',bc=gt?gt.M:'#6a4426',bD=gt?gt.D:'#46301c';
-  const sw=mv?[0,1,0,-1][ph]:0,lA=mv&&ph===1?2:0,lB=mv&&ph===3?2:0;
-  shadowE(x+1,y,7,2,.3);
-  ctx.save();ctx.translate(x-(hurt?f:0),y);ctx.scale(f,1);
-  const boots=(lx,ly,len)=>{R(lx,ly+len-2,3,2,bc);R(lx,ly+len-1,3,1,bD);if(gt)R(lx,ly+len-2,3,1,gt.H)};
-  if(dv==='s'){
-    const st=mv?[0,2,0,-2][ph]:0;
-    parts([[-2-sw,-12+bob,2,6,td]],OL);
-    parts([[-2-st,-5,3,5-lB,pD]],OL);boots(-2-st,-5,5-lB);
-    parts([[-1+st,-5,3,5-lA,pc]],OL);R(-1+st,-5,1,3-lA,pH);boots(-1+st,-5,5-lA);
-    parts([[-3,-13+bob,6,8,tn]],OL);R(-3,-13+bob,6,2,tl);R(-3,-7+bob,6,2,td);R(-3,-6+bob,6,1,'#5a3a1c');
-    if(gb){R(-3,-13+bob,6,1,gb.H)}
-    if(o.apron){R(-2,-9+bob,6,5,'#f2ead2');R(-2,-9+bob,6,1,'#fff')}
-    parts([[-3,-21+hy0,7,8,skin]],OL);R(-3,-14+hy0,7,1,skD);R(4,-18+hy0,1,2,skin);
-    if(!gh){
-      parts([[-4,-22+hy0,8,4,hair],[-4,-19+hy0,3,6,hair]],OL);R(0,-19+hy0,4,1,hair);R(2,-19+hy0,2,2,hair);R(-3,-22+hy0,3,1,'rgba(255,255,255,.3)');R(-4,-17+hy0,1,3,'rgba(0,0,0,.2)');
-    }
-    R(2,-17+hy0,1,2,eye);R(4,-16+hy0,1,1,'#b0705c');R(3,-14+hy0,2,1,'#b0705c');
-    if(gh)helm(-1,hy0,gh,g[0],true);
-    if(gs){parts([[0,-12+bob,5,8,gs.M]],OL);R(0,-12+bob,5,1,gs.H);R(1,-11+bob,1,5,gs.H);R(0,-5+bob,5,1,gs.D)}
-  }else{
-    const back=dv==='u';
-    parts([[-6,-12+bob+sw,2,6,td],[4,-12+bob-sw,2,6,td]],OL);
-    parts([[-3,-5,3,5-lA,pc],[0,-5,3,5-lB,pc]],OL);R(-3,-5,1,3-lA,pH);R(0,-5,1,3-lB,pH);boots(-3,-5,5-lA);boots(0,-5,5-lB);
-    parts([[-4,-13+bob,8,8,tn]],OL);R(-4,-13+bob,8,2,tl);R(-4,-7+bob,8,2,td);R(-4,-6+bob,8,1,'#5a3a1c');R(-1,-6+bob,2,1,'#e8c860');
-    if(gb){R(-4,-13+bob,8,1,gb.H);R(-6,-12+bob+sw,2,2,gb.H);R(4,-12+bob-sw,2,2,gb.H)}
-    if(!back)R(-1,-13+bob,2,1,skD);
-    R(-6,-7+bob+sw,2,2,skin);R(4,-7+bob-sw,2,2,skin);
-    if(o.apron&&!back){R(-3,-9+bob,6,5,'#f2ead2');R(-3,-9+bob,6,1,'#fff')}
-    if(gs){parts([[-11,-13+bob,6,9,gs.M]],OL);R(-11,-13+bob,6,1,gs.H);R(-10,-12+bob,1,5,gs.H);R(-11,-5+bob,6,1,gs.D);R(-9,-10+bob,2,2,gs.D)}
-    parts([[-4,-21+hy0,8,8,back?hair:skin]],OL);
-    if(back){R(-4,-14+hy0,8,1,'rgba(0,0,0,.22)');R(-3,-21+hy0,3,1,'rgba(255,255,255,.3)');R(-1,-17+hy0,1,3,'rgba(0,0,0,.18)')}
-    else{
-      R(-4,-14+hy0,8,1,skD);
-      if(!gh){parts([[-5,-23+hy0,10,4,hair],[-5,-20+hy0,2,5,hair],[3,-20+hy0,2,5,hair]],OL);R(-3,-19+hy0,2,1,hair);R(1,-19+hy0,3,1,hair);R(0,-20+hy0,1,2,hair);R(-3,-23+hy0,3,1,'rgba(255,255,255,.3)')}
-      R(-2,-17+hy0,1,2,eye);R(1,-17+hy0,1,2,eye);R(-1,-14+hy0,2,1,'#b0705c');
-    }
-    if(back&&!gh){parts([[-5,-23+hy0,10,3,hair]],OL);R(-3,-23+hy0,3,1,'rgba(255,255,255,.3)')}
-    if(gh)helm(0,hy0,gh,g[0],!back);
-  }
-  const age=now-o.swingAt,swinging=age>=0&&age<320,holding=o.tool&&o.tool!=='fist'&&(swinging||now<o.hold);
-  const hxo=dv==='s'?3:5;
-  if(o.waving)rrect(hxo,-21+bob,2,3,skin,OL);
-  else if(dv==='s'&&!(swinging&&o.tool==='fist')&&!holding){parts([[-1+sw,-12+bob,2,6,tn]],OL);R(-1+sw,-7+bob,2,2,skin)}
-  ctx.restore();
-  const hx=x+f*hxo,hy=y-8+bob;
-  if(o.tool==='fist'&&swinging){const d=Math.round(Math.sin(age/320*Math.PI)*6);ctx.save();ctx.translate(hx+f*d,hy);rrect(-1,-2,3,3,skin,OL);ctx.restore()}
-  else if(holding){drawTool(o.tool,o.mat,hx,hy,f,swinging?swingAng(age):-.35);ctx.save();ctx.translate(hx,hy);rrect(-1,-1,3,3,skin,OL);ctx.restore()}
-  else if(!o.waving&&dv!=='s'&&0){}
-  if(hurt){ctx.globalAlpha=.5;R(x-4,y-22+bob,8,9,'#fff');R(x-4,y-13+bob,8,8,'#fff');ctx.globalAlpha=1}
-  label(o.name,x,y-(gh&&g[0]>=3?33:29),o.col||'#ffffff');
+  // No fallback to the superseded procedural character. Missing assets are an explicit error.
+  if(!kezV2)return;
+  const gear=o.g||[0,0,0,0,0,0];
+  const options={
+    dv:o.dv||'d',f:o.f??1,moving:!!o.moving,waving:!!o.waving,
+    swingAt:o.swingAt??-99999,hurtAt:o.isMe?(me.hurtAt??-99999):undefined,
+    g:gear,armourDye:null,weaponMat:0,
+    name:o.name||'',col:o.col||'#ffffff',nativeScale:false
+  };
+  const result=kezV2.draw(ctx,x,y,options,now);
+  // Labels are drawn in screen coordinates and do not alter the character sprite scale.
+  label(options.name,x,y-30,options.col);
   if(o.waving)label('*waves*',x,y-44,'#ffffff');
+  return result;
 }
 function drawFishFx(cx,cy,now){
   const cf=me.catchFx;
