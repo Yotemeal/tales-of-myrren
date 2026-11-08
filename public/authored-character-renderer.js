@@ -36,10 +36,9 @@ function create(assetRoot){
   img.src=assetRoot+key+'.png';
  }
  function readyFor(o){
-  if(errors.size)return false;
-  if(!validImage(images.get('base')))return false;
+  if(errors.has('base')||!validImage(images.get('base')))return false;
   const gear=Array.isArray(o.g)?o.g:[];
-  return gear.every((mat,i)=>!mat||(i<SLOTS.length&&allMats.has(mat)&&validImage(images.get(mat+'-'+SLOTS[i]))));
+  return gear.every((mat,i)=>!mat||(i<SLOTS.length&&allMats.has(mat)&&!errors.has(mat+'-'+SLOTS[i])&&validImage(images.get(mat+'-'+SLOTS[i]))));
  }
  function paint(ctx,image,x,y,row,frame,worldW,worldH){
   ctx.drawImage(image,frame*WIDTH,row*HEIGHT,WIDTH,HEIGHT,
@@ -59,13 +58,13 @@ function create(assetRoot){
   const base=images.get('base');
   const shield=gear[4]&&images.get(gear[4]+'-shield');
   ctx.save();ctx.imageSmoothingEnabled=false;
-  if(dir==='left'||dir==='right')if(shield)paint(ctx,shield,x,y,row,frame,w,h);
+  if(dir==='left'||dir==='right'||dir==='back')if(shield)paint(ctx,shield,x,y,row,frame,w,h);
   paint(ctx,base,x,y,row,frame,w,h);
   for(const slot of ['boots','legs','body','gloves','head']){
    const index=SLOTS.indexOf(slot),mat=gear[index];
    if(mat)paint(ctx,images.get(mat+'-'+slot),x,y,row,frame,w,h);
   }
-  if(dir==='front'||dir==='back')if(shield)paint(ctx,shield,x,y,row,frame,w,h);
+  if(dir==='front')if(shield)paint(ctx,shield,x,y,row,frame,w,h);
   ctx.restore();
   return true;
  }
