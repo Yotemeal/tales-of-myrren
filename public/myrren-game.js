@@ -1524,6 +1524,8 @@ function sendPresence(){
 
 /* ---------- start ---------- */
 function start(){
+  // Never start with an invisible player or silently select an old sprite.
+  if(!window.MyrrenKezV2Atlas?.ready){$('net').textContent=window.MyrrenKezV2Atlas?.failed?'Character artwork failed. Reload to retry.':'Loading character artwork…';return}
   relocateSavedPosition();
   save.name=$('nick').value.trim().slice(0,14)||save.name||'Wanderer';
   $('intro').hidden=true;
@@ -3102,9 +3104,14 @@ let last=performance.now(),sendAt=0,slowAt=0,saveAt=0,lastMiniRender=-Infinity;
 addCrit('bunny',22,60);addCrit('bird',16,70);addCrit('deer',9,180);addCrit('fox',7,520); // foxes roam the outer woodland, well clear of the busy crater forge
 syncPets();petsTeleport();uiHud();
 let loadDone=false;
+window.addEventListener('myrren-kez-v2-ready',()=>{if(loadDone&&!started){const g=$('go');g.disabled=false;g.textContent='ENTER'}});
+window.addEventListener('myrren-kez-v2-error',()=>{const g=$('go');g.disabled=true;g.textContent='ART LOAD ERROR';$('net').textContent='Character artwork failed. Reload to retry.';if(started)toast('CHARACTER ART ERROR')});
 function finishLoad(){
   if(loadDone)return;loadDone=true;
-  const g=$('go');g.disabled=false;g.textContent='ENTER';
+  const g=$('go');const art=window.MyrrenKezV2Atlas;
+  g.disabled=!art?.ready;
+  g.textContent=art?.ready?'ENTER':art?.failed?'ART LOAD ERROR':'LOADING ART…';
+  if(art?.failed)$('net').textContent='Character artwork failed. Reload to retry.';
   if(save.name&&!$('nick').value)$('nick').value=save.name;
 }
 function adoptSave(o,why){
