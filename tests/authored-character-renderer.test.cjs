@@ -93,6 +93,11 @@ for(const age of [0,72,120,192,270,310]){
   {weapon:(_ctx,socket)=>gripPositions.push(socket.y)});
 }
 assert(new Set(gripPositions).size>1,'blade must travel with glove over attack');
+let saved=0,restored=0;
+assert.throws(()=>renderer.draw({save(){saved++},restore(){restored++},drawImage(){}},
+  100,200,{...o,swingAt:0},120,{weapon:()=>{throw Error('sprite callback failure')}}),
+  /sprite callback failure/);
+assert.equal(saved,restored,'canvas state must recover from weapon draw failure');
 const empty=instances.find(i=>i.url.endsWith('6-head.png'));
 empty.naturalWidth=12;
 assert.equal(renderer.readyFor(o),false,'invalid authored atlas must fail closed');
