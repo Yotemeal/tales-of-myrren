@@ -93,35 +93,50 @@
   }
   if(gear[0]){
    const mat=gear[0],p=METALS[mat],closed=CLOSED.has(mat);
-   px(-5,-23+bob,10,5,p[0]);px(-4,-23+bob,8,2,p[1]);
-   px(-4,-22+bob,8,1,p[2]);px(-5,-19+bob,10,1,p[3]);
-   // Crown geometry progresses from the rounded Bronze cap to fully enclosed
-   // Obsidianite/Myrrenite/Starsteel crests and T-shaped visors.
-   if(mat===2){px(-2,-25+bob,4,2,p[1]);px(-1,-26+bob,2,1,p[3]);}
-   if(mat===3){px(-2,-25+bob,4,2,p[2]);px(-1,-26+bob,2,1,p[1]);}
-   if(mat===4){px(-2,-25+bob,4,2,p[2]);px(-1,-26+bob,2,3,p[3]);}
-   if(mat===5){px(-2,-25+bob,4,2,p[1]);px(-1,-26+bob,2,3,p[3]);}
-   if(closed){
-    px(-3,-25+bob,6,2,p[1]);px(-1,-26+bob,2,3,p[3]);
-    if(mat===6||mat===8){px(-4,-21+bob,8,1,p[3]);px(-1,-25+bob,2,2,p[2]);}
-   }
+   // A narrow crown clears the authored face/eyes. Previously the 5px-high
+   // solid helmet cap swallowed the small character's expression.
+   px(-5,-24+bob,10,3,p[0]);
+   px(-4,-24+bob,8,2,p[1]);
+   px(-4,-24+bob,8,1,p[2]);
+   px(-5,-21+bob,10,1,p[0]);
+   px(-4,-21+bob,8,1,p[3]);
+   // Sidepieces are deliberately thin, leaving the centre of the face open.
    if(face==='front'){
-    px(-5,-18+bob,2,3,p[1]);px(3,-18+bob,2,3,p[1]);
-    if(closed){
-     // Full-face guards for advanced sets, kept within the original head.
-     px(-4,-18+bob,8,4,p[1]);
-     px(-3,-18+bob,6,1,p[0]);
-     px(-1,-18+bob,2,2,p[2]);
-     px(-1,-16+bob,2,2,p[0]);
-     px(-4,-15+bob,8,1,p[0]);
-     if(mat===7)px(-3,-16+bob,6,1,p[3]);
-     else{px(-4,-18+bob,8,1,p[3]);px(-4,-15+bob,8,1,p[3]);}
-    }
+    px(-5,-20+bob,2,4,p[0]);px(3,-20+bob,2,4,p[0]);
+    px(-4,-19+bob,1,2,p[1]);px(3,-19+bob,1,2,p[1]);
    }else if(face==='side'){
-    const edge=o.f<0?-5:4;
-    px(edge,-18+bob,1,3,p[1]);
-    if(closed){px(edge,-18+bob,2,4,p[1]);px(edge,-17+bob,1,2,p[0]);}
-   }else if(closed){px(-5,-18+bob,10,3,p[1]);px(-1,-19+bob,2,5,p[3]);}
+    const near=o.f<0?-5:4,far=o.f<0?4:-5;
+    px(far,-19+bob,1,3,p[0]);
+    px(near,-20+bob,2,4,p[0]);px(near,-19+bob,1,2,p[1]);
+   }else{
+    px(-5,-20+bob,10,4,p[1]);
+    px(-4,-19+bob,8,2,p[0]);
+    px(-1,-20+bob,2,3,p[3]);
+   }
+   // Distinct crown profiles follow the seven approved helmet references.
+   if(mat===2){px(-3,-25+bob,6,1,p[1]);px(-1,-26+bob,2,1,p[3]);}
+   if(mat===3){px(-3,-25+bob,6,1,p[2]);px(-1,-26+bob,2,1,p[1]);}
+   if(mat===4){px(-2,-25+bob,4,2,p[2]);px(-1,-26+bob,2,1,p[3]);}
+   if(mat===5){px(-3,-25+bob,6,1,p[1]);px(-1,-26+bob,2,2,p[3]);}
+   if(closed){
+    px(-3,-25+bob,6,2,p[1]);
+    px(-1,-26+bob,2,3,p[3]);
+    if(mat===6||mat===8){px(-3,-23+bob,6,1,p[3]);px(-1,-26+bob,2,1,p[2]);}
+    if(face==='front'){
+     // A separate chin/cheek plate retains the underlying eye line, rather
+     // than painting the entire face a solid block.
+     px(-4,-16+bob,8,2,p[1]);px(-4,-15+bob,8,1,p[0]);
+     px(-2,-17+bob,4,1,p[0]);px(-1,-18+bob,2,2,p[3]);
+     if(mat===7)px(-3,-16+bob,6,1,p[3]);
+     else{px(-4,-16+bob,2,1,p[3]);px(2,-16+bob,2,1,p[3]);}
+    }else if(face==='side'){
+     const edge=o.f<0?-5:3;
+     px(edge,-17+bob,2,2,p[1]);px(edge,-16+bob,2,1,p[3]);
+    }else{
+     px(-5,-17+bob,10,2,p[1]);
+     px(-2,-17+bob,4,1,p[3]);
+    }
+   }
   }
   shield(false);
  }
