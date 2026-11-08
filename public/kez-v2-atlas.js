@@ -55,7 +55,7 @@ window.MyrrenKezV2Atlas={
   const center=10.5;
   const offset=Math.round(((bounds.left+bounds.right)/2-center)*scale);
   ctx.drawImage(atlas,frame*21+bounds.left,row*27+bounds.top,sw,sh,
-    Math.round(-dw/2+offset),-dh,dw,dh);
+    Math.round(-dw/2+offset),1-dh,dw,dh);
   ctx.restore();
   return true;
  }
