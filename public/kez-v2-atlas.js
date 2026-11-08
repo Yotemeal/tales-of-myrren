@@ -7,6 +7,43 @@ let ready=false,failed=false;
 atlas.onerror=()=>{ready=false;failed=true;console.error('Kez V2 sprite atlas failed to load');window.dispatchEvent?.(new Event('myrren-kez-v2-error'))};
 const rows={idle:0,front:1,back:2,left:3,right:4,attack:5};
 const frameBounds=[];
+// Four bespoke idle poses per direction, synthesized from the approved
+// stationary pixels. Unlike walking frames, feet and equipment anchors stay
+// fixed. A one-pixel shoulder/torso expansion gives subtle breathing.
+const idleArt={};
+function makeDirectionalIdleArt(){
+  for(const direction of ['back','left','right']){
+    const row=rows[direction],sheet=document.createElement('canvas');
+    sheet.width=84;sheet.height=27;
+    const c=sheet.getContext('2d',{willReadFrequently:true});
+    const src=document.createElement('canvas');src.width=21;src.height=27;
+    const sc=src.getContext('2d',{willReadFrequently:true});
+    sc.drawImage(atlas,0,row*27,21,27,0,0,21,27);
+    const original=sc.getImageData(0,0,21,27);
+    for(let pose=0;pose<4;pose++){
+      const pixels=new Uint8ClampedArray(original.data);
+      if(pose===1||pose===3){
+        // Move only the outside torso edge by one pixel; do not disturb
+        // helmet, hands, weapons, legs, or the baseline.
+        for(let y=10;y<=16;y++){
+          let first=-1,last=-1;
+          for(let x=3;x<=17;x++)if(original.data[(y*21+x)*4+3]>32){
+            if(first<0)first=x;last=x;
+          }
+          if(first<4||last>16||last-first<5)continue;
+          const edge=pose===1?last:first;
+          const dest=pose===1?last+1:first-1;
+          const si=(y*21+edge)*4,di=(y*21+dest)*4;
+          for(let k=0;k<4;k++)pixels[di+k]=original.data[si+k];
+        }
+      }
+      const frame=c.createImageData(21,27);frame.data.set(pixels);
+      c.putImageData(frame,pose*21,0);
+    }
+    idleArt[direction]=sheet;
+  }
+}
+
 function inspectFrames(){
   // The source sheet has different transparent padding for each direction.
   // Measure the visible pixels once, then anchor every pose at the same feet.
@@ -29,7 +66,7 @@ function inspectFrames(){
 }
 atlas.onload=()=>{
   ready=atlas.naturalWidth===84&&atlas.naturalHeight===162;
-  if(ready){failed=false;inspectFrames();window.dispatchEvent?.(new Event('myrren-kez-v2-ready'))}
+  if(ready){failed=false;inspectFrames();makeDirectionalIdleArt();window.dispatchEvent?.(new Event('myrren-kez-v2-ready'))}
   else{failed=true;console.error('Invalid Kez V2 atlas dimensions:',atlas.naturalWidth,atlas.naturalHeight);window.dispatchEvent?.(new Event('myrren-kez-v2-error'))}
 };
 atlas.src='/assets/kez-v2/kez_v2_atlas.png?v=1';
@@ -53,14 +90,10 @@ window.MyrrenKezV2Atlas={
   const frontIdle=!swordHit&&!o.moving&&direction==='front';
   const useIdle=o.animateIdle||frontIdle;
   const row=useIdle?rows.idle:rows[direction];
-  // Side/back have no dedicated idle row yet. Reuse their directional
-  // animation frames in a slow, reversible 0-1-0-3 breathing/weight-shift
-  // cycle, without changing facing or moving the character in the world.
   const directionalIdle=!swordHit&&!o.moving&&!useIdle;
-  const idleCycle=[0,1,0,3];
+  const idlePose=Math.floor(now/650)%4;
   const frame=useIdle?Math.floor(now/440)%4:swordHit?0:
-    directionalIdle?idleCycle[Math.floor(now/650)%idleCycle.length]:
-    o.moving?Math.floor(now/130)%4:0;
+    directionalIdle?0:o.moving?Math.floor(now/130)%4:0;
   const bounds=frameBounds[row][frame];
   const scale=1,sw=bounds.right-bounds.left+1,sh=bounds.bottom-bounds.top+1;
   const dw=Math.round(sw*scale),dh=Math.round(sh*scale);
@@ -72,8 +105,14 @@ window.MyrrenKezV2Atlas={
   // frame touches the same ground pixel, eliminating directional jumps.
   const center=10.5;
   const offset=Math.round(((bounds.left+bounds.right)/2-center)*scale);
-  ctx.drawImage(atlas,frame*21+bounds.left,row*27+bounds.top,sw,sh,
-    Math.round(-dw/2+offset),1-dh,dw,dh);
+  if(directionalIdle&&idleArt[direction]){
+    // Cropping uses the same frame-zero bounds so the feet never drift.
+    ctx.drawImage(idleArt[direction],idlePose*21+bounds.left,bounds.top,sw,sh,
+      Math.round(-dw/2+offset),1-dh,dw,dh);
+  }else{
+    ctx.drawImage(atlas,frame*21+bounds.left,row*27+bounds.top,sw,sh,
+      Math.round(-dw/2+offset),1-dh,dw,dh);
+  }
   ctx.restore();
   return true;
  }
