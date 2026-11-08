@@ -79,12 +79,29 @@ function create(assetRoot){
   ctx.save();ctx.imageSmoothingEnabled=false;
   // Back shields sit on the back of the character and must be visible.
   // Side shields remain behind the near arm; the front shield covers the chest.
+  const weapon=opts.weapon;
+  const attacking=pose==='attack'&&o.tool==='sword';
+  const holding=o.tool==='sword'&&(attacking||now<(o.hold??-Infinity));
+  const socket=gripSocket(o,now,{width:w,height:h});
+  // One weapon callback per frame. It is responsible for drawing the rigid
+  // blade with its hilt exactly at the animated dominant-hand socket.
+  const paintWeapon=()=>{
+   if(!holding||typeof weapon!=='function')return;
+   weapon(ctx,{
+    x:Math.round(x)+socket.x,y:Math.round(y)+socket.y,
+    direction:dir,frame,pose,age:now-(o.swingAt??-99999),
+    material:o.mat
+   });
+  };
   if(dir==='left'||dir==='right')if(shield)paint(ctx,shield,x,y,row,frame,w,h);
+  if(dir==='back')paintWeapon();
   paint(ctx,base,x,y,row,frame,w,h);
   for(const slot of ['boots','legs','body','gloves','head']){
    const index=SLOTS.indexOf(slot),mat=gear[index];
    if(mat)paint(ctx,images.get(mat+'-'+slot),x,y,row,frame,w,h);
   }
+  if(dir!=='back')paintWeapon();
+  if(gear[5])paint(ctx,images.get(gear[5]+'-gloves'),x,y,row,frame,w,h);
   if(dir==='front'||dir==='back')if(shield)paint(ctx,shield,x,y,row,frame,w,h);
   ctx.restore();
   return true;
