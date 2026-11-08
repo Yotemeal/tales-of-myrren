@@ -110,6 +110,11 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Verify real 390x844 game and produce visual screenshots
         run: node tests/kez-v2-browser.test.cjs
+      - name: Compare native Myrrenite sprite with real mobile game screenshot
+        run: |
+          python -m pip install 'Pillow>=11,<13'
+          python scripts/build-authored-myrrenite.py --out /tmp/myrren-authored
+          python scripts/compare-authored-in-world.py --assets /tmp/myrren-authored --game /tmp/myrren-kez-v2-mobile.png --out /tmp/myrren-authored-world-scale-composite.png
       - name: Save visual QA snapshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -117,6 +122,7 @@ jobs:
           name: kez-v2-mobile-and-seven-metals
           path: |
             /tmp/myrren-kez-v2-mobile.png
+            /tmp/myrren-authored-world-scale-composite.png
             /tmp/myrren-kez-v2-equipment.png
             /tmp/myrren-kez-v2-seven-metals.png
             /tmp/myrren-kez-v2-directions.png
