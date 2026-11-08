@@ -22,6 +22,26 @@ const frameFor=(pose,o,now)=>{
  if(pose==='attack')return Math.min(3,Math.floor(Math.max(0,now-(o.swingAt??now))/80));
  return Math.floor(now/130)%FRAMES;
 };
+// Match the dominant-hand pixel coordinates in the authored base/glove
+// atlases. Exposed so the eventual weapon layer can attach to the same hand
+// instead of spinning around an unrelated world-space point.
+function gripSocket(o,now,opts={}){
+ const dir=facing(o),pose=motion(o,now),frame=frameFor(pose,o,now);
+ const arm=pose==='attack'?[-3,-5,1,3][frame]:
+   pose==='walk'?[1,-1,0,-1][frame]:0;
+ const bob=pose==='walk'&&(frame===1||frame===3)?-1:0;
+ // Base character right-hand coordinates: x=23, y=27-arm.
+ // Left-facing artwork is reflected around the 32-pixel atlas centre.
+ const px=dir==='left'?31-23:23,py=27-arm+bob;
+ const w=opts.width??24,h=opts.height??36;
+ if(!Number.isInteger(w)||!Number.isInteger(h)||w<=0||h<=0)
+   throw Error('Invalid authored character display dimensions');
+ return Object.freeze({
+  x:Math.round((px+0.5-WIDTH/2)*w/WIDTH),
+  y:Math.round((py+0.5-HEIGHT)*h/HEIGHT),
+  direction:dir,pose,frame
+ });
+}
 function create(assetRoot){
  if(typeof assetRoot!=='string'||!/^\/assets\/[a-z0-9/_-]+\/$/.test(assetRoot))
   throw Error('Authored sprite root must be a local assets directory');
@@ -69,7 +89,7 @@ function create(assetRoot){
   ctx.restore();
   return true;
  }
- return Object.freeze({draw,readyFor,get errors(){return [...errors]},dimensions:{width:WIDTH,height:HEIGHT,frames:FRAMES,rows:ROWS},directions:DIRECTIONS,poses:POSES});
+ return Object.freeze({draw,gripSocket:(o,now,opts)=>gripSocket(o,now,opts),readyFor,get errors(){return [...errors]},dimensions:{width:WIDTH,height:HEIGHT,frames:FRAMES,rows:ROWS},directions:DIRECTIONS,poses:POSES});
 }
 window.MyrrenAuthoredCharacter=Object.freeze({create,order:ORDER,slots:SLOTS,directions:DIRECTIONS,poses:POSES});
 })();
