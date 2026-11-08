@@ -64,7 +64,8 @@ const server=http.createServer((request,response)=>{
       });
       document.body.appendChild(gallery);
     });
-    await page.locator('#qa-gallery').screenshot({path:'/tmp/myrren-kez-v2-seven-metals.png'});
+    const galleryPng=await page.evaluate(()=>document.getElementById('qa-gallery').toDataURL('image/png').split(',')[1]);
+    fs.writeFileSync('/tmp/myrren-kez-v2-seven-metals.png',Buffer.from(galleryPng,'base64'));
     assert.deepEqual(errors,[],'no unhandled browser script exceptions');
     console.log('PASS: real browser loads Kez V2, enters game, paints world, opens equipped portrait and renders all seven metal tiers.');
   }finally{await browser?.close();await new Promise(resolve=>server.close(resolve))}
