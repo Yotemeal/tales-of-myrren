@@ -51,3 +51,16 @@ then test in-world screenshots at 24×36 before producing the other six tiers. A
 deliberate so an incomplete image cannot be treated as production-ready.
 
 Run `node tests/authored-character-renderer.test.cjs`.
+
+## Authored weapon integration progress
+- The opt-in renderer now accepts a single weapon draw callback and supplies
+  the animated glove socket in world-space coordinates. The glove overlays the
+  hilt; back-facing swords render behind the torso.
+- `public/authored-sword-bridge.js` adapts that socket to the existing
+  `MyrrenSwords.draw` and deterministic sword motion. The bridge is not
+  loaded by the live game.
+- Regression coverage checks single-weapon draw, direction, moving grip,
+  shield depth, no sword on pickaxe/fist actions and hilt occlusion.
+- **Not complete:** the artwork's arm and shoulder silhouette, the actual
+  in-world visual integration and the original approved sprite quality.
+  No live renderer or save format changes are authorised yet.
