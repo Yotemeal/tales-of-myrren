@@ -42,7 +42,7 @@ window.MyrrenKezV2Atlas={
   // up/down, or the character abruptly changes direction mid-swing.
   const useAttack=attacking&&o.dv==='s';
   const row=useAttack?rows.attack:o.moving?rows[direction]:rows[direction];
-  const frame=useAttack?Math.min(3,Math.floor(age/80)):o.moving?Math.floor(now/130)%4:0;
+  const frame=useAttack?Math.min(3,Math.floor(age/80)):o.moving?Math.floor(now/130)%4:(o.animateIdle?Math.floor(now/440)%4:0);
   const bounds=frameBounds[row][frame];
   const scale=0.8,sw=bounds.right-bounds.left+1,sh=bounds.bottom-bounds.top+1;
   const dw=Math.round(sw*scale),dh=Math.round(sh*scale);
