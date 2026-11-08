@@ -11,6 +11,21 @@
 - `public/wardrobe-v5.js` continues to supply approved larger gear **inventory icons**. It is not the in-world character renderer.
 - `public/forged-swords-v1.js` supplies approved sword art. Kez V2 holds the blade from the dominant hand at 60% tool draw scale; rear-facing weapons draw beneath the base character, and glove colour covers the grip.
 
+### Native sprite anatomy — do not upscale parts independently
+
+All offsets are native **1-pixel units** relative to the planted feet at `(x,y)`. These have been checked against Kez V2's actual drawn silhouette (not the old 40px/64px character).
+
+| Region | Native relative Y | Constraint |
+|---|---:|---|
+| Helmet crown | −26 to −21 | Keep the authored hairline visible on front/side poses |
+| Face and eyes | approximately −14 to −12 | **Never draw chest, pauldrons or central helmet guards here** |
+| Torso and pauldrons | −11 to −3 | Chest bottom meets the leg tops; the shoulders must not bob into the face |
+| Gloves and sword grip | −8 to −4; grip at −7 | Dominant-hand sword and gloves use the same socket |
+| Legs and boots | −5 to 0 | Feet remain planted even when the walking sprite moves |
+| Offhand shield | −10 to −2 | A thin profile behind the side pose; wider shield on front/back |
+
+Changing gear geometry requires running `node tests/kez-v2-rendering.test.cjs`, which checks face clearance and native bounds for all seven tiers, including walking frames. Screenshots of idle, attack, rear-facing weapons and dyes come from `tests/kez-v2-browser.test.cjs`.
+
 **Idle direction:** A stopped player uses frame 0 of the row matching their last facing. Front portrait idle can use row 0 with `animateIdle=true`. The 6 rows are: idle, front, back, left, right, side attack. Up/down attacks retain their direction rather than snapping to a sideways slash. There are no dedicated up/down attack sprite rows in Kez V2 yet; tool motion handles those directions.
 
 **Cosmetic dye:** Saved `dye` indices 0–3 tint high-tier enamel accents through the cached `colorsFor(materialId,dye)` function. Undyed equipment retains the approved seven-metal colours and all existing item IDs. The character portrait uses the same dye as gameplay.
