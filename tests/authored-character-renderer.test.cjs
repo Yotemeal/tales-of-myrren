@@ -62,6 +62,33 @@ assert.equal(mining[0][2],48,'mining cannot borrow sword attack body frames');
 const punching=run({tool:'fist',swingAt:0},160);
 assert.equal(punching[0][2],0,'unarmed combat cannot borrow sword pose');
 assert.equal(run({g:[0,0,0,0,0,0]}).length,1);
+// Weapon must follow the moving hand and draw only once, with gloves over
+// its hilt. Back-facing weapon must be behind the body, not over the helmet.
+function weaponOrder(props,now){
+ const sequence=[],ctx={save(){},restore(){},
+  drawImage(img){sequence.push(img.url)}};
+ const weapon=(c,socket)=>{assert(Number.isFinite(socket.x)&&Number.isFinite(socket.y));
+  sequence.push('WEAPON');};
+ assert(renderer.draw(ctx,100,200,{...o,...props},now,{weapon}));
+ return sequence;
+}
+const frontStrike=weaponOrder({swingAt:0,hold:500},120);
+assert.equal(frontStrike.filter(x=>x==='WEAPON').length,1);
+assert(frontStrike.indexOf('WEAPON')<frontStrike.indexOf('/assets/authored-character/6-gloves.png'));
+const rearStrike=weaponOrder({dv:'u',swingAt:0,hold:500},120);
+assert.equal(rearStrike.filter(x=>x==='WEAPON').length,1);
+assert(rearStrike.indexOf('WEAPON')<rearStrike.indexOf('/assets/authored-character/base.png'));
+const idleNoHold=weaponOrder({swingAt:-9999,hold:-1},500);
+assert(!idleNoHold.includes('WEAPON'),'unequipped pose must not draw an invisible sword');
+const miningWithWeapon=weaponOrder({tool:'pickaxe',swingAt:0,hold:500},120);
+assert(!miningWithWeapon.includes('WEAPON'),'pickaxe must not invoke sword drawing');
+let gripPositions=[];
+for(const age of [0,72,120,192,270,310]){
+ renderer.draw({save(){},restore(){},drawImage(){}},100,200,
+  {...o,swingAt:0,hold:500},age,
+  {weapon:(_ctx,socket)=>gripPositions.push(socket.y)});
+}
+assert(new Set(gripPositions).size>1,'blade must travel with glove over attack');
 const empty=instances.find(i=>i.url.endsWith('6-head.png'));
 empty.naturalWidth=12;
 assert.equal(renderer.readyFor(o),false,'invalid authored atlas must fail closed');
