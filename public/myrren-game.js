@@ -158,7 +158,7 @@ const forgeReq=(r,kind)=>r.req+FORGE_UNLOCK[kind];
 const forgeXp=(r,cost)=>cost*r.xp*2;
 /* economy: shop price of forgeable gear = 2x its ingot value, so smelting+forging always beats buying and coins are a sink */
 for(const id in DEFS){const d=DEFS[id];if(FORGE[d.kind]&&d.mat>=2){const ik='ing_'+MATS[d.mat].k;if(SELL[ik])d.price=Math.round(2*FORGE[d.kind]*SELL[ik])}}
-const gearSvg=(d,s)=>{if(d.kind==='sword'&&window.MyrrenSwords?.ready)return window.MyrrenSwords.icon(d.mat,s);if(window.MyrrenArmour?.ready&&ARMOUR_DEF[d.kind])return window.MyrrenArmour.icon(d.kind,d.mat,s);const m=MATS[d.mat];if((d.kind==='helm'||d.kind==='shield')&&myrrenV31Equipment)return myrrenV31Equipment.icon(d.kind,d.mat,s);return svg(d.art,s,{M:m.M,H:m.H,D:m.D,S:m.H})};
+const gearSvg=(d,s)=>{if(d.kind==='sword'&&window.MyrrenSwords?.ready)return window.MyrrenSwords.icon(d.mat,s);if(window.MyrrenArmour?.ready&&ARMOUR_DEF[d.kind])return window.MyrrenArmour.icon(d.kind,d.mat,s);const m=MATS[d.mat];return svg(d.art,s,{M:m.M,H:m.H,D:m.D,S:m.H})};
 
 /* ---------- rules ---------- */
 const NAMES={melee:'Combat',woodcutting:'Forestry',mining:'Delving',fishing:'Fishing',cooking:'Cooking',forging:'Forging'};
@@ -2195,49 +2195,11 @@ function drawMon(m,x,y,now){
 }
 function rrect(x,y,w,h,c,ol){if(ol){R(x,y-1,w,h+2,ol);R(x-1,y,w+2,h,ol)}R(x+1,y,w-2,h,c);R(x,y+1,w,h-2,c)}
 const HAIRS=['#7a4a2a','#d8b45a','#2e2a34','#a8502e','#c8c2c8'];
-// Archived V31/approved-character renderers below exist only for historical QA.
-// Do not download or activate superseded assets in the production game.
-const LEGACY_CHARACTER_ASSETS=false;
-const MYRREN_V31 = new Image();
-let myrrenV31Ready = false;
-let myrrenV31FeetAtlas = null;
-let myrrenV31Equipment = null;
-MYRREN_V31.onload = () => {
-  myrrenV31Ready = MYRREN_V31.naturalWidth === 128 && MYRREN_V31.naturalHeight === 320;
-  if (myrrenV31Ready) {
-    myrrenV31FeetAtlas = MYRREN_V31;
-    if(window.V31Character){
-      try { myrrenV31FeetAtlas = window.V31Character.buildFaceAtlas(MYRREN_V31); } catch (_) {}
-    }
-    if (typeof buildV31FeetAtlas === 'function') {
-      try { myrrenV31FeetAtlas = buildV31FeetAtlas(myrrenV31FeetAtlas); } catch (_) {}
-    }
-    if (typeof V31Equipment !== 'undefined') {
-      try { myrrenV31Equipment = V31Equipment.make(myrrenV31FeetAtlas); } catch (_) {}
-    }
-  }
-};
-MYRREN_V31.onerror = () => { myrrenV31Ready = false; };
-if(LEGACY_CHARACTER_ASSETS)MYRREN_V31.src = '/hero_32x40_v31.png';
-// A separate atlas keeps the approved base art intact and leaves equipped gear compatible.
-const MYRREN_APPROVED=new Image();let approvedHero=null;
-MYRREN_APPROVED.onload=()=>{if(window.MyrrenHero)try{approvedHero=window.MyrrenHero.create(MYRREN_APPROVED)}catch(_){approvedHero=null}};
-MYRREN_APPROVED.onerror=()=>{approvedHero=null};
-if(LEGACY_CHARACTER_ASSETS)MYRREN_APPROVED.src='/hero-approved-v1.png';
+// Kez V2 is the sole active player and peer art pipeline.
 window.addEventListener('myrren-armour-ready',()=>{if(tab)renderModal()});
 window.addEventListener('myrren-weapons-ready',()=>{if(tab)renderModal()});
 window.addEventListener('myrren-sword-actions-ready',()=>{if(tab)renderModal()});
 window.addEventListener('myrren-kez-v2-ready',()=>{if(tab==='gear')renderModal()});
-function drawApprovedBase(x,y,o,now){
-  shadowE(x+1,y,7,2,.3);
-  const sword=o.tool==='sword'&&window.MyrrenSwords?.ready&&window.MyrrenSwordActions?.ready,options={...o,weaponMat:sword?o.mat:0,armourDye:o.dye!=null?DYES[o.dye]:null,hurtAt:o.isMe?me.hurtAt:null,deathAt:o.isMe?me.deathAt:null};
-  const pose=sword?approvedHero.drawEquipped(ctx,x,y,options,now):approvedHero.draw(ctx,x,y,options,now);
-  if(pose.dead)return true;
-  const age=now-(o.swingAt??-99999),swinging=age>=0&&age<320;
-  if(!sword&&o.tool&&o.tool!=='fist'&&(swinging||now<o.hold))drawTool(o.tool,o.mat,pose.handX,pose.handY,o.f||1,swinging?swingAng(age):-.35);
-  label(o.name,x,pose.nameY??y-42,o.col||'#ffffff');if(o.waving)label('*waves*',x,(pose.nameY??y-42)-12,'#ffffff');
-  return true;
-}
 // Kez V2 is the authoritative player and remote-player render path.
 // Legacy renderers remain isolated for historical QA, never for live players.
 let missingKezLogged=false;
@@ -2290,38 +2252,6 @@ function drawKezV2(x,y,o,now){
   if(deathAge>=0)return true;
   label(o.name,x,y-32,o.col||'#ffffff');
   if(o.waving)label('*waves*',x,y-43,'#ffffff');
-  return true;
-}
-function drawApprovedPlayer(x,y,o,now){
-  // Emergency visual fallback: add ?classicSprite=1 to the game URL.
-  // This changes only character rendering; saves and game state are untouched.
-  if(new URLSearchParams(location.search).get('classicSprite')==='1')return false;
-  if(approvedHero&&window.MyrrenHero.supports(o.g))return drawApprovedBase(x,y,o,now);
-  if(!myrrenV31Ready)return false;
-  // All six equipment layers use the approved native V31 atlas.
-  const gear=o.g||[0,0,0,0,0];
-  if(gear.some(t=>t>0)&&!myrrenV31Equipment)return false;
-  const age=now-(o.swingAt??-99999),swinging=age>=0&&age<320;
-  const action=swinging?(age<90?1:age<200?2:3):0;
-  const sprite=myrrenV31Equipment
-    ? myrrenV31Equipment.get(gear[2],gear[3],o.dye!=null?DYES[o.dye]:null,gear[1],gear[0],gear[4],action,gear[5])
-    : myrrenV31FeetAtlas;
-  const character=window.V31Character;
-  const pose=character.pose(now,{...o,animatedGear:gear[0]||gear[4],hurtAt:o.isMe?me.hurtAt:null,deathAt:o.isMe?me.deathAt:null});
-  shadowE(x+1,y,7,2,.3);
-  ctx.save();ctx.imageSmoothingEnabled=false;
-  if(pose.hurt)ctx.globalAlpha=.7;
-  character.drawPose(ctx,sprite,x,y,pose);
-  ctx.restore();
-  const idleLift=pose.lift;
-  if(pose.death>=0)return true;
-  const holding=o.tool&&o.tool!=='fist'&&(swinging||now<o.hold);
-  const f=o.f||1,hx=x+f*7+pose.lean,hy=y-11-idleLift;
-  const hand=gear[5]&&typeof V31Equipment!=='undefined'?(o.dye!=null&&gear[5]>=4?DYES[o.dye].M:V31Equipment.materials[gear[5]].base):'#f0c49c';
-  if(o.tool==='fist'&&swinging){const d=Math.round(Math.sin(age/320*Math.PI)*6);ctx.save();ctx.translate(hx+f*d,hy);rrect(-1,-2,3,3,hand,'#2a1c18');ctx.restore()}
-  else if(holding){drawTool(o.tool,o.mat,hx,hy,f,swinging?swingAng(age):-.35);ctx.save();ctx.translate(hx,hy);rrect(-1,-1,3,3,hand,'#2a1c18');ctx.restore()}
-  label(o.name,x,y-42,o.col||'#ffffff');
-  if(o.waving)label('*waves*',x,y-54,'#ffffff');
   return true;
 }
 function drawPerson(x,y,o,now){
