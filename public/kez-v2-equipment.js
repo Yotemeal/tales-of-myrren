@@ -18,6 +18,94 @@
   8:['#363d51','#d9e2f2','#ffffff','#efb63a']
  };
  const CLOSED=new Set([7,6,8]);
+ // Approved Myrrenite helmet revision: teal plate, a tall gold crest,
+ // continuous gold brow, black T-shaped eye slit, and a central nose guard.
+ // Authored at native pixel resolution (15 × 17). This is a real fixed
+ // pixel-mask for all four directions, not a scaled-down full-body reference.
+ // Front is the definitive design; side/back are consistent directional views.
+ const MYRRENITE_MASKS={
+  front:[
+   "......GGG......",
+   ".....KGGGK.....",
+   "....KTTGTTK....",
+   "...KTTTGTTTK...",
+   "..KTTTTGTTTTK..",
+   ".KTTTTTGTTTTTK.",
+   ".KLLLLGGLLLLLK.",
+   "KGGGGGGHGGGGGGK",
+   "KGHHGGGHGGGHHGK",
+   "KTKVVVVVVVKTGTK",
+   "KTTKVVVVVKTTTKK",
+   "KTTTKVVVKTTTTKK",
+   ".KTTTKVKTTTTK..",
+   ".KTTTKVKTTTTK..",
+   "..KTTKVKTTTK...",
+   "...KDKVKDKK....",
+   "....KKKKKK....."
+  ],
+  right:[
+   "......GGG......",
+   ".....KGGGK.....",
+   "....KTTGTTK....",
+   "...KTTTGTTTK...",
+   "..KTTTTGTTTTK..",
+   ".KTTTTTGTTTTTK.",
+   ".KLLLLGGLLLLLK.",
+   "KGGGGGGHGGGGGGK",
+   "KGHHGGGHGGGHHGK",
+   "KTTTTKKVVVVVVKK",
+   "KTTTTKTVVVVVVKK",
+   "KTTTTKTTTVVVKKK",
+   ".KTTTTTTTVVKK..",
+   ".KTTTTTTTKKK...",
+   "..KTTTTTTTK....",
+   "...KDTGTDKK....",
+   "....KKKKKK....."
+  ],
+  back:[
+   "......GGG......",
+   ".....KGGGK.....",
+   "....KTTGTTK....",
+   "...KTTTGTTTK...",
+   "..KTTTTGTTTTK..",
+   ".KTTTTTGTTTTTK.",
+   ".KLLLLGGLLLLLK.",
+   "KGGGGGGHGGGGGGK",
+   "KTTTTTTGTTTTTTK",
+   "KTTTTTTGTTTTTTK",
+   "KTTTTTTGTTTTTTK",
+   "KTTTTTLGTTTTTTK",
+   ".KTTTTTGTTTTTK.",
+   ".KTTTTTGTTTTTK.",
+   "..KTTTTGTTTTK..",
+   "...KTTTGTTTK...",
+   "....KKKKKK....."
+  ]
+ };
+ MYRRENITE_MASKS.left=MYRRENITE_MASKS.right.map(row=>[...row].reverse().join(''));
+ const myrreniteRuns={};
+ for(const [dir,rows] of Object.entries(MYRRENITE_MASKS)){
+  if(rows.length!==17||rows.some(row=>row.length!==15))
+   throw new Error('Invalid native Myrrenite helmet mask: '+dir);
+  const runs=[];
+  rows.forEach((line,y)=>{
+   for(let x=0;x<15;){
+    const ch=line[x];let end=x+1;
+    while(end<15&&line[end]===ch)end++;
+    if(ch!=='.')runs.push([x-7,y-26,end-x,ch]);
+    x=end;
+   }
+  });
+  myrreniteRuns[dir]=runs;
+ }
+ function myrreniteHelmet(px,face,f,bob,p){
+  const dir=face==='side'?(f<0?'left':'right'):face;
+  // Gold must remain gold even with an old save's cosmetic dye selected.
+  const shades={K:p[0],T:p[1],L:p[2],D:p[0],
+   G:METALS[6][3],H:'#fff3b6',V:'#060f18'};
+  for(const [dx,dy,w,ch] of myrreniteRuns[dir])
+   px(dx,dy+bob,w,1,shades[ch]);
+ }
  // Cosmetic dyes are legacy save indices 0–3. Tint high-tier enamel, not
  // the whole sprite, so each approved metal remains recognisable.
  const DYE_TONES=['#c7414e','#39a86c','#6966ba','#e5ba52'];
@@ -123,7 +211,9 @@
    px(-6,-7+bob,1,3,p[2]);px(6,-7+bob,1,3,p[2]);
    if(mat===6||mat===8){px(-7,-8+bob,2,1,p[3]);px(5,-8+bob,2,1,p[3]);}
   }
-  if(gear[0]){
+  if(gear[0]===6){
+   myrreniteHelmet(px,face,o.f,bob,colorsFor(6,o.dye));
+  }else if(gear[0]){
    const mat=gear[0],p=colorsFor(mat,o.dye),closed=CLOSED.has(mat);
    // Metal crown sits on the hairline and side guards frame the face.
    // Eyes at y≈-13 must remain visible for both open and closed helmets.
