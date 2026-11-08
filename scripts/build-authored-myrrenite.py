@@ -123,13 +123,14 @@ def draw_slot(slot,direction,pose,frame):
             x=17
         else:
             x=25
-        if mirror:x=32-x
+        # 'shape' and 'mark' mirror themselves. Mirror the anchor only once
+        # through those helpers; otherwise the left-facing shield jumps to
+        # the wrong side of the body.
         shape([(x-4,22),(x+3,22),(x+5,25),(x+4,34),(x,39),(x-4,34),(x-5,25)],GOLD)
         shape([(x-3,24),(x+2,24),(x+3,26),(x+2,33),(x,36),(x-3,33),(x-4,26)],DEEP)
-        rect_x=x if not mirror else W-1-x
         # Emblem is four small bright pixels, not an oversized UI symbol.
         for dx,dy in ((0,27),(-1,29),(0,29),(1,29),(0,31)):
-            mark(rect_x+dx,dy,GLOW)
+            mark(x+dx,dy,GLOW)
     return im
 
 def build(out):
