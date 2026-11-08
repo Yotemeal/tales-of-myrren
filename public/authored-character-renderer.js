@@ -96,7 +96,7 @@ function create(assetRoot){
   if(dir==='left'||dir==='right')if(shield)paint(ctx,shield,x,y,row,frame,w,h);
   if(dir==='back')paintWeapon();
   paint(ctx,base,x,y,row,frame,w,h);
-  for(const slot of ['boots','legs','body','gloves','head']){
+  for(const slot of ['boots','legs','body','head']){
    const index=SLOTS.indexOf(slot),mat=gear[index];
    if(mat)paint(ctx,images.get(mat+'-'+slot),x,y,row,frame,w,h);
   }
