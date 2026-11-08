@@ -90,8 +90,12 @@ const server=http.createServer((request,response)=>{
             tool:attack?(bare?'fist':'sword'):'sword',
             swingAt:attack?0:-99999, g:bare?[0,0,0,0,0,0]:[mat,mat,mat,mat,mat,mat]};
           g.save();g.translate(x,y);g.scale(4,4);
-          const hx=dv==='s'?(f<0?-6:6):dv==='u'?-5:5;
-          const weapon=()=>{if(attack&&!bare)window.MyrrenSwords?.draw(g,mat,hx,-7,f,-.7,.6)};
+          const hx=dv==='s'?(f<0?-6:6):dv==='u'?-8:5;
+          const weapon=()=>{if(attack&&!bare){
+            const motion=window.MyrrenKezV2SwordMotion;
+            if(!motion||!window.MyrrenSwords.draw(g,mat,hx,-7,f,motion.angle(o.now),.6))
+              throw Error('Actual sword renderer unavailable');
+          }};
           if(dv==='u')weapon();
           window.MyrrenKezV2Equipment.draw(g,0,0,o,'under');
           window.MyrrenKezV2Atlas.draw(g,0,0,o,o.now);
@@ -106,6 +110,52 @@ const server=http.createServer((request,response)=>{
       return c.toDataURL('image/png').split(',')[1];
     });
     fs.writeFileSync('/tmp/myrren-kez-v2-directions.png',Buffer.from(directionalPng,'base64'));
+
+    // Rigid attack QA: sample the actual equipped sword and motion modules
+    // across four facings and the full 320 ms animation. Do not use a fixed
+    // illustration angle here: that previously hid broken attack movement.
+    const contactPng=await page.evaluate(()=>{
+      const D=[['FRONT','d',1],['RIGHT','s',1],['BACK','u',1],['LEFT','s',-1]];
+      const A=[0,60,110,160,210,270,310],mat=6;
+      const tileW=116,tileH=156;
+      const c=document.createElement('canvas');
+      c.width=tileW*A.length;c.height=tileH*D.length;
+      const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+      const gear=window.MyrrenKezV2Equipment,hero=window.MyrrenKezV2Atlas;
+      const sword=window.MyrrenSwords,motion=window.MyrrenKezV2SwordMotion;
+      if(!sword?.ready||!motion||!hero?.ready||!gear)throw Error('Missing production render modules');
+      let changed=0;
+      for(let di=0;di<D.length;di++)for(let ai=0;ai<A.length;ai++){
+        const [name,dv,f]=D[di],age=A[ai],tx=ai*tileW,ty=di*tileH;
+        const cx=tx+tileW/2,cy=ty+128;
+        g.fillStyle='#23322e';g.fillRect(tx,ty,tileW,tileH);
+        const pose={dv,f,moving:false,now:age,tool:'sword',swingAt:0,
+          g:[mat,mat,mat,mat,mat,mat]};
+        const hx=dv==='u'?-8:dv==='s'?f*6:5,hy=-7;
+        g.save();g.translate(cx,cy);g.scale(4,4);
+        const paintSword=()=>{
+          const pre=g.getImageData(-20,-42,40,46).data;
+          if(!sword.draw(g,mat,hx,hy,f,motion.angle(age),.6))
+            throw Error('Forged sword not ready');
+          const post=g.getImageData(-20,-42,40,46).data;
+          for(let px=0;px<pre.length;px+=4)if(pre[px+3]!==post[px+3]||
+            pre[px]!==post[px]||pre[px+1]!==post[px+1]||pre[px+2]!==post[px+2])changed++;
+          // The glove hides the weapon's hilt; the offhand shield draws separately.
+          if(dv!=='u'){g.fillStyle='#91e4db';g.fillRect(hx-1,hy-1,2,2)}
+        };
+        if(dv==='u')paintSword();
+        gear.draw(g,0,0,pose,'under');
+        hero.draw(g,0,0,pose,age);
+        gear.draw(g,0,0,pose,'over');
+        if(dv!=='u')paintSword();
+        g.restore();
+        g.fillStyle='#e9e2ce';g.font='11px sans-serif';g.textAlign='center';
+        g.fillText(name+' '+age+'ms',cx,ty+149);
+      }
+      if(changed<100)throw Error('Sword pixels did not render throughout strike');
+      return c.toDataURL('image/png').split(',')[1];
+    });
+    fs.writeFileSync('/tmp/myrren-kez-v2-sword-motion-contact-sheet.png',Buffer.from(contactPng,'base64'));
 
     // Cosmetics QA: default metal identity survives all four saved dye choices.
     const dyePng=await page.evaluate(()=>{
