@@ -76,6 +76,50 @@ equipment.draw({fillStyle:'',fillRect(){under++}},25,35,shieldOnly,'under');
 equipment.draw({fillStyle:'',fillRect(){over++}},25,35,shieldOnly,'over');
 assert(under>0&&over===0,'side shield should be behind character');
 
+
+// Layering and silhouette rules that would otherwise be easy to regress on
+// a 21x27 character. All test coordinates are in unscaled source pixels.
+for(const mat of equipment.order){
+  const painted=new Set();
+  const ctx={fillStyle:'',fillRect(x,y,w,h){
+    assert(Number.isInteger(x)&&Number.isInteger(y)&&w>0&&h>0);
+    for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++){
+      assert(xx>=-10&&xx<=10&&yy>=-27&&yy<=1,
+        'worn armour must fit the native 21×27 silhouette');
+      painted.add(xx+','+yy);
+    }
+  }};
+  equipment.draw(ctx,0,0,{dv:'d',f:1,g:[mat,0,0,0,0,0],now:0},'over');
+  assert(painted.size>0);
+  if(mat===7||mat===6||mat===8){
+    // A closed visor keeps the eye line uncovered on each side.
+    assert(!painted.has('-3,-18')&&!painted.has('2,-18'),
+      'full-face masks must leave clear sight lines');
+  }else assert(!painted.has('0,-18'),
+    'open-face helmets must not paint across Kez V2 eyes');
+}
+for(const dv of ['s','u','d']){
+  let behind=0,front=0;
+  const o={dv,f:1,g:[0,0,0,0,6,0],now:0};
+  const ctx={fillStyle:'',fillRect(){behind++}};
+  equipment.draw(ctx,0,0,o,'under');
+  const ctx2={fillStyle:'',fillRect(){front++}};
+  equipment.draw(ctx2,0,0,o,'over');
+  assert.equal(behind>0,dv==='s','side shield belongs behind character');
+  assert.equal(front>0,dv!=='s','front/rear shield must remain on visible offhand');
+}
+assert.equal(equipment.palette[7][1],'#8325be');
+assert.equal(equipment.palette[6][3],'#efc653');
+assert.equal(equipment.palette[8][2],'#ffffff');
+const drawKez=game.slice(game.indexOf('function drawKezV2('),game.indexOf('function drawApprovedPlayer('));
+assert(drawKez.indexOf("if(direction==='back'){paintHeld();paintPunch()}")<
+       drawKez.indexOf('atlas.draw(ctx,x,y,state,now)'),
+       'rear-facing sword must be painted before the body');
+assert(drawKez.indexOf('atlas.draw(ctx,x,y,state,now)')<
+       drawKez.indexOf("if(direction!=='back'){paintHeld();paintPunch()}"),
+       'front and side swords must be held over the body');
+assert(drawKez.includes("const handColor=glove&&gear?.palette?.[glove]"),
+       'sword grip should use equipped glove colour, not bare skin');
 assert(game.includes('if(!o.apron){drawKezV2(x,y,o,now);return;}'));
 assert(!game.includes("get('kezV2')"),'Kez V2 must not be opt-in');
 assert(!game.includes('drawLightweightKez'),'preview character entry must be removed');
