@@ -896,8 +896,7 @@ function rGear(){
      requestAnimationFrame(paintPortrait);
    }
    requestAnimationFrame(paintPortrait);
-   const caption=el('div','v2-portrait-caption','Kez V2 · equipped character');
-   portrait.append(caption);
+   // The portrait itself is the preview; no caption overlay obscuring the sprite.
  }
  else{portrait.append(el('div','v2-portrait-caption','Loading Kez V2 artwork…'))}
  sheet.append(equipmentPaper(),portrait,equipmentStats('character-stats'));mBody.append(sheet);
