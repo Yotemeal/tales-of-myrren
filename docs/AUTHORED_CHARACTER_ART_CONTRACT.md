@@ -40,9 +40,7 @@ It is deliberately NOT referenced by `public/index.html` or `myrren-game.js`.
 It refuses to draw until the base and all equipped slot images load with
 the exact dimensions; no misleading fallback to blocky art.
 
-Next: hand-author the **base character and one complete approved Myrrenite set**
-in all four directions and poses, then inspect actual in-world screenshots
-at 24×36 before producing the other six tiers. A full atlas requirement is
+First-pass **base character and six-piece Myrrenite atlases** are now generated\nby `scripts/build-authored-myrrenite.py`, with source-cell tests and an actual\nlayered contact sheet published by GitHub Actions. These are **first-pass\nhand-authored pixel shapes, not visually approved art**. They have not been\nreviewed at 24×36 in the real game, and the sword animation remains separate.\n\nNext: inspect the GitHub Actions contact sheet, refine any incorrect shapes,\nthen test in-world screenshots at 24×36 before producing the other six tiers. A full atlas requirement is
 deliberate so an incomplete image cannot be treated as production-ready.
 
 Run `node tests/authored-character-renderer.test.cjs`.
