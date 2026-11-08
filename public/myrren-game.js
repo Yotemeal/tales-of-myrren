@@ -1459,7 +1459,13 @@ let lastAtkKey='',lastUseKey='';
 function refreshActionButtons(){
   const w=activeDef('weapon');
   const ak=w?w.id:'fist';
-  if(ak!==lastAtkKey){lastAtkKey=ak;$('aAtk').innerHTML=w?gearSvg(w,40):svg('fist',40)}
+  if(ak!==lastAtkKey){
+    lastAtkKey=ak;
+    // iOS treats image-based sword icons as saveable pictures on long press.
+    // Use the inline vector icon on the hold-to-attack control instead.
+    const icon=w?svg(w.art,40,{M:MATS[w.mat].M,H:MATS[w.mat].H,D:MATS[w.mat].D,S:MATS[w.mat].H}):svg('fist',40);
+    $('aAtk').innerHTML=icon;
+  }
   const now=performance.now();
   let uk='axe';
   if(inside)uk='coins';
