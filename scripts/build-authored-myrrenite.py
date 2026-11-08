@@ -141,7 +141,9 @@ def build(out):
             for pi,pose in enumerate(('idle','walk','attack')):
                 for frame in range(4):
                     im=draw_slot(slot,direction,pose,frame)
-                    sheet.paste(im,(frame*W,(di*3+pi)*H),im)
+                    # Direct RGBA paste preserves alpha; using the source as a mask
+                    # squares semi-transparent alpha and creates faint halos.
+                    sheet.paste(im,(frame*W,(di*3+pi)*H))
         sheet.save(out/(slot+'.png'))
     return out
 
