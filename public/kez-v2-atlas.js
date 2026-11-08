@@ -3,8 +3,8 @@
 (function(){
 'use strict';
 const atlas=new Image();
-let ready=false;
-atlas.onerror=()=>{ready=false;console.error('Kez V2 sprite atlas failed to load')};
+let ready=false,failed=false;
+atlas.onerror=()=>{ready=false;failed=true;console.error('Kez V2 sprite atlas failed to load')};
 const rows={idle:0,front:1,back:2,left:3,right:4,attack:5};
 const frameBounds=[];
 function inspectFrames(){
@@ -29,12 +29,13 @@ function inspectFrames(){
 }
 atlas.onload=()=>{
   ready=atlas.naturalWidth===84&&atlas.naturalHeight===162;
-  if(ready){inspectFrames();window.dispatchEvent?.(new Event('myrren-kez-v2-ready'))}
-  else console.error('Invalid Kez V2 atlas dimensions:',atlas.naturalWidth,atlas.naturalHeight);
+  if(ready){failed=false;inspectFrames();window.dispatchEvent?.(new Event('myrren-kez-v2-ready'))}
+  else{failed=true;console.error('Invalid Kez V2 atlas dimensions:',atlas.naturalWidth,atlas.naturalHeight)}
 };
 atlas.src='/assets/kez-v2/kez_v2_atlas.png?v=1';
 window.MyrrenKezV2Atlas={
  get ready(){return ready},
+ get failed(){return failed},
  get dimensions(){return {cellWidth:21,cellHeight:27,frames:4,rows:6,scale:1}},
  draw(ctx,x,y,o,now){
   if(!ready)return false;
