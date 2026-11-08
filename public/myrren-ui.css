@@ -260,8 +260,17 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-vi
   text-shadow:1px 1px #101a12;
 }
 
-#chat li:nth-last-child(n+4) {
+#chat li:nth-last-child(n+3) {
   display:none;
+}
+
+/* Long instructions must not spread under the compass or scroll out of view. */
+#chat li {
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  overflow-wrap:anywhere;
 }
 
 #chat li {
@@ -1192,11 +1201,13 @@ input[type=range] {
     font-size:21px;
   }
   #chat {
-    left:8px;
-    top:max(8px,env(safe-area-inset-top));
-    width:90%;
-    height:57px;
+    left:max(10px,env(safe-area-inset-left));
+    top:max(12px,env(safe-area-inset-top));
+    /* Reserve room for the compass on narrow displays. */
+    width:min(260px,calc(100% - 168px));
+    height:76px;
     font-size:14px;
+    line-height:1.12;
   }
   #pad {
     width:94px;
