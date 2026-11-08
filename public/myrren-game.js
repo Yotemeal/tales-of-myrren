@@ -2216,7 +2216,7 @@ function drawLightweightKez(x,y,o,now){
   if(!atlas.draw(ctx,x,y,o,now)){ctx.restore();return false;}
   ctx.restore();
   const holding=o.tool&&o.tool!=='fist'&&(attack||now<o.hold);
-  if(holding)drawTool(o.tool,o.mat,x+(o.f||1)*6,y-8,o.f||1,attack?swingAng(age):-.35);
+  if(holding && !(attack && o.dv==='s' && o.tool==='sword'))drawTool(o.tool,o.mat,x+(o.f||1)*6,y-8,o.f||1,attack?swingAng(age):-.35);
   else if(o.tool==='fist'&&attack)R(x+(o.f||1)*5,y-9,2,2,'#edbc94');
   label(o.name,x,y-30,o.col||'#ffffff');
   if(o.waving)label('*waves*',x,y-42,'#ffffff');
