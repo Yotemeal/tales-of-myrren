@@ -21,6 +21,13 @@ with tempfile.TemporaryDirectory() as tmp:
     assert images['6-head'].crop((0,6*48,32,7*48)).tobytes()!=images['6-head'].crop((0,9*48,32,10*48)).tobytes(),'left/right must differ'
     assert images['6-gloves'].crop((0,2*48,32,3*48)).tobytes()!=images['6-gloves'].crop((3*32,2*48,4*32,3*48)).tobytes(),'attack arms must move'
     assert images['6-boots'].crop((0,48,32,96)).tobytes()!=images['6-boots'].crop((32,48,64,96)).tobytes(),'walk boots must move'
+    # Left and right shields must be reflected counterparts rather than
+    # floating on the same side or being mirrored twice.
+    from PIL import ImageOps
+    shield=images['6-shield']
+    left=shield.crop((0,6*48,32,7*48))
+    right=shield.crop((0,9*48,32,10*48))
+    assert left.tobytes()==ImageOps.mirror(right).tobytes(), 'offhand shield must mirror cleanly across side facings'
     for name in slots:
         # All files must have true alpha and preserve a consistent foot-aligned frame.
         assert images[name].getextrema()[3][0]==0,name+' lacks transparency'
