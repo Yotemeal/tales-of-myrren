@@ -32,7 +32,7 @@ function create(assetRoot){
   const img=new Image();
   images.set(key,img);
   img.onerror=()=>errors.add(key);
-  img.onload=()=>{if(!validImage(img))errors.add(key)};
+  img.onload=()=>{if(!validImage(img))errors.add(key);else errors.delete(key)};
   img.src=assetRoot+key+'.png';
  }
  function readyFor(o){
@@ -58,13 +58,15 @@ function create(assetRoot){
   const base=images.get('base');
   const shield=gear[4]&&images.get(gear[4]+'-shield');
   ctx.save();ctx.imageSmoothingEnabled=false;
-  if(dir==='left'||dir==='right'||dir==='back')if(shield)paint(ctx,shield,x,y,row,frame,w,h);
+  // Back shields sit on the back of the character and must be visible.
+  // Side shields remain behind the near arm; the front shield covers the chest.
+  if(dir==='left'||dir==='right')if(shield)paint(ctx,shield,x,y,row,frame,w,h);
   paint(ctx,base,x,y,row,frame,w,h);
   for(const slot of ['boots','legs','body','gloves','head']){
    const index=SLOTS.indexOf(slot),mat=gear[index];
    if(mat)paint(ctx,images.get(mat+'-'+slot),x,y,row,frame,w,h);
   }
-  if(dir==='front')if(shield)paint(ctx,shield,x,y,row,frame,w,h);
+  if(dir==='front'||dir==='back')if(shield)paint(ctx,shield,x,y,row,frame,w,h);
   ctx.restore();
   return true;
  }
