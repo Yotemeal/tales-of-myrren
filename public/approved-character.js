@@ -125,7 +125,7 @@
   const hands=[[3,-10],[3,-8],[13,-13],[4,-10],[3,-9],[3,-10]];
   function draw(ctx,x,y,o,now){
    const p=pose(o,now),painted=p.swordAction?window.MyrrenSwordActions.compose(o.g,o.armourDye):window.MyrrenArmour?.ready?window.MyrrenArmour.compose(atlas,o.g,o.armourDye):atlas;
-   const scale=window.MyrrenWardrobe?.ready&&!o.nativeScale?40/52:1;
+   const scale=o.nativeScale?1:40/52;
    const sx=p.col*CELL,sy=p.row*CELL,dx=scale===1?Math.round(x-AX):-AX,dy=scale===1?Math.round(y-AY):-AY;
    ctx.save();ctx.imageSmoothingEnabled=false;if(scale!==1){ctx.translate(Math.round(x),Math.round(y));ctx.scale(scale,scale)}
    if(p.hurt)ctx.globalAlpha*=.72;
