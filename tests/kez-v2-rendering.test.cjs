@@ -111,7 +111,7 @@ for(const dv of ['s','u','d']){
 assert.equal(equipment.palette[7][1],'#8325be');
 assert.equal(equipment.palette[6][3],'#efc653');
 assert.equal(equipment.palette[8][2],'#ffffff');
-const drawKez=game.slice(game.indexOf('function drawKezV2('),game.indexOf('function drawApprovedPlayer('));
+const drawKez=game.slice(game.indexOf('function drawKezV2('),game.indexOf('function drawPerson('));
 assert(drawKez.indexOf("if(direction==='back'){paintHeld();paintPunch()}")<
        drawKez.indexOf('atlas.draw(ctx,x,y,state,now)'),
        'rear-facing sword must be painted before the body');
@@ -123,6 +123,8 @@ assert(drawKez.includes("const handColor=glove&&gear?.palette?.[glove]"),
 assert(game.includes('if(!o.apron){drawKezV2(x,y,o,now);return;}'));
 assert(!game.includes("get('kezV2')"),'Kez V2 must not be opt-in');
 assert(!game.includes('drawLightweightKez'),'preview character entry must be removed');
+assert(!game.includes('function drawApprovedPlayer('),'do not ship a dormant old player renderer');
+assert(!game.includes('MYRREN_V31'),'do not create hidden old character sprite loading paths');
 assert(game.includes('if(!canvas.isConnected)return;'),'portrait animations must stop when detached');
 assert(drawKez.includes('drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6)'),
        'weapons must retain the small Kez V2 grip scale');
