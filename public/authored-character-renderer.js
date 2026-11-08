@@ -57,7 +57,8 @@ function create(assetRoot){
  function readyFor(o){
   if(errors.has('base')||!validImage(images.get('base')))return false;
   const gear=Array.isArray(o.g)?o.g:[];
-  return gear.every((mat,i)=>!mat||(i<SLOTS.length&&allMats.has(mat)&&!errors.has(mat+'-'+SLOTS[i])&&validImage(images.get(mat+'-'+SLOTS[i]))));
+  if(gear.length>SLOTS.length)return false;
+  return gear.every((mat,i)=>mat==null||mat===0||(Number.isInteger(mat)&&allMats.has(mat)&&!errors.has(mat+'-'+SLOTS[i])&&validImage(images.get(mat+'-'+SLOTS[i]))));
  }
  function paint(ctx,image,x,y,row,frame,worldW,worldH){
   ctx.drawImage(image,frame*WIDTH,row*HEIGHT,WIDTH,HEIGHT,
