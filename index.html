@@ -2375,10 +2375,7 @@ function drawOutdoor(cx,cy,now){
   for(const pt of pets)list.push({y:pt.y,f:()=>drawPet(pt,Math.round(pt.x-cx),Math.round(pt.y-cy),now)});
   if(started)list.push({y:me.y,f:()=>{
     const sx=Math.round(me.x-cx),sy=Math.round(me.y-cy);
-    // Scale only the local player's art around the planted feet. Preserve world coordinates, collisions and gear logic.
-    ctx.save();ctx.translate(sx,sy);ctx.scale(1.5,1.5);
-    drawPerson(0,0,{dv:me.dv,f:me.face,moving:me.moving,hue:me.hue,isMe:1,name:save.name||'Wanderer',col:'#ffe14a',tool:me.tool,mat:me.mat,hold:me.hold,swingAt:me.swing,waving:now<me.wave,g:gearArr(),dye:save.dye},now);
-    ctx.restore();
+    drawPerson(sx,sy,{dv:me.dv,f:me.face,moving:me.moving,hue:me.hue,isMe:1,name:save.name||'Wanderer',col:'#ffe14a',tool:me.tool,mat:me.mat,hold:me.hold,swingAt:me.swing,waving:now<me.wave,g:gearArr(),dye:save.dye},now);
     if(me.hp<hpMax())bar(sx,sy-(eqDef('head')?33:29),me.hp/hpMax());
     drawFishFx(cx,cy,now);
   }});
