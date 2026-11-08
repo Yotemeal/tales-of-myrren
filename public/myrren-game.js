@@ -870,7 +870,20 @@ function inventoryHeading(title,value=''){
 function rGear(){
  mBody.append(inventoryHeading('EQUIPPED',save.name||'Wanderer'));
  const sheet=el('div','character-sheet'),portrait=el('div','character-portrait'),canvas=document.createElement('canvas');canvas.width=128;canvas.height=160;canvas.setAttribute('aria-label','Your equipped character');portrait.append(canvas);
- if(approvedHero&&window.MyrrenHero.supports(gearArr())){const c=canvas.getContext('2d');c.save();const scale=window.MyrrenWardrobe?.ready?3:4;c.scale(scale,scale);const weapon=activeDef('weapon'),o={dv:'d',f:1,nativeScale:true,g:gearArr(),weaponMat:weapon?.kind==='sword'?weapon.mat:0,weaponAngle:-.35,armourDye:save.dye!=null?DYES[save.dye]:null};if(o.weaponMat)approvedHero.drawEquipped(c,64/scale,158/scale,o,0);else approvedHero.draw(c,64/scale,158/scale,o,0);c.restore()}
+ const v2Portrait=new URLSearchParams(location.search).get('kezV2')==='1'&&window.MyrrenKezV2Atlas?.ready;
+ if(v2Portrait){
+   const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
+   // Keep the portrait consistent with the actual in-world preview.
+   // The atlas has no fitted armour layers yet; saved equipment is untouched.
+   const scale=4;
+   c.save();c.translate(0,0);c.scale(scale,scale);
+   c.fillStyle='rgba(34,29,25,.18)';c.fillRect(10,38,12,2);
+   window.MyrrenKezV2Atlas.draw(c,16,39,{dv:'d',f:1,moving:false,swingAt:-99999},0);
+   c.restore();
+   const caption=el('div','v2-portrait-caption','Kez V2 preview · armour layers pending');
+   portrait.append(caption);
+ }
+ else if(approvedHero&&window.MyrrenHero.supports(gearArr())){const c=canvas.getContext('2d');c.save();const scale=window.MyrrenWardrobe?.ready?3:4;c.scale(scale,scale);const weapon=activeDef('weapon'),o={dv:'d',f:1,nativeScale:true,g:gearArr(),weaponMat:weapon?.kind==='sword'?weapon.mat:0,weaponAngle:-.35,armourDye:save.dye!=null?DYES[save.dye]:null};if(o.weaponMat)approvedHero.drawEquipped(c,64/scale,158/scale,o,0);else approvedHero.draw(c,64/scale,158/scale,o,0);c.restore()}
  else if(myrrenV31Ready){const g=gearArr(),sprite=myrrenV31Equipment?myrrenV31Equipment.get(g[2],g[3],save.dye!=null?DYES[save.dye]:null,g[1],g[0],g[4],0,g[5]):myrrenV31FeetAtlas,c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(sprite,0,0,32,40,0,0,128,160)}
  sheet.append(equipmentPaper(),portrait,equipmentStats('character-stats'));mBody.append(sheet);
  if(sel&&sel.src==='eq'){
