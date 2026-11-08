@@ -2242,8 +2242,24 @@ function drawLightweightKez(x,y,o,now){
   if(!atlas.draw(ctx,x,y,o,now)){ctx.restore();return false;}
   ctx.restore();
   const holding=o.tool&&o.tool!=='fist'&&(attack||now<o.hold);
-  if(holding && !(attack && o.dv==='s' && o.tool==='sword'))drawTool(o.tool,o.mat,x+(o.f||1)*6,y-8,o.f||1,attack?swingAng(age):-.35);
-  else if(o.tool==='fist'&&attack)R(x+(o.f||1)*5,y-9,2,2,'#edbc94');
+  const facing=o.f||1;
+  // V2: shield belongs to the offhand, not the sword hand. Keep the
+  // narrow side silhouette nearly edge-on rather than covering the face.
+  const shieldTier=o.g?.[4]||0;
+  if(shieldTier){
+    const pal=MATS[shieldTier]||MATS[0];
+    const sx=o.dv==='s'?x-facing*4:x-7,sy=y-12;
+    const width=o.dv==='s'?2:5;
+    R(sx,sy,width,7,'#302522');
+    R(sx+1,sy+1,Math.max(1,width-2),5,pal.M);
+    R(sx+1,sy+1,Math.max(1,width-2),1,pal.H);
+    R(sx+1,sy+5,Math.max(1,width-2),1,pal.D);
+  }
+  if(holding && !(attack && o.dv==='s' && o.tool==='sword')){
+    const hx=x+facing*5,hy=y-9;
+    drawTool(o.tool,o.mat,hx,hy,facing,attack?swingAng(age):-.35);
+    R(hx-1,hy-1,2,2,'#edbc94');
+  }else if(o.tool==='fist'&&attack)R(x+facing*5,y-9,2,2,'#edbc94');
   label(o.name,x,y-27,o.col||'#ffffff');
   if(o.waving)label('*waves*',x,y-42,'#ffffff');
   return true;
