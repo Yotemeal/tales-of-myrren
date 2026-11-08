@@ -80,6 +80,7 @@ jobs:
         run: |
           python scripts/build-authored-myrrenite.py --out /tmp/myrren-authored
           python tests/authored-myrrenite-art.test.py
+          python scripts/render-authored-myrrenite-preview.py --assets /tmp/myrren-authored
       - name: Upload native Myrrenite equipment atlases
         uses: actions/upload-artifact@v4
         with:
