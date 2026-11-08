@@ -83,7 +83,8 @@ for(const mat of equipment.order)for(const dv of ['d','s','u'])for(const now of 
   assert(pixels.every(({y})=>y>=-11),
     'chest/pauldrons must not cover eyes or chin');
 }
-for(const mat of equipment.order){
+for(const mat of equipment.order.filter(mat=>mat!==6)){
+  // Only Myrrenite's newly approved T-visor deliberately covers the eyes.
   const eyePixels=new Set();
   const c={fillStyle:'',fillRect(x,y,w,h){
     for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)eyePixels.add(xx+','+yy);
@@ -92,6 +93,45 @@ for(const mat of equipment.order){
   for(const y of [-14,-13,-12])for(const x of [-3,-2,0,1,2]){
     assert(!eyePixels.has(x+','+y),'helmet must not obscure central eye region');
   }
+}
+// Approved Myrrenite helmet is unique: full teal-and-gold faceplate, a
+// near-black horizontal eye slit and a descending T visor. It deliberately
+// conceals Kez's face (unlike the six earlier helmets). Test authored pixels.
+function helmPixels(dv='d',f=1,dye=null,moving=false,now=0){
+  const pixels=new Map();
+  const ctx={fillStyle:'',fillRect(x,y,w,h){
+    for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)
+      pixels.set(xx+','+yy,this.fillStyle);
+  }};
+  equipment.draw(ctx,0,0,{dv,f,dye,moving,now,g:[6,0,0,0,0,0]},'over');
+  return pixels;
+}
+const myrrenFront=helmPixels();
+assert.equal(myrrenFront.get('0,-26'),'#efc653','helmet crest must be approved gold');
+assert.equal(myrrenFront.get('0,-19'),'#fff3b6','brow highlight must be gold');
+assert.equal(myrrenFront.get('0,-17'),'#060f18','dark horizontal eye opening required');
+assert.equal(myrrenFront.get('-1,-13'),'#060f18','dark vertical T visor required');
+assert.equal(myrrenFront.get('-4,-13'),equipment.palette[6][1],
+  'cheek guards must remain teal');
+const myrrenRear=helmPixels('u');
+assert.equal(myrrenRear.get('0,-17'),'#efc653',
+  'rear helmet must have the gold spine, not front-facing black eyes');
+const myrrenRight=helmPixels('s',1),myrrenLeft=helmPixels('s',-1);
+for(const [key,color] of myrrenRight){
+  const [x,y]=key.split(',').map(Number);
+  assert.equal(myrrenLeft.get((-x)+','+y),color,
+    'side helmet must mirror its pixels without changing direction');
+}
+for(const dye of [0,1,2,3]){
+  const p=helmPixels('d',1,dye);
+  assert.equal(p.get('0,-26'),'#efc653',
+    'cosmetic dye must not change the approved golden Myrrenite crest');
+  assert.equal(p.get('0,-17'),'#060f18',
+    'cosmetic dye must not change the visor opening');
+}
+for(const now of [0,130,260,390]){
+  const p=helmPixels('d',1,null,now!==0,now);
+  assert(p.size>70,'helmet must remain visible on every walking frame');
 }
 const shieldOnly={dv:'s',f:1,g:[0,0,0,0,8,0]};
 let under=0,over=0;
@@ -114,8 +154,8 @@ for(const mat of equipment.order){
   }};
   equipment.draw(ctx,0,0,{dv:'d',f:1,g:[mat,0,0,0,0,0],now:0},'over');
   assert(painted.size>0);
-  if(mat===7||mat===6||mat===8){
-    // A closed visor keeps the eye line uncovered on each side.
+  if(mat===7||mat===8){
+    // Other closed helmets continue to preserve their previous eye clearance.
     assert(!painted.has('-3,-18')&&!painted.has('2,-18'),
       'full-face masks must leave clear sight lines');
   }else assert(!painted.has('0,-18'),
