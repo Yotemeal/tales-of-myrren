@@ -27,6 +27,7 @@ jobs:
         run: |
           node --check public/kez-v2-atlas.js
           node --check public/kez-v2-equipment.js
+          node --check public/kez-v2-sword-motion.js
           node --check public/myrren-game.js
           node --check public/approved-character.js
           node --check public/wardrobe-v5.js
