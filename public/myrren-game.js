@@ -106,10 +106,10 @@ const MATS=[null,
   {k:'bronze',n:'Bronze',M:'#c9803a',H:'#ecb070',D:'#6a3e16',req:1},
   {k:'iron',n:'Iron',M:'#9fb0b8',H:'#d6e2e8',D:'#4a5860',req:15},
   {k:'steel',n:'Steel',M:'#b5cadb',H:'#f4fbff',D:'#40586e',req:25},
-  {k:'cobalt',n:'Black Iron',M:'#41434b',H:'#72727c',D:'#292a32',req:45},
-  {k:'aether',n:'Myrrenite',M:'#626e60',H:'#a4b29a',D:'#354438',req:75},
-  {k:'obsidianite',n:'Obsidianite',M:'#442b3c',H:'#e65456',D:'#201c29',req:40},
-  {k:'starsteel',n:'Starsteel',M:'#a2c9e2',H:'#f0f8ff',D:'#41485f',req:70}];
+  {k:'cobalt',n:'Black Iron',M:'#60496f',H:'#aa8bb4',D:'#261c35',req:45},
+  {k:'aether',n:'Myrrenite',M:'#198f8d',H:'#91e4db',D:'#0a3540',req:75},
+  {k:'obsidianite',n:'Obsidianite',M:'#8325be',H:'#e36bff',D:'#250f39',req:40},
+  {k:'starsteel',n:'Starsteel',M:'#d9e2f2',H:'#ffffff',D:'#363d51',req:70}];
 const KINDS={
   sword:{slot:'weapon',art:'sword',skill:'melee',mats:[2,3,4,5,7,6,8],reqs:[1,10,20,30,40,55,70],price:[25,150,700,3500,9000,18000,40000],atk:[1,3,6,12,17,22,30],nm:{d:'sword'}},
   axe:{slot:'weapon',art:'axe',skill:'woodcutting',mats:[2,3,4,5,6],price:[20,120,600,3000,15000],nm:{d:'hatchet'}},
@@ -158,7 +158,7 @@ const forgeReq=(r,kind)=>r.req+FORGE_UNLOCK[kind];
 const forgeXp=(r,cost)=>cost*r.xp*2;
 /* economy: shop price of forgeable gear = 2x its ingot value, so smelting+forging always beats buying and coins are a sink */
 for(const id in DEFS){const d=DEFS[id];if(FORGE[d.kind]&&d.mat>=2){const ik='ing_'+MATS[d.mat].k;if(SELL[ik])d.price=Math.round(2*FORGE[d.kind]*SELL[ik])}}
-const gearSvg=(d,s)=>{if(d.kind==='sword'&&window.MyrrenSwords?.ready)return window.MyrrenSwords.icon(d.mat,s);if(window.MyrrenArmour?.ready&&ARMOUR_DEF[d.kind])return window.MyrrenArmour.icon(d.kind,d.mat,s);const m=MATS[d.mat];if((d.kind==='helm'||d.kind==='shield')&&myrrenV31Equipment)return myrrenV31Equipment.icon(d.kind,d.mat,s);return svg(d.art,s,{M:m.M,H:m.H,D:m.D,S:m.H})};
+const gearSvg=(d,s)=>{if(d.kind==='sword'&&window.MyrrenSwords?.ready)return window.MyrrenSwords.icon(d.mat,s);if(window.MyrrenArmour?.ready&&ARMOUR_DEF[d.kind])return window.MyrrenArmour.icon(d.kind,d.mat,s);const m=MATS[d.mat];return svg(d.art,s,{M:m.M,H:m.H,D:m.D,S:m.H})};
 
 /* ---------- rules ---------- */
 const NAMES={melee:'Combat',woodcutting:'Forestry',mining:'Delving',fishing:'Fishing',cooking:'Cooking',forging:'Forging'};
@@ -870,34 +870,35 @@ function inventoryHeading(title,value=''){
 function rGear(){
  mBody.append(inventoryHeading('EQUIPPED',save.name||'Wanderer'));
  const sheet=el('div','character-sheet'),portrait=el('div','character-portrait'),canvas=document.createElement('canvas');canvas.width=128;canvas.height=160;canvas.setAttribute('aria-label','Your equipped character');portrait.append(canvas);
- const v2Portrait=new URLSearchParams(location.search).get('kezV2')==='1'&&window.MyrrenKezV2Atlas?.ready;
+ const v2Portrait=!!window.MyrrenKezV2Atlas?.ready;
  if(v2Portrait){
    const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
    // Keep the portrait consistent with the actual in-world preview.
-   // The atlas has no fitted armour layers yet; saved equipment is untouched.
+   // Kez V2 equipment previews share world-scale sprite anchors.
    const scale=4;
    const portraitPose={dv:'d',f:1,moving:false,animateIdle:true,swingAt:-99999};
    let lastFrame=-1;
    function paintPortrait(now){
      if(tab!=='gear')return;
-     if(!canvas.isConnected){requestAnimationFrame(paintPortrait);return;}
+     if(!canvas.isConnected)return; // Stop obsolete portrait loops after modal refresh.
      const frame=Math.floor(now/440)%4;
      if(frame!==lastFrame){
        lastFrame=frame;
        c.clearRect(0,0,canvas.width,canvas.height);
        c.save();c.scale(scale,scale);
        c.fillStyle='rgba(34,29,25,.18)';c.fillRect(10,38,12,2);
-       window.MyrrenKezV2Atlas.draw(c,16,39,portraitPose,now);
+       const equipped={...portraitPose,g:gearArr(),dye:save.dye,now};
+       window.MyrrenKezV2Equipment?.draw(c,16,39,equipped,'under');
+       window.MyrrenKezV2Atlas.draw(c,16,39,equipped,now);
+       window.MyrrenKezV2Equipment?.draw(c,16,39,equipped,'over');
        c.restore();
      }
      requestAnimationFrame(paintPortrait);
    }
    requestAnimationFrame(paintPortrait);
-   const caption=el('div','v2-portrait-caption','Kez V2 preview · armour layers pending');
-   portrait.append(caption);
+   // The portrait itself is the preview; no caption overlay obscuring the sprite.
  }
- else if(approvedHero&&window.MyrrenHero.supports(gearArr())){const c=canvas.getContext('2d');c.save();const scale=window.MyrrenWardrobe?.ready?3:4;c.scale(scale,scale);const weapon=activeDef('weapon'),o={dv:'d',f:1,nativeScale:true,g:gearArr(),weaponMat:weapon?.kind==='sword'?weapon.mat:0,weaponAngle:-.35,armourDye:save.dye!=null?DYES[save.dye]:null};if(o.weaponMat)approvedHero.drawEquipped(c,64/scale,158/scale,o,0);else approvedHero.draw(c,64/scale,158/scale,o,0);c.restore()}
- else if(myrrenV31Ready){const g=gearArr(),sprite=myrrenV31Equipment?myrrenV31Equipment.get(g[2],g[3],save.dye!=null?DYES[save.dye]:null,g[1],g[0],g[4],0,g[5]):myrrenV31FeetAtlas,c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(sprite,0,0,32,40,0,0,128,160)}
+ else{portrait.append(el('div','v2-portrait-caption','Loading Kez V2 artwork…'))}
  sheet.append(equipmentPaper(),portrait,equipmentStats('character-stats'));mBody.append(sheet);
  if(sel&&sel.src==='eq'){
    const pop=el('div','gear-info-popover'),close=el('button','gear-info-close','×');
@@ -1522,6 +1523,8 @@ function sendPresence(){
 
 /* ---------- start ---------- */
 function start(){
+  // Never start with an invisible player or silently select an old sprite.
+  if(!window.MyrrenKezV2Atlas?.ready){$('net').textContent=window.MyrrenKezV2Atlas?.failed?'Character artwork failed. Reload to retry.':'Loading character artwork…';return}
   relocateSavedPosition();
   save.name=$('nick').value.trim().slice(0,14)||save.name||'Wanderer';
   $('intro').hidden=true;
@@ -1913,15 +1916,15 @@ function swingAng(age){
   if(age<200)return lerp(-1.5,1.0,(age-90)/110);
   return lerp(1.0,-.35,(age-200)/120);
 }
-function drawTool(kind,mat,hx,hy,f,ang){
-  if(kind==='sword'&&window.MyrrenSwords?.draw(ctx,mat,hx,hy,f,ang))return;
-  const a=ART[kind],pal=Object.assign({},a.p,{S:MATS[mat].H}),s=1.7,ca=Math.cos(ang),sa=Math.sin(ang);
+function drawTool(kind,mat,hx,hy,f,ang,size=1){
+  if(kind==='sword'&&window.MyrrenSwords?.draw(ctx,mat,hx,hy,f,ang,size))return;
+  const a=ART[kind],pal=Object.assign({},a.p,{S:MATS[mat].H}),s=1.7*size,ca=Math.cos(ang),sa=Math.sin(ang);
   for(let j=0;j<8;j++)for(let i=0;i<8;i++){
     const c=a.m[j][i];if(c==='.'||!pal[c])continue;
     const vx=(i-1)*s,vy=(j-6)*s;
     let rx=vx*ca-vy*sa;const ry=vx*sa+vy*ca;
     if(f<0)rx=-rx;
-    R(Math.round(hx+rx),Math.round(hy+ry),2,2,pal[c]);
+    R(Math.round(hx+rx),Math.round(hy+ry),Math.max(1,Math.round(2*size)),Math.max(1,Math.round(2*size)),pal[c]);
   }
 }
 const OUT='#4a3a1c';
@@ -2192,119 +2195,71 @@ function drawMon(m,x,y,now){
 }
 function rrect(x,y,w,h,c,ol){if(ol){R(x,y-1,w,h+2,ol);R(x-1,y,w+2,h,ol)}R(x+1,y,w-2,h,c);R(x,y+1,w,h-2,c)}
 const HAIRS=['#7a4a2a','#d8b45a','#2e2a34','#a8502e','#c8c2c8'];
-// Approved V31 player sprite. NPCs keep their original renderer.
-const MYRREN_V31 = new Image();
-let myrrenV31Ready = false;
-let myrrenV31FeetAtlas = null;
-let myrrenV31Equipment = null;
-MYRREN_V31.onload = () => {
-  myrrenV31Ready = MYRREN_V31.naturalWidth === 128 && MYRREN_V31.naturalHeight === 320;
-  if (myrrenV31Ready) {
-    myrrenV31FeetAtlas = MYRREN_V31;
-    if(window.V31Character){
-      try { myrrenV31FeetAtlas = window.V31Character.buildFaceAtlas(MYRREN_V31); } catch (_) {}
-    }
-    if (typeof buildV31FeetAtlas === 'function') {
-      try { myrrenV31FeetAtlas = buildV31FeetAtlas(myrrenV31FeetAtlas); } catch (_) {}
-    }
-    if (typeof V31Equipment !== 'undefined') {
-      try { myrrenV31Equipment = V31Equipment.make(myrrenV31FeetAtlas); } catch (_) {}
-    }
-  }
-};
-MYRREN_V31.onerror = () => { myrrenV31Ready = false; };
-MYRREN_V31.src = '/hero_32x40_v31.png';
-// A separate atlas keeps the approved base art intact and leaves equipped gear compatible.
-const MYRREN_APPROVED=new Image();let approvedHero=null;
-MYRREN_APPROVED.onload=()=>{if(window.MyrrenHero)try{approvedHero=window.MyrrenHero.create(MYRREN_APPROVED)}catch(_){approvedHero=null}};
-MYRREN_APPROVED.onerror=()=>{approvedHero=null};
-MYRREN_APPROVED.src='/hero-approved-v1.png';
+// Kez V2 is the sole active player and peer art pipeline.
 window.addEventListener('myrren-armour-ready',()=>{if(tab)renderModal()});
 window.addEventListener('myrren-weapons-ready',()=>{if(tab)renderModal()});
 window.addEventListener('myrren-sword-actions-ready',()=>{if(tab)renderModal()});
-function drawApprovedBase(x,y,o,now){
-  shadowE(x+1,y,7,2,.3);
-  const sword=o.tool==='sword'&&window.MyrrenSwords?.ready&&window.MyrrenSwordActions?.ready,options={...o,weaponMat:sword?o.mat:0,armourDye:o.dye!=null?DYES[o.dye]:null,hurtAt:o.isMe?me.hurtAt:null,deathAt:o.isMe?me.deathAt:null};
-  const pose=sword?approvedHero.drawEquipped(ctx,x,y,options,now):approvedHero.draw(ctx,x,y,options,now);
-  if(pose.dead)return true;
-  const age=now-(o.swingAt??-99999),swinging=age>=0&&age<320;
-  if(!sword&&o.tool&&o.tool!=='fist'&&(swinging||now<o.hold))drawTool(o.tool,o.mat,pose.handX,pose.handY,o.f||1,swinging?swingAng(age):-.35);
-  label(o.name,x,pose.nameY??y-42,o.col||'#ffffff');if(o.waving)label('*waves*',x,(pose.nameY??y-42)-12,'#ffffff');
-  return true;
-}
-// Kez V2 lightweight visual preview. Opt in with ?kezV2=1; no save or combat changes.
-// Drawn in native pixels so the sprite remains crisp at the game's existing scale.
-function drawLightweightKez(x,y,o,now){
+window.addEventListener('myrren-kez-v2-ready',()=>{if(tab==='gear')renderModal()});
+// Kez V2 is the authoritative player and remote-player render path.
+// Legacy renderers remain isolated for historical QA, never for live players.
+let missingKezLogged=false;
+function drawKezV2(x,y,o,now){
   const atlas=window.MyrrenKezV2Atlas;
-  if(!atlas?.ready)return false;
-  // Preview the approved base sprite even if saved equipment is equipped.
-  // Gear visuals are deliberately omitted in V2 until fitted layers exist;
-  // no actual equipment or save state is changed.
-  const age=now-(o.swingAt??-99999),attack=age>=0&&age<320;
-  const hurt=o.isMe&&now-(me.hurtAt||-99999)<220;
-  shadowE(x,y+1,4,1,.28);
-  ctx.save();
-  if(hurt)ctx.globalAlpha=.65;
-  if(!atlas.draw(ctx,x,y,o,now)){ctx.restore();return false;}
-  ctx.restore();
-  const holding=o.tool&&o.tool!=='fist'&&(attack||now<o.hold);
-  const facing=o.f||1;
-  // V2: shield belongs to the offhand, not the sword hand. Keep the
-  // narrow side silhouette nearly edge-on rather than covering the face.
-  const shieldTier=o.g?.[4]||0;
-  if(shieldTier){
-    const pal=MATS[shieldTier]||MATS[0];
-    const sx=o.dv==='s'?x-facing*4:x-7,sy=y-12;
-    const width=o.dv==='s'?2:5;
-    R(sx,sy,width,7,'#302522');
-    R(sx+1,sy+1,Math.max(1,width-2),5,pal.M);
-    R(sx+1,sy+1,Math.max(1,width-2),1,pal.H);
-    R(sx+1,sy+5,Math.max(1,width-2),1,pal.D);
+  if(!atlas?.ready){
+    if(!missingKezLogged){console.error('Kez V2 renderer unavailable: check atlas load');missingKezLogged=true}
+    return false;
   }
-  if(holding && !(attack && o.dv==='s' && o.tool==='sword')){
-    const hx=x+facing*5,hy=y-9;
-    drawTool(o.tool,o.mat,hx,hy,facing,attack?swingAng(age):-.35);
-    R(hx-1,hy-1,2,2,'#edbc94');
-  }else if(o.tool==='fist'&&attack)R(x+facing*5,y-9,2,2,'#edbc94');
-  label(o.name,x,y-27,o.col||'#ffffff');
-  if(o.waving)label('*waves*',x,y-42,'#ffffff');
-  return true;
-}
-function drawApprovedPlayer(x,y,o,now){
-  // Emergency visual fallback: add ?classicSprite=1 to the game URL.
-  // This changes only character rendering; saves and game state are untouched.
-  if(new URLSearchParams(location.search).get('classicSprite')==='1')return false;
-  if(approvedHero&&window.MyrrenHero.supports(o.g))return drawApprovedBase(x,y,o,now);
-  if(!myrrenV31Ready)return false;
-  // All six equipment layers use the approved native V31 atlas.
-  const gear=o.g||[0,0,0,0,0];
-  if(gear.some(t=>t>0)&&!myrrenV31Equipment)return false;
-  const age=now-(o.swingAt??-99999),swinging=age>=0&&age<320;
-  const action=swinging?(age<90?1:age<200?2:3):0;
-  const sprite=myrrenV31Equipment
-    ? myrrenV31Equipment.get(gear[2],gear[3],o.dye!=null?DYES[o.dye]:null,gear[1],gear[0],gear[4],action,gear[5])
-    : myrrenV31FeetAtlas;
-  const character=window.V31Character;
-  const pose=character.pose(now,{...o,animatedGear:gear[0]||gear[4],hurtAt:o.isMe?me.hurtAt:null,deathAt:o.isMe?me.deathAt:null});
-  shadowE(x+1,y,7,2,.3);
-  ctx.save();ctx.imageSmoothingEnabled=false;
-  if(pose.hurt)ctx.globalAlpha=.7;
-  character.drawPose(ctx,sprite,x,y,pose);
+  const gear=window.MyrrenKezV2Equipment;
+  const state={...o,now},deathAt=o.isMe?me.deathAt:o.deathAt;
+  const deathAge=deathAt==null?-1:now-deathAt;
+  const age=now-(o.swingAt??-99999),attacking=age>=0&&age<320;
+  const hurtAge=now-(o.isMe?(me.hurtAt??-99999):(o.hurtAt??-99999));
+  const holding=o.tool&&o.tool!=='fist'&&(attacking||now<o.hold);
+  const direction=o.dv==='u'?'back':o.dv==='s'?'side':'front';
+  const facing=o.f<0?-1:1;
+  // Weapon in the dominant hand; shield stays on the opposite side.
+  // Rear-facing weapons belong behind the base sprite, not across the torso.
+  const hx=Math.round(x+(direction==='back'?-8:direction==='side'?facing*6:5));
+  // Dominant-hand socket matches gloves at y=-8..-4, below the face.
+  const hy=Math.round(y-7);
+  const glove=o.g?.[5];
+  const handColor=glove&&gear?.colorsFor?.(glove,o.dye)?.[2]||'#edbc94';
+  const heldAngle=attacking
+    ?(o.tool==='sword'?window.MyrrenKezV2SwordMotion.angle(age):swingAng(age))
+    :-.35;
+  const paintHeld=()=>{
+    if(!holding||deathAge>=0)return;
+    drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6);
+    // Two-pixel fingers cover the sword grip without showing a floating hilt.
+    if(direction!=='back')R(hx-1,hy-1,2,2,handColor);
+  };
+  const paintPunch=()=>{
+    if(o.tool!=='fist'||!attacking||deathAge>=0)return;
+    const px=direction==='back'?x-4:direction==='side'?x+facing*6:x+4;
+    R(Math.round(px)-1,Math.round(y-11),2,2,handColor);
+  };
+  shadowE(x,y+1,5,2,.28);
+  ctx.save();
+  if(deathAge>=0){
+    // Collapse around the planted feet without moving the game entity.
+    const k=Math.min(1,Math.max(0,deathAge/260));
+    ctx.translate(Math.round(x),Math.round(y));ctx.rotate(k*1.35);ctx.translate(-Math.round(x),-Math.round(y));
+  }
+  if(hurtAge>=0&&hurtAge<220)ctx.globalAlpha*=.65;
+  if(direction==='back'){paintHeld();paintPunch()}
+  gear?.draw(ctx,x,y,state,'under');
+  atlas.draw(ctx,x,y,state,now);
+  gear?.draw(ctx,x,y,state,'over');
+  if(direction!=='back'){paintHeld();paintPunch()}
   ctx.restore();
-  const idleLift=pose.lift;
-  if(pose.death>=0)return true;
-  const holding=o.tool&&o.tool!=='fist'&&(swinging||now<o.hold);
-  const f=o.f||1,hx=x+f*7+pose.lean,hy=y-11-idleLift;
-  const hand=gear[5]&&typeof V31Equipment!=='undefined'?(o.dye!=null&&gear[5]>=4?DYES[o.dye].M:V31Equipment.materials[gear[5]].base):'#f0c49c';
-  if(o.tool==='fist'&&swinging){const d=Math.round(Math.sin(age/320*Math.PI)*6);ctx.save();ctx.translate(hx+f*d,hy);rrect(-1,-2,3,3,hand,'#2a1c18');ctx.restore()}
-  else if(holding){drawTool(o.tool,o.mat,hx,hy,f,swinging?swingAng(age):-.35);ctx.save();ctx.translate(hx,hy);rrect(-1,-1,3,3,hand,'#2a1c18');ctx.restore()}
-  label(o.name,x,y-42,o.col||'#ffffff');
-  if(o.waving)label('*waves*',x,y-54,'#ffffff');
+  if(deathAge>=0)return true;
+  label(o.name,x,y-32,o.col||'#ffffff');
+  if(o.waving)label('*waves*',x,y-43,'#ffffff');
   return true;
 }
 function drawPerson(x,y,o,now){
-  if(o.isMe && !o.apron && new URLSearchParams(location.search).get('kezV2')==='1' && drawLightweightKez(x,y,o,now)) return;
-  if(!o.apron && drawApprovedPlayer(x,y,o,now)) return;
+  // Player and peers always use Kez V2. Procedural drawing below is NPC-only.
+  if(!o.apron){drawKezV2(x,y,o,now);return;}
   const f=o.f,mv=!!o.moving,ph=Math.floor(now/90)%4,g=o.g||[0,0,0,0,0],dv=o.dv||'d';
   let gh=MATS[g[0]],gb=MATS[g[1]],gl=MATS[g[2]],gt=MATS[g[3]],gs=MATS[g[4]];
   if(o.dye!=null&&DYES[o.dye]){const dp=DYES[o.dye],dz=(m,t)=>(m&&t>=4)?dp:m;gh=dz(gh,g[0]);gb=dz(gb,g[1]);gl=dz(gl,g[2]);gt=dz(gt,g[3]);gs=dz(gs,g[4])}
@@ -2965,7 +2920,7 @@ function drawOutdoor(cx,cy,now){
   if(started)list.push({y:me.y,f:()=>{
     const sx=Math.round(me.x-cx),sy=Math.round(me.y-cy);
     drawPerson(sx,sy,{dv:me.dv,f:me.face,moving:me.moving,hue:me.hue,isMe:1,name:save.name||'Wanderer',col:'#ffe14a',tool:me.tool,mat:me.mat,hold:me.hold,swingAt:me.swing,waving:now<me.wave,g:gearArr(),dye:save.dye},now);
-    if(me.hp<hpMax())bar(sx,sy-(eqDef('head')?33:29),me.hp/hpMax());
+    if(me.hp<hpMax())bar(sx,sy-39,me.hp/hpMax());
     drawFishFx(cx,cy,now);
   }});
   list.sort((a,b)=>a.y-b.y);
@@ -3060,7 +3015,7 @@ function frame(now){
   if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}
   ctx.imageSmoothingEnabled=false;
   update(dt,now);
-  drawMini(now);
+  drawMini(now)
 
   const tx=inside?RX/2-cv.width/2:me.x-cv.width/2,ty=inside?RY/2-cv.height*.36:me.y-cv.height*.47;
   const k=snapCam?1:Math.min(1,dt*7);snapCam=false;cam.x+=(tx-cam.x)*k;cam.y+=(ty-cam.y)*k;
@@ -3095,9 +3050,14 @@ let last=performance.now(),sendAt=0,slowAt=0,saveAt=0;
 addCrit('bunny',22,60);addCrit('bird',16,70);addCrit('deer',9,180);addCrit('fox',7,520); // foxes roam the outer woodland, well clear of the busy crater forge
 syncPets();petsTeleport();uiHud();
 let loadDone=false;
+window.addEventListener('myrren-kez-v2-ready',()=>{if(loadDone&&!started){const g=$('go');g.disabled=false;g.textContent='ENTER'}});
+window.addEventListener('myrren-kez-v2-error',()=>{const g=$('go');g.disabled=true;g.textContent='ART LOAD ERROR';$('net').textContent='Character artwork failed. Reload to retry.';if(started)toast('CHARACTER ART ERROR')});
 function finishLoad(){
   if(loadDone)return;loadDone=true;
-  const g=$('go');g.disabled=false;g.textContent='ENTER';
+  const g=$('go');const art=window.MyrrenKezV2Atlas;
+  g.disabled=!art?.ready;
+  g.textContent=art?.ready?'ENTER':art?.failed?'ART LOAD ERROR':'LOADING ART…';
+  if(art?.failed)$('net').textContent='Character artwork failed. Reload to retry.';
   if(save.name&&!$('nick').value)$('nick').value=save.name;
 }
 function adoptSave(o,why){

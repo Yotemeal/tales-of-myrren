@@ -72,5 +72,32 @@
     }
   ],
   "status": "approved-front-reference-only",
-  "notes": "Do not draw these full-body reference cells as armour overlays on the 64x64 hero pose atlas. Separate helmet, chest, legs and boots with pose-specific anchors before enabling in live equipment rendering. Material IDs preserve existing save compatibility."
+  "notes": "Full-body chart is reference-only; do not stretch 176x276 designs onto the 21x27 Kez V2 player. The Myrrenite full-face T-visor close-up supersedes any older Myrrenite helmet shown in the full-body reference. Game-ready gear is composed at native player scale, with save-compatible material IDs.",
+  "helmetOverrides": [
+    {
+      "materialId": 6,
+      "tier": "Myrrenite",
+      "revision": "full-face-gold-crested-teal-T-visor-2026-11-08",
+      "source": "Latest user-approved close-up of Myrrenite helmet",
+      "features": [
+        "rounded teal metal crown",
+        "vertical gold crest and diamond",
+        "continuous gold brow",
+        "black horizontal eye opening",
+        "descending black T visor",
+        "teal cheek plates and nose guard"
+      ],
+      "nativeWidth": 15,
+      "nativeHeight": 17,
+      "directions": [
+        "front",
+        "right",
+        "left",
+        "back"
+      ],
+      "renderer": "/kez-v2-equipment.js#MYRRENITE_MASKS",
+      "replaces": "Earlier open-face Myrrenite helmet in generic full-body artwork",
+      "goldAndVisorLockedUnderDye": true
+    }
+  ]
 }

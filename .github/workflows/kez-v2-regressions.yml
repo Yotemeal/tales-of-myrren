@@ -1,0 +1,122 @@
+name: Kez V2 renderer and gameplay integrity
+
+on:
+  pull_request:
+    paths:
+      - 'public/**'
+      - 'tests/**'
+      - 'scripts/build-kez-v2-paperdoll.py'
+      - '.github/workflows/kez-v2-regressions.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'public/**'
+      - 'tests/**'
+      - 'scripts/build-kez-v2-paperdoll.py'
+      - '.github/workflows/kez-v2-regressions.yml'
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check public/kez-v2-atlas.js
+          node --check public/kez-v2-equipment.js
+          node --check public/kez-v2-sword-motion.js
+          node --check public/myrren-game.js
+          node --check public/approved-character.js
+          node --check public/wardrobe-v5.js
+          node --check public/sword-actions-v1.js
+      - name: Native Kez V2 rendering contracts
+        run: node tests/kez-v2-rendering.test.cjs
+      - name: Save, balance and gameplay regressions
+        run: |
+          node tests/armour-progression.test.cjs
+          node tests/forging-skill.test.cjs
+          node tests/inventory-capacity.cjs
+          node tests/save-inventory.test.cjs
+          node tests/bank-notes.test.cjs
+          node tests/movement-speed.test.cjs
+          node tests/combat-kill-xp.test.cjs
+
+  art:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install native test canvas
+        run: npm install --no-save --no-package-lock @napi-rs/canvas
+      - name: Verify approved armour and existing character assets
+        run: |
+          node tests/approved-character.test.cjs
+          node tests/wardrobe-v5.test.cjs
+          node tests/shields-approved.test.cjs
+
+  paperdoll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install deterministic image builder
+        run: python -m pip install 'Pillow>=11,<13'
+      - name: Build approved-front and directional equipment sprite-sheet prototype
+        run: python scripts/build-kez-v2-paperdoll.py --out /tmp/kez-v2-paperdoll
+      - name: Verify native equipment parts and pose metadata
+        run: python tests/kez-v2-paperdoll.test.py
+      - name: Save experimental sprite atlas and comparison image
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kez-v2-paperdoll-prototype-not-approved
+          path: /tmp/kez-v2-paperdoll/
+          if-no-files-found: warn
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium smoke-test dependencies
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install --with-deps chromium
+      - name: Verify real 390x844 game and produce visual screenshots
+        run: node tests/kez-v2-browser.test.cjs
+      - name: Save visual QA snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kez-v2-mobile-and-seven-metals
+          path: |
+            /tmp/myrren-kez-v2-mobile.png
+            /tmp/myrren-kez-v2-equipment.png
+            /tmp/myrren-kez-v2-seven-metals.png
+            /tmp/myrren-kez-v2-directions.png
+            /tmp/myrren-kez-v2-sword-motion-contact-sheet.png
+            /tmp/myrren-kez-v2-myrrenite-helmet.png
+            public/assets/kez-v2/kez_v2_atlas.png
+            public/wardrobe-base-v5.png
+            public/wardrobe-ownership-v5.png
+            public/wardrobe-bronze-v5.png
+            public/wardrobe-iron-v5.png
+            public/wardrobe-steel-v5.png
+            public/wardrobe-cobalt-v5.png
+            public/wardrobe-obsidianite-v5.png
+            public/wardrobe-aether-v5.png
+            public/wardrobe-starsteel-v5.png
+            public/shields-approved-v1.png
+            /tmp/myrren-kez-v2-dyes.png
+          if-no-files-found: warn
