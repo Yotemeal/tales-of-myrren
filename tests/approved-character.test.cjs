@@ -24,14 +24,14 @@ const {createCanvas,loadImage}=require('@napi-rs/canvas');
  hero.draw(ctx,40,66,{dv:'d',f:1},0);const idle=Buffer.from(ctx.getImageData(0,0,80,72).data);ctx.clearRect(0,0,80,72);hero.draw(ctx,40,66,{dv:'d',f:1},2000);const breath=Buffer.from(ctx.getImageData(0,0,80,72).data);assert.notDeepEqual(idle,breath);
  for(let y=61;y<72;y++)for(let x=0;x<80;x++)for(let k=0;k<4;k++)assert.equal(idle[(y*80+x)*4+k],breath[(y*80+x)*4+k],'breathing moves feet');
  assert(H.supports([0,0,0,0,0,0]));assert(H.supports());assert(!H.supports([0,3,0,0,0,0]),'preserve equipped armour renderer');
- const sourceCode=fs.readFileSync('public/myrren-game.js','utf8');assert(sourceCode.includes('drawApprovedBase(x,y,o,now)'));assert(sourceCode.includes("MYRREN_APPROVED.src='/hero-approved-v1.png'"));
- // Exercise the real game entry point with the new atlas ready and legacy art unavailable.
- Object.assign(sb,{approvedHero:hero,ctx,URLSearchParams,location:{search:''},myrrenV31Ready:false,me:{},shadowE(){},label(){},drawTool(){},swingAng(){return 0}});
- const a=sourceCode.indexOf('function drawApprovedBase('),b=sourceCode.indexOf('function drawPerson(',a);
- vm.runInContext(sourceCode.slice(a,b)+';this.gameDraw=drawApprovedPlayer;',sb);
- ctx.clearRect(0,0,80,72);assert.equal(sb.gameDraw(40,66,{dv:'d',f:1,g:[0,0,0,0,0,0],tool:'fist'},0),true);
- assert.deepEqual(Buffer.from(ctx.getImageData(0,0,80,72).data),idle,'actual game must draw new character artwork');
- assert.equal(sb.gameDraw(40,66,{g:[3,3,3,3,3,3]},0),false,'equipped gear must retain original renderer path');
+ const sourceCode=fs.readFileSync('public/myrren-game.js','utf8');
+ // Archived 384x640 base remains a QA asset; the active player renderer is
+ // the native 21x27 Kez V2 atlas, never the archived 384x640 implementation.
+ assert(sourceCode.includes('function drawKezV2('));
+ assert(sourceCode.includes('if(!o.apron){drawKezV2(x,y,o,now);return;}'));
+ assert(!sourceCode.includes('function drawApprovedBase('));
+ assert(!sourceCode.includes('function drawApprovedPlayer('));
+ assert(!sourceCode.includes("MYRREN_APPROVED.src="));
  const {game:g}=await require('./game-runtime.cjs')();g.start();g.save.inv.coins=357;g.save.notes.tree=20;g.save.eq.body='iron_body';const before=JSON.stringify(g.snap());g.update(.1,1100);assert.equal(g.save.inv.coins,357);assert.equal(g.save.eq.body,'iron_body');assert.equal(g.save.notes.tree,20);
- console.log('PASS: 60 uncut hard-alpha frames; four-way six-frame run; native attack/hurt/death poses; hit timing; planted idle feet; preserved gear and saves.');
+ console.log('PASS: archived 60-frame hero-art integrity and compatibility; Kez V2 is the sole production player renderer; saves unchanged.');
 })().catch(e=>{console.error(e);process.exitCode=1});
