@@ -104,8 +104,8 @@ def draw_slot(slot,direction,pose,frame):
             rect(11,42,18,45,DEEP);rect(17,42,24,45,DARK)
             rect(13,42,17,43,GOLD);rect(19,42,23,43,GOLD)
         else:
-            rect(9,42+max(0,shift),15,46+max(0,shift),DEEP)
-            rect(17,42+max(0,-shift),23,46+max(0,-shift),DEEP)
+            rect(9,42+max(0,shift),15,min(46+max(0,shift),47),DEEP)
+            rect(17,42+max(0,-shift),23,min(46+max(0,-shift),47),DEEP)
             rect(10,43+max(0,shift),14,44+max(0,shift),GOLD)
             rect(18,43+max(0,-shift),22,44+max(0,-shift),GOLD)
     elif slot=='6-gloves':
