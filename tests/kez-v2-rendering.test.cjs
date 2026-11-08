@@ -124,7 +124,8 @@ assert(game.includes('if(!o.apron){drawKezV2(x,y,o,now);return;}'));
 assert(!game.includes("get('kezV2')"),'Kez V2 must not be opt-in');
 assert(!game.includes('drawLightweightKez'),'preview character entry must be removed');
 assert(game.includes('if(!canvas.isConnected)return;'),'portrait animations must stop when detached');
-assert(game.includes('drawTool(o.tool,o.mat,hx,hy,facing,attacking?swingAng(age):-.35,.62)'));
+assert(drawKez.includes('drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6)'),
+       'weapons must retain the small Kez V2 grip scale');
 const scripts=[...page.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
 assert(scripts.findIndex(s=>s.includes('kez-v2-atlas'))<scripts.findIndex(s=>s.includes('kez-v2-equipment')));
 assert(scripts.findIndex(s=>s.includes('kez-v2-equipment'))<scripts.findIndex(s=>s.includes('myrren-game')));
