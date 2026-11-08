@@ -10,7 +10,7 @@ const worldSource=fs.readFileSync('public/myrren-world.js','utf8'),envSource=fs.
  }
  const document={getElementById(id){if(!elements.has(id))elements.set(id,element(id));return elements.get(id)},createElement:()=>element(),querySelectorAll:()=>[],addEventListener(){},hidden:false,activeElement:null};
  const memory=new Map(Object.entries(localSaves)),localStorage={getItem:k=>memory.get(k)||null,setItem:(k,v)=>memory.set(k,v)};
- const window={addEventListener(){}};new Function('window',worldSource)(window);new Function('window','document',envSource)(window,document);
+ const window={addEventListener(){},MyrrenKezV2Atlas:{ready:true,failed:false}};new Function('window',worldSource)(window);new Function('window','document',envSource)(window,document);
  new Function('window','document',fs.readFileSync('public/v31-character.js','utf8'))(window,document);
  class Image{constructor(){this.naturalWidth=128;this.naturalHeight=320}set src(v){this.onload?.()}}
  let request=null;
