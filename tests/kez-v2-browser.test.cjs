@@ -134,10 +134,10 @@ const server=http.createServer((request,response)=>{
         const hx=dv==='u'?-8:dv==='s'?f*6:5,hy=-7;
         g.save();g.translate(cx,cy);g.scale(4,4);
         const paintSword=()=>{
-          const pre=g.getImageData(-20,-42,40,46).data;
+          const pre=g.getImageData(cx-80,cy-168,160,184).data;
           if(!sword.draw(g,mat,hx,hy,f,motion.angle(age),.6))
             throw Error('Forged sword not ready');
-          const post=g.getImageData(-20,-42,40,46).data;
+          const post=g.getImageData(cx-80,cy-168,160,184).data;
           for(let px=0;px<pre.length;px+=4)if(pre[px+3]!==post[px+3]||
             pre[px]!==post[px]||pre[px+1]!==post[px+1]||pre[px+2]!==post[px+2])changed++;
           // The glove hides the weapon's hilt; the offhand shield draws separately.
