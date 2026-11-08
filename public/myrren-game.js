@@ -523,7 +523,7 @@ const chat=$('chat'),chatLines=[];
 const stamp=()=>{const d=new Date();return '['+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+'] '};
 function say(t,c){
   chatLines.push({t:stamp()+t,c:c||''});if(chatLines.length>40)chatLines.shift();
-  chat.textContent='';chatLines.slice(-5).forEach(l=>{const li=document.createElement('li');li.textContent=l.t;if(l.c)li.className=l.c;chat.append(li)});
+  chat.textContent='';chatLines.slice(-2).forEach(l=>{const li=document.createElement('li');li.textContent=l.t;if(l.c)li.className=l.c;chat.append(li)});
 }
 let toastT=0;
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('on'),1800)}
