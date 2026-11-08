@@ -2205,10 +2205,9 @@ function drawApprovedBase(x,y,o,now){
 function drawLightweightKez(x,y,o,now){
   const atlas=window.MyrrenKezV2Atlas;
   if(!atlas?.ready)return false;
-  const gear=o.g||[];
-  // Equipment needs its own correctly registered sprite layers. Until then
-  // keep the existing equipped renderer instead of drawing armour incorrectly.
-  if(gear.some(t=>t>0))return false;
+  // Preview the approved base sprite even if saved equipment is equipped.
+  // Gear visuals are deliberately omitted in V2 until fitted layers exist;
+  // no actual equipment or save state is changed.
   const age=now-(o.swingAt??-99999),attack=age>=0&&age<320;
   const hurt=o.isMe&&now-(me.hurtAt||-99999)<220;
   shadowE(x,y,5,2,.22);
