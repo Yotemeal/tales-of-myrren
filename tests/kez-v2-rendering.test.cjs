@@ -66,7 +66,17 @@ for(const [dv,f,row] of [['d',1,1],['s',-1,3],['s',1,4],['u',1,2]]){
   assert.equal(idle[7],21,'native width must not be downsampled');
   assert.equal(idle[8],27,'native height must not be downsampled');
 }
-assert.equal(draw({dv:'s',f:1,tool:'sword',swingAt:0},120)[2],135);
+assert.equal(draw({dv:'s',f:1,tool:'sword',swingAt:0},120)[2],108,
+  'right sword swing must not include baked-in white slash effects');
+assert.equal(draw({dv:'s',f:-1,tool:'sword',swingAt:0},120)[2],81,
+  'left sword swing retains the left-facing body with no duplicate stroke');
+for(const [dv,f,row] of [['d',1,1],['s',1,4],['s',-1,3],['u',1,2]]){
+  for(const t of [0,72,120,192,270,310]){
+    const p=draw({dv,f,tool:'sword',swingAt:0,moving:true},t);
+    assert.equal(p[2],row*27,'sword swing must preserve body facing');
+    assert.equal(p[1],0,'sword swing holds grounded body frame during visual strike');
+  }
+}
 assert.equal(draw({dv:'u',f:1,tool:'sword',swingAt:0},120)[2],54,'rear attacks must not snap sideways');
 assert.equal(draw({dv:'d',f:1,animateIdle:true},900)[2],0,'portrait idle uses authored idle row');
 
