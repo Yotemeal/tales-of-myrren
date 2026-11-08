@@ -59,106 +59,107 @@
    if(!c||w<=0||h<=0)return;
    ctx.fillStyle=c;ctx.fillRect(baseX+dx,baseY+dy,w,h);
   };
+  // Shield on the offhand: slim silhouette behind side-facing characters,
+  // fuller in front/back, aligned with the torso and never the face.
   const shield=(behind)=>{
    const mat=gear[4],p=colorsFor(mat,o.dye);if(!p)return;
    const rear=face==='back',side=face==='side';
    if(behind!==side)return;
-   const sx=side?(o.f<0?5:-7):rear?5:-9;
-   const sy=-15+bob,w=side?2:rear?4:5,h=side?9:10;
-   px(sx,sy,w,h,p[0]);px(sx+1,sy+1,Math.max(1,w-2),h-2,p[1]);
+   const sx=side?(o.f<0?5:-7):rear?6:-9;
+   const sy=-10+bob,w=side?2:rear?4:5,h=8;
+   px(sx,sy,w,h,p[0]);
+   px(sx+1,sy+1,Math.max(1,w-2),h-2,p[1]);
    px(sx+1,sy+1,Math.max(1,w-2),1,p[2]);
-   px(sx+1,sy+h-3,Math.max(1,w-2),1,p[3]);
-   if(!side){px(sx+Math.floor(w/2),sy+3,1,3,p[3]);px(sx,sy+3,1,3,p[2]);}
+   px(sx+1,sy+h-2,Math.max(1,w-2),1,p[3]);
+   if(!side){px(sx+Math.floor(w/2),sy+2,1,3,p[3]);}
   };
   if(phase==='under'){shield(true);return;}
   if(phase!=='over')return;
-  // Boots and greaves anchor to the soles; no idle breathing or bob on feet.
+  // Kez V2 anatomy, relative to planted soles:
+  // hair -24..-19, eyes around -13, torso -10..-4, shins -4..-1.
+  // Never paint chest armour across the face as the old 40px gear did.
   if(gear[3]){
    const mat=gear[3],p=colorsFor(mat,o.dye);
    for(const dx of face==='side'?[-2,1]:[-4,1]){
-    px(dx,-3,3,3,p[0]);px(dx+1,-3,2,1,p[2]);px(dx,-1,3,1,p[1]);
-    if(mat===6||mat===8)px(dx+1,-2,1,1,p[3]);
+    px(dx,-2,3,3,p[0]);px(dx+1,-2,2,1,p[2]);px(dx,-1,3,1,p[1]);
+    if(mat===6||mat===8)px(dx+1,-1,1,1,p[3]);
    }
   }
   if(gear[2]){
-   const p=colorsFor(gear[2],o.dye),delta=walk?(step===1?1:step===3?-1:0):0;
-   px(-4+delta,-8,4,5,p[0]);px(0-delta,-8,4,5,p[0]);
-   px(-3+delta,-7,2,4,p[1]);px(1-delta,-7,2,4,p[1]);
-   px(-3+delta,-7,1,3,p[2]);px(1-delta,-7,1,3,p[3]);
-   if(gear[2]===6||gear[2]===8){
-    px(-3+delta,-5,3,1,p[3]);px(1-delta,-5,2,1,p[3]);
+   const mat=gear[2],p=colorsFor(mat,o.dye);
+   const delta=walk?(step===1?1:step===3?-1:0):0;
+   px(-4+delta,-5,4,4,p[0]);px(0-delta,-5,4,4,p[0]);
+   px(-3+delta,-4,2,3,p[1]);px(1-delta,-4,2,3,p[1]);
+   px(-3+delta,-4,1,2,p[2]);px(1-delta,-4,1,2,p[3]);
+   if(mat===6||mat===8){
+    px(-3+delta,-3,2,1,p[3]);px(1-delta,-3,2,1,p[3]);
    }
   }
   if(gear[1]){
    const mat=gear[1],p=colorsFor(mat,o.dye);
-   px(-5,-16+bob,10,9,p[0]);px(-4,-15+bob,8,7,p[1]);
-   px(-4,-15+bob,8,2,p[2]);px(-4,-9+bob,8,1,p[3]);
-   // Paired pauldrons distinguish worn plate from the undershirt.
-   px(-6,-15+bob,2,3,p[0]);px(4,-15+bob,2,3,p[0]);
-   px(-7,-16+bob,2,2,p[1]);px(5,-16+bob,2,2,p[1]);
-   px(-7,-16+bob,2,1,p[2]);px(5,-16+bob,2,1,p[2]);
+   px(-5,-10+bob,10,7,p[0]);px(-4,-9+bob,8,5,p[1]);
+   px(-4,-9+bob,8,1,p[2]);px(-4,-4+bob,8,1,p[3]);
+   // Pauldrons follow the upper arms, not the cheeks.
+   px(-6,-10+bob,2,3,p[0]);px(4,-10+bob,2,3,p[0]);
+   px(-7,-11+bob,2,2,p[1]);px(5,-11+bob,2,2,p[1]);
+   px(-7,-11+bob,2,1,p[2]);px(5,-11+bob,2,1,p[2]);
    if(face==='front'){
-    if(mat===2||mat===3){px(-2,-13+bob,4,1,p[3]);px(-1,-12+bob,2,2,p[0]);}
-    else if(mat===4||mat===5){px(-2,-14+bob,4,1,p[3]);px(-1,-13+bob,2,3,p[0]);px(-2,-11+bob,4,1,p[2]);}
-    else{
-     // Obsidianite: amethyst core; Myrrenite/Starsteel: gold V chestplate.
-     px(-4,-13+bob,2,1,p[3]);px(2,-13+bob,2,1,p[3]);
-     px(-2,-12+bob,4,1,p[3]);px(-1,-11+bob,2,2,mat===7?p[2]:p[0]);
-     if(mat===8)px(-1,-11+bob,2,1,p[2]);
+    if(mat===2||mat===3){
+     px(-2,-7+bob,4,1,p[3]);px(-1,-6+bob,2,2,p[0]);
+    }else if(mat===4||mat===5){
+     px(-2,-8+bob,4,1,p[3]);px(-1,-7+bob,2,3,p[0]);px(-2,-5+bob,4,1,p[2]);
+    }else{
+     px(-4,-8+bob,2,1,p[3]);px(2,-8+bob,2,1,p[3]);
+     px(-2,-7+bob,4,1,p[3]);px(-1,-6+bob,2,2,mat===7?p[2]:p[0]);
+     if(mat===8)px(-1,-6+bob,2,1,p[2]);
     }
-   }else if(face==='back')px(-1,-14+bob,2,5,p[3]);
+   }else if(face==='back'){
+    px(-1,-8+bob,2,4,p[3]);
+   }
   }
   if(gear[5]){
-   const p=colorsFor(gear[5],o.dye);
-   px(-7,-12+bob,2,4,p[0]);px(5,-12+bob,2,4,p[0]);
-   px(-6,-11+bob,1,3,p[2]);px(6,-11+bob,1,3,p[2]);
-   if(gear[5]===6||gear[5]===8){px(-7,-12+bob,2,1,p[3]);px(5,-12+bob,2,1,p[3]);}
+   const mat=gear[5],p=colorsFor(mat,o.dye);
+   px(-7,-8+bob,2,4,p[0]);px(5,-8+bob,2,4,p[0]);
+   px(-6,-7+bob,1,3,p[2]);px(6,-7+bob,1,3,p[2]);
+   if(mat===6||mat===8){px(-7,-8+bob,2,1,p[3]);px(5,-8+bob,2,1,p[3]);}
   }
   if(gear[0]){
    const mat=gear[0],p=colorsFor(mat,o.dye),closed=CLOSED.has(mat);
-   // A narrow crown clears the authored face/eyes. Previously the 5px-high
-   // solid helmet cap swallowed the small character's expression.
-   px(-5,-24+bob,10,3,p[0]);
-   px(-4,-24+bob,8,2,p[1]);
-   px(-4,-24+bob,8,1,p[2]);
-   px(-5,-21+bob,10,1,p[0]);
-   px(-4,-21+bob,8,1,p[3]);
-   // Sidepieces are deliberately thin, leaving the centre of the face open.
+   // Metal crown sits on the hairline and side guards frame the face.
+   // Eyes at y≈-13 must remain visible for both open and closed helmets.
+   px(-5,-24+bob,10,3,p[0]);px(-4,-24+bob,8,2,p[1]);
+   px(-4,-24+bob,8,1,p[2]);px(-5,-21+bob,10,1,p[3]);
    if(face==='front'){
-    px(-5,-20+bob,2,4,p[0]);px(3,-20+bob,2,4,p[0]);
-    px(-4,-19+bob,1,2,p[1]);px(3,-19+bob,1,2,p[1]);
+    px(-6,-20+bob,2,5,p[0]);px(4,-20+bob,2,5,p[0]);
+    px(-5,-19+bob,1,3,p[1]);px(4,-19+bob,1,3,p[1]);
    }else if(face==='side'){
-    const near=o.f<0?-5:4,far=o.f<0?4:-5;
+    const near=o.f<0?-6:4,far=o.f<0?5:-6;
     px(far,-19+bob,1,3,p[0]);
-    px(near,-20+bob,2,4,p[0]);px(near,-19+bob,1,2,p[1]);
+    px(near,-20+bob,2,5,p[0]);px(near,-19+bob,1,3,p[1]);
    }else{
-    // Backplate is fully enclosed. Avoid two dark patches that looked like
-    // eyes on the rear-facing helmet in the last visual QA sheet.
     px(-5,-20+bob,10,5,p[0]);px(-4,-20+bob,8,5,p[1]);
     px(-4,-20+bob,8,1,p[2]);px(-1,-20+bob,2,4,p[3]);
    }
-   // Distinct crown profiles follow the seven approved helmet references.
+   // Different crest profiles make the seven tiers legible at one-pixel scale.
    if(mat===2){px(-3,-25+bob,6,1,p[1]);px(-1,-26+bob,2,1,p[3]);}
    if(mat===3){px(-3,-25+bob,6,1,p[2]);px(-1,-26+bob,2,1,p[1]);}
    if(mat===4){px(-2,-25+bob,4,2,p[2]);px(-1,-26+bob,2,1,p[3]);}
    if(mat===5){px(-3,-25+bob,6,1,p[1]);px(-1,-26+bob,2,2,p[3]);}
    if(closed){
-    px(-3,-25+bob,6,2,p[1]);
-    px(-1,-26+bob,2,3,p[3]);
+    px(-3,-25+bob,6,2,p[1]);px(-1,-26+bob,2,3,p[3]);
     if(mat===6||mat===8){px(-3,-23+bob,6,1,p[3]);px(-1,-26+bob,2,1,p[2]);}
     if(face==='front'){
-     // A separate chin/cheek plate retains the underlying eye line, rather
-     // than painting the entire face a solid block.
-     px(-4,-16+bob,8,2,p[1]);px(-4,-15+bob,8,1,p[0]);
-     px(-2,-17+bob,4,1,p[0]);px(-1,-18+bob,2,2,p[3]);
-     if(mat===7)px(-3,-16+bob,6,1,p[3]);
-     else{px(-4,-16+bob,2,1,p[3]);px(2,-16+bob,2,1,p[3]);}
+     // Cheek guards and chin plate, leaving the central face/eyes intact.
+     px(-6,-15+bob,2,4,p[1]);px(4,-15+bob,2,4,p[1]);
+     px(-3,-10+bob,6,1,p[0]);px(-2,-11+bob,4,1,p[1]);
+     px(-1,-12+bob,2,1,p[3]);
+     if(mat===7)px(-3,-10+bob,6,1,p[3]);
+     else{px(-4,-12+bob,1,2,p[3]);px(3,-12+bob,1,2,p[3]);}
     }else if(face==='side'){
-     const edge=o.f<0?-5:3;
-     px(edge,-17+bob,2,2,p[1]);px(edge,-16+bob,2,1,p[3]);
+     const edge=o.f<0?-6:4;
+     px(edge,-15+bob,2,4,p[1]);px(edge,-12+bob,2,1,p[3]);
     }else{
-     px(-5,-17+bob,10,2,p[1]);
-     px(-2,-17+bob,4,1,p[3]);
+     px(-5,-16+bob,10,2,p[1]);px(-1,-16+bob,2,1,p[3]);
     }
    }
   }
