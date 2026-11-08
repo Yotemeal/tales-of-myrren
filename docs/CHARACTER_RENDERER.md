@@ -28,13 +28,33 @@ Changing gear geometry requires running `node tests/kez-v2-rendering.test.cjs`, 
 
 **Idle direction:** A stopped player uses frame 0 of the row matching their last facing. Front portrait idle can use row 0 with `animateIdle=true`. The 6 rows are: idle, front, back, left, right, side attack. Up/down attacks retain their direction rather than snapping to a sideways slash. There are no dedicated up/down attack sprite rows in Kez V2 yet; tool motion handles those directions.
 
-### Locked Myrrenite full-face helmet (material ID 6)
+### Approved reference vs. temporary in-world art — fidelity gate
 
-The latest **approved helmet close-up** supersedes the earlier open-visor Myrrenite artwork. It has a teal domed shell, tall gold central crest and jewel, gold horizontal brow, a deep-black horizontal eye opening, a black descending **T-shaped** central slit, and teal cheek plates with a central nose guard. The face is intentionally enclosed; **do not apply the open-face eye-clearance rule to Myrrenite**.
+**The approved source is the seven-tier smithing sheet and the later Myrrenite
+helmet close-up. The current 21×27 player equipment is NOT visually approved.**
+The previous 15×17 Myrrenite mask is a temporary prototype: its black T visor,
+gold crest and teal palette are directionally correct but its proportions,
+silhouette, material shading and gold jewel do not reproduce the reference.
+Do not describe this mask or the other procedural equipment as finished art.
 
-This helmet is implemented as **four independently authored 15×17 native-pixel masks** (front, right, mirrored left, rear) in `public/kez-v2-equipment.js` under `MYRRENITE_MASKS`. The rear is a solid teal shell with a gold central spine, not a face or false eyes. Rendering uses run-length grouped sprite pixels at the native 21×27 player scale, without resampling or altering the character atlas. Gold (`#efc653`) and the dark visor (`#060f18`) are locked even with an existing cosmetic dye equipped. All other six helmets and all combat statistics are unchanged.
+The reference atlas contains **176×276 px per front-facing figure**. Its visible
+Myrrenite figure is about 138×254 px; the entire live Kez V2 frame is **21×27 px**.
+A 21×27 copy cannot preserve the approved helmet and chestplate detail. A
+higher-resolution character/paper-doll pipeline is needed, with an authored
+**front, left, right, back** and walk/attack poses for each tier. Preliminary
+resizing comparisons suggest ~32×48 is a minimum legible art budget and
+~44×69 retains noticeably more reference detail; these are **visual study
+sizes**, not approved new collision bounds or live world scale.
 
-Run `tests/kez-v2-rendering.test.cjs` to verify the crest, T visor, mirrored profile, rear and dye preservation. Chromium's `myrren-kez-v2-myrrenite-helmet.png` output is the in-game visual review. The supplied reference was an enlarged close-up, so small-scale pixel shapes are deliberately simplified for readability; do not describe the result as a pixel-for-pixel copy of the reference image.
+**Before replacing the game renderer:** author the new base character and
+independent equipment layers at one consistent pixel density; verify seven
+full sets and mixed pieces, four directions, walk/attack/death, weapons and
+offhand shields, correct feet anchor and world scale, UI portrait, dyes and
+multiplayer. Keep gameplay positions, hitboxes, saves and progression intact.
+A front-only reference crop is not a safe replacement for animated equipment.
+The pull request stays draft until visual comparison against the supplied
+reference passes review. Existing tests establish functionality, not artistic
+fidelity.
 
 **Cosmetic dye:** Saved `dye` indices 0–3 tint high-tier enamel accents through the cached `colorsFor(materialId,dye)` function. Undyed equipment retains the approved seven-metal colours and all existing item IDs. The character portrait uses the same dye as gameplay.
 
