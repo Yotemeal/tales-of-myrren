@@ -74,33 +74,33 @@ const server=http.createServer((request,response)=>{
       const specs=[
         ['FRONT','d',1,false,false],['RIGHT','s',1,false,false],
         ['LEFT','s',-1,false,false],['BACK','u',1,false,false],
-        ['RIGHT ATTACK','s',1,true,false],['BACK ATTACK','u',1,true,false],
+        ['RIGHT ATTACK','s',1,true,false],['LEFT ATTACK','s',-1,true,false],
+        ['FRONT ATTACK','d',1,true,false],['BACK ATTACK','u',1,true,false],
         ['BARE FIST','d',1,true,true]
       ];
-      const c=document.createElement('canvas');c.width=896;c.height=1015;
+      const c=document.createElement('canvas');c.width=896;c.height=specs.length*145;
       const g=c.getContext('2d');g.imageSmoothingEnabled=false;
       g.fillStyle='#23302c';g.fillRect(0,0,c.width,c.height);
       for(let row=0;row<specs.length;row++){
         const [title,dv,f,attack,bare]=specs[row];
         for(let col=0;col<tiers.length;col++){
-          const mat=tiers[col],x=col*128+64,y=row*145+112;
-          g.fillStyle='#32423b';g.fillRect(col*128+5,row*145+3,118,137);
+          const mat=tiers[col],x=col*128+64,y=row*145+130;
+          g.fillStyle='#32423b';g.fillRect(col*128+5,row*145+3,118,140);
           const o={dv,f,moving:false,now:attack?120:0,
             tool:attack?(bare?'fist':'sword'):'sword',
             swingAt:attack?0:-99999, g:bare?[0,0,0,0,0,0]:[mat,mat,mat,mat,mat,mat]};
           g.save();g.translate(x,y);g.scale(4,4);
+          const hx=dv==='s'?(f<0?-6:6):dv==='u'?-5:5;
+          const weapon=()=>{if(attack&&!bare)window.MyrrenSwords?.draw(g,mat,hx,-11,f,-.7,.6)};
+          if(dv==='u')weapon();
           window.MyrrenKezV2Equipment.draw(g,0,0,o,'under');
           window.MyrrenKezV2Atlas.draw(g,0,0,o,o.now);
           window.MyrrenKezV2Equipment.draw(g,0,0,o,'over');
-          if(attack&&!bare){
-            const behind=dv==='u',hx=dv==='s'?(f<0?-6:6):behind?-5:5;
-            const draw=()=>window.MyrrenSwords?.draw(g,mat,hx,-10,f,-.7,.62);
-            draw();
-          }
+          if(dv!=='u')weapon();
           g.restore();
           g.font='12px sans-serif';g.fillStyle='#f3eed8';g.textAlign='center';
           if(row===0)g.fillText(['Bronze','Iron','Steel','Black Iron','Obsidianite','Myrrenite','Starsteel'][col],x,row*145+18);
-          g.fillText(title,x,row*145+132);
+          g.fillText(title,x,row*145+140);
         }
       }
       return c.toDataURL('image/png').split(',')[1];
