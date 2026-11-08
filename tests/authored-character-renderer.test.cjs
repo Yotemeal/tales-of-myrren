@@ -39,6 +39,8 @@ const right=run({dv:'s',f:1});
 assert.equal(right[0][2],9*48);
 const back=run({dv:'u'});
 assert.equal(back[0][2],3*48);
+assert.equal(back[0][0].url,'/assets/authored-character/6-shield.png',
+ 'rear-facing shield must sit behind the body and helmet');
 const walk=run({moving:true},130);
 assert.equal(walk[0][2],48);
 assert.equal(walk[0][1],32);
@@ -52,6 +54,11 @@ assert.equal(renderer.readyFor(o),false,'invalid authored atlas must fail closed
 assert.equal(renderer.draw({save(){},restore(){},drawImage(){}},0,0,o,0),false);
 empty.naturalWidth=128;
 assert(renderer.readyFor(o));
+const unrelated=instances.find(i=>i.url.endsWith('2-head.png'));
+unrelated.naturalWidth=0;
+assert(renderer.readyFor(o),'missing other metal tiers must not block one authored set');
+assert.equal(renderer.draw({save(){},restore(){},drawImage(){}},0,0,{...o,g:[2,6,6,6,6,6]},0),false,
+ 'an equipped incomplete metal tier must fail closed');
 assert.throws(()=>renderer.draw({save(){},restore(){},drawImage(){}},0,0,o,0,{width:-1}),/Invalid/);
 assert.throws(()=>API.create('https://outside.example/'),/local assets/);
 console.log('PASS: authored 32x48 layers, 4 directions, walk/attack, shield depth, ID stability, invalid atlas gate');
