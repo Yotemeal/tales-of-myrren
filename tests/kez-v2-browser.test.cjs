@@ -91,7 +91,7 @@ const server=http.createServer((request,response)=>{
             swingAt:attack?0:-99999, g:bare?[0,0,0,0,0,0]:[mat,mat,mat,mat,mat,mat]};
           g.save();g.translate(x,y);g.scale(4,4);
           const hx=dv==='s'?(f<0?-6:6):dv==='u'?-5:5;
-          const weapon=()=>{if(attack&&!bare)window.MyrrenSwords?.draw(g,mat,hx,-11,f,-.7,.6)};
+          const weapon=()=>{if(attack&&!bare)window.MyrrenSwords?.draw(g,mat,hx,-7,f,-.7,.6)};
           if(dv==='u')weapon();
           window.MyrrenKezV2Equipment.draw(g,0,0,o,'under');
           window.MyrrenKezV2Atlas.draw(g,0,0,o,o.now);
