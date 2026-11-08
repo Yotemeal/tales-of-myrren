@@ -61,11 +61,21 @@ function draw(o,now=0){
 }
 for(const [dv,f,row] of [['d',1,1],['s',-1,3],['s',1,4],['u',1,2]]){
   const idle=draw({dv,f},0),run=draw({dv,f,moving:true},130);
-  assert.equal(idle[2],row*27,'idle must retain facing');
+  assert.equal(idle[2],dv==='d'?0:row*27,'idle must animate front without changing side/back facing');
   assert.equal(run[2],row*27,'run must retain facing');
   assert.equal(idle[7],21,'native width must not be downsampled');
   assert.equal(idle[8],27,'native height must not be downsampled');
 }
+for(const t of [0,440,880,1320]){
+  const front=draw({dv:'d',moving:false},t);
+  assert.equal(front[1],Math.floor(t/440)%4*21,'world front idle must advance authored frames');
+  for(const [dv,f,row] of [['u',1,2],['s',1,4],['s',-1,3]]){
+    const side=draw({dv,f,moving:false},t);
+    assert.equal(side[2],row*27,'side/back idle must preserve orientation');
+    assert.equal(side[1],0,'side/back idle must not fake walking');
+  }
+}
+assert.equal(draw({dv:'d',moving:true},440)[2],27,'walking must not play front idle row');
 assert.equal(draw({dv:'s',f:1,tool:'sword',swingAt:0},120)[2],108,
   'right sword swing must not include baked-in white slash effects');
 assert.equal(draw({dv:'s',f:-1,tool:'sword',swingAt:0},120)[2],81,
