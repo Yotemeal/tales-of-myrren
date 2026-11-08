@@ -82,5 +82,15 @@ jobs:
             /tmp/myrren-kez-v2-directions.png
             /tmp/myrren-kez-v2-myrrenite-helmet.png
             public/assets/kez-v2/kez_v2_atlas.png
+            public/wardrobe-base-v5.png
+            public/wardrobe-ownership-v5.png
+            public/wardrobe-bronze-v5.png
+            public/wardrobe-iron-v5.png
+            public/wardrobe-steel-v5.png
+            public/wardrobe-cobalt-v5.png
+            public/wardrobe-obsidianite-v5.png
+            public/wardrobe-aether-v5.png
+            public/wardrobe-starsteel-v5.png
+            public/shields-approved-v1.png
             /tmp/myrren-kez-v2-dyes.png
           if-no-files-found: warn
