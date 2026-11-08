@@ -152,7 +152,7 @@
      // Cheek guards and chin plate, leaving the central face/eyes intact.
      px(-6,-15+bob,2,4,p[1]);px(4,-15+bob,2,4,p[1]);
      px(-3,-10+bob,6,1,p[0]);px(-2,-11+bob,4,1,p[1]);
-     px(-1,-12+bob,2,1,p[3]);
+     px(-1,-10+bob,2,1,p[3]);
      if(mat===7)px(-3,-10+bob,6,1,p[3]);
      else{px(-4,-12+bob,1,2,p[3]);px(3,-12+bob,1,2,p[3]);}
     }else if(face==='side'){
