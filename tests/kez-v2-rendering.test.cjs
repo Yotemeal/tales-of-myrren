@@ -70,6 +70,29 @@ for(const tier of equipment.order){
   equipment.draw(ctx,25,35,pose,'over');
   assert(rects>20,'every metal must draw complete worn armour');
 }
+// The compact base character has visible eyes around y=-13. Chest and leg
+// layers must stay below its face, including during walking bob.
+for(const mat of equipment.order)for(const dv of ['d','s','u'])for(const now of [0,130,260,390]){
+  const pixels=[];
+  const c={fillStyle:'',fillRect(x,y,w,h){
+    for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)pixels.push({x:xx,y:yy});
+  }};
+  const o={dv,f:1,moving:now>0,now,g:[0,mat,0,0,0,0]};
+  equipment.draw(c,0,0,o,'over');
+  assert(pixels.length>0);
+  assert(pixels.every(({y})=>y>=-11),
+    'chest/pauldrons must not cover eyes or chin');
+}
+for(const mat of equipment.order){
+  const eyePixels=new Set();
+  const c={fillStyle:'',fillRect(x,y,w,h){
+    for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)eyePixels.add(xx+','+yy);
+  }};
+  equipment.draw(c,0,0,{dv:'d',f:1,g:[mat,0,0,0,0,0],now:0},'over');
+  for(const y of [-14,-13,-12])for(const x of [-3,-2,0,1,2]){
+    assert(!eyePixels.has(x+','+y),'helmet must not obscure central eye region');
+  }
+}
 const shieldOnly={dv:'s',f:1,g:[0,0,0,0,8,0]};
 let under=0,over=0;
 equipment.draw({fillStyle:'',fillRect(){under++}},25,35,shieldOnly,'under');
