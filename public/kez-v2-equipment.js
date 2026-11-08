@@ -18,6 +18,29 @@
   8:['#363d51','#d9e2f2','#ffffff','#efb63a']
  };
  const CLOSED=new Set([7,6,8]);
+ // Cosmetic dyes are legacy save indices 0–3. Tint high-tier enamel, not
+ // the whole sprite, so each approved metal remains recognisable.
+ const DYE_TONES=['#c7414e','#39a86c','#6966ba','#e5ba52'];
+ const tintCache=new Map();
+ function blend(a,b,amount){
+  const channels=[1,3,5].map(i=>{
+   const x=parseInt(a.slice(i,i+2),16),y=parseInt(b.slice(i,i+2),16);
+   return Math.round(x*(1-amount)+y*amount).toString(16).padStart(2,'0');
+  });
+  return '#'+channels.join('');
+ }
+ function colorsFor(mat,dye){
+  const p=METALS[mat];
+  if(!p||mat<4||!Number.isInteger(dye)||dye<0||dye>=DYE_TONES.length)return p;
+  const key=mat+'/'+dye;
+  if(!tintCache.has(key)){
+   const q=p.slice();
+   q[1]=blend(p[1],DYE_TONES[dye],.3);
+   q[3]=blend(p[3],DYE_TONES[dye],.65);
+   tintCache.set(key,q);
+  }
+  return tintCache.get(key);
+ }
  function clean(gear){
   const g=Array.isArray(gear)?gear:[];
   return Array.from({length:6},(_,i)=>{
@@ -37,7 +60,7 @@
    ctx.fillStyle=c;ctx.fillRect(baseX+dx,baseY+dy,w,h);
   };
   const shield=(behind)=>{
-   const mat=gear[4],p=METALS[mat];if(!p)return;
+   const mat=gear[4],p=colorsFor(mat,o.dye);if(!p)return;
    const rear=face==='back',side=face==='side';
    if(behind!==side)return;
    const sx=side?(o.f<0?5:-7):rear?5:-9;
@@ -51,14 +74,14 @@
   if(phase!=='over')return;
   // Boots and greaves anchor to the soles; no idle breathing or bob on feet.
   if(gear[3]){
-   const mat=gear[3],p=METALS[mat];
+   const mat=gear[3],p=colorsFor(mat,o.dye);
    for(const dx of face==='side'?[-2,1]:[-4,1]){
     px(dx,-3,3,3,p[0]);px(dx+1,-3,2,1,p[2]);px(dx,-1,3,1,p[1]);
     if(mat===6||mat===8)px(dx+1,-2,1,1,p[3]);
    }
   }
   if(gear[2]){
-   const p=METALS[gear[2]],delta=walk?(step===1?1:step===3?-1:0):0;
+   const p=colorsFor(gear[2],o.dye),delta=walk?(step===1?1:step===3?-1:0):0;
    px(-4+delta,-8,4,5,p[0]);px(0-delta,-8,4,5,p[0]);
    px(-3+delta,-7,2,4,p[1]);px(1-delta,-7,2,4,p[1]);
    px(-3+delta,-7,1,3,p[2]);px(1-delta,-7,1,3,p[3]);
@@ -67,7 +90,7 @@
    }
   }
   if(gear[1]){
-   const mat=gear[1],p=METALS[mat];
+   const mat=gear[1],p=colorsFor(mat,o.dye);
    px(-5,-16+bob,10,9,p[0]);px(-4,-15+bob,8,7,p[1]);
    px(-4,-15+bob,8,2,p[2]);px(-4,-9+bob,8,1,p[3]);
    // Paired pauldrons distinguish worn plate from the undershirt.
@@ -86,13 +109,13 @@
    }else if(face==='back')px(-1,-14+bob,2,5,p[3]);
   }
   if(gear[5]){
-   const p=METALS[gear[5]];
+   const p=colorsFor(gear[5],o.dye);
    px(-7,-12+bob,2,4,p[0]);px(5,-12+bob,2,4,p[0]);
    px(-6,-11+bob,1,3,p[2]);px(6,-11+bob,1,3,p[2]);
    if(gear[5]===6||gear[5]===8){px(-7,-12+bob,2,1,p[3]);px(5,-12+bob,2,1,p[3]);}
   }
   if(gear[0]){
-   const mat=gear[0],p=METALS[mat],closed=CLOSED.has(mat);
+   const mat=gear[0],p=colorsFor(mat,o.dye),closed=CLOSED.has(mat);
    // A narrow crown clears the authored face/eyes. Previously the 5px-high
    // solid helmet cap swallowed the small character's expression.
    px(-5,-24+bob,10,3,p[0]);
@@ -109,9 +132,10 @@
     px(far,-19+bob,1,3,p[0]);
     px(near,-20+bob,2,4,p[0]);px(near,-19+bob,1,2,p[1]);
    }else{
-    px(-5,-20+bob,10,4,p[1]);
-    px(-4,-19+bob,8,2,p[0]);
-    px(-1,-20+bob,2,3,p[3]);
+    // Backplate is fully enclosed. Avoid two dark patches that looked like
+    // eyes on the rear-facing helmet in the last visual QA sheet.
+    px(-5,-20+bob,10,5,p[0]);px(-4,-20+bob,8,5,p[1]);
+    px(-4,-20+bob,8,1,p[2]);px(-1,-20+bob,2,4,p[3]);
    }
    // Distinct crown profiles follow the seven approved helmet references.
    if(mat===2){px(-3,-25+bob,6,1,p[1]);px(-1,-26+bob,2,1,p[3]);}
@@ -140,5 +164,5 @@
   }
   shield(false);
  }
- window.MyrrenKezV2Equipment={draw,clean,palette:METALS,order:ORDER};
+ window.MyrrenKezV2Equipment={draw,clean,palette:METALS,colorsFor,order:ORDER};
 })();
