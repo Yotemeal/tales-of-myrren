@@ -28,7 +28,20 @@ const context={window,document,Image,Event,console,Uint8ClampedArray,Math};
 vm.createContext(context);
 vm.runInContext(source,context);
 vm.runInContext(armourSource,context);
+vm.runInContext(fs.readFileSync('public/kez-v2-sword-motion.js','utf8'),context);
 const atlas=window.MyrrenKezV2Atlas,equipment=window.MyrrenKezV2Equipment;
+const sword=window.MyrrenKezV2SwordMotion;
+assert.equal(sword.duration,320);
+assert.equal(sword.angle(-1),-.35);
+assert.equal(sword.angle(320),-.35);
+assert.equal(sword.angle(72),-.90);
+assert.equal(sword.angle(192),.70);
+for(let t=73;t<=192;t++)assert(sword.angle(t)>=sword.angle(t-1),
+  'blade rotates monotonically through strike, no floppy reversal');
+for(let t=193;t<=263;t++)assert.equal(sword.angle(t),.70,
+  'blade holds follow-through without an extra fake hit');
+for(let t=265;t<320;t++)assert(sword.angle(t)<=sword.angle(t-1),
+  'weapon resets smoothly after impact');
 assert(atlas.ready);
 assert.equal(events.filter(x=>x==='myrren-kez-v2-ready').length,1);
 assert.equal(atlas.dimensions.cellWidth,21);
@@ -218,9 +231,10 @@ assert(!game.includes('drawLightweightKez'),'preview character entry must be rem
 assert(!game.includes('function drawApprovedPlayer('),'do not ship a dormant old player renderer');
 assert(!game.includes('MYRREN_V31'),'do not create hidden old character sprite loading paths');
 assert(game.includes('if(!canvas.isConnected)return;'),'portrait animations must stop when detached');
-assert(drawKez.includes('drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6)'),
+assert(drawKez.includes('window.MyrrenKezV2SwordMotion.angle(age)'),\n       'sword-only visual swing must be bound to the real Kez V2 renderer');\nassert(drawKez.includes('drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6)'),
        'weapons must retain the small Kez V2 grip scale');
 const scripts=[...page.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
 assert(scripts.findIndex(s=>s.includes('kez-v2-atlas'))<scripts.findIndex(s=>s.includes('kez-v2-equipment')));
 assert(scripts.findIndex(s=>s.includes('kez-v2-equipment'))<scripts.findIndex(s=>s.includes('myrren-game')));
+assert(scripts.findIndex(s=>s.includes('kez-v2-sword-motion'))<scripts.findIndex(s=>s.includes('myrren-game')));
 console.log('PASS: Kez V2 native dimensions, four directional idle/run poses, attacks, seven-metal six-slot overlays, preview cleanup, and script registration.');
