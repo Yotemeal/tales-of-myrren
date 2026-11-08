@@ -1,0 +1,69 @@
+name: Mainline game integrity
+
+on:
+  pull_request:
+    paths:
+      - 'public/**'
+      - 'tests/**'
+      - 'src/**'
+      - 'wrangler.jsonc'
+      - '.github/workflows/mainline-integrity.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'public/**'
+      - 'tests/**'
+      - 'src/**'
+      - 'wrangler.jsonc'
+      - '.github/workflows/mainline-integrity.yml'
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and deployment asset contracts
+        run: |
+          node --check public/myrren-game.js
+          node --check public/myrren-world.js
+          node --check public/myrren-environment.js
+          node --check src/worker.js
+          node tests/mainline-asset-contract.test.cjs
+      - name: Gameplay, economy and save integrity
+        run: |
+          node tests/forging-skill.test.cjs
+          node tests/armour-progression.test.cjs
+          node tests/inventory-capacity.cjs
+          node tests/save-inventory.test.cjs
+          node tests/bank-notes.test.cjs
+          node tests/combat-kill-xp.test.cjs
+          node tests/movement-speed.test.cjs
+
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install mobile browser
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install --with-deps chromium
+      - name: Validate live public entry in portrait and landscape
+        run: node tests/mainline-mobile-hud.test.cjs
+      - name: Keep mobile screenshot references
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: myrren-mobile-hud-qa
+          path: |
+            /tmp/myrren-portrait-hud.png
+            /tmp/myrren-portrait-equipment.png
+            /tmp/myrren-landscape-hud.png
+            /tmp/myrren-landscape-equipment.png
+          if-no-files-found: warn

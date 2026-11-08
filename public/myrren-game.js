@@ -523,7 +523,7 @@ const chat=$('chat'),chatLines=[];
 const stamp=()=>{const d=new Date();return '['+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+'] '};
 function say(t,c){
   chatLines.push({t:stamp()+t,c:c||''});if(chatLines.length>40)chatLines.shift();
-  chat.textContent='';chatLines.slice(-5).forEach(l=>{const li=document.createElement('li');li.textContent=l.t;if(l.c)li.className=l.c;chat.append(li)});
+  chat.textContent='';chatLines.slice(-2).forEach(l=>{const li=document.createElement('li');li.textContent=l.t;if(l.c)li.className=l.c;chat.append(li)});
 }
 let toastT=0;
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('on'),1800)}
@@ -1532,7 +1532,7 @@ function start(){
   $('hud').hidden=false;$('chat').hidden=false;$('pad').hidden=false;$('acts').hidden=false;
   started=true;uiHud();refreshActionButtons();
   say('Welcome to Myrren, '+save.name+'.');
-  if(!(eqDef('weapon')&&eqDef('weapon').tool)&&!save.bag.some(id=>DEFS[id].tool))say('Buy a hatchet or pickaxe in town and equip it as your weapon. Face a tree or rock and press the tool button. Hold the sword button to fight. Follow the southern path through the collapsed crater wall.','gold');
+  if(!(eqDef('weapon')&&eqDef('weapon').tool)&&!save.bag.some(id=>DEFS[id].tool))say('Starter tools: Trader Gus. Gather with the tool button.','gold');
   persist();sendPresence();
 }
 $('go').addEventListener('click',start);
@@ -3068,7 +3068,7 @@ function frame(now){
   if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}
   ctx.imageSmoothingEnabled=false;
   update(dt,now);
-  if(now-lastMiniRender>=180){drawMini(now);lastMiniRender=now}
+  drawMini(now)
 
   const tx=inside?RX/2-cv.width/2:me.x-cv.width/2,ty=inside?RY/2-cv.height*.36:me.y-cv.height*.47;
   const k=snapCam?1:Math.min(1,dt*7);snapCam=false;cam.x+=(tx-cam.x)*k;cam.y+=(ty-cam.y)*k;
@@ -3099,7 +3099,7 @@ function frame(now){
   if(now-saveAt>5000){saveAt=now;if(started)persist()}
   requestAnimationFrame(frame);
 }
-let last=performance.now(),sendAt=0,slowAt=0,saveAt=0,lastMiniRender=-Infinity;
+let last=performance.now(),sendAt=0,slowAt=0,saveAt=0;
 addCrit('bunny',22,60);addCrit('bird',16,70);addCrit('deer',9,180);addCrit('fox',7,520); // foxes roam the outer woodland, well clear of the busy crater forge
 syncPets();petsTeleport();uiHud();
 let loadDone=false;
