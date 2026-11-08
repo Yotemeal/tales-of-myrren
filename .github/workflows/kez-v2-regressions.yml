@@ -1,0 +1,57 @@
+name: Kez V2 renderer and gameplay integrity
+
+on:
+  pull_request:
+    paths:
+      - 'public/**'
+      - 'tests/**'
+      - '.github/workflows/kez-v2-regressions.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'public/**'
+      - 'tests/**'
+      - '.github/workflows/kez-v2-regressions.yml'
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check public/kez-v2-atlas.js
+          node --check public/kez-v2-equipment.js
+          node --check public/myrren-game.js
+          node --check public/approved-character.js
+          node --check public/wardrobe-v5.js
+          node --check public/sword-actions-v1.js
+      - name: Native Kez V2 rendering contracts
+        run: node tests/kez-v2-rendering.test.cjs
+      - name: Save, balance and gameplay regressions
+        run: |
+          node tests/armour-progression.test.cjs
+          node tests/forging-skill.test.cjs
+          node tests/inventory-capacity.cjs
+          node tests/save-inventory.test.cjs
+          node tests/bank-notes.test.cjs
+          node tests/movement-speed.test.cjs
+          node tests/combat-kill-xp.test.cjs
+
+  art:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install native test canvas
+        run: npm install --no-save --no-package-lock @napi-rs/canvas
+      - name: Verify approved armour and existing character assets
+        run: |
+          node tests/approved-character.test.cjs
+          node tests/wardrobe-v5.test.cjs
+          node tests/shields-approved.test.cjs
