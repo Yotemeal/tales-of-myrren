@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Myrrenite native sprite review — NOT live game</title>
+<style>
+:root{color-scheme:dark;font:15px system-ui}body{background:#101d25;color:#e7e8da;margin:0;padding:16px}
+main{max-width:750px;margin:auto}h1{font-size:20px}p{color:#b6c6c9;line-height:1.5}
+.controls{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0}
+label{display:grid;gap:6px}select,button{background:#253743;color:white;border:1px solid #53656a;border-radius:8px;padding:10px}
+canvas{width:min(100%,480px);height:auto;image-rendering:pixelated;background:#273e3b;border:1px solid #53656a;border-radius:8px}
+small{display:block;color:#a9c5c3;margin-top:10px}
+</style></head><body><main>
+<h1>Myrrenite — first-pass authored sprite review</h1>
+<p>Real 32×48 layered PNGs. Not the live game or approved final art. Inspect the glove, shield, helmet and walk/attack poses at native scale.</p>
+<div class="controls">
+<label>Facing<select id="dir"><option>front</option><option>back</option><option>left</option><option>right</option></select></label>
+<label>Pose<select id="pose"><option>idle</option><option>walk</option><option>attack</option></select></label>
+<label>Frame<select id="frame"><option>0</option><option>1</option><option>2</option><option>3</option></select></label>
+<label>Display scale<select id="scale"><option value="6">32×48 native ×6</option><option value="1">32×48 native ×1</option></select></label>
+</div>
+<canvas id="screen" width="384" height="576" aria-label="Layered pixel character preview"></canvas>
+<small id="status">Loading source PNGs…</small>
+</main><script>
+'use strict';
+const dirs=['front','back','left','right'],poses=['idle','walk','attack'];
+const names=['base','6-head','6-body','6-legs','6-boots','6-gloves','6-shield'];
+const imgs={};let loaded=0;
+for(const name of names){const img=new Image();imgs[name]=img;img.onload=()=>{loaded++;draw()};img.onerror=()=>document.getElementById('status').textContent='Missing '+name+'.png — open the complete CI artifact folder';img.src=name+'.png'}
+for(const id of ['dir','pose','frame','scale'])document.getElementById(id).addEventListener('change',draw);
+function draw(){
+ if(loaded!==names.length)return;
+ const canvas=document.getElementById('screen'),ctx=canvas.getContext('2d');
+ const dir=document.getElementById('dir').value,pose=document.getElementById('pose').value,frame=+document.getElementById('frame').value;
+ const row=dirs.indexOf(dir)*3+poses.indexOf(pose);
+ const scale=+document.getElementById('scale').value;
+ canvas.width=32*scale;canvas.height=48*scale;ctx.imageSmoothingEnabled=false;
+ ctx.fillStyle='#273e3b';ctx.fillRect(0,0,canvas.width,canvas.height);
+ const layer=name=>ctx.drawImage(imgs[name],frame*32,row*48,32,48,0,0,canvas.width,canvas.height);
+ if(dir==='left'||dir==='right')layer('6-shield');
+ for(const name of ['base','6-boots','6-legs','6-body','6-gloves','6-head'])layer(name);
+ if(dir==='front'||dir==='back')layer('6-shield');
+ document.getElementById('status').textContent='Rendered from real authored PNG layers • '+dir+' • '+pose+' • frame '+frame;
+}
+</script></body></html>
