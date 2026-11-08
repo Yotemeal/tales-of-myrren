@@ -1941,8 +1941,8 @@ kezV2Image.onload=()=>{
   try{kezV2=window.MyrrenHero.create(kezV2Image);window.dispatchEvent(new Event('myrren-hero-ready'))}
   catch(err){console.error('Kez V2 atlas failed validation',err)}
 };
-kezV2Image.onerror=()=>console.error('Kez V2 atlas missing: /hero_32x40_v31.png');
-kezV2Image.src='/hero_32x40_v31.png';
+kezV2Image.onerror=()=>console.error('Kez V2 atlas missing: /hero-approved-v1.png');
+kezV2Image.src='/hero-approved-v1.png';
 function drawPerson(x,y,o,now){
   // No fallback to the superseded procedural character. Missing assets are an explicit error.
   if(!kezV2)return;
