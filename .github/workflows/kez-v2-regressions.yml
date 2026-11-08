@@ -5,12 +5,14 @@ on:
     paths:
       - 'public/**'
       - 'tests/**'
+      - 'scripts/build-kez-v2-paperdoll.py'
       - '.github/workflows/kez-v2-regressions.yml'
   push:
     branches: [main]
     paths:
       - 'public/**'
       - 'tests/**'
+      - 'scripts/build-kez-v2-paperdoll.py'
       - '.github/workflows/kez-v2-regressions.yml'
 
 jobs:
@@ -55,6 +57,28 @@ jobs:
           node tests/approved-character.test.cjs
           node tests/wardrobe-v5.test.cjs
           node tests/shields-approved.test.cjs
+
+  paperdoll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install deterministic image builder
+        run: python -m pip install 'Pillow>=11,<13'
+      - name: Build approved-front and directional equipment sprite-sheet prototype
+        run: python scripts/build-kez-v2-paperdoll.py --out /tmp/kez-v2-paperdoll
+      - name: Verify native equipment parts and pose metadata
+        run: python tests/kez-v2-paperdoll.test.py
+      - name: Save experimental sprite atlas and comparison image
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kez-v2-paperdoll-prototype-not-approved
+          path: /tmp/kez-v2-paperdoll/
+          if-no-files-found: warn
 
   browser:
     runs-on: ubuntu-latest
