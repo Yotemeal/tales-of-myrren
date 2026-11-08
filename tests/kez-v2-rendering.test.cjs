@@ -17,7 +17,7 @@ const document={createElement(type){
     imageSmoothingEnabled:false,
     drawImage(){},putImageData(){},
     createImageData(w,h){return {data:new Uint8ClampedArray(w*h*4)}},
-    getImageData(){return {data:imageData}}
+    getImageData(x,y,w,h){return {data:w===21&&h===27?new Uint8ClampedArray(21*27*4).fill(255):imageData}}
   }}};
 }};
 class Image{
