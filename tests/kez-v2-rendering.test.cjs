@@ -111,15 +111,27 @@ for(const dv of ['s','u','d']){
 assert.equal(equipment.palette[7][1],'#8325be');
 assert.equal(equipment.palette[6][3],'#efc653');
 assert.equal(equipment.palette[8][2],'#ffffff');
+for(const mat of [4,5,7,6,8])for(const dye of [0,1,2,3]){
+  const p=equipment.colorsFor(mat,dye);
+  assert.equal(p.length,4);
+  assert.notEqual(p[3],equipment.palette[mat][3],'high-tier dye changes enamel accent');
+  assert.equal(p[0],equipment.palette[mat][0],'dye preserves the metal outline');
+  assert.equal(p,equipment.colorsFor(mat,dye),'dye palette must be cached for mobile frames');
+}
+assert.strictEqual(equipment.colorsFor(3,1),equipment.palette[3],'low-tier armour keeps original colours');
+assert.strictEqual(equipment.colorsFor(8,null),equipment.palette[8],'undyed Starsteel remains white and gold');
+assert(game.includes('g:gearArr(),dye:save.dye,now'),'equipment portrait must preserve dyes');
+
 const drawKez=game.slice(game.indexOf('function drawKezV2('),game.indexOf('function drawPerson('));
 assert(drawKez.indexOf("if(direction==='back'){paintHeld();paintPunch()}")<
        drawKez.indexOf('atlas.draw(ctx,x,y,state,now)'),
        'rear-facing sword must be painted before the body');
+assert(drawKez.includes("direction==='back'?-8"),'rear sword must clear torso');
 assert(drawKez.indexOf('atlas.draw(ctx,x,y,state,now)')<
        drawKez.indexOf("if(direction!=='back'){paintHeld();paintPunch()}"),
        'front and side swords must be held over the body');
-assert(drawKez.includes("const handColor=glove&&gear?.palette?.[glove]"),
-       'sword grip should use equipped glove colour, not bare skin');
+assert(drawKez.includes("const handColor=glove&&gear?.colorsFor?.(glove,o.dye)?.[2]"),
+       'sword grip should use equipped dyed glove colour, not bare skin');
 assert(game.includes('if(!o.apron){drawKezV2(x,y,o,now);return;}'));
 assert(!game.includes("get('kezV2')"),'Kez V2 must not be opt-in');
 assert(!game.includes('drawLightweightKez'),'preview character entry must be removed');
