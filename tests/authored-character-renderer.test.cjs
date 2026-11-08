@@ -23,6 +23,16 @@ function run(props={},now=0){
  assert.equal(renderer.draw(ctx,100,200,{...o,...props},now),true);
  return calls;
 }
+const grip0=renderer.gripSocket(o,0);
+assert.equal(grip0.direction,'front');
+assert.equal(grip0.pose,'idle');
+const gripStrike=renderer.gripSocket({...o,swingAt:0},100);
+assert.equal(gripStrike.pose,'attack');
+assert.notEqual(gripStrike.y,grip0.y,'weapon grip must follow the animated glove');
+const gripLeft=renderer.gripSocket({...o,dv:'s',f:-1},0);
+const gripRight=renderer.gripSocket({...o,dv:'s',f:1},0);
+assert(gripLeft.x<0&&gripRight.x>0,'left/right glove sockets must mirror');
+assert.throws(()=>renderer.gripSocket(o,0,{height:0}),/Invalid/);
 const idle=run();
 assert.equal(idle.length,7);
 assert.equal(idle[0][1],0);
