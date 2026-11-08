@@ -101,8 +101,8 @@
    px(-4,-9+bob,8,1,p[2]);px(-4,-4+bob,8,1,p[3]);
    // Pauldrons follow the upper arms, not the cheeks.
    px(-6,-10+bob,2,3,p[0]);px(4,-10+bob,2,3,p[0]);
-   px(-7,-11+bob,2,2,p[1]);px(5,-11+bob,2,2,p[1]);
-   px(-7,-11+bob,2,1,p[2]);px(5,-11+bob,2,1,p[2]);
+   px(-7,-10+bob,2,2,p[1]);px(5,-10+bob,2,2,p[1]);
+   px(-7,-10+bob,2,1,p[2]);px(5,-10+bob,2,1,p[2]);
    if(face==='front'){
     if(mat===2||mat===3){
      px(-2,-7+bob,4,1,p[3]);px(-1,-6+bob,2,2,p[0]);
