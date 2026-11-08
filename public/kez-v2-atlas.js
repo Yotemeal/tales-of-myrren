@@ -47,8 +47,20 @@ window.MyrrenKezV2Atlas={
   // one forged sword, anchored at the glove, owns the entire strike.
   // Hold a grounded pose while swinging to avoid the hands marching in place.
   const swordHit=attacking&&o.tool==='sword';
-  const row=o.animateIdle?rows.idle:rows[direction];
-  const frame=o.animateIdle?Math.floor(now/440)%4:swordHit?0:o.moving?Math.floor(now/130)%4:0;
+  // The authored idle row is front-facing. Play it for stationary front-facing
+  // characters as well as portraits; never turn side/back players toward camera.
+  // Combat holds the directional pose so a sword swing cannot snap to idle.
+  const frontIdle=!swordHit&&!o.moving&&direction==='front';
+  const useIdle=o.animateIdle||frontIdle;
+  const row=useIdle?rows.idle:rows[direction];
+  // Side/back have no dedicated idle row yet. Reuse their directional
+  // animation frames in a slow, reversible 0-1-0-3 breathing/weight-shift
+  // cycle, without changing facing or moving the character in the world.
+  const directionalIdle=!swordHit&&!o.moving&&!useIdle;
+  const idleCycle=[0,1,0,3];
+  const frame=useIdle?Math.floor(now/440)%4:swordHit?0:
+    directionalIdle?idleCycle[Math.floor(now/650)%idleCycle.length]:
+    o.moving?Math.floor(now/130)%4:0;
   const bounds=frameBounds[row][frame];
   const scale=1,sw=bounds.right-bounds.left+1,sh=bounds.bottom-bounds.top+1;
   const dw=Math.round(sw*scale),dh=Math.round(sh*scale);
