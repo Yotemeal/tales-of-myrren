@@ -10,13 +10,12 @@ const DIRECTIONS=['front','back','left','right'];
 const POSES=['idle','walk','attack'];
 const WIDTH=32,HEIGHT=48,FRAMES=4;
 const ROWS=DIRECTIONS.length*POSES.length;
-const SLOT_LAYERS={under:['shield'],over:['boots','legs','body','gloves','head','shield']};
 const allMats=new Set(ORDER);
 const validImage=image=>image&&image.naturalWidth===WIDTH*FRAMES&&image.naturalHeight===HEIGHT*ROWS;
 const facing=o=>o.dv==='u'?'back':o.dv==='s'?(o.f<0?'left':'right'):'front';
 const motion=(o,now)=>{
  const age=now-(o.swingAt??-99999);
- return age>=0&&age<320?'attack':o.moving?'walk':'idle';
+ return o.tool==='sword'&&age>=0&&age<320?'attack':o.moving?'walk':'idle';
 };
 const frameFor=(pose,o,now)=>{
  if(pose==='idle')return 0;
