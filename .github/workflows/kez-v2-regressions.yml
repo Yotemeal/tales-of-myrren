@@ -27,6 +27,7 @@ jobs:
         run: |
           node --check public/kez-v2-atlas.js
           node --check public/kez-v2-equipment.js
+          node --check public/kez-v2-sword-motion.js
           node --check public/myrren-game.js
           node --check public/approved-character.js
           node --check public/wardrobe-v5.js
@@ -104,6 +105,7 @@ jobs:
             /tmp/myrren-kez-v2-equipment.png
             /tmp/myrren-kez-v2-seven-metals.png
             /tmp/myrren-kez-v2-directions.png
+            /tmp/myrren-kez-v2-sword-motion-contact-sheet.png
             /tmp/myrren-kez-v2-myrrenite-helmet.png
             public/assets/kez-v2/kez_v2_atlas.png
             public/wardrobe-base-v5.png

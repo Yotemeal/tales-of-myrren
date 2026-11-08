@@ -41,17 +41,18 @@ window.MyrrenKezV2Atlas={
   if(!ready)return false;
   const age=now-(o.swingAt??-99999),attacking=age>=0&&age<320;
   const direction=o.dv==='u'?'back':o.dv==='s'?(o.f<0?'left':'right'):'front';
-  // Attack frames were drawn facing right. Do not use them when facing
-  // up/down, or the character abruptly changes direction mid-swing.
-  // Only sword attacks use the dedicated sword-swing sprite row.
-  // Bare-handed attacks keep the normal body pose; the game draws the punch separately.
-  const useAttack=attacking&&o.tool==='sword'&&o.dv==='s';
-  const row=useAttack?rows.attack:o.animateIdle?rows.idle:rows[direction];
-  const frame=useAttack?Math.min(3,Math.floor(age/80)):o.animateIdle?Math.floor(now/440)%4:o.moving?Math.floor(now/130)%4:0;
+  // The legacy attack row has a white slash baked into the body frames.
+  // Drawing it together with the separately rotated equipped sword produces
+  // two independent blades. Keep the directional body pose during sword hits;
+  // one forged sword, anchored at the glove, owns the entire strike.
+  // Hold a grounded pose while swinging to avoid the hands marching in place.
+  const swordHit=attacking&&o.tool==='sword';
+  const row=o.animateIdle?rows.idle:rows[direction];
+  const frame=o.animateIdle?Math.floor(now/440)%4:swordHit?0:o.moving?Math.floor(now/130)%4:0;
   const bounds=frameBounds[row][frame];
   const scale=1,sw=bounds.right-bounds.left+1,sh=bounds.bottom-bounds.top+1;
   const dw=Math.round(sw*scale),dh=Math.round(sh*scale);
-  const flip=useAttack&&o.f<0;
+  const flip=false;
   ctx.save();ctx.imageSmoothingEnabled=false;
   ctx.translate(Math.round(x),Math.round(y));
   if(flip)ctx.scale(-1,1);

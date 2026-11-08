@@ -2224,7 +2224,9 @@ function drawKezV2(x,y,o,now){
   const hy=Math.round(y-7);
   const glove=o.g?.[5];
   const handColor=glove&&gear?.colorsFor?.(glove,o.dye)?.[2]||'#edbc94';
-  const heldAngle=attacking?swingAng(age):-.35;
+  const heldAngle=attacking
+    ?(o.tool==='sword'?window.MyrrenKezV2SwordMotion.angle(age):swingAng(age))
+    :-.35;
   const paintHeld=()=>{
     if(!holding||deathAge>=0)return;
     drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6);
