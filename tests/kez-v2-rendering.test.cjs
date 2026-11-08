@@ -154,7 +154,10 @@ for(const mat of equipment.order){
   }};
   equipment.draw(ctx,0,0,{dv:'d',f:1,g:[mat,0,0,0,0,0],now:0},'over');
   assert(painted.size>0);
-  if(mat===7||mat===8){
+  if(mat===6){
+    assert(painted.has('0,-17'),
+      'Myrrenite alone must use its approved opaque black T visor');
+  }else if(mat===7||mat===8){
     // Other closed helmets continue to preserve their previous eye clearance.
     assert(!painted.has('-3,-18')&&!painted.has('2,-18'),
       'full-face masks must leave clear sight lines');
