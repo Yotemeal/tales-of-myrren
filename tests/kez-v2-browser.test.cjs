@@ -131,6 +131,36 @@ const server=http.createServer((request,response)=>{
       return c.toDataURL('image/png').split(',')[1];
     });
     fs.writeFileSync('/tmp/myrren-kez-v2-dyes.png',Buffer.from(dyePng,'base64'));
+
+    // Approval capture: Myrrenite's revised gold-crested teal T-visor must
+    // be the same in front, side, rear and dyed character equipment previews.
+    const myrrenitePng=await page.evaluate(()=>{
+      const views=[
+        ['FRONT','d',1,null],['RIGHT','s',1,null],
+        ['LEFT','s',-1,null],['BACK','u',1,null],
+        ['EMERALD DYE','d',1,1]
+      ];
+      const canvas=document.createElement('canvas');
+      canvas.width=750;canvas.height=270;
+      const g=canvas.getContext('2d');
+      g.imageSmoothingEnabled=false;
+      g.fillStyle='#1c2431';g.fillRect(0,0,canvas.width,canvas.height);
+      views.forEach(([label,dv,f,dye],i)=>{
+        const x=i*150+75,y=221;
+        g.fillStyle='#33414a';g.fillRect(i*150+7,14,136,240);
+        const pose={dv,f,moving:false,now:0,tool:'sword',swingAt:-99999,
+          dye,g:[6,6,6,6,6,6]};
+        g.save();g.translate(x,y);g.scale(6,6);
+        window.MyrrenKezV2Equipment.draw(g,0,0,pose,'under');
+        window.MyrrenKezV2Atlas.draw(g,0,0,pose,0);
+        window.MyrrenKezV2Equipment.draw(g,0,0,pose,'over');
+        g.restore();
+        g.fillStyle='#f1e9c8';g.font='12px sans-serif';
+        g.textAlign='center';g.fillText(label,x,258);
+      });
+      return canvas.toDataURL('image/png').split(',')[1];
+    });
+    fs.writeFileSync('/tmp/myrren-kez-v2-myrrenite-helmet.png',Buffer.from(myrrenitePng,'base64'));
     assert.deepEqual(errors,[],'no unhandled browser script exceptions');
     console.log('PASS: real browser loads Kez V2, enters game, paints world, opens equipped portrait and renders all seven metal tiers.');
   }finally{await browser?.close();await new Promise(resolve=>server.close(resolve))}
