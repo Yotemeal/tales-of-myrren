@@ -79,4 +79,5 @@ jobs:
             /tmp/myrren-kez-v2-mobile.png
             /tmp/myrren-kez-v2-equipment.png
             /tmp/myrren-kez-v2-seven-metals.png
+            /tmp/myrren-kez-v2-directions.png
           if-no-files-found: warn
