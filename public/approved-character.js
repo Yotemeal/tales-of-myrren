@@ -143,7 +143,7 @@
   }
   function drawGrip(ctx,x,y,o,now){
    const p=pose(o,now),socket=p.swordAction?window.MyrrenSwordActions.attachments(p,o).sword:null,worn=socket?{x:socket[0]-32,y:socket[1]-60}:window.MyrrenWardrobe?.hand(p,o);if(!worn||p.dead)return;
-   const scale=window.MyrrenWardrobe?.ready&&!o.nativeScale?40/52:1,hx=x+worn.x*scale,hy=y+worn.y*scale;
+   const scale=o.nativeScale?1:40/52,hx=x+worn.x*scale,hy=y+worn.y*scale;
    ctx.save();ctx.beginPath();ctx.rect(Math.floor(hx-3*scale),Math.floor(hy-3*scale),Math.ceil(6*scale),Math.ceil(6*scale));ctx.clip();draw(ctx,x,y,o,now);ctx.restore();
   }
   let armedCanvas=null,bodyCanvas=null,shieldCanvas=null;
