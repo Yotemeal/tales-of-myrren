@@ -77,6 +77,7 @@ function create(assetRoot){
   const base=images.get('base');
   const shield=gear[4]&&images.get(gear[4]+'-shield');
   ctx.save();ctx.imageSmoothingEnabled=false;
+  try {
   // Back shields sit on the back of the character and must be visible.
   // Side shields remain behind the near arm; the front shield covers the chest.
   const weapon=opts.weapon;
@@ -105,7 +106,7 @@ function create(assetRoot){
   if(dir!=='back')paintWeapon();
   if(gear[5])paint(ctx,images.get(gear[5]+'-gloves'),x,y,row,frame,w,h);
   if(dir==='front'||dir==='back')if(shield)paint(ctx,shield,x,y,row,frame,w,h);
-  ctx.restore();
+  } finally {ctx.restore();}
   return true;
  }
  return Object.freeze({draw,gripSocket:(o,now,opts)=>gripSocket(o,now,opts),readyFor,get errors(){return [...errors]},dimensions:{width:WIDTH,height:HEIGHT,frames:FRAMES,rows:ROWS},directions:DIRECTIONS,poses:POSES});
