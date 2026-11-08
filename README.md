@@ -25,11 +25,12 @@ After that, commits to `main` will trigger a new deployment. The game URL stays 
 - `public/wardrobe-v5.js` — existing approved armour icons and art reference; **not** the gameplay player renderer.
 - `docs/CHARACTER_RENDERER.md` — exact renderer/asset contract and art release requirements.
 - `public/myrren-world.js` and `public/myrren-environment.js` — shared geometry and rendering.
-- `index.html` — preserved copy of the same game build at repository setup.
+- `index.html` — **non-game retirement notice**; do not edit it for gameplay or deployment.
+- `backups/root-index-pre-canonical-2026-11-08.html` — exact archived root game from before this cleanup.
 - `backups/original-baseline.html` — untouched baseline backup.
 - `wrangler.jsonc` — Cloudflare Worker static asset configuration.
 
-Edit the files in `public/` for future game updates. Keep script order intact and bump the game script URL version in `public/index.html` when changing the runtime. The root `index.html` and `backups/` files are historical copies, not deployment entry points.
+Edit the files in `public/` for future game updates. Keep script order intact and bump the game script URL version in `public/index.html` when changing the runtime. The root `index.html` is only a notice pointing to the canonical public entry, and `backups/` contains archived snapshots. Neither is a Cloudflare deployment entry point.
 
 ## Checks
 
