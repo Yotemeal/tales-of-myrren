@@ -28,12 +28,15 @@ jobs:
           node --check public/kez-v2-atlas.js
           node --check public/kez-v2-equipment.js
           node --check public/kez-v2-sword-motion.js
+          node --check public/authored-character-renderer.js
           node --check public/myrren-game.js
           node --check public/approved-character.js
           node --check public/wardrobe-v5.js
           node --check public/sword-actions-v1.js
       - name: Native Kez V2 rendering contracts
         run: node tests/kez-v2-rendering.test.cjs
+      - name: Authored high-resolution sprite renderer contracts
+        run: node tests/authored-character-renderer.test.cjs
       - name: Save, balance and gameplay regressions
         run: |
           node tests/armour-progression.test.cjs
