@@ -80,5 +80,6 @@ jobs:
             /tmp/myrren-kez-v2-equipment.png
             /tmp/myrren-kez-v2-seven-metals.png
             /tmp/myrren-kez-v2-directions.png
+            /tmp/myrren-kez-v2-myrrenite-helmet.png
             /tmp/myrren-kez-v2-dyes.png
           if-no-files-found: warn
