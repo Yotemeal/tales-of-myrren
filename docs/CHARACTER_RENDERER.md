@@ -28,6 +28,14 @@ Changing gear geometry requires running `node tests/kez-v2-rendering.test.cjs`, 
 
 **Idle direction:** A stopped player uses frame 0 of the row matching their last facing. Front portrait idle can use row 0 with `animateIdle=true`. The 6 rows are: idle, front, back, left, right, side attack. Up/down attacks retain their direction rather than snapping to a sideways slash. There are no dedicated up/down attack sprite rows in Kez V2 yet; tool motion handles those directions.
 
+### Locked Myrrenite full-face helmet (material ID 6)
+
+The latest **approved helmet close-up** supersedes the earlier open-visor Myrrenite artwork. It has a teal domed shell, tall gold central crest and jewel, gold horizontal brow, a deep-black horizontal eye opening, a black descending **T-shaped** central slit, and teal cheek plates with a central nose guard. The face is intentionally enclosed; **do not apply the open-face eye-clearance rule to Myrrenite**.
+
+This helmet is implemented as **four independently authored 15×17 native-pixel masks** (front, right, mirrored left, rear) in `public/kez-v2-equipment.js` under `MYRRENITE_MASKS`. The rear is a solid teal shell with a gold central spine, not a face or false eyes. Rendering uses run-length grouped sprite pixels at the native 21×27 player scale, without resampling or altering the character atlas. Gold (`#efc653`) and the dark visor (`#060f18`) are locked even with an existing cosmetic dye equipped. All other six helmets and all combat statistics are unchanged.
+
+Run `tests/kez-v2-rendering.test.cjs` to verify the crest, T visor, mirrored profile, rear and dye preservation. Chromium's `myrren-kez-v2-myrrenite-helmet.png` output is the in-game visual review. The supplied reference was an enlarged close-up, so small-scale pixel shapes are deliberately simplified for readability; do not describe the result as a pixel-for-pixel copy of the reference image.
+
 **Cosmetic dye:** Saved `dye` indices 0–3 tint high-tier enamel accents through the cached `colorsFor(materialId,dye)` function. Undyed equipment retains the approved seven-metal colours and all existing item IDs. The character portrait uses the same dye as gameplay.
 
 **Missing image:** Never silently swap in the discontinued V31/approved/procedural player. A missing Kez V2 atlas must be visible as a loading/error issue; fix the asset path rather than changing sprite family.
