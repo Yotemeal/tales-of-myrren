@@ -25,7 +25,7 @@ const base={v:3,name:'Bank QA',xp:{melee:10000000,mining:10000000},inv:{coins:50
  t.me.x=400;t.me.y=800;assert(!t.bankAccess());assert(!t.withdrawItem('logs',1));assert.equal(t.save.bank.logs,100);
  // Shops accept exact quantities of carried notes, never remote bank contents.
  t.save.notes.logs=100;t.save.inv.coins=50000;
- t.enterBuilding(t.BLD.find(b=>b.id==='axe'),4000);t.openModal('pack');
+ t.me.x=t.TRADER.x;t.me.y=t.TRADER.y;t.enterBuilding(t.BLD.find(b=>b.id==='axe'),4000);t.openModal('pack');
  const notedLog=t.inventoryEntries().find(e=>e.kind==='note'&&e.id==='logs');
  assert(t.canSellEntry(notedLog));assert(t.sellItemQuantity(notedLog,5));assert.equal(t.save.notes.logs,95);assert(t.save.inv.coins>50000);
  assert(t.sellItemQuantity(notedLog,'all'));assert.equal(t.save.notes.logs,undefined);assert.equal(t.save.bank.logs,100);
