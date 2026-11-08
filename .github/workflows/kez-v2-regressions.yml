@@ -55,3 +55,28 @@ jobs:
           node tests/approved-character.test.cjs
           node tests/wardrobe-v5.test.cjs
           node tests/shields-approved.test.cjs
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium smoke-test dependencies
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install --with-deps chromium
+      - name: Verify real 390x844 game and produce visual screenshots
+        run: node tests/kez-v2-browser.test.cjs
+      - name: Save visual QA snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kez-v2-mobile-and-seven-metals
+          path: |
+            /tmp/myrren-kez-v2-mobile.png
+            /tmp/myrren-kez-v2-equipment.png
+            /tmp/myrren-kez-v2-seven-metals.png
+          if-no-files-found: warn
