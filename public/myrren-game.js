@@ -2220,7 +2220,8 @@ function drawKezV2(x,y,o,now){
   // Weapon in the dominant hand; shield stays on the opposite side.
   // Rear-facing weapons belong behind the base sprite, not across the torso.
   const hx=Math.round(x+(direction==='back'?-8:direction==='side'?facing*6:5));
-  const hy=Math.round(y-(direction==='side'?10:11));
+  // Dominant-hand socket matches gloves at y=-8..-4, below the face.
+  const hy=Math.round(y-7);
   const glove=o.g?.[5];
   const handColor=glove&&gear?.colorsFor?.(glove,o.dye)?.[2]||'#edbc94';
   const heldAngle=attacking?swingAng(age):-.35;
