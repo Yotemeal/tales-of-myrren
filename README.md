@@ -20,7 +20,10 @@ After that, commits to `main` will trigger a new deployment. The game URL stays 
 - `public/index.html` — game document and script order.
 - `public/myrren-game.js` — game state, controls, simulation and interface logic.
 - `public/myrren-ui.css` — responsive game interface.
-- `public/v31-equipment.js` — native armour layers and item icons.
+- `public/kez-v2-atlas.js` and `public/assets/kez-v2/kez_v2_atlas.png` — authoritative 21×27-pixel Kez V2 player/peer sprite renderer.
+- `public/kez-v2-equipment.js` — native fitted six-slot, seven-metal equipment visuals (preserves existing save IDs).
+- `public/wardrobe-v5.js` — existing approved armour icons and art reference; **not** the gameplay player renderer.
+- `docs/CHARACTER_RENDERER.md` — exact renderer/asset contract and art release requirements.
 - `public/myrren-world.js` and `public/myrren-environment.js` — shared geometry and rendering.
 - `index.html` — preserved copy of the same game build at repository setup.
 - `backups/original-baseline.html` — untouched baseline backup.
@@ -34,6 +37,9 @@ Run from the repository root:
 
 ```sh
 node --check public/myrren-game.js
+node --check public/kez-v2-atlas.js
+node --check public/kez-v2-equipment.js
+node tests/kez-v2-rendering.test.cjs
 node tests/inventory-capacity.cjs
 node tests/save-inventory.test.cjs
 node tests/bank-notes.test.cjs
@@ -54,3 +60,7 @@ The personal bank chest stands southwest of the village square, separate from th
 Deposit, withdraw and sell menus support 1, 5, 10 and all. Depositing notes restores the item to bank storage. The Banknotes withdrawal toggle produces a stackable note; notes cannot be equipped, eaten or used in recipes. Shops that accept the original item accept its notes at the same price. Untradeable coal pouches cannot be noted.
 
 Bank contents, notes and both slot layouts are included in all existing save paths and export codes. Earlier save codes remain supported. Personal-bank access requires proximity; selling requires the matching shop. Player-to-player trading is not implemented in this static deployment; it needs an authoritative shared transaction system.
+
+## Character rendering release process
+
+Kez V2 is the only active player/remote-player model in the current renderer branch. The older V31 and 384×640 approved character files remain as historical QA references and must not be loaded as fallback player artwork. Keep sprite rendering at its native pixel scale and preserve the seven stable material IDs. Character and equipment changes require CI plus browser screenshots (see `docs/CHARACTER_RENDERER.md`). The currently fitted small-scale armour is not yet a pixel-perfect conversion of the approved larger armour references.
