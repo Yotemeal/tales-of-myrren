@@ -17,6 +17,14 @@ with tempfile.TemporaryDirectory() as tmp:
                 cell=image.crop((col*32,row*48,(col+1)*32,(row+1)*48))
                 assert cell.getbbox(),(name,row,col)
                 assert cell.getpixel((0,0))[3]==0,(name,row,col,'transparent margin')
+    # Export must preserve exactly the RGBA pixels drawn by the source routine.
+    # Using an RGBA image as its own paste mask silently squares edge alpha.
+    from importlib.machinery import SourceFileLoader
+    generator=SourceFileLoader('myrrenite_source','scripts/build-authored-myrrenite.py').load_module()
+    for name in slots:
+        expected=generator.draw_slot(name,'front','idle',0)
+        actual=images[name].crop((0,0,32,48))
+        assert expected.tobytes()==actual.tobytes(), name+' source pixels altered during atlas assembly'
     assert images['6-head'].crop((0,0,32,48)).tobytes()!=images['6-head'].crop((0,3*48,32,4*48)).tobytes(),'front/back must differ'
     assert images['6-head'].crop((0,6*48,32,7*48)).tobytes()!=images['6-head'].crop((0,9*48,32,10*48)).tobytes(),'left/right must differ'
     assert images['6-gloves'].crop((0,2*48,32,3*48)).tobytes()!=images['6-gloves'].crop((3*32,2*48,4*32,3*48)).tobytes(),'attack arms must move'
