@@ -106,10 +106,10 @@ const MATS=[null,
   {k:'bronze',n:'Bronze',M:'#c9803a',H:'#ecb070',D:'#6a3e16',req:1},
   {k:'iron',n:'Iron',M:'#9fb0b8',H:'#d6e2e8',D:'#4a5860',req:15},
   {k:'steel',n:'Steel',M:'#b5cadb',H:'#f4fbff',D:'#40586e',req:25},
-  {k:'cobalt',n:'Black Iron',M:'#41434b',H:'#72727c',D:'#292a32',req:45},
-  {k:'aether',n:'Myrrenite',M:'#675296',H:'#b99bf0',D:'#241b3b',req:75},
-  {k:'obsidianite',n:'Obsidianite',M:'#442b3c',H:'#e65456',D:'#201c29',req:40},
-  {k:'starsteel',n:'Starsteel',M:'#a2c9e2',H:'#f0f8ff',D:'#41485f',req:70}];
+  {k:'cobalt',n:'Black Iron',M:'#60496f',H:'#aa8bb4',D:'#261c35',req:45},
+  {k:'aether',n:'Myrrenite',M:'#198f8d',H:'#91e4db',D:'#0a3540',req:75},
+  {k:'obsidianite',n:'Obsidianite',M:'#8325be',H:'#e36bff',D:'#250f39',req:40},
+  {k:'starsteel',n:'Starsteel',M:'#d9e2f2',H:'#ffffff',D:'#363d51',req:70}];
 const KINDS={
   sword:{slot:'weapon',art:'sword',skill:'melee',mats:[2,3,4,5,7,6,8],reqs:[1,10,20,30,40,55,70],price:[25,150,700,3500,9000,18000,40000],atk:[1,3,6,12,17,22,30],nm:{d:'sword'}},
   axe:{slot:'weapon',art:'axe',skill:'woodcutting',mats:[2,3,4,5,6],price:[20,120,600,3000,15000],nm:{d:'hatchet'}},
