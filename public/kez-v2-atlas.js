@@ -5,7 +5,6 @@
 const atlas=new Image();
 let ready=false;
 atlas.onerror=()=>{ready=false};
-atlas.src='/assets/kez-v2/kez_v2_atlas.png?v=1';
 const rows={idle:0,front:1,back:2,left:3,right:4,attack:5};
 const frameBounds=[];
 function inspectFrames(){
@@ -32,6 +31,7 @@ atlas.onload=()=>{
   ready=atlas.naturalWidth===84&&atlas.naturalHeight===162;
   if(ready)inspectFrames();
 };
+atlas.src='/assets/kez-v2/kez_v2_atlas.png?v=1';
 window.MyrrenKezV2Atlas={
  get ready(){return ready},
  draw(ctx,x,y,o,now){
