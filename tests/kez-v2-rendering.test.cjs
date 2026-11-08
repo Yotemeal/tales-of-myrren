@@ -131,6 +131,18 @@ for(const dv of ['s','u','d']){
   assert.equal(behind>0,dv==='s','side shield belongs behind character');
   assert.equal(front>0,dv!=='s','front/rear shield must remain on visible offhand');
 }
+// Equipment hands must remain opposite each other. The old game could draw
+// shield and sword in the same hand, including when facing left/back.
+for(const [dv,f,swordX,phase] of [
+  ['d',1,5,'over'],['s',1,6,'under'],['s',-1,-6,'under'],['u',1,-8,'over']
+]){
+  const pixels=[];
+  const ctx={fillStyle:'',fillRect(x,y,w,h){for(let xx=x;xx<x+w;xx++)pixels.push(xx)}};
+  equipment.draw(ctx,0,0,{dv,f,now:0,g:[0,0,0,0,4,0]},phase);
+  assert(pixels.length>0,'visible shield required in '+dv+' direction');
+  assert(pixels.every(xx=>swordX>=0?xx<swordX:xx>swordX),
+    'shield must stay in the opposite hand from the sword: '+dv+' f='+f);
+}
 assert.equal(equipment.palette[7][1],'#8325be');
 assert.equal(equipment.palette[6][3],'#efc653');
 assert.equal(equipment.palette[8][2],'#ffffff');
