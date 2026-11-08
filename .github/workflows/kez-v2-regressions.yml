@@ -81,6 +81,7 @@ jobs:
           python scripts/build-authored-myrrenite.py --out /tmp/myrren-authored
           python tests/authored-myrrenite-art.test.py
           python scripts/render-authored-myrrenite-preview.py --assets /tmp/myrren-authored
+          cp scripts/authored-myrrenite-preview.html /tmp/myrren-authored/preview.html
       - name: Upload native Myrrenite equipment atlases
         uses: actions/upload-artifact@v4
         with:
