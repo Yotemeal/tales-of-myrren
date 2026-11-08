@@ -3333,3 +3333,12 @@ input[type=range] {
   #minimap .mini-e {right:-11px}
   #minimap .mini-w {left:-11px}
 }
+
+/* iOS: holding Attack must never trigger native selection / save-image menus. */
+#aAtk, #aAtk *, #aAtk svg, #aAtk img {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  touch-action: none !important;
+  -webkit-user-drag: none;
+}
