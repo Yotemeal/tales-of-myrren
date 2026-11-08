@@ -69,7 +69,9 @@ window.MyrrenKezV2Atlas={
   const direction=o.dv==='u'?'back':o.dv==='s'?(o.f<0?'left':'right'):'front';
   // Attack frames were drawn facing right. Do not use them when facing
   // up/down, or the character abruptly changes direction mid-swing.
-  const useAttack=attacking&&o.dv==='s';
+  // Only sword attacks use the dedicated sword-swing sprite row.
+  // Bare-handed attacks keep the normal body pose; the game draws the punch separately.
+  const useAttack=attacking&&o.tool==='sword'&&o.dv==='s';
   const row=useAttack?rows.attack:(o.animateIdle||!o.moving)?rows.idle:rows[direction];
   const frame=useAttack?Math.min(3,Math.floor(age/80)):o.moving?Math.floor(now/130)%4:Math.floor(now/440)%4;
   const bounds=frameBounds[row][frame];
