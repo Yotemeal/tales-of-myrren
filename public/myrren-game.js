@@ -887,7 +887,7 @@ function rGear(){
        c.clearRect(0,0,canvas.width,canvas.height);
        c.save();c.scale(scale,scale);
        c.fillStyle='rgba(34,29,25,.18)';c.fillRect(10,38,12,2);
-       const equipped={...portraitPose,g:gearArr(),now};
+       const equipped={...portraitPose,g:gearArr(),dye:save.dye,now};
        window.MyrrenKezV2Equipment?.draw(c,16,39,equipped,'under');
        window.MyrrenKezV2Atlas.draw(c,16,39,equipped,now);
        window.MyrrenKezV2Equipment?.draw(c,16,39,equipped,'over');
@@ -2219,10 +2219,10 @@ function drawKezV2(x,y,o,now){
   const facing=o.f<0?-1:1;
   // Weapon in the dominant hand; shield stays on the opposite side.
   // Rear-facing weapons belong behind the base sprite, not across the torso.
-  const hx=Math.round(x+(direction==='back'?-5:direction==='side'?facing*6:5));
+  const hx=Math.round(x+(direction==='back'?-8:direction==='side'?facing*6:5));
   const hy=Math.round(y-(direction==='side'?10:11));
   const glove=o.g?.[5];
-  const handColor=glove&&gear?.palette?.[glove]?gear.palette[glove][2]:'#edbc94';
+  const handColor=glove&&gear?.colorsFor?.(glove,o.dye)?.[2]||'#edbc94';
   const heldAngle=attacking?swingAng(age):-.35;
   const paintHeld=()=>{
     if(!holding||deathAge>=0)return;
