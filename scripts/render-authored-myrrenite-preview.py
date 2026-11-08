@@ -13,7 +13,7 @@ directions=('front','back','left','right')
 poses=('idle','walk','attack')
 scale=5
 cellW=32*scale+24;cellH=48*scale+40
-out=Image.new('RGB',(cellW*4,cellH*4),'#15242b')
+out=Image.new('RGB',(cellW*4,cellH*12),'#15242b')
 draw=ImageDraw.Draw(out)
 def cut(slot,row,frame):
     im=parts[slot]
@@ -31,7 +31,7 @@ for di,direction in enumerate(directions):
             if direction in ('front','back'):paste('6-shield')
             # All pixels in this sheet are from source atlas cells.
             scaled=sprite.resize((32*scale,48*scale),Image.Resampling.NEAREST)
-            x=frame*cellW+12;y=di*cellH+24
+            x=frame*cellW+12;y=row*cellH+24
             out.paste(scaled,(x,y),scaled)
             draw.text((x,y-18),f'{direction} / {pose} / {frame}',fill='#d9dfcf')
 out.save(a.out)
