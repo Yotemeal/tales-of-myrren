@@ -2194,7 +2194,9 @@ function drawMon(m,x,y,now){
 }
 function rrect(x,y,w,h,c,ol){if(ol){R(x,y-1,w,h+2,ol);R(x-1,y,w+2,h,ol)}R(x+1,y,w-2,h,c);R(x,y+1,w,h-2,c)}
 const HAIRS=['#7a4a2a','#d8b45a','#2e2a34','#a8502e','#c8c2c8'];
-// Approved V31 player sprite. NPCs keep their original renderer.
+// Archived V31/approved-character renderers below exist only for historical QA.
+// Do not download or activate superseded assets in the production game.
+const LEGACY_CHARACTER_ASSETS=false;
 const MYRREN_V31 = new Image();
 let myrrenV31Ready = false;
 let myrrenV31FeetAtlas = null;
@@ -2215,12 +2217,12 @@ MYRREN_V31.onload = () => {
   }
 };
 MYRREN_V31.onerror = () => { myrrenV31Ready = false; };
-MYRREN_V31.src = '/hero_32x40_v31.png';
+if(LEGACY_CHARACTER_ASSETS)MYRREN_V31.src = '/hero_32x40_v31.png';
 // A separate atlas keeps the approved base art intact and leaves equipped gear compatible.
 const MYRREN_APPROVED=new Image();let approvedHero=null;
 MYRREN_APPROVED.onload=()=>{if(window.MyrrenHero)try{approvedHero=window.MyrrenHero.create(MYRREN_APPROVED)}catch(_){approvedHero=null}};
 MYRREN_APPROVED.onerror=()=>{approvedHero=null};
-MYRREN_APPROVED.src='/hero-approved-v1.png';
+if(LEGACY_CHARACTER_ASSETS)MYRREN_APPROVED.src='/hero-approved-v1.png';
 window.addEventListener('myrren-armour-ready',()=>{if(tab)renderModal()});
 window.addEventListener('myrren-weapons-ready',()=>{if(tab)renderModal()});
 window.addEventListener('myrren-sword-actions-ready',()=>{if(tab)renderModal()});
@@ -3065,7 +3067,7 @@ function frame(now){
   if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}
   ctx.imageSmoothingEnabled=false;
   update(dt,now);
-  drawMini(now);
+  if(now-lastMiniRender>=180){drawMini(now);lastMiniRender=now}
 
   const tx=inside?RX/2-cv.width/2:me.x-cv.width/2,ty=inside?RY/2-cv.height*.36:me.y-cv.height*.47;
   const k=snapCam?1:Math.min(1,dt*7);snapCam=false;cam.x+=(tx-cam.x)*k;cam.y+=(ty-cam.y)*k;
@@ -3096,7 +3098,7 @@ function frame(now){
   if(now-saveAt>5000){saveAt=now;if(started)persist()}
   requestAnimationFrame(frame);
 }
-let last=performance.now(),sendAt=0,slowAt=0,saveAt=0;
+let last=performance.now(),sendAt=0,slowAt=0,saveAt=0,lastMiniRender=-Infinity;
 addCrit('bunny',22,60);addCrit('bird',16,70);addCrit('deer',9,180);addCrit('fox',7,520); // foxes roam the outer woodland, well clear of the busy crater forge
 syncPets();petsTeleport();uiHud();
 let loadDone=false;
