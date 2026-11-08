@@ -7,7 +7,7 @@ new vm.Script(src,{filename:'myrren-game.js'});
 const has=x=>assert.ok(src.includes(x),'Missing runtime contract: '+x);
 has("forging:'Forging'");
 has("'cooking','forging']");
-has("forging:'ingot'");
+has("forging:'skill_forging'");
 has("addXp('forging',r.xp)");
 has("addXp('forging',forgeXp(r,cost))");
 has("lvlFor(save.xp.forging)<r.req");
