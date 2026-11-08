@@ -81,7 +81,9 @@ function create(assetRoot){
   // Side shields remain behind the near arm; the front shield covers the chest.
   const weapon=opts.weapon;
   const attacking=pose==='attack'&&o.tool==='sword';
-  const holding=o.tool==='sword'&&(attacking||now<(o.hold??-Infinity));
+  // A sword material must be explicitly supplied by the equipped weapon.
+  // Never infer it from armour: mixed gear and empty hands are valid.
+  const holding=o.tool==='sword'&&allMats.has(o.mat)&&(attacking||now<(o.hold??-Infinity));
   const socket=gripSocket(o,now,{width:w,height:h});
   // One weapon callback per frame. It is responsible for drawing the rigid
   // blade with its hilt exactly at the animated dominant-hand socket.
