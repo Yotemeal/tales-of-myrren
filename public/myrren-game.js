@@ -876,10 +876,22 @@ function rGear(){
    // Keep the portrait consistent with the actual in-world preview.
    // The atlas has no fitted armour layers yet; saved equipment is untouched.
    const scale=4;
-   c.save();c.translate(0,0);c.scale(scale,scale);
-   c.fillStyle='rgba(34,29,25,.18)';c.fillRect(10,38,12,2);
-   window.MyrrenKezV2Atlas.draw(c,16,39,{dv:'d',f:1,moving:false,swingAt:-99999},0);
-   c.restore();
+   const portraitPose={dv:'d',f:1,moving:false,animateIdle:true,swingAt:-99999};
+   let lastFrame=-1;
+   function paintPortrait(now){
+     if(!canvas.isConnected||tab!=='gear')return;
+     const frame=Math.floor(now/440)%4;
+     if(frame!==lastFrame){
+       lastFrame=frame;
+       c.clearRect(0,0,canvas.width,canvas.height);
+       c.save();c.scale(scale,scale);
+       c.fillStyle='rgba(34,29,25,.18)';c.fillRect(10,38,12,2);
+       window.MyrrenKezV2Atlas.draw(c,16,39,portraitPose,now);
+       c.restore();
+     }
+     requestAnimationFrame(paintPortrait);
+   }
+   requestAnimationFrame(paintPortrait);
    const caption=el('div','v2-portrait-caption','Kez V2 preview · armour layers pending');
    portrait.append(caption);
  }
