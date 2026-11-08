@@ -107,7 +107,7 @@ const MATS=[null,
   {k:'iron',n:'Iron',M:'#9fb0b8',H:'#d6e2e8',D:'#4a5860',req:15},
   {k:'steel',n:'Steel',M:'#b5cadb',H:'#f4fbff',D:'#40586e',req:25},
   {k:'cobalt',n:'Black Iron',M:'#41434b',H:'#72727c',D:'#292a32',req:45},
-  {k:'aether',n:'Myrrenite',M:'#626e60',H:'#a4b29a',D:'#354438',req:75},
+  {k:'aether',n:'Myrrenite',M:'#675296',H:'#b99bf0',D:'#241b3b',req:75},
   {k:'obsidianite',n:'Obsidianite',M:'#442b3c',H:'#e65456',D:'#201c29',req:40},
   {k:'starsteel',n:'Starsteel',M:'#a2c9e2',H:'#f0f8ff',D:'#41485f',req:70}];
 const KINDS={
@@ -870,34 +870,36 @@ function inventoryHeading(title,value=''){
 function rGear(){
  mBody.append(inventoryHeading('EQUIPPED',save.name||'Wanderer'));
  const sheet=el('div','character-sheet'),portrait=el('div','character-portrait'),canvas=document.createElement('canvas');canvas.width=128;canvas.height=160;canvas.setAttribute('aria-label','Your equipped character');portrait.append(canvas);
- const v2Portrait=new URLSearchParams(location.search).get('kezV2')==='1'&&window.MyrrenKezV2Atlas?.ready;
+ const v2Portrait=!!window.MyrrenKezV2Atlas?.ready;
  if(v2Portrait){
    const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;
    // Keep the portrait consistent with the actual in-world preview.
-   // The atlas has no fitted armour layers yet; saved equipment is untouched.
+   // Kez V2 equipment previews share world-scale sprite anchors.
    const scale=4;
    const portraitPose={dv:'d',f:1,moving:false,animateIdle:true,swingAt:-99999};
    let lastFrame=-1;
    function paintPortrait(now){
      if(tab!=='gear')return;
-     if(!canvas.isConnected){requestAnimationFrame(paintPortrait);return;}
+     if(!canvas.isConnected)return; // Stop obsolete portrait loops after modal refresh.
      const frame=Math.floor(now/440)%4;
      if(frame!==lastFrame){
        lastFrame=frame;
        c.clearRect(0,0,canvas.width,canvas.height);
        c.save();c.scale(scale,scale);
        c.fillStyle='rgba(34,29,25,.18)';c.fillRect(10,38,12,2);
-       window.MyrrenKezV2Atlas.draw(c,16,39,portraitPose,now);
+       const equipped={...portraitPose,g:gearArr(),now};
+       window.MyrrenKezV2Equipment?.draw(c,16,39,equipped,'under');
+       window.MyrrenKezV2Atlas.draw(c,16,39,equipped,now);
+       window.MyrrenKezV2Equipment?.draw(c,16,39,equipped,'over');
        c.restore();
      }
      requestAnimationFrame(paintPortrait);
    }
    requestAnimationFrame(paintPortrait);
-   const caption=el('div','v2-portrait-caption','Kez V2 preview · armour layers pending');
+   const caption=el('div','v2-portrait-caption','Kez V2 · equipped character');
    portrait.append(caption);
  }
- else if(approvedHero&&window.MyrrenHero.supports(gearArr())){const c=canvas.getContext('2d');c.save();const scale=window.MyrrenWardrobe?.ready?3:4;c.scale(scale,scale);const weapon=activeDef('weapon'),o={dv:'d',f:1,nativeScale:true,g:gearArr(),weaponMat:weapon?.kind==='sword'?weapon.mat:0,weaponAngle:-.35,armourDye:save.dye!=null?DYES[save.dye]:null};if(o.weaponMat)approvedHero.drawEquipped(c,64/scale,158/scale,o,0);else approvedHero.draw(c,64/scale,158/scale,o,0);c.restore()}
- else if(myrrenV31Ready){const g=gearArr(),sprite=myrrenV31Equipment?myrrenV31Equipment.get(g[2],g[3],save.dye!=null?DYES[save.dye]:null,g[1],g[0],g[4],0,g[5]):myrrenV31FeetAtlas,c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(sprite,0,0,32,40,0,0,128,160)}
+ else{portrait.append(el('div','v2-portrait-caption','Loading Kez V2 artwork…'))}
  sheet.append(equipmentPaper(),portrait,equipmentStats('character-stats'));mBody.append(sheet);
  if(sel&&sel.src==='eq'){
    const pop=el('div','gear-info-popover'),close=el('button','gear-info-close','×');
@@ -1913,15 +1915,15 @@ function swingAng(age){
   if(age<200)return lerp(-1.5,1.0,(age-90)/110);
   return lerp(1.0,-.35,(age-200)/120);
 }
-function drawTool(kind,mat,hx,hy,f,ang){
-  if(kind==='sword'&&window.MyrrenSwords?.draw(ctx,mat,hx,hy,f,ang))return;
-  const a=ART[kind],pal=Object.assign({},a.p,{S:MATS[mat].H}),s=1.7,ca=Math.cos(ang),sa=Math.sin(ang);
+function drawTool(kind,mat,hx,hy,f,ang,size=1){
+  if(kind==='sword'&&window.MyrrenSwords?.draw(ctx,mat,hx,hy,f,ang,size))return;
+  const a=ART[kind],pal=Object.assign({},a.p,{S:MATS[mat].H}),s=1.7*size,ca=Math.cos(ang),sa=Math.sin(ang);
   for(let j=0;j<8;j++)for(let i=0;i<8;i++){
     const c=a.m[j][i];if(c==='.'||!pal[c])continue;
     const vx=(i-1)*s,vy=(j-6)*s;
     let rx=vx*ca-vy*sa;const ry=vx*sa+vy*ca;
     if(f<0)rx=-rx;
-    R(Math.round(hx+rx),Math.round(hy+ry),2,2,pal[c]);
+    R(Math.round(hx+rx),Math.round(hy+ry),Math.max(1,Math.round(2*size)),Math.max(1,Math.round(2*size)),pal[c]);
   }
 }
 const OUT='#4a3a1c';
@@ -2222,6 +2224,7 @@ MYRREN_APPROVED.src='/hero-approved-v1.png';
 window.addEventListener('myrren-armour-ready',()=>{if(tab)renderModal()});
 window.addEventListener('myrren-weapons-ready',()=>{if(tab)renderModal()});
 window.addEventListener('myrren-sword-actions-ready',()=>{if(tab)renderModal()});
+window.addEventListener('myrren-kez-v2-ready',()=>{if(tab==='gear')renderModal()});
 function drawApprovedBase(x,y,o,now){
   shadowE(x+1,y,7,2,.3);
   const sword=o.tool==='sword'&&window.MyrrenSwords?.ready&&window.MyrrenSwordActions?.ready,options={...o,weaponMat:sword?o.mat:0,armourDye:o.dye!=null?DYES[o.dye]:null,hurtAt:o.isMe?me.hurtAt:null,deathAt:o.isMe?me.deathAt:null};
@@ -2232,42 +2235,44 @@ function drawApprovedBase(x,y,o,now){
   label(o.name,x,pose.nameY??y-42,o.col||'#ffffff');if(o.waving)label('*waves*',x,(pose.nameY??y-42)-12,'#ffffff');
   return true;
 }
-// Kez V2 lightweight visual preview. Opt in with ?kezV2=1; no save or combat changes.
-// Drawn in native pixels so the sprite remains crisp at the game's existing scale.
-function drawLightweightKez(x,y,o,now){
+// Kez V2 is the authoritative player and remote-player render path.
+// Legacy renderers remain isolated for historical QA, never for live players.
+let missingKezLogged=false;
+function drawKezV2(x,y,o,now){
   const atlas=window.MyrrenKezV2Atlas;
-  if(!atlas?.ready)return false;
-  // Preview the approved base sprite even if saved equipment is equipped.
-  // Gear visuals are deliberately omitted in V2 until fitted layers exist;
-  // no actual equipment or save state is changed.
-  const age=now-(o.swingAt??-99999),attack=age>=0&&age<320;
-  const hurt=o.isMe&&now-(me.hurtAt||-99999)<220;
-  shadowE(x,y+1,4,1,.28);
-  ctx.save();
-  if(hurt)ctx.globalAlpha=.65;
-  if(!atlas.draw(ctx,x,y,o,now)){ctx.restore();return false;}
-  ctx.restore();
-  const holding=o.tool&&o.tool!=='fist'&&(attack||now<o.hold);
-  const facing=o.f||1;
-  // V2: shield belongs to the offhand, not the sword hand. Keep the
-  // narrow side silhouette nearly edge-on rather than covering the face.
-  const shieldTier=o.g?.[4]||0;
-  if(shieldTier){
-    const pal=MATS[shieldTier]||MATS[0];
-    const sx=o.dv==='s'?x-facing*4:x-7,sy=y-12;
-    const width=o.dv==='s'?2:5;
-    R(sx,sy,width,7,'#302522');
-    R(sx+1,sy+1,Math.max(1,width-2),5,pal.M);
-    R(sx+1,sy+1,Math.max(1,width-2),1,pal.H);
-    R(sx+1,sy+5,Math.max(1,width-2),1,pal.D);
+  if(!atlas?.ready){
+    if(!missingKezLogged){console.error('Kez V2 renderer unavailable: check atlas load');missingKezLogged=true}
+    return false;
   }
-  if(holding && !(attack && o.dv==='s' && o.tool==='sword')){
-    const hx=x+facing*5,hy=y-9;
-    drawTool(o.tool,o.mat,hx,hy,facing,attack?swingAng(age):-.35);
-    R(hx-1,hy-1,2,2,'#edbc94');
-  }else if(o.tool==='fist'&&attack)R(x+facing*5,y-9,2,2,'#edbc94');
-  label(o.name,x,y-27,o.col||'#ffffff');
-  if(o.waving)label('*waves*',x,y-42,'#ffffff');
+  const gear=window.MyrrenKezV2Equipment;
+  const state={...o,now},deathAt=o.isMe?me.deathAt:o.deathAt;
+  const deathAge=deathAt==null?-1:now-deathAt;
+  const age=now-(o.swingAt??-99999),attacking=age>=0&&age<320;
+  const hurtAge=now-(o.isMe?(me.hurtAt??-99999):(o.hurtAt??-99999));
+  const holding=o.tool&&o.tool!=='fist'&&(attacking||now<o.hold);
+  shadowE(x,y+1,5,2,.28);
+  ctx.save();
+  if(deathAge>=0){
+    // Collapse visually around the same feet anchor. Never moves the entity.
+    const k=Math.min(1,Math.max(0,deathAge/260));
+    ctx.translate(Math.round(x),Math.round(y));ctx.rotate(k*1.35);ctx.translate(-Math.round(x),-Math.round(y));
+  }
+  if(hurtAge>=0&&hurtAge<220)ctx.globalAlpha*=.65;
+  gear?.draw(ctx,x,y,state,'under');
+  atlas.draw(ctx,x,y,state,now);
+  gear?.draw(ctx,x,y,state,'over');
+  if(deathAge<0){
+    const facing=o.f<0?-1:1;
+    if(holding){
+      const hx=x+facing*6,hy=y-10;
+      drawTool(o.tool,o.mat,hx,hy,facing,attacking?swingAng(age):-.35,.62);
+      R(Math.round(hx)-1,Math.round(hy)-1,2,2,'#edbc94');
+    }else if(o.tool==='fist'&&attacking)R(Math.round(x+facing*6),Math.round(y-10),2,2,'#edbc94');
+  }
+  ctx.restore();
+  if(deathAge>=0)return true;
+  label(o.name,x,y-32,o.col||'#ffffff');
+  if(o.waving)label('*waves*',x,y-43,'#ffffff');
   return true;
 }
 function drawApprovedPlayer(x,y,o,now){
@@ -2303,8 +2308,8 @@ function drawApprovedPlayer(x,y,o,now){
   return true;
 }
 function drawPerson(x,y,o,now){
-  if(o.isMe && !o.apron && new URLSearchParams(location.search).get('kezV2')==='1' && drawLightweightKez(x,y,o,now)) return;
-  if(!o.apron && drawApprovedPlayer(x,y,o,now)) return;
+  // Player and peers always use Kez V2. Procedural drawing below is NPC-only.
+  if(!o.apron){drawKezV2(x,y,o,now);return;}
   const f=o.f,mv=!!o.moving,ph=Math.floor(now/90)%4,g=o.g||[0,0,0,0,0],dv=o.dv||'d';
   let gh=MATS[g[0]],gb=MATS[g[1]],gl=MATS[g[2]],gt=MATS[g[3]],gs=MATS[g[4]];
   if(o.dye!=null&&DYES[o.dye]){const dp=DYES[o.dye],dz=(m,t)=>(m&&t>=4)?dp:m;gh=dz(gh,g[0]);gb=dz(gb,g[1]);gl=dz(gl,g[2]);gt=dz(gt,g[3]);gs=dz(gs,g[4])}
@@ -2965,7 +2970,7 @@ function drawOutdoor(cx,cy,now){
   if(started)list.push({y:me.y,f:()=>{
     const sx=Math.round(me.x-cx),sy=Math.round(me.y-cy);
     drawPerson(sx,sy,{dv:me.dv,f:me.face,moving:me.moving,hue:me.hue,isMe:1,name:save.name||'Wanderer',col:'#ffe14a',tool:me.tool,mat:me.mat,hold:me.hold,swingAt:me.swing,waving:now<me.wave,g:gearArr(),dye:save.dye},now);
-    if(me.hp<hpMax())bar(sx,sy-(eqDef('head')?33:29),me.hp/hpMax());
+    if(me.hp<hpMax())bar(sx,sy-39,me.hp/hpMax());
     drawFishFx(cx,cy,now);
   }});
   list.sort((a,b)=>a.y-b.y);
