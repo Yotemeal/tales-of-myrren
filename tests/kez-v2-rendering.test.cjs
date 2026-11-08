@@ -72,8 +72,13 @@ for(const t of [0,440,880,1320]){
   for(const [dv,f,row] of [['u',1,2],['s',1,4],['s',-1,3]]){
     const side=draw({dv,f,moving:false},t);
     assert.equal(side[2],row*27,'side/back idle must preserve orientation');
-    assert.equal(side[1],0,'side/back idle must not fake walking');
+    assert.equal(side[1],[0,1,0,3][Math.floor(t/650)%4]*21,'side/back idle must cycle through directional frames');
   }
+}
+for(const t of [0,650,1300,1950,2600])for(const [dv,f,row] of [['u',1,2],['s',1,4],['s',-1,3]]){
+  const p=draw({dv,f,moving:false},t);
+  assert.equal(p[2],row*27,'directional idle must not turn the character');
+  assert.equal(p[1],[0,1,0,3][Math.floor(t/650)%4]*21,'side/back idle must move and settle');
 }
 assert.equal(draw({dv:'d',moving:true},440)[2],27,'walking must not play front idle row');
 assert.equal(draw({dv:'s',f:1,tool:'sword',swingAt:0},120)[2],108,
