@@ -109,6 +109,9 @@ unrelated.naturalWidth=0;
 assert(renderer.readyFor(o),'missing other metal tiers must not block one authored set');
 assert.equal(renderer.draw({save(){},restore(){},drawImage(){}},0,0,{...o,g:[2,6,6,6,6,6]},0),false,
  'an equipped incomplete metal tier must fail closed');
+for(const invalid of [[6,6,6,6,6,6,6],[6,6,6,6,6,'6'],[6,6,6,6,6,-1],[6,6,6,6,6,2.5]]){
+ assert.equal(renderer.readyFor({...o,g:invalid}),false,'malformed equipment must fail closed');
+}
 assert.throws(()=>renderer.draw({save(){},restore(){},drawImage(){}},0,0,o,0,{width:-1}),/Invalid/);
 assert.throws(()=>API.create('https://outside.example/'),/local assets/);
 console.log('PASS: authored 32x48 layers, 4 directions, walk/attack, shield depth, ID stability, invalid atlas gate');
