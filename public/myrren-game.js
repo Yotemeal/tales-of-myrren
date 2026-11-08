@@ -2210,7 +2210,7 @@ function drawLightweightKez(x,y,o,now){
   // no actual equipment or save state is changed.
   const age=now-(o.swingAt??-99999),attack=age>=0&&age<320;
   const hurt=o.isMe&&now-(me.hurtAt||-99999)<220;
-  shadowE(x,y,5,2,.22);
+  shadowE(x,y+1,4,1,.28);
   ctx.save();
   if(hurt)ctx.globalAlpha=.65;
   if(!atlas.draw(ctx,x,y,o,now)){ctx.restore();return false;}
@@ -2218,7 +2218,7 @@ function drawLightweightKez(x,y,o,now){
   const holding=o.tool&&o.tool!=='fist'&&(attack||now<o.hold);
   if(holding && !(attack && o.dv==='s' && o.tool==='sword'))drawTool(o.tool,o.mat,x+(o.f||1)*6,y-8,o.f||1,attack?swingAng(age):-.35);
   else if(o.tool==='fist'&&attack)R(x+(o.f||1)*5,y-9,2,2,'#edbc94');
-  label(o.name,x,y-30,o.col||'#ffffff');
+  label(o.name,x,y-27,o.col||'#ffffff');
   if(o.waving)label('*waves*',x,y-42,'#ffffff');
   return true;
 }
