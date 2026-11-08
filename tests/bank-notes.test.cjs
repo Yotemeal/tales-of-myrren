@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const createGame=require('./game-runtime.cjs');
 const base={v:3,name:'Bank QA',xp:{melee:10000000,mining:10000000},inv:{coins:50000,logs:1000,bread:20},bag:['iron_pick','iron_pick','steel_helm'],eq:{weapon:'steel_sword'},x:745,y:886};
 (async()=>{
- const {game:t}=await createGame();t.adoptSave(base);assert(t.bankAccess());
+ const {game:t}=await createGame();t.adoptSave(base);t.me.x=t.SPOTS.bank.x;t.me.y=t.SPOTS.bank.y;assert(t.bankAccess());
  const entry=(kind,id)=>t.inventoryEntries().find(e=>e.kind===kind&&e.id===id);
  assert(t.depositItem(entry('stack','logs'),'all'));assert.equal(t.save.inv.logs,0);assert.equal(t.save.bank.logs,1000);
  assert(t.withdrawItem('logs',5));assert.equal(t.save.inv.logs,5);assert.equal(t.save.bank.logs,995);
