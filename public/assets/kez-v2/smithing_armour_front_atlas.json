@@ -1,0 +1,76 @@
+{
+  "schema": "myrren.approved-armour-reference.v1",
+  "image": "/assets/kez-v2/smithing_armour_front_atlas.png",
+  "imageWidth": 1232,
+  "imageHeight": 276,
+  "cellWidth": 176,
+  "cellHeight": 276,
+  "columns": 7,
+  "tiers": [
+    {
+      "name": "Bronze",
+      "column": 0,
+      "materialId": 2,
+      "x": 0,
+      "y": 0,
+      "width": 176,
+      "height": 276
+    },
+    {
+      "name": "Iron",
+      "column": 1,
+      "materialId": 3,
+      "x": 176,
+      "y": 0,
+      "width": 176,
+      "height": 276
+    },
+    {
+      "name": "Steel",
+      "column": 2,
+      "materialId": 4,
+      "x": 352,
+      "y": 0,
+      "width": 176,
+      "height": 276
+    },
+    {
+      "name": "Black Iron",
+      "column": 3,
+      "materialId": 5,
+      "x": 528,
+      "y": 0,
+      "width": 176,
+      "height": 276
+    },
+    {
+      "name": "Obsidianite",
+      "column": 4,
+      "materialId": 7,
+      "x": 704,
+      "y": 0,
+      "width": 176,
+      "height": 276
+    },
+    {
+      "name": "Myrrenite",
+      "column": 5,
+      "materialId": 6,
+      "x": 880,
+      "y": 0,
+      "width": 176,
+      "height": 276
+    },
+    {
+      "name": "Starsteel",
+      "column": 6,
+      "materialId": 8,
+      "x": 1056,
+      "y": 0,
+      "width": 176,
+      "height": 276
+    }
+  ],
+  "status": "approved-front-reference-only",
+  "notes": "Do not draw these full-body reference cells as armour overlays on the 64x64 hero pose atlas. Separate helmet, chest, legs and boots with pose-specific anchors before enabling in live equipment rendering. Material IDs preserve existing save compatibility."
+}
