@@ -2204,7 +2204,7 @@ function drawApprovedBase(x,y,o,now){
 // Drawn in native pixels so the sprite remains crisp at the game's existing scale.
 function drawLightweightKez(x,y,o,now){
   const atlas=window.MyrrenKezV2Atlas;
-  if(!atlas)return false;
+  if(!atlas?.ready)return false;
   const gear=o.g||[];
   // Equipment needs its own correctly registered sprite layers. Until then
   // keep the existing equipped renderer instead of drawing armour incorrectly.
@@ -2214,7 +2214,7 @@ function drawLightweightKez(x,y,o,now){
   shadowE(x,y,5,2,.22);
   ctx.save();
   if(hurt)ctx.globalAlpha=.65;
-  atlas.draw(ctx,x,y,o,now);
+  if(!atlas.draw(ctx,x,y,o,now)){ctx.restore();return false;}
   ctx.restore();
   const holding=o.tool&&o.tool!=='fist'&&(attack||now<o.hold);
   if(holding)drawTool(o.tool,o.mat,x+(o.f||1)*6,y-8,o.f||1,attack?swingAng(age):-.35);
