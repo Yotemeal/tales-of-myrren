@@ -7,6 +7,35 @@ let ready=false;
 atlas.onerror=()=>{ready=false};
 const rows={idle:0,front:1,back:2,left:3,right:4,attack:5};
 const frameBounds=[];
+const backFrameCache=[];
+function repairedBackFrame(frame,bounds,dw,dh){
+  const key=frame+':'+dw+':'+dh;
+  if(backFrameCache[frame]?.key===key)return backFrameCache[frame].canvas;
+  const out=document.createElement('canvas');out.width=dw;out.height=dh;
+  const c=out.getContext('2d',{willReadFrequently:true});c.imageSmoothingEnabled=false;
+  c.drawImage(atlas,frame*21+bounds.left,rows.back*27+bounds.top,
+    bounds.right-bounds.left+1,bounds.bottom-bounds.top+1,0,0,dw,dh);
+  // At 80% nearest-neighbour scaling a single-pixel collar can vanish.
+  // Restore only fully enclosed transparent pixels near the back neck;
+  // never paint outside the silhouette or across an open edge.
+  const data=c.getImageData(0,0,dw,dh),p=data.data;
+  const at=(x,y)=>(y*dw+x)*4;
+  const source=new Uint8ClampedArray(p);
+  const neckTop=Math.max(2,Math.floor(dh*.35));
+  const neckBottom=Math.min(dh-2,Math.ceil(dh*.68));
+  for(let y=neckTop;y<neckBottom;y++)for(let x=Math.floor(dw*.34);x<Math.ceil(dw*.66);x++){
+    const i=at(x,y),above=at(x,y-1),below=at(x,y+1);
+    if(source[i+3]>16||source[above+3]<200||source[below+3]<200)continue;
+    // Require continuous silhouette on both sides of the seam.
+    const left=at(x-1,y),right=at(x+1,y);
+    if(source[left+3]<100&&source[right+3]<100)continue;
+    const from=source[below+3]>=source[above+3]?below:above;
+    p[i]=source[from];p[i+1]=source[from+1];p[i+2]=source[from+2];p[i+3]=255;
+  }
+  c.putImageData(data,0,0);
+  backFrameCache[frame]={key,canvas:out};return out;
+}
+
 function inspectFrames(){
   // The source sheet has different transparent padding for each direction.
   // Measure the visible pixels once, then anchor every pose at the same feet.
@@ -54,7 +83,10 @@ window.MyrrenKezV2Atlas={
   // frame touches the same ground pixel, eliminating directional jumps.
   const center=10.5;
   const offset=Math.round(((bounds.left+bounds.right)/2-center)*scale);
-  ctx.drawImage(atlas,frame*21+bounds.left,row*27+bounds.top,sw,sh,
+  if(row===rows.back&&o.moving){
+    const repaired=repairedBackFrame(frame,bounds,dw,dh);
+    ctx.drawImage(repaired,Math.round(-dw/2+offset),1-dh);
+  }else ctx.drawImage(atlas,frame*21+bounds.left,row*27+bounds.top,sw,sh,
     Math.round(-dw/2+offset),1-dh,dw,dh);
   ctx.restore();
   return true;
