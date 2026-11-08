@@ -111,8 +111,10 @@ assert.equal(myrrenFront.get('0,-26'),'#efc653','helmet crest must be approved g
 assert.equal(myrrenFront.get('0,-19'),'#fff3b6','brow highlight must be gold');
 assert.equal(myrrenFront.get('0,-17'),'#060f18','dark horizontal eye opening required');
 assert.equal(myrrenFront.get('-1,-13'),'#060f18','dark vertical T visor required');
-assert.equal(myrrenFront.get('-4,-13'),equipment.palette[6][1],
-  'cheek guards must remain teal');
+assert.equal(myrrenFront.get('-4,-13'),equipment.palette[6][2],
+  'cheek guards must retain their bright turquoise highlight');
+assert.equal(myrrenFront.get('0,-22'),'#fff3b6',
+  'forehead must retain its bright gold diamond gem');
 const myrrenRear=helmPixels('u');
 assert.equal(myrrenRear.get('0,-17'),'#efc653',
   'rear helmet must have the gold spine, not front-facing black eyes');
