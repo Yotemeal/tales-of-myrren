@@ -879,7 +879,8 @@ function rGear(){
    const portraitPose={dv:'d',f:1,moving:false,animateIdle:true,swingAt:-99999};
    let lastFrame=-1;
    function paintPortrait(now){
-     if(!canvas.isConnected||tab!=='gear')return;
+     if(tab!=='gear')return;
+     if(!canvas.isConnected){requestAnimationFrame(paintPortrait);return;}
      const frame=Math.floor(now/440)%4;
      if(frame!==lastFrame){
        lastFrame=frame;
