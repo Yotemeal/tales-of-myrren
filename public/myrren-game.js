@@ -2253,25 +2253,39 @@ function drawKezV2(x,y,o,now){
   const age=now-(o.swingAt??-99999),attacking=age>=0&&age<320;
   const hurtAge=now-(o.isMe?(me.hurtAt??-99999):(o.hurtAt??-99999));
   const holding=o.tool&&o.tool!=='fist'&&(attacking||now<o.hold);
+  const direction=o.dv==='u'?'back':o.dv==='s'?'side':'front';
+  const facing=o.f<0?-1:1;
+  // Weapon in the dominant hand; shield stays on the opposite side.
+  // Rear-facing weapons belong behind the base sprite, not across the torso.
+  const hx=Math.round(x+(direction==='back'?-5:direction==='side'?facing*6:5));
+  const hy=Math.round(y-(direction==='side'?10:11));
+  const glove=o.g?.[5];
+  const handColor=glove&&gear?.palette?.[glove]?gear.palette[glove][2]:'#edbc94';
+  const heldAngle=attacking?swingAng(age):-.35;
+  const paintHeld=()=>{
+    if(!holding||deathAge>=0)return;
+    drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6);
+    // Two-pixel fingers cover the sword grip without showing a floating hilt.
+    if(direction!=='back')R(hx-1,hy-1,2,2,handColor);
+  };
+  const paintPunch=()=>{
+    if(o.tool!=='fist'||!attacking||deathAge>=0)return;
+    const px=direction==='back'?x-4:direction==='side'?x+facing*6:x+4;
+    R(Math.round(px)-1,Math.round(y-11),2,2,handColor);
+  };
   shadowE(x,y+1,5,2,.28);
   ctx.save();
   if(deathAge>=0){
-    // Collapse visually around the same feet anchor. Never moves the entity.
+    // Collapse around the planted feet without moving the game entity.
     const k=Math.min(1,Math.max(0,deathAge/260));
     ctx.translate(Math.round(x),Math.round(y));ctx.rotate(k*1.35);ctx.translate(-Math.round(x),-Math.round(y));
   }
   if(hurtAge>=0&&hurtAge<220)ctx.globalAlpha*=.65;
+  if(direction==='back'){paintHeld();paintPunch()}
   gear?.draw(ctx,x,y,state,'under');
   atlas.draw(ctx,x,y,state,now);
   gear?.draw(ctx,x,y,state,'over');
-  if(deathAge<0){
-    const facing=o.f<0?-1:1;
-    if(holding){
-      const hx=x+facing*6,hy=y-10;
-      drawTool(o.tool,o.mat,hx,hy,facing,attacking?swingAng(age):-.35,.62);
-      R(Math.round(hx)-1,Math.round(hy)-1,2,2,'#edbc94');
-    }else if(o.tool==='fist'&&attacking)R(Math.round(x+facing*6),Math.round(y-10),2,2,'#edbc94');
-  }
+  if(direction!=='back'){paintHeld();paintPunch()}
   ctx.restore();
   if(deathAge>=0)return true;
   label(o.name,x,y-32,o.col||'#ffffff');
