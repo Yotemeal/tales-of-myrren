@@ -233,7 +233,9 @@ assert(!game.includes('MYRREN_V31'),'do not create hidden old character sprite l
 assert(game.includes('if(!canvas.isConnected)return;'),'portrait animations must stop when detached');
 assert(drawKez.includes(":swingAng(age)"),
        'non-sword gathering tools must keep their existing attack animation');
-assert(drawKez.includes('window.MyrrenKezV2SwordMotion.angle(age)'),\n       'sword-only visual swing must be bound to the real Kez V2 renderer');\nassert(drawKez.includes('drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6)'),
+assert(drawKez.includes('window.MyrrenKezV2SwordMotion.angle(age)'),
+       'sword-only visual swing must be bound to the real Kez V2 renderer');
+assert(drawKez.includes('drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6)'),
        'weapons must retain the small Kez V2 grip scale');
 const scripts=[...page.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
 assert(scripts.findIndex(s=>s.includes('kez-v2-atlas'))<scripts.findIndex(s=>s.includes('kez-v2-equipment')));
