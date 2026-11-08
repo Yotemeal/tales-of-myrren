@@ -39,8 +39,8 @@ const right=run({dv:'s',f:1});
 assert.equal(right[0][2],9*48);
 const back=run({dv:'u'});
 assert.equal(back[0][2],3*48);
-assert.equal(back[0][0].url,'/assets/authored-character/6-shield.png',
- 'rear-facing shield must sit behind the body and helmet');
+assert.equal(back.at(-1)[0].url,'/assets/authored-character/6-shield.png',
+ 'rear-facing shield must remain visible on the back');
 const walk=run({moving:true},130);
 assert.equal(walk[0][2],48);
 assert.equal(walk[0][1],32);
