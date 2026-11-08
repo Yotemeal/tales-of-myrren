@@ -76,6 +76,16 @@ jobs:
         run: python scripts/build-kez-v2-paperdoll.py --out /tmp/kez-v2-paperdoll
       - name: Verify native equipment parts and pose metadata
         run: python tests/kez-v2-paperdoll.test.py
+      - name: Build native authored Myrrenite art (32x48 source)
+        run: |
+          python scripts/build-authored-myrrenite.py --out /tmp/myrren-authored
+          python tests/authored-myrrenite-art.test.py
+      - name: Upload native Myrrenite equipment atlases
+        uses: actions/upload-artifact@v4
+        with:
+          name: authored-myrrenite-first-pass-native-sprites
+          path: /tmp/myrren-authored/
+          if-no-files-found: error
       - name: Save experimental sprite atlas and comparison image
         if: always()
         uses: actions/upload-artifact@v4
