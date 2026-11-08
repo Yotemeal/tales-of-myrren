@@ -53,7 +53,14 @@ window.MyrrenKezV2Atlas={
   const frontIdle=!swordHit&&!o.moving&&direction==='front';
   const useIdle=o.animateIdle||frontIdle;
   const row=useIdle?rows.idle:rows[direction];
-  const frame=useIdle?Math.floor(now/440)%4:swordHit?0:o.moving?Math.floor(now/130)%4:0;
+  // Side/back have no dedicated idle row yet. Reuse their directional
+  // animation frames in a slow, reversible 0-1-0-3 breathing/weight-shift
+  // cycle, without changing facing or moving the character in the world.
+  const directionalIdle=!swordHit&&!o.moving&&!useIdle;
+  const idleCycle=[0,1,0,3];
+  const frame=useIdle?Math.floor(now/440)%4:swordHit?0:
+    directionalIdle?idleCycle[Math.floor(now/650)%idleCycle.length]:
+    o.moving?Math.floor(now/130)%4:0;
   const bounds=frameBounds[row][frame];
   const scale=1,sw=bounds.right-bounds.left+1,sh=bounds.bottom-bounds.top+1;
   const dw=Math.round(sw*scale),dh=Math.round(sh*scale);
