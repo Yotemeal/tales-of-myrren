@@ -106,6 +106,31 @@ const server=http.createServer((request,response)=>{
       return c.toDataURL('image/png').split(',')[1];
     });
     fs.writeFileSync('/tmp/myrren-kez-v2-directions.png',Buffer.from(directionalPng,'base64'));
+
+    // Cosmetics QA: default metal identity survives all four saved dye choices.
+    const dyePng=await page.evaluate(()=>{
+      const metals=[4,5,7,6,8];
+      const labels=['None','Crimson','Emerald','Midnight','Royal gold'];
+      const names=['Steel','Black Iron','Obsidianite','Myrrenite','Starsteel'];
+      const c=document.createElement('canvas');c.width=740;c.height=750;
+      const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+      g.fillStyle='#24322e';g.fillRect(0,0,c.width,c.height);
+      for(let row=0;row<5;row++)for(let col=0;col<metals.length;col++){
+        const mat=metals[col],dye=row?row-1:null,x=col*148+74,y=row*150+124;
+        const o={dv:'d',f:1,moving:false,now:0,dye,g:[mat,mat,mat,mat,mat,mat]};
+        g.fillStyle='#34423e';g.fillRect(col*148+5,row*150+4,138,142);
+        g.save();g.translate(x,y);g.scale(4,4);
+        window.MyrrenKezV2Equipment.draw(g,0,0,o,'under');
+        window.MyrrenKezV2Atlas.draw(g,0,0,o,0);
+        window.MyrrenKezV2Equipment.draw(g,0,0,o,'over');
+        g.restore();
+        g.font='12px sans-serif';g.textAlign='center';g.fillStyle='#f2e7d1';
+        if(row===0)g.fillText(names[col],x,row*150+16);
+        g.fillText(labels[row],x,row*150+142);
+      }
+      return c.toDataURL('image/png').split(',')[1];
+    });
+    fs.writeFileSync('/tmp/myrren-kez-v2-dyes.png',Buffer.from(dyePng,'base64'));
     assert.deepEqual(errors,[],'no unhandled browser script exceptions');
     console.log('PASS: real browser loads Kez V2, enters game, paints world, opens equipped portrait and renders all seven metal tiers.');
   }finally{await browser?.close();await new Promise(resolve=>server.close(resolve))}
