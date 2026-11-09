@@ -1648,7 +1648,19 @@ function beginAct(kind,ref){
   marker={x:ref.x,y:ref.y-6,t:performance.now(),c:'#ffe14a'};
 }
 /* ---------- simulation ---------- */
-function splat(x,y,v){splats.push({x,y,v,t:performance.now(),c:v>0?'#d83a2a':'#3a6ac4'})}
+// Limit short-lived damage numbers and rotate their starting lanes when attacks
+// land close together. These are presentation events, never combat state.
+const DAMAGE_POPUP_MS=850,DAMAGE_POPUP_CAP=40;
+function splat(x,y,v){
+  const now=performance.now();
+  let nearby=0;
+  for(let i=splats.length-1;i>=0;i--){
+    const p=splats[i];if(now-p.t>DAMAGE_POPUP_MS)break;
+    if(Math.abs(p.x-x)<24&&Math.abs(p.y-y)<24)nearby++;
+  }
+  if(splats.length>=DAMAGE_POPUP_CAP)splats.shift();
+  splats.push({x,y,v,t:now,lane:nearby%5,c:v>0?'#d83a2a':'#3a6ac4'});
+}
 function burst(x,y,cols,n,power){for(let i=0;i<n;i++)fx.push({x,y,vx:(Math.random()-.5)*power*2,vy:-Math.random()*power-8,t:performance.now(),c:cols[i%cols.length]})}
 // Combat contact is purely presentation: never alter world position, HP,
 // collision or attack intervals. Use the original attacker position so
@@ -1991,6 +2003,83 @@ function drawCombatImpacts(now,cx,cy){
 }
 function label(t,x,y,col){ctx.font='12px VT323, monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(t,x+1,y);ctx.fillText(t,x-1,y);ctx.fillText(t,x,y+1);ctx.fillText(t,x,y-1);ctx.fillStyle=col;ctx.fillText(t,x,y)}
 function bar(x,y,p){R(x-9,y-1,18,5,'#1d120a');R(x-8,y,16,3,'#4a1410');R(x-8,y,Math.round(16*clamp(p,0,1)),3,'#e84a30');R(x-8,y,Math.round(16*clamp(p,0,1)),1,'#ff9a70');R(x-12,y-1,3,5,'#c9803a');R(x+9,y-1,3,5,'#c9803a')}
+// Reserve overhead screen-space once per frame. The locked target takes first
+// place; secondary health bars move upward or disappear when densely packed.
+// They never change monster positions, hitboxes, save data, or target selection.
+function combatRectOverlaps(a,b,gap=2){
+  return a.x<b.x+b.w+gap&&a.x+a.w+gap>b.x&&a.y<b.y+b.h+gap&&a.y+a.h+gap>b.y;
+}
+function layoutMonsterOverlays(cx,cy,now){
+  const visible=mons.filter(m=>m.state!=='dead'&&m.x>=cx-30&&m.x<=cx+cv.width+30&&m.y>=cy-40&&m.y<=cy+cv.height+15);
+  const focus=me.tgt&&now<me.tgtUntil&&visible.includes(me.tgt)?me.tgt:null;
+  const nearby=visible.filter(m=>Math.hypot(m.x-me.x,m.y-me.y)<70).length;
+  const ordered=focus?[focus,...visible.filter(m=>m!==focus)]:visible.slice();
+  if(ordered.length>1)ordered.splice(focus?1:0,ordered.length-(focus?1:0),...ordered.slice(focus?1:0).sort((a,b)=>Math.hypot(a.x-me.x,a.y-me.y)-Math.hypot(b.x-me.x,b.y-me.y)));
+  const placed=[];
+  for(const m of ordered){
+    if(placed.length>=10)break;
+    const mt=MT[m.t],selected=m===focus,near=Math.hypot(m.x-me.x,m.y-me.y)<70;
+    const showBar=selected||m.hp<mt.hp,showName=selected||(near&&nearby<=2);
+    if(!showBar&&!showName)continue;
+    const name=showName?mt.name+' (Lv '+mt.lv+')':'';
+    const w=Math.min(Math.max(showName?Math.ceil(name.length*6.5)+8:24,24),Math.max(24,cv.width-6));
+    const x=clamp(Math.round(m.x-cx),Math.ceil(w/2)+2,Math.floor(cv.width-w/2)-2);
+    const top=m.y-cy-({goblin:27,wolf:20,boar:18,bear:30,cave:30,abear:30}[m.t]||15);
+    for(const lift of [0,12,24,36,48]){
+      const y=Math.round(top-lift);
+      const rect={x:Math.round(x-w/2),y:y-(showName?17:2),w,h:showName?(showBar?24:17):8};
+      if(rect.y<2||rect.y+rect.h>cv.height-2)continue;
+      if(placed.some(p=>combatRectOverlaps(rect,p.rect)))continue;
+      placed.push({m,x,y,name,showBar,rect});break;
+    }
+  }
+  return placed;
+}
+function drawMonsterOverlays(overlays){
+  for(const p of overlays){
+    if(p.showBar)bar(p.x,p.y,p.m.hp/MT[p.m.t].hp);
+    if(p.name)label(p.name,p.x,p.y-5,'#ffffff');
+  }
+}
+// Keep new hits legible even when several monsters or damage numbers overlap.
+// Reposition labels in screen space only; draw calls never affect simulation.
+function layoutDamagePopups(now,cx,cy,overlays=[]){
+  const occupied=overlays.map(p=>p.rect||p),out=[];
+  const shifts=[0,16,-16,32,-32];
+  for(let i=splats.length-1;i>=0;i--){
+    const s=splats[i],age=now-s.t;
+    if(age>=DAMAGE_POPUP_MS){splats.splice(i,1);continue}
+    if(age<0)continue;
+    if(out.length>=24)continue;
+    const value=s.v===0?'MISS':String(s.v);
+    const w=Math.max(17,value.length*6+6),baseX=Math.round(s.x-cx),baseY=Math.round(s.y-cy-age/110);
+    const lane=s.lane||0;
+    let spot=null;
+    for(const dy of [0,-14,-28,14,28]){
+      for(let j=0;j<shifts.length;j++){
+        const x=baseX+shifts[(j+lane)%shifts.length],y=baseY+dy;
+        const rect={x:Math.round(x-w/2),y:y-11,w,h:14};
+        if(rect.x<2||rect.x+rect.w>cv.width-2||rect.y<2||rect.y+rect.h>cv.height-2)continue;
+        if(occupied.some(b=>combatRectOverlaps(rect,b)))continue;
+        spot={x,y,value,s,age,rect};break;
+      }
+      if(spot)break;
+    }
+    if(spot){out.push(spot);occupied.push(spot.rect)}
+  }
+  return out;
+}
+function drawDamagePopups(now,cx,cy,overlays){
+  for(const p of layoutDamagePopups(now,cx,cy,overlays)){
+    const fade=clamp((DAMAGE_POPUP_MS-p.age)/220,0,1);
+    ctx.save();ctx.globalAlpha=fade;
+    R(p.rect.x,p.rect.y,p.rect.w,p.rect.h,p.s.v===0?'#1c2830':'#321d19');
+    R(p.rect.x+1,p.rect.y+1,p.rect.w-2,p.rect.h-2,p.s.v===0?'#4a6171':'#75412e');
+    ctx.font='12px VT323, monospace';ctx.textAlign='center';
+    ctx.fillStyle='#ffffff';ctx.fillText(p.value,p.x,p.y);
+    ctx.restore();
+  }
+}
 function swingAng(age){
   if(age<90)return lerp(-.35,-1.5,age/90);
   if(age<200)return lerp(-1.5,1.0,(age-90)/110);
@@ -2301,10 +2390,7 @@ function drawMon(m,x,y,now){
     }
   }
   ctx.restore();ctx.globalAlpha=1;
-  if(dead)return;
-  const top=y-({goblin:27,wolf:20,boar:18,bear:30,cave:30,abear:30}[m.t]||15);
-  if(m.hp<mt.hp)bar(x,top,m.hp/mt.hp);
-  if(Math.hypot(m.x-me.x,m.y-me.y)<70||me.tgt===m)label(mt.name+' (Lv '+mt.lv+')',x,top-5,'#ffffff');
+  // Name and health bar are drawn in the uncluttered screen-space overlay pass.
 }
 function rrect(x,y,w,h,c,ol){if(ol){R(x,y-1,w,h+2,ol);R(x-1,y,w+2,h,ol)}R(x+1,y,w-2,h,c);R(x,y+1,w,h-2,c)}
 const HAIRS=['#7a4a2a','#d8b45a','#2e2a34','#a8502e','#c8c2c8'];
@@ -3059,6 +3145,7 @@ function frame(now){
   const cx=Math.round(cam.x),cy=Math.round(cam.y);
 
   ctx.fillStyle='#0d0b08';ctx.fillRect(0,0,cv.width,cv.height);
+  const combatOverlays=inside?[]:layoutMonsterOverlays(cx,cy,now);
   if(inside)drawInterior(cx,cy,now);else{
     drawOutdoor(cx,cy,now);
     const gw=cv.width,gh=cv.height;
@@ -3077,13 +3164,8 @@ function frame(now){
   }
   for(const p of fx){const a=1-(now-p.t)/520;R(Math.round(p.x-cx),Math.round(p.y-cy),a>.5?2:1,a>.5?2:1,p.c)}
   drawCombatImpacts(now,cx,cy);
-  for(let i=splats.length-1;i>=0;i--){
-    const s=splats[i],age=now-s.t;if(age>900){splats.splice(i,1);continue}
-    const x=Math.round(s.x-cx),y=Math.round(s.y-cy-age/90);
-    ctx.fillStyle='#1d120a';ctx.beginPath();ctx.arc(x,y,7,0,6.283);ctx.fill();
-    ctx.fillStyle=s.c;ctx.beginPath();ctx.arc(x,y,6,0,6.283);ctx.fill();
-    ctx.font='12px VT323, monospace';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.fillText(String(s.v),x,y+3);
-  }
+  drawDamagePopups(now,cx,cy,combatOverlays);
+  if(!inside)drawMonsterOverlays(combatOverlays);
   if(fade){const a=1-(now-fade)/280;if(a>0){ctx.fillStyle='rgba(0,0,0,'+a.toFixed(2)+')';ctx.fillRect(0,0,cv.width,cv.height)}else fade=0}
   if(started&&now-sendAt>100){sendAt=now;sendPresence()}
   if(now-slowAt>300){slowAt=now;if(started){refreshActionButtons();if(tab==='players')refreshPlayers()}}
