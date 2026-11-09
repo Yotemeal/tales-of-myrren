@@ -1377,7 +1377,20 @@ $('bBanknotes').addEventListener('click',()=>{if(tab!=='bank')return;withdrawNot
 $('aEat').addEventListener('click',()=>eat());
 
 /* ---------- action buttons ---------- */
-function nearestMon(r){let best=null,bd=r;for(const m of mons){if(m.state==='dead')continue;const d=Math.hypot(m.x-me.x,m.y-me.y);if(d<bd){bd=d;best=m}}return best}
+function meleeDistance(m,x=me.x,y=me.y){return Math.hypot(m.x-x,m.y-4-y)}
+function meleeReach(){return activeDef('weapon')?30:22}
+function nearestMon(r){let best=null,bd=r;for(const m of mons){if(m.state==='dead')continue;const d=meleeDistance(m);if(d<=bd){if(d<bd||!best){bd=d;best=m}}}return best}
+// Hold a living target while it remains hittable, then acquire the nearest
+// replacement. Both selection and hit checks use the same enemy centre.
+function meleeTarget(reach=meleeReach()){
+  const t=me.tgt;
+  return t&&t.state!=='dead'&&meleeDistance(t)<=reach?t:nearestMon(reach);
+}
+function faceMeleeTarget(m){
+  const dx=m.x-me.x,dy=m.y-4-me.y,d=Math.hypot(dx,dy)||1;
+  me.fx=dx/d;me.fy=dy/d;me.face=dx>=0?1:-1;
+  me.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s';
+}
 function nearestNode(r,now){let best=null,bd=r;for(const n of nodes){if(now<n.back)continue;const d=Math.hypot(n.x-me.x,n.y-me.y);if(d<bd){bd=d;best=n}}return best}
 const SWING_IV=900,COS_ARC=Math.cos(Math.PI*50/180);
 let atkHeld=false,gpAtk=false,wantSwing=false,nextSwing=0;const atkPtrs=new Set();
@@ -1393,11 +1406,6 @@ function strikeHitsTarget(strike,m){
   const tx=m.x-strike.x,ty=(m.y-4)-strike.y,d=Math.hypot(tx,ty);
   return d<=strike.reach&&(d<=7||(tx*strike.fx+ty*strike.fy)/d>=COS_ARC);
 }
-// Keep attack facing when retreating or sidestepping with the attack held.
-// Moving toward the current facing updates it normally; no target auto-aim.
-function shouldHoldAttackFacing(mx,my,fx,fy,attacking){
-  return !!attacking&&mx*fx+my*fy<0.25;
-}
 function beginSwing(now){
   if(me.deathAt!=null)return;
   if(me.pend)return;
@@ -1406,12 +1414,8 @@ function beginSwing(now){
   const w=activeDef('weapon');
   // Attack-button combat automatically faces the closest enemy in weapon reach.
   // Movement remains player-controlled; no narrow directional hit-cone required.
-  const reach=w?30:22;
-  // Hold focus on a living enemy while it remains nearby; avoid flickering
-  // between overlapping enemies as the player moves around them.
-  let target=me.tgt&&me.tgt.state!=='dead'&&Math.hypot(me.tgt.x-me.x,me.tgt.y-4-me.y)<=reach?me.tgt:null;
-  if(!target)target=nearestMon(reach);
-  if(target){const dx=target.x-me.x,dy=target.y-4-me.y,d=Math.hypot(dx,dy)||1;me.fx=dx/d;me.fy=dy/d;me.face=dx>=0?1:-1;me.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s';me.tgt=target;me.tgtUntil=now+4000}
+  const reach=w?30:22,target=meleeTarget(reach);
+  if(target){faceMeleeTarget(target);me.tgt=target;me.tgtUntil=now+4000}
   pendingStrike={x:me.x,y:me.y,fx:me.fx,fy:me.fy,reach,target};
   startSwing(now);me.pend=now+110;
 }
@@ -1424,7 +1428,7 @@ function resolveSwing(now){
     if(m.state==='dead')continue;
     const mt=MT[m.t];
     if(strike.target?m!==strike.target:!strikeHitsTarget(strike,m))continue;
-    if(strike.target&&Math.hypot(m.x-strike.x,m.y-4-strike.y)>strike.reach)continue;
+    if(strike.target&&meleeDistance(m,strike.x,strike.y)>strike.reach)continue;
     const tx=m.x-strike.x,ty=(m.y-4)-strike.y,d=Math.hypot(tx,ty);
     m.prov=true;if(m.state==='idle'||m.state==='return')m.state='chase';
     const hit=Math.random()<clamp(.55+(L-mt.def)*.03+atk*.01,.25,.95);
@@ -1846,7 +1850,6 @@ function update(dt,now){
   const pxv=me.x,pyv=me.y;
   refreshHeld();
   if(!started){const g=activePad();if(g){if(g.buttons[0]&&g.buttons[0].pressed&&!gpPrev[0])$('go').click();gpPrev=g.buttons.map(b=>!!b.pressed)}}
-  if(started&&!inside&&!me.pend&&(atkHeld||gpAtk||wantSwing||keys[' '])&&now>=nextSwing){nextSwing=now+SWING_IV;wantSwing=false;beginSwing(now)}
   if(me.pend&&now>=me.pend){me.pend=0;resolveSwing(now)}
   let mx=0,my=0;
   if(started){
@@ -1861,19 +1864,6 @@ function update(dt,now){
     act=null;blocked.clear();idleT=0;
     const sp=SPD*mag;
     me.x+=mx/mag*sp*dt;me.y+=my/mag*sp*dt;me.moving=true;
-    // Keep the character facing the locked enemy while strafing or retreating.
-    // Without an enemy, movement determines facing as normal.
-    const combatHeld=atkHeld||gpAtk||keys[' '];
-    const lockedEnemy=combatHeld&&me.tgt&&me.tgt.state!=='dead'&&Math.hypot(me.tgt.x-me.x,me.tgt.y-4-me.y)<=(activeDef('weapon')?30:22);
-    if(lockedEnemy){
-      const dx=me.tgt.x-me.x,dy=me.tgt.y-4-me.y,d=Math.hypot(dx,dy)||1;
-      me.fx=dx/d;me.fy=dy/d;me.face=dx>=0?1:-1;
-      me.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s';
-    }else if(!shouldHoldAttackFacing(mx,my,me.fx,me.fy,combatHeld)){
-      const i8=Math.round(Math.atan2(my,mx)/(Math.PI/4));me.fx=+Math.cos(i8*Math.PI/4).toFixed(3);me.fy=+Math.sin(i8*Math.PI/4).toFixed(3);
-      if(Math.abs(me.fx)>.3)me.face=me.fx>0?1:-1;
-      me.dv=Math.abs(me.fy)>Math.abs(me.fx)*1.1?(me.fy>0?'d':'u'):'s';
-    }
   }else if(started){
     if(act){inRange=true;idleT=0}else idleT+=dt;
   }
@@ -1898,6 +1888,22 @@ function update(dt,now){
         if(m===bt)me.y=b.y+3;else if(m===t)me.y=b.y-14.5;else if(m===l)me.x=b.x-hw-.5;else me.x=b.x+hw+.5;
       }
     }
+  }
+  // Evaluate attack after gamepad input, joystick movement and collision
+  // resolution. The first pressed frame now uses the correct controller state
+  // and the strike begins from the player's actual post-movement position.
+  const combatHeld=atkHeld||gpAtk||keys[' '];
+  const lockedEnemy=started&&!inside&&combatHeld?meleeTarget():null;
+  if(lockedEnemy){
+    faceMeleeTarget(lockedEnemy);me.tgt=lockedEnemy;me.tgtUntil=now+4000;
+  }else if(manual){
+    const i8=Math.round(Math.atan2(my,mx)/(Math.PI/4));
+    me.fx=+Math.cos(i8*Math.PI/4).toFixed(3);me.fy=+Math.sin(i8*Math.PI/4).toFixed(3);
+    if(Math.abs(me.fx)>.3)me.face=me.fx>0?1:-1;
+    me.dv=Math.abs(me.fy)>Math.abs(me.fx)*1.1?(me.fy>0?'d':'u'):'s';
+  }
+  if(started&&!inside&&!me.pend&&(combatHeld||wantSwing)&&now>=nextSwing){
+    nextSwing=now+SWING_IV;wantSwing=false;beginSwing(now);
   }
   if(act&&inRange){
     if(act.kind==='npc'){act=null;openShop()}
