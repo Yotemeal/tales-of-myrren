@@ -1855,6 +1855,7 @@ function doAction(dt,now){
       // Discard accumulated action time to prevent burst attacks on mode switch.
       nextSwing=now+SWING_IV;
       a.t=0;a.swung=false;
+      wearItem(save.eq.weapon,1);
       const atk=atkBonus();
       const hit=Math.random()<clamp(.55+(L-mt.def)*.03+atk*.01,.25,.95);
       const dmg=hit?rint(1,2+Math.floor(L/4)+atk):0;
