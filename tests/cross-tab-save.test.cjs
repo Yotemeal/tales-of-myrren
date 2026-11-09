@@ -27,4 +27,12 @@ for(const name of ['cloudPush','sbPush']){
   assert(source.slice(start,start+120).includes('if(saveConflict)return;'),
     'cloud writer '+name+' must not upload stale character data');
 }
+const toastStart=source.indexOf('function toast(t){');
+const toastEnd=source.indexOf('\nfunction uiQuest()',toastStart);
+assert(toastStart>=0&&toastEnd>toastStart,'toast must exist');
+const toastSource=source.slice(toastStart,toastEnd);
+assert(toastSource.includes("e.textContent=saveConflict?"),
+  'a conflict warning must remain visible even if another toast fires');
+assert(toastSource.includes('if(!saveConflict)toastT=setTimeout'),
+  'a save conflict must not disappear after the normal toast timeout');
 console.log('PASS: stale tabs cannot silently replace newer local or cloud saves');
