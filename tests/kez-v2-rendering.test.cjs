@@ -4,6 +4,8 @@ const vm=require('node:vm');
 const path='public/kez-v2-atlas.js';
 const source=fs.readFileSync(path,'utf8');
 const armourSource=fs.readFileSync('public/kez-v2-equipment.js','utf8');
+assert(source.includes('idleBounds[direction]'),'directional idle must use union pixel bounds');
+assert(source.includes('bounds=directionalIdle&&idleBounds[direction]'),'idle crop must include breathing extensions');
 const game=fs.readFileSync('public/myrren-game.js','utf8');
 const page=fs.readFileSync('public/index.html','utf8');
 

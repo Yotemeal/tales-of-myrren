@@ -11,6 +11,7 @@ const frameBounds=[];
 // stationary pixels. Unlike walking frames, feet and equipment anchors stay
 // fixed. A one-pixel shoulder/torso expansion gives subtle breathing.
 const idleArt={};
+const idleBounds={};
 function makeDirectionalIdleArt(){
   for(const direction of ['back','left','right']){
     const row=rows[direction],sheet=document.createElement('canvas');
@@ -20,6 +21,9 @@ function makeDirectionalIdleArt(){
     const sc=src.getContext('2d',{willReadFrequently:true});
     sc.drawImage(atlas,0,row*27,21,27,0,0,21,27);
     const original=sc.getImageData(0,0,21,27);
+    // Measure the union of all idle poses, not just frame zero. Otherwise
+    // a one-pixel breath outside the original silhouette gets cropped away.
+    let left=21,top=27,right=-1,bottom=-1;
     for(let pose=0;pose<4;pose++){
       const pixels=new Uint8ClampedArray(original.data);
       if(pose===1||pose===3){
@@ -37,10 +41,16 @@ function makeDirectionalIdleArt(){
           for(let k=0;k<4;k++)pixels[di+k]=original.data[si+k];
         }
       }
+      for(let y=0;y<27;y++)for(let x=0;x<21;x++){
+        if(pixels[(y*21+x)*4+3]<=16)continue;
+        left=Math.min(left,x);right=Math.max(right,x);
+        top=Math.min(top,y);bottom=Math.max(bottom,y);
+      }
       const frame=c.createImageData(21,27);frame.data.set(pixels);
       c.putImageData(frame,pose*21,0);
     }
     idleArt[direction]=sheet;
+    idleBounds[direction]=right<0?{left:0,top:0,right:20,bottom:26}:{left,top,right,bottom};
   }
 }
 
@@ -94,7 +104,7 @@ window.MyrrenKezV2Atlas={
   const idlePose=Math.floor(now/650)%4;
   const frame=useIdle?Math.floor(now/440)%4:swordHit?0:
     directionalIdle?0:o.moving?Math.floor(now/130)%4:0;
-  const bounds=frameBounds[row][frame];
+  const bounds=directionalIdle&&idleBounds[direction]?idleBounds[direction]:frameBounds[row][frame];
   const scale=1,sw=bounds.right-bounds.left+1,sh=bounds.bottom-bounds.top+1;
   const dw=Math.round(sw*scale),dh=Math.round(sh*scale);
   const flip=false;
@@ -106,7 +116,8 @@ window.MyrrenKezV2Atlas={
   const center=10.5;
   const offset=Math.round(((bounds.left+bounds.right)/2-center)*scale);
   if(directionalIdle&&idleArt[direction]){
-    // Cropping uses the same frame-zero bounds so the feet never drift.
+    // Union crop keeps every breathing pixel visible while preserving the
+    // same centreline and ground anchor for all four poses.
     ctx.drawImage(idleArt[direction],idlePose*21+bounds.left,bounds.top,sw,sh,
       Math.round(-dw/2+offset),1-dh,dw,dh);
   }else{
