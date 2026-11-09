@@ -26,8 +26,17 @@ const serve=http.createServer((req,res)=>{
       const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:2,isMobile:true,hasTouch:true});
       const errors=[];
       page.on('pageerror',err=>errors.push(err.message));
+      if(name==='portrait')await page.addInitScript(()=>{
+        localStorage.setItem('ember-reach-v2',JSON.stringify({
+          v:3,ts:Date.now()-1000,name:'Myrren Save QA',
+          xp:{melee:500,woodcutting:200,mining:100,forging:0},
+          inv:{coins:777,logs:4},eq:{},bag:[],x:100,y:100
+        }));
+      });
       await page.goto('http://127.0.0.1:'+serve.address().port,{waitUntil:'domcontentloaded'});
       await page.waitForFunction(()=>!document.querySelector('#go').disabled,{timeout:15000});
+      if(name==='portrait')assert.equal(await page.locator('#nick').inputValue(),'Myrren Save QA',
+        'existing local player progress must restore before entering the game');
       await page.locator('#nick').fill('Myrren QA');
       await page.locator('#go').click();
       await page.waitForFunction(()=>document.querySelector('#intro').hidden && !document.querySelector('#chat').hidden,{timeout:5000});
@@ -56,6 +65,6 @@ const serve=http.createServer((req,res)=>{
       await page.screenshot({path:`/tmp/myrren-${name}-equipment.png`});
       await page.close();
     }
-    console.log('PASS: real production game, mobile portrait + landscape chat/HUD separation, UI overflow and equipment window.');
+    console.log('PASS: canonical game, local save restoration, mobile portrait + landscape HUD and equipment.');
   }finally{await browser?.close();await new Promise(resolve=>serve.close(resolve))}
 })().catch(err=>{console.error(err);process.exitCode=1});
