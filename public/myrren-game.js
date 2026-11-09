@@ -1406,8 +1406,12 @@ function beginSwing(now){
   const w=activeDef('weapon');
   // Attack-button combat automatically faces the closest enemy in weapon reach.
   // Movement remains player-controlled; no narrow directional hit-cone required.
-  const reach=w?30:22,target=nearestMon(reach+4);
-  if(target){const dx=target.x-me.x,dy=target.y-4-me.y,d=Math.hypot(dx,dy)||1;me.fx=dx/d;me.fy=dy/d;me.face=dx>=0?1:-1;me.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s'}
+  const reach=w?30:22;
+  // Hold focus on a living enemy while it remains nearby; avoid flickering
+  // between overlapping enemies as the player moves around them.
+  let target=me.tgt&&me.tgt.state!=='dead'&&Math.hypot(me.tgt.x-me.x,me.tgt.y-4-me.y)<=reach?me.tgt:null;
+  if(!target)target=nearestMon(reach);
+  if(target){const dx=target.x-me.x,dy=target.y-4-me.y,d=Math.hypot(dx,dy)||1;me.fx=dx/d;me.fy=dy/d;me.face=dx>=0?1:-1;me.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s';me.tgt=target;me.tgtUntil=now+4000}
   pendingStrike={x:me.x,y:me.y,fx:me.fx,fy:me.fy,reach,target};
   startSwing(now);me.pend=now+110;
 }
