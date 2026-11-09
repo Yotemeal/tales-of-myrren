@@ -1466,6 +1466,7 @@ function smithingPanel(type){
 function rSmelt(){
   mBody.append(el('p','note','Furnace · select a metal, choose an amount, then smelt automatically.'));
   smithQuantityPicker();
+  smithingPanel('smelt');
   for(const r of SMELT){
     const key='ing_'+r.id,lv=lvlFor(save.xp.forging),row=el('div','shoprow smith-recipe');
     const selected=smithSelected.smelt===r.id;
@@ -1476,7 +1477,6 @@ function rSmelt(){
     const b=el('button','btn',selected?'Selected':'Choose');b.type='button';b.disabled=!!smithJob;
     b.addEventListener('click',()=>{smithSelected.smelt=r.id;renderModal()});row.append(b);mBody.append(row);
   }
-  smithingPanel('smelt');
 }
 function rForge(){
   const chips=el('div','chips');
@@ -1487,6 +1487,7 @@ function rForge(){
   smithQuantityPicker();
   const r=SMELT.find(x=>x.mat===forgeMat),key='ing_'+r.id,lv=lvlFor(save.xp.forging);
   mBody.append(el('p','note','Anvil · '+(save.inv[key]||0)+' '+ITEMS[key].name+' available. Forged gear goes into your pack during batch crafting.'));
+  smithingPanel('forge');
   Object.keys(FORGE).forEach(kind=>{
     const id=MATS[forgeMat].k+'_'+kind,d=DEFS[id];if(!d)return;
     const cost=FORGE[kind],row=el('div','shoprow smith-recipe'),selected=smithSelected.forge===kind;
@@ -1496,7 +1497,6 @@ function rForge(){
     const b=el('button','btn',selected?'Selected':'Choose');b.type='button';b.disabled=!!smithJob;
     b.addEventListener('click',()=>{smithSelected.forge=kind;renderModal()});row.append(b);mBody.append(row);
   });
-  smithingPanel('forge');
 }
 function rShop(){
   const S=curShop();if(!S){closeModal();return}
