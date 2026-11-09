@@ -28,8 +28,8 @@ const createGame=require('./game-runtime.cjs');
   assert.equal(cave.warn.start,1000);
   assert.equal(cave.warn.until,1700);
   assert.equal(cave.warn.radius,16);
-  assert.equal(cave.warn.x,me.x,'marker snapshots the player's x-coordinate');
-  assert.equal(cave.warn.y,me.y,'marker snapshots the player's y-coordinate');
+  assert.equal(cave.warn.x,me.x,"marker snapshots the player's x-coordinate");
+  assert.equal(cave.warn.y,me.y,"marker snapshots the player's y-coordinate");
   assert.equal(me.hp,hp,'creating a warning deals no damage');
   assert.equal(cave.lunge,-9999,'enemy does not attack on warning creation');
 
