@@ -454,8 +454,26 @@ async function sbLogin(email,password,signup){
   await sbLoad();
 }
 function sbLogout(){sbStoreSession(null);sbReady=false;sbRemote=null;sbStatus='Signed out — local saves still work'}
+// A second tab may load newer character progress. Never let an older tab
+// silently replace that save with its own stale inventory or equipment.
+let saveConflict=false;
+function isNewerExternalSave(raw,localTimestamp){
+  const other=parseSavedProgress(raw);
+  return !!other&&(+other.ts||0)>localTimestamp;
+}
+function markSaveConflict(){
+  if(saveConflict)return;
+  saveConflict=true;
+  toast('Character updated in another tab. Reload this tab to continue safely.');
+}
 function persist(force){
+  if(saveConflict)return;
   try{
+    // Compare with the latest shared save BEFORE issuing a new timestamp.
+    // A newer external save must not be overwritten by this stale session.
+    let current=null;
+    try{current=localStorage.getItem(KEY)}catch(e){}
+    if(isNewerExternalSave(current,saveTs)){markSaveConflict();return}
     const o=snap(),str=JSON.stringify(o);saveTs=o.ts;
     try{
       const prev=localStorage.getItem(KEY);
@@ -3034,6 +3052,10 @@ async function bootLoad(){
   if(!fresh&&cdoc&&cloudState==='on')cloudPush(JSON.stringify(snap()),true);
   if(sbSession)sbLoad().then(()=>{if(tab==='settings')renderModal()}).catch(e=>{sbStatus='Cloud unavailable: '+e.message;if(tab==='settings')renderModal()});
 }
+window.addEventListener('storage',event=>{
+  if(event.key!==KEY||!started||saveConflict)return;
+  if(isNewerExternalSave(event.newValue,saveTs))markSaveConflict();
+});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&started)persist(true)});
 window.addEventListener('pagehide',()=>{if(started)persist(true)});
 bootLoad();
