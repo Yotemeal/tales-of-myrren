@@ -1972,7 +1972,8 @@ function nodeTip(n,x,y,now){
 // Cathedral-canopy strangler figs: distinct scenic art, not harvestable trees.
 function drawAncientTree(n,x,y,now){MyrrenEnvironment.tree(ctx,n,x,y,now,true)}
 function drawTree(n,x,y,now){ctx.save();if(Math.abs(me.x-n.x)<31&&me.y<n.y&&me.y>n.y-90)ctx.globalAlpha=.48;MyrrenEnvironment.tree(ctx,n,x,y,now);ctx.restore()}
-function drawRock(n,x,y,now){MyrrenEnvironment.rock(ctx,n,x,y,now)}
+// Ore nodes sit below character height; preserve their ground anchor and mining reach.
+function drawRock(n,x,y,now){ctx.save();ctx.translate(x,y);ctx.scale(.72,.72);MyrrenEnvironment.rock(ctx,n,0,0,now);ctx.restore()}
 function parts(list,O){
   for(const p of list)R(p[0]-1,p[1]-1,p[2]+2,p[3]+2,O);
   for(const p of list)R(p[0],p[1],p[2],p[3],p[4]);
