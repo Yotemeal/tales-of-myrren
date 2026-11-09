@@ -561,7 +561,7 @@ function say(t,c){
   chat.textContent='';chatLines.slice(-2).forEach(l=>{const li=document.createElement('li');li.textContent=l.t;if(l.c)li.className=l.c;chat.append(li)});
 }
 let toastT=0;
-function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('on'),1800)}
+function toast(t){const e=$('toast');e.textContent=saveConflict?'Character updated in another tab. Reload this tab to continue safely.':t;e.classList.add('on');clearTimeout(toastT);if(!saveConflict)toastT=setTimeout(()=>e.classList.remove('on'),1800)}
 function uiQuest(){
   const q=$('qline');if(!q)return;const n=save.jobs.length;
   if(!n){q.hidden=true;return}
