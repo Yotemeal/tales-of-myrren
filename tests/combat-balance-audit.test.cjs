@@ -69,7 +69,8 @@ assert.match(swingBody, /for\(const m of mons\)/, 'directional swing currently i
 assert.match(swingBody, /if\(!strikeHitsTarget\(strike,m\)\)continue;/, 'directional swing requires arc and reach');
 const targetBody = capture(/const iv=SWING_IV\/1000;a\.t\+=dt;([\s\S]*?)\n\s*\}\n\s*\}\nfunction update/, 'targeted combat action')[1];
 assert.match(targetBody, /m\.hp-=dmg/, 'targeted combat action resolves against one monster');
-assert.match(targetBody, /wearItem\(save\.eq\.weapon,1\)/, 'targeted hits must consume weapon durability');
+assert.doesNotMatch(src, /wearItem|wearArmour|wearOf|repairCost|rRepair|save\\.wear|Repair:\\[\\]/, 'durability and repair systems must remain removed');
+assert.match(src, /const activeDef=slot=>\\{const d=eqDef\\(slot\\);return d&&usable\\(d\\)\\?d:null\\}/, 'usable gear must not depend on condition');
 console.log('DESIGN NOTE: directional swings cleave multiple enemies in arc; targeted actions hit one enemy. Equal cooldowns do not imply equal multi-target DPS.');
 
 console.log('PASS: source contracts and mathematical invariants; not a browser, multiplayer, or live-game test.');
