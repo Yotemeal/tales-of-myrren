@@ -1848,7 +1848,7 @@ function doAction(dt,now){
     if(!a.checked){a.checked=true}
     const w=activeDef('weapon');
     me.tool=w?'sword':'fist';me.mat=w?w.mat:2;
-    const iv=1.6;a.t+=dt;
+    const iv=SWING_IV/1000;a.t+=dt;
     if(!a.swung&&a.t>=iv-.2){a.swung=true;startSwing(now)}
     if(a.t>=iv){
       a.t-=iv;a.swung=false;
