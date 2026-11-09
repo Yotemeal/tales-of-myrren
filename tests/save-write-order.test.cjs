@@ -20,13 +20,13 @@ assert(fn.includes('if(!shouldWriteSnapshot(prev,incoming))return;'),
   'IndexedDB write must enforce ordering inside the read/write transaction');
 assert(fn.indexOf('if(!shouldWriteSnapshot(prev,incoming))return;')<fn.indexOf("store.put(str,'save')"),
   'ordering guard must run before the database write');
-const signatureMatch=source.match(/function saveSignature\\(str\\)\\{[^}]*\\}/);
+const signatureMatch=source.match(/function saveSignature\(str\)\{[^}]*\}/);
 assert(signatureMatch,'cloud save comparison must use a shared timestamp-neutral signature');
 const signature=vm.runInNewContext('('+signatureMatch[0]+')');
 assert.equal(signature(JSON.stringify(snapshot(100,50))),signature(JSON.stringify(snapshot(200,50))),
   'timestamps alone must not trigger a new cloud write');
 assert.notEqual(signature(JSON.stringify(snapshot(100,50))),signature(JSON.stringify(snapshot(100,51))),
   'actual inventory changes must still trigger a cloud write');
-assert.equal((source.match(/const sig=saveSignature\\(str\\)/g)||[]).length,2,
+assert.equal((source.match(/const sig=saveSignature\(str\)/g)||[]).length,2,
   'both cloud save providers must use the same timestamp-neutral comparison');
 console.log('PASS: asynchronous save writes cannot roll progress back');
