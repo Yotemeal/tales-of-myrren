@@ -3340,3 +3340,83 @@ input[type=range] {
   69%  { opacity: 1; }
   100% { opacity: 0; transform: translateY(-20px); }
 }
+
+
+/* Smithing: compact workstation controls, no one-button-per-ingot grind. */
+#modal[data-screen="shop"] .smith-qty {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:5px;
+  margin:7px 0;
+}
+#modal[data-screen="shop"] .smith-label {
+  color:#eddcbb;
+  font:17px/1 'VT323', monospace;
+  padding-right:5px;
+}
+#modal[data-screen="shop"] .smith-qty .chip {
+  min-width:38px;
+  min-height:33px;
+  padding:3px 9px;
+  border-radius:7px;
+}
+#modal[data-screen="shop"] .smith-work {
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:5px;
+  padding:10px;
+  margin:7px 0 11px;
+  border:1px solid #ad8f5c;
+  border-radius:9px;
+  background:rgba(37,32,29,.88);
+}
+#modal[data-screen="shop"] .smith-work-title {
+  font:22px/1.05 'VT323',monospace;
+  color:#ffe4a2;
+}
+#modal[data-screen="shop"] .smith-work .note {margin:0;font-size:15px;line-height:1.15}
+#modal[data-screen="shop"] .smith-primary {
+  min-height:42px;
+  width:100%;
+  border-radius:8px;
+  font-size:19px;
+}
+#modal[data-screen="shop"] .smith-work-status {
+  color:#f2d395;
+  font:16px/1.1 'VT323',monospace;
+}
+#modal[data-screen="shop"] .smith-progress {
+  height:8px;
+  border-radius:5px;
+  border:1px solid #9c7849;
+  background:#211b17;
+  overflow:hidden;
+}
+#modal[data-screen="shop"] .smith-progress i {
+  display:block;
+  height:100%;
+  width:0;
+  background:linear-gradient(90deg,#bf8140,#ffd78f);
+}
+#modal[data-screen="shop"] .smith-recipe {
+  gap:5px;
+  margin:3px 0;
+  border-radius:8px;
+  overflow:hidden;
+}
+#modal[data-screen="shop"] .smith-recipe[aria-selected="true"] {
+  outline:2px solid #e6c47f;
+  outline-offset:-2px;
+  background:rgba(142,102,60,.3);
+}
+#modal[data-screen="shop"] .smith-recipe .btn {
+  flex-shrink:0;
+  min-height:36px;
+  border-radius:7px;
+}
+@media(max-width:440px) {
+  #modal[data-screen="shop"] .smith-work {padding:7px}
+  #modal[data-screen="shop"] .smith-recipe .btn {min-width:64px;padding:3px 6px}
+}
