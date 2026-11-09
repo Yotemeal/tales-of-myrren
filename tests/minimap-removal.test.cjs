@@ -9,5 +9,6 @@ for(const [name,source] of [['page',page],['game',game],['styles',css]]){
 for(const id of ['hud','hudL','hudBottom','hudR','hpFill','hpTxt','lvlTxt','bBag','bMenu','pad','acts','aAtk','aUse','aEat']){
   assert(page.includes('id="'+id+'"'),'retain essential HUD/control '+id);
 }
-assert(page.includes('/myrren-ui.css?v=32'),'bust stale cached HUD styles');
+const stylesVersion=page.match(/\/myrren-ui\\.css\\?v=(\\d+)/);
+assert(stylesVersion&&Number(stylesVersion[1])>=32,'bust stale cached HUD styles');
 console.log('Minimap removed; HUD and mobile controls retained');
