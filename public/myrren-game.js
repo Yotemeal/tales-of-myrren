@@ -145,20 +145,22 @@ for(const kind in ARMOUR_DEF){
 const SLOTS=['head','body','hands','legs','boots','weapon','shield','ring','neck'];
 const SLOTNAME={head:'Head',body:'Body',hands:'Hands',legs:'Legs',boots:'Boots',weapon:'Weapon',shield:'Shield',ring:'Ring',neck:'Amulet'};
 /* smelting + forging (ingot costs from the design doc) */
-// Smithing earns a slightly larger share of XP from smelting instead of
-// relying on forging a finished item. Total ore-to-gear XP stays ~unchanged.
+// Ore processing is modest XP; finishing equipment at the anvil awards the
+// bulk of Smithing XP. Per-bar forging values are tuned by metal tier rather
+// than multiplying smelting XP: this prevents cheap batch smelting from
+// outpacing finished-item crafting, and keeps uncommon late metals rewarding.
 const SMELT=[
-  {id:'bronze',mat:2,req:1,xp:14,in:{copper:1,tin:1}},
-  {id:'iron',mat:3,req:10,xp:35,in:{iron:2}},
-  {id:'steel',mat:4,req:20,xp:65,in:{iron:2,coal:1}},
-  {id:'cobalt',mat:5,req:30,xp:160,in:{cobalt:3,coal:2}},
-  {id:'obsidianite',mat:7,req:40,xp:350,in:{obsidianite:3,coal:2}},
-  {id:'aether',mat:6,req:55,xp:700,in:{aether:4,coal:3}},
-  {id:'starsteel',mat:8,req:70,xp:1150,in:{meteorite:3,coal:4}}];
+  {id:'bronze',mat:2,req:1,xp:4,forgeXpPerBar:7,in:{copper:1,tin:1}},
+  {id:'iron',mat:3,req:10,xp:10,forgeXpPerBar:19,in:{iron:2}},
+  {id:'steel',mat:4,req:20,xp:18,forgeXpPerBar:35,in:{iron:2,coal:1}},
+  {id:'cobalt',mat:5,req:30,xp:35,forgeXpPerBar:120,in:{cobalt:3,coal:2}},
+  {id:'obsidianite',mat:7,req:40,xp:60,forgeXpPerBar:225,in:{obsidianite:3,coal:2}},
+  {id:'aether',mat:6,req:55,xp:100,forgeXpPerBar:550,in:{aether:4,coal:3}},
+  {id:'starsteel',mat:8,req:70,xp:240,forgeXpPerBar:1500,in:{meteorite:3,coal:4}}];
 const FORGE={axe:3,pick:3,sword:4,shield:5,helm:4,gloves:4,boots:4,legs:5,body:6};
 const FORGE_UNLOCK={pick:0,axe:1,helm:2,boots:3,gloves:3,sword:4,shield:5,legs:7,body:8};
 const forgeReq=(r,kind)=>r.req+FORGE_UNLOCK[kind];
-const forgeXp=(r,cost)=>Math.round(cost*r.xp*1.5);
+const forgeXp=(r,cost)=>cost*r.forgeXpPerBar;
 /* economy: shop price of forgeable gear = 2x its ingot value, so smelting+forging always beats buying and coins are a sink */
 for(const id in DEFS){const d=DEFS[id];if(FORGE[d.kind]&&d.mat>=2){const ik='ing_'+MATS[d.mat].k;if(SELL[ik])d.price=Math.round(2*FORGE[d.kind]*SELL[ik])}}
 const gearSvg=(d,s)=>{if(d.kind==='sword'&&window.MyrrenSwords?.ready)return window.MyrrenSwords.icon(d.mat,s);if(window.MyrrenArmour?.ready&&ARMOUR_DEF[d.kind])return window.MyrrenArmour.icon(d.kind,d.mat,s);const m=MATS[d.mat];return svg(d.art,s,{M:m.M,H:m.H,D:m.D,S:m.H})};

@@ -86,7 +86,7 @@ const createGame=require('./game-runtime.cjs');
     assert.deepEqual(g.save.bag.slice(-2),['bronze_sword','bronze_sword'],'batch preserves duplicate crafted gear');
     assert.equal(g.save.inv.ing_bronze,12,'each sword consumes four bars');
     assert.equal(g.save.eq.weapon,equipped,'batch crafting does not change player equipment');
-    assert.equal(g.save.xp.forging-forgingBefore,2*Math.round(g.SMELT[0].xp*1.5*4),'forge batch preserves the balanced per-item XP');
+    assert.equal(g.save.xp.forging-forgingBefore,2*g.FORGE.sword*g.SMELT[0].forgeXpPerBar,'forge batch preserves the balanced per-item XP');
 
     // Moving away or exhausting supplies cannot continue consuming materials.
     g.me.x=furnace.x;g.me.y=furnace.y;g.openSmithy('furnace');

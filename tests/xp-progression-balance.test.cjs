@@ -64,16 +64,39 @@ const createGame=require('./game-runtime.cjs');
       raw+' cooking XP is wildly out of line with the effort to catch it');
   }
 
-  // The XP split changes: smelting now accounts for ~40% rather than ~33%
-  // of the XP from turning ore into equipment, with the TOTAL reward within
-  // six percent of the old material-to-gear chain.
-  const old=[12,30,55,140,300,600,1000];
+  // Aros wiki reference (November 2026): bronze 3 XP/bar and 20 XP for
+  // a four-bar sword; iron 8 and 56; steel 14 and 100 for a five-bar sword.
+  // https://curseofaros.wiki/wiki/Smithing
+  // We use original materials/unlocks and our own XP rewards, but match the
+  // principle: a finished item gives significantly more XP than its bars.
+  const expectedBarXp=[4,10,18,35,60,100,240];
+  const expectedForgePerBar=[7,19,35,120,225,550,1500];
+  const oldBarXp=[14,35,65,160,350,700,1150];
   for(let i=0;i<g.SMELT.length;i++){
-    const recipe=g.SMELT[i],kind='sword',bars=g.FORGE[kind],xpForGear=Math.round(bars*recipe.xp*1.5);
-    const chainXp=bars*recipe.xp+xpForGear,oldChainXp=bars*old[i]*3;
-    assert(Math.abs(chainXp-oldChainXp)/oldChainXp<=.06,recipe.id+' alters ore-to-gear XP too much');
-    assert(recipe.xp>0&&Number.isInteger(xpForGear));
-    assert(Math.abs((bars*recipe.xp)/chainXp-.4)<.02,'smelting share of XP should be about forty percent');
+    const recipe=g.SMELT[i],bars=g.FORGE.sword;
+    assert.equal(recipe.xp,expectedBarXp[i],recipe.id+' smelting XP was changed unexpectedly');
+    assert.equal(recipe.forgeXpPerBar,expectedForgePerBar[i],recipe.id+' forging XP was changed unexpectedly');
+    const forgeXp=g.forgeXp(recipe,bars),smeltXp=recipe.xp*bars;
+    const chainXp=smeltXp+forgeXp;
+    const previousTotal=bars*oldBarXp[i]+Math.round(bars*oldBarXp[i]*1.5);
+    const furnaceShare=smeltXp/chainXp;
+    assert.equal(forgeXp,bars*recipe.forgeXpPerBar,'item XP must scale with bars used');
+    assert.equal(g.forgeXp(recipe,g.FORGE.body),g.FORGE.body*recipe.forgeXpPerBar,
+      'large gear should earn more XP for the extra bars it costs');
+    assert(forgeXp>smeltXp,recipe.id+' should reward finished items more than smelting their bars');
+    assert(furnaceShare>=.12&&furnaceShare<=.38,
+      recipe.id+' should allocate 62–88% of chain XP to equipment crafting');
+    assert(chainXp/previousTotal>=.25&&chainXp/previousTotal<=.7,
+      recipe.id+' total XP needs a substantial but controlled correction');
+  }
+  for(const [id,arosBar,arosSword,arosSwordBars] of [
+    ['bronze',3,20,4],['iron',8,56,4],['steel',14,100,5]
+  ]){
+    const recipe=g.SMELT.find(r=>r.id===id);
+    const ours=recipe.xp*g.FORGE.sword+g.forgeXp(recipe,g.FORGE.sword);
+    const aros=arosBar*arosSwordBars+arosSword;
+    assert(ours>=aros&&ours<=aros*1.5,
+      id+' initial Smithing chain should be comparable to the Aros benchmark');
   }
 
   assert.deepEqual(
@@ -88,5 +111,5 @@ const createGame=require('./game-runtime.cjs');
   g.addXp('forging',g.SMELT[0].xp);
   assert.equal(g.save.xp.forging-before,g.SMELT[0].xp);
   assert.equal(g.xpPopups[0].amount,g.SMELT[0].xp);
-  console.log('PASS: save-compatible curve, gathering XP/hour parity at 10 milestones, cooking input economy, smithing chain split, elite XP and popup amounts');
+  console.log('PASS: saved XP curve, cross-skill progression, Aros-informed smithing rewards at seven tiers, item XP dominance, elites and XP popups');
 })().catch(err=>{console.error(err);process.exitCode=1});
