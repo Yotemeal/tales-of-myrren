@@ -88,7 +88,7 @@ const SHOPS={
   pick:{name:'Deepdig Picks',sign:'Picks',keeper:'Hilda',wall:'#a8a8a0',roof:'#5a6270',hue:210,hair:'#c8c0b0',cats:{Pickaxes:['pick']},kinds:['pick'],buys:['copper','tin','iron','coal','cobalt','aether','obsidianite','meteorite'],greet:'Hilda: Pickaxes for every rock. I pay well for raw chunks and coal.'},
   food:{name:'Hearth Bakery',sign:'Bakery',keeper:'Mara',wall:'#d4b890',roof:'#d8863a',hue:30,hair:'#4a2a18',food:true,cats:{},kinds:[],buys:[],greet:'Mara: Fresh bread, pies and stew. Eat up before you fight.'},
   fish:{name:'Tidewater Rods',sign:'Fishing',keeper:'Odo',wall:'#9ab0c0',roof:'#3a6a9a',hue:200,hair:'#d8d8c8',bait:true,cats:{Nets:['net'],Rods:['rod']},kinds:['net','rod'],buys:['rshrimp','rtrout','rsalmon','rtuna','reel','shrimp','trout','salmon','tuna','eel'],greet:'Odo: A net for the shallows, a rod and bait for the deep. I buy your catch, raw or cooked.'},
-  arms:{name:'Elderwood Blacksmith',sign:'Forge',keeper:'Dorn',wall:'#a89c9c',roof:'#a8422a',hue:0,hair:'#2a2a30',cats:{Axes:['axe'],Weapons:['sword'],Armour:['helm','body','gloves','legs','boots','shield'],Smelt:[],Forge:[],Repair:[]},kinds:['axe','sword','helm','body','gloves','legs','boots','shield','ring','amulet'],buys:['ing_bronze','ing_iron','ing_steel','ing_cobalt','ing_aether','ing_obsidianite','ing_starsteel'],greet:'Dorn: Axes, blades and armour for sale. Use the furnace and anvil to train Forging.'}
+  arms:{name:'Elderwood Blacksmith',sign:'Forge',keeper:'Dorn',wall:'#a89c9c',roof:'#a8422a',hue:0,hair:'#2a2a30',cats:{Axes:['axe'],Weapons:['sword'],Armour:['helm','body','gloves','legs','boots','shield'],Smelt:[],Forge:[]},kinds:['axe','sword','helm','body','gloves','legs','boots','shield','ring','amulet'],buys:['ing_bronze','ing_iron','ing_steel','ing_cobalt','ing_aether','ing_obsidianite','ing_starsteel'],greet:'Dorn: Axes, blades and armour for sale. Use the furnace and anvil to train Forging.'}
 };
 SHOPS.cart={name:'Wandering Trader',sign:'Traveller',keeper:'Trader Gus',cats:{Gathering:['axe','pick','net','rod'],Combat:['sword','shield']},kinds:['axe','pick','net','rod','sword','shield'],buys:[...new Set([...SHOPS.axe.buys,...SHOPS.pick.buys,...SHOPS.fish.buys])],greet:'Trader Gus: Starter supplies for sale. I also buy your timber, minerals and fish.'};
 for(const k in SHOPS)SHOPS[k].id=k;
@@ -275,19 +275,19 @@ function parseSavedProgress(raw){
     return o&&typeof o==='object'&&!Array.isArray(o)&&o.xp&&typeof o.xp==='object'&&!Array.isArray(o.xp)?o:null;
   }catch(e){return null}
 }
-let save={notes:{},bank:{},packOrder:[],bankOrder:[],wear:{},jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0,forging:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0,forging:0},x:CX,y:CY+44};
+let save={notes:{},bank:{},packOrder:[],bankOrder:[],jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0,forging:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0,forging:0},x:CX,y:CY+44};
 let fresh=true,saveTs=0;
 function migrateArmourSave(source){
  const id=k=>typeof k==='string'&&/^leather_(helm|body|gloves|legs|boots|shield)$/.test(k)?k.replace('leather_','bronze_'):k;
  const o={...source,eq:{...source.eq},bag:(Array.isArray(source.bag)?source.bag:[]).map(id)};
  for(const slot in o.eq)o.eq[slot]=id(o.eq[slot]);
- for(const field of ['notes','bank','wear']){o[field]={};for(const [k,v] of Object.entries(source[field]||{})){const key=id(k);o[field][key]=field==='wear'?Math.max(o[field][key]||0,+v||0):(o[field][key]||0)+(+v||0)}}
+ for(const field of ['notes','bank']){o[field]={};for(const [k,v] of Object.entries(source[field]||{})){const key=id(k);o[field][key]=(o[field][key]||0)+(+v||0)}}
  for(const field of ['packOrder','bankOrder']){const count={};o[field]=(Array.isArray(source[field])?source[field]:[]).map(token=>{if(typeof token!=='string')return null;const [type,k]=token.split(':');if(type==='g'){const key=id(k),n=count[key]||0;count[key]=n+1;return 'g:'+key+':'+n}return token.replace(k,id(k))})}
  return o;
 }
 function applySave(o){
   o=migrateArmourSave(o);
-  save.wear={};save.jobs=[];save.tokens=0;save.perks={};save.dye=null;save.xp={};save.inv={};save.eq=emptyEq();save.bag=[];save.pets={woodcutting:0,fishing:0,mining:0,forging:0};save.name='';save.x=CX;save.y=CY+44;
+  save.jobs=[];save.tokens=0;save.perks={};save.dye=null;save.xp={};save.inv={};save.eq=emptyEq();save.bag=[];save.pets={woodcutting:0,fishing:0,mining:0,forging:0};save.name='';save.x=CX;save.y=CY+44;
   {
     if(o.xp)Object.assign(save.xp,o.xp);
     if((+o.v||0)<3){
@@ -302,7 +302,6 @@ function applySave(o){
     if(+o.x)save.x=+o.x;if(+o.y)save.y=+o.y;
     if(o.eq)Object.assign(save.eq,o.eq);
     if(Array.isArray(o.jobs))save.jobs=o.jobs.slice(0,3).filter(j=>j&&Array.isArray(j.objs)&&j.objs.length).map(j=>({id:String(j.id||''),bracket:String(j.bracket||'early'),tokens:+j.tokens|0,xp:(j.xp&&typeof j.xp==='object')?j.xp:{},done:!!j.done,objs:j.objs.filter(x=>x&&((x.type==='deliver'&&ITEMS[x.item])||(x.type==='slay'&&MT[x.mon]))).map(x=>({type:x.type,skill:x.skill,item:x.item,mon:x.mon,need:+x.need|0,have:Math.min(+x.have|0,+x.need|0)}))})).filter(j=>j.objs.length);
-    if(o.wear&&typeof o.wear==='object')for(const k in o.wear)if(DEFS[k])save.wear[k]=clamp(+o.wear[k]||0,0,1);
     save.tokens=nonNegativeCount(o.tokens);if(o.perks&&typeof o.perks==='object')save.perks=Object.assign({},o.perks);save.dye=Number.isInteger(o.dye)?o.dye:null;
     if(o.pets)Object.assign(save.pets,o.pets);
     if(Array.isArray(o.bag))save.bag=o.bag.filter(id=>DEFS[id]);
@@ -337,7 +336,7 @@ function loadLocalProgress(){
 if(!loadLocalProgress()){finalizeSave();save.inv.coins=30}
 let lastSnapshotTs=0;
 function nextSnapshotTimestamp(now,stored,issued){return Math.max(now,stored+1,issued+1)}
-function snap(){const px=me.deathAt!=null?CX:inside?me.ox:me.x,py=me.deathAt!=null?CY+40:inside?me.oy:me.y;save.x=Math.round(px);save.y=Math.round(py);lastSnapshotTs=nextSnapshotTimestamp(Date.now(),saveTs,lastSnapshotTs);return{v:3,ts:lastSnapshotTs,name:save.name,xp:save.xp,inv:save.inv,eq:save.eq,bag:save.bag,pets:save.pets,notes:save.notes,bank:save.bank,packOrder:save.packOrder,bankOrder:save.bankOrder,wear:save.wear,jobs:save.jobs,tokens:save.tokens,perks:save.perks,dye:save.dye,x:save.x,y:save.y}}
+function snap(){const px=me.deathAt!=null?CX:inside?me.ox:me.x,py=me.deathAt!=null?CY+40:inside?me.oy:me.y;save.x=Math.round(px);save.y=Math.round(py);lastSnapshotTs=nextSnapshotTimestamp(Date.now(),saveTs,lastSnapshotTs);return{v:3,ts:lastSnapshotTs,name:save.name,xp:save.xp,inv:save.inv,eq:save.eq,bag:save.bag,pets:save.pets,notes:save.notes,bank:save.bank,packOrder:save.packOrder,bankOrder:save.bankOrder,jobs:save.jobs,tokens:save.tokens,perks:save.perks,dye:save.dye,x:save.x,y:save.y}}
 function idbOpen(){return new Promise((res,rej)=>{try{const r=indexedDB.open('ember-reach',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>res(r.result);r.onerror=()=>rej()}catch(e){rej()}})}
 // IndexedDB opens asynchronously: an older save may reach the database after
 // a newer one. Never let a delayed write roll back the player's progress.
@@ -492,38 +491,9 @@ function persist(force){
 }
 const eqDef=slot=>save.eq[slot]?DEFS[save.eq[slot]]:null;
 const usable=d=>lvlFor(save.xp[d.skill])>=d.req;
-const WEARMAX={1:300,2:600,3:900,4:1400,5:2200,6:3500,7:2800,8:5000};
-const wearOf=id=>(save.wear&&save.wear[id])||0;
-const broken=d=>wearOf(d.id)>=1;
-const activeDef=slot=>{const d=eqDef(slot);return d&&usable(d)&&!broken(d)?d:null};
-function wearItem(id,amt){
-  const d=id&&DEFS[id];if(!d||d.kind==='ring'||d.kind==='amulet')return;
-  const b=wearOf(id);if(b>=1)return;const w=Math.min(1,b+amt/(WEARMAX[d.mat]||600));save.wear[id]=w;
-  if(w>=1){say('Your '+d.name.toLowerCase()+' has broken. Repair it at the Ironmonger.','warn');toast('ITEM BROKEN');blocked.clear();refreshActionButtons();if(tab==='gear')renderModal()}
-  else if(b<.8&&w>=.8)say('Your '+d.name.toLowerCase()+' is badly worn.','warn');
-}
-function wearArmour(){const a=['head','body','hands','legs','boots','shield'].map(x=>save.eq[x]).filter(Boolean);if(a.length)wearItem(a[rint(0,a.length-1)],2)}
-const sellVal=id=>Math.floor(DEFS[id].price*.25*(1-wearOf(id)));
-function repairCost(id){const d=DEFS[id],w=wearOf(id),ik=d.mat>=2?'ing_'+MATS[d.mat].k:null;return {coins:Math.ceil(d.price*.35*w),ik,n:(ik&&FORGE[d.kind])?Math.floor(FORGE[d.kind]*w*.5):0}}
-function repairOne(id){
-  const c=repairCost(id);
-  if(save.inv.coins<c.coins){say('You cannot afford that.','warn');return false}
-  if(c.n&&(save.inv[c.ik]||0)<c.n){say('You need '+c.n+' '+ITEMS[c.ik].name.toLowerCase()+'s.','warn');return false}
-  save.inv.coins-=c.coins;if(c.n)save.inv[c.ik]-=c.n;save.wear[id]=0;blocked.clear();return true;
-}
-const wornIds=()=>[...new Set([...SLOTS.map(x=>save.eq[x]),...save.bag].filter(id=>id&&DEFS[id]&&wearOf(id)>.01))];
-function rRepair(){
-  mBody.append(el('p','note','Worn gear loses condition as you use it and breaks at 0%. Repairs cost coins and some ingots.'));
-  const ids=wornIds();
-  if(!ids.length){mBody.append(el('p','note','Everything you carry is in good condition.'));return}
-  ids.forEach(id=>{
-    const d=DEFS[id],c=repairCost(id),row=el('div','shoprow');
-    row.innerHTML=gearSvg(d,32)+'<span>'+d.name+'<small class="'+(wearOf(id)>=.8?'bad':'')+'">Condition '+Math.round((1-wearOf(id))*100)+'%</small><small>'+c.coins+' coins'+(c.n?' + '+c.n+' '+ITEMS[c.ik].name.toLowerCase()+'s':'')+'</small></span>';
-    const b=el('button','btn','Repair');b.type='button';b.addEventListener('click',()=>{if(repairOne(id)){say('Dorn repairs your '+d.name.toLowerCase()+'.');persist();refreshActionButtons();renderModal();uiHud()}});row.append(b);mBody.append(row);
-  });
-  const all=el('button','btn','Repair all');all.type='button';all.style.cssText='width:100%;min-height:40px;margin-top:6px';
-  all.addEventListener('click',()=>{let n=0;for(const id of ids){if(repairOne(id))n++;else break}if(n)say('Dorn repairs '+n+' item'+(n>1?'s':'')+'.');persist();refreshActionButtons();renderModal();uiHud()});mBody.append(all);
-}
+// Equipment is permanent: no durability, breakage, or repair costs.
+const activeDef=slot=>{const d=eqDef(slot);return d&&usable(d)?d:null};
+const sellVal=id=>Math.floor(DEFS[id].price*.25);
 function toolFor(kind){const w=activeDef('weapon');return w&&(w.kind===kind||(kind==='net'&&w.kind==='rod'))?w:null}
 const atkBonus=()=>SLOTS.reduce((s,k)=>{const d=activeDef(k);return s+(d?d.atk:0)},0);
 const defRed=()=>{const D=defTotal();return Math.min(.45,.5*D/(D+70))};
@@ -704,7 +674,7 @@ function detail(){
     if(!id){if(sel.src==='eq'){box.innerHTML='<b>'+SLOTNAME[sel.key]+' slot</b><small>Empty. Pick something from your pack below.</small>';return box}sel=null;return detail()}
     const d=DEFS[id],ok=usable(d);
     name=d.name;
-    info='<span>'+statLine(d)+'</span><br><span class="'+(ok?'ok':'bad')+'">Needs '+NAMES[d.skill]+' '+d.req+' (you have '+lvlFor(save.xp[d.skill])+')</span>'+(wearOf(d.id)>0?'<br><span class="'+(wearOf(d.id)>=.8?'bad':'ok')+'">Condition '+Math.round((1-wearOf(d.id))*100)+'%</span>':'');
+    info='<span>'+statLine(d)+'</span><br><span class="'+(ok?'ok':'bad')+'">Needs '+NAMES[d.skill]+' '+d.req+' (you have '+lvlFor(save.xp[d.skill])+')</span>';
     if(sel.src==='bag'){btns.push(['Equip',()=>equipFromBag(sel.idx)]);if(curShop()&&curShop().kinds.includes(d.kind))btns.push(['Sell '+sellVal(d.id),()=>sellGear(sel.idx)])}
     else btns.push(['Unequip',()=>unequip(sel.key)]);
   }
@@ -1380,8 +1350,8 @@ function rShop(){
       names.forEach(c=>{const b=el('button','chip',c);b.type='button';b.setAttribute('aria-pressed',String(shopCat===c));b.addEventListener('click',()=>{shopCat=c;renderModal()});chips.append(b)});
       mBody.append(chips);
     }
-    const special=S.id==='arms'&&(shopCat==='Smelt'||shopCat==='Forge'||shopCat==='Repair');
-    if(special){if(shopCat==='Smelt')rSmelt();else if(shopCat==='Forge')rForge();else rRepair()}
+    const special=S.id==='arms'&&(shopCat==='Smelt'||shopCat==='Forge');
+    if(special){if(shopCat==='Smelt')rSmelt();else rForge()}
     const list=special?[]:Object.values(DEFS).filter(d=>S.cats[shopCat].includes(d.kind)&&!owned(d.id)&&(S.id==='cart'?d.mat===KINDS[d.kind].mats[0]:d.mat<=(SHOPMAX[d.kind]||3))).sort((a,b)=>a.price-b.price);
     if(!list.length&&!special)mBody.append(el('p','note','You own everything in this section.'));
     list.forEach(d=>{
@@ -1441,7 +1411,6 @@ function resolveSwing(now){
   const strike=pendingStrike;
   pendingStrike=null;
   if(me.deathAt!=null||inside||!strike)return;
-  wearItem(save.eq.weapon,1);
   const w=activeDef('weapon'),L=lvlFor(save.xp.melee),atk=atkBonus();
   for(const m of mons){
     if(m.state==='dead')continue;
@@ -1807,8 +1776,7 @@ function doAction(dt,now){
       const d0=toolFor(nt.tool);
       if(!d0){
         const have=eqDef('weapon');
-        if(have&&usable(have)&&broken(have))say('Your '+have.name.toLowerCase()+' is broken. Repair it at the Ironmonger.','warn');
-        else if(have&&!usable(have))say('You need '+NAMES[have.skill]+' '+have.req+' to use your '+have.name.toLowerCase()+'.','warn');
+        if(have&&!usable(have))say('You need '+NAMES[have.skill]+' '+have.req+' to use your '+have.name.toLowerCase()+'.','warn');
         else say('You need '+TOOLNAME[nt.tool]+' equipped in your weapon slot. Buy or forge one, then equip it.','warn');
         blocked.add(n);act=null;return;
       }
@@ -1829,8 +1797,7 @@ function doAction(dt,now){
       }
     }else if(!a.swung&&a.t>=a.iv-.2){a.swung=true;startSwing(now)}
     if(a.t>=a.iv){
-      wearItem(save.eq.weapon,1);
-      a.t-=a.iv;a.swung=false;
+          a.t-=a.iv;a.swung=false;
       if(fishing){a.casted=false;a.t=-.9}
       burst(n.x,n.y-10,nt.tool==='axe'?['#9a6a38','#5a3a1f','#7ab648']:fishing?['#8cc0f4','#ffffff','#3f7fcc']:['#ffe14a','#ffffff','#c8d2d6'],6,22);
       if(Math.random()<clamp(nt.base+(L-nt.req)*.025+Math.max(0,d.mat-2)*.06,.05,.92)){
@@ -1855,8 +1822,7 @@ function doAction(dt,now){
       // Discard accumulated action time to prevent burst attacks on mode switch.
       nextSwing=now+SWING_IV;
       a.t=0;a.swung=false;
-      wearItem(save.eq.weapon,1);
-      const atk=atkBonus();
+          const atk=atkBonus();
       const hit=Math.random()<clamp(.55+(L-mt.def)*.03+atk*.01,.25,.95);
       const dmg=hit?rint(1,2+Math.floor(L/4)+atk):0;
       m.hp-=dmg;splat(m.x,m.y-16,dmg);if(dmg>0)m.hitAt=now;
@@ -1938,7 +1904,7 @@ function update(dt,now){
           m.cd=0;m.lunge=now;
           const L=lvlFor(save.xp.melee),D=defTotal();
           let dmg=Math.random()<clamp(.75+(mt.lv-L)*.008-D*.0012,.35,.9)?rint(1,mt.max):0;
-          if(dmg>0){dmg=Math.max(1,Math.round(dmg*(1-defRed())));wearArmour()}
+          if(dmg>0){dmg=Math.max(1,Math.round(dmg*(1-defRed())))}
           me.hp-=dmg;if(dmg>0)me.hurtAt=performance.now();splat(me.x,me.y-18,dmg);uiHud();
           if(dmg>0&&me.hp>0&&me.hp<=hpMax()*.25&&foodCount()>0)say('You are low on health. Tap the food button to eat.','warn');
           if(me.hp<=0)die();
