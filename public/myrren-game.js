@@ -2940,6 +2940,9 @@ function drawOutdoor(cx,cy,now){
   for(const e of list)e.f();
 }
 const GRASS=['#263d31','#344d39','#3b5840'];
+// A CanvasGradient is immutable for a given viewport. Reuse it rather than
+// allocating a new radial gradient on every mobile animation frame.
+let outdoorVignette=null,vignetteWidth=0,vignetteHeight=0;
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;
   const cssW=cv.clientWidth,cssH=cv.clientHeight;
@@ -2958,8 +2961,14 @@ function frame(now){
   ctx.fillStyle='#0d0b08';ctx.fillRect(0,0,cv.width,cv.height);
   if(inside)drawInterior(cx,cy,now);else{
     drawOutdoor(cx,cy,now);
-    const gw=cv.width,gh=cv.height,gr=ctx.createRadialGradient(gw/2,gh/2,Math.min(gw,gh)*.38,gw/2,gh/2,Math.max(gw,gh)*.78);
-    gr.addColorStop(0,'rgba(40,50,0,0)');gr.addColorStop(1,'rgba(30,36,6,.34)');ctx.fillStyle=gr;ctx.fillRect(0,0,gw,gh);
+    const gw=cv.width,gh=cv.height;
+    if(!outdoorVignette||vignetteWidth!==gw||vignetteHeight!==gh){
+      outdoorVignette=ctx.createRadialGradient(gw/2,gh/2,Math.min(gw,gh)*.38,gw/2,gh/2,Math.max(gw,gh)*.78);
+      outdoorVignette.addColorStop(0,'rgba(40,50,0,0)');
+      outdoorVignette.addColorStop(1,'rgba(30,36,6,.34)');
+      vignetteWidth=gw;vignetteHeight=gh;
+    }
+    ctx.fillStyle=outdoorVignette;ctx.fillRect(0,0,gw,gh);
   }
 
   if(marker){
