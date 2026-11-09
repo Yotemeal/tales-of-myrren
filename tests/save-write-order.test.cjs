@@ -37,4 +37,11 @@ assert.equal(nextTimestamp(1000,1000,1000),1001,'same-millisecond saves must hav
 assert.equal(nextTimestamp(900,1200,1300),1301,'clock rollback must not rewind save timestamps');
 assert(source.includes('lastSnapshotTs=nextSnapshotTimestamp(Date.now(),saveTs,lastSnapshotTs)'),
   'every snapshot must use the monotonic timestamp generator');
+// A read failure must never trigger an unguarded write. Simulate the
+// IndexedDB request callbacks with a newer existing save in the store.
+const idbFn=source.slice(source.indexOf('async function idbPut('),source.indexOf('async function idbGetAll('));
+assert(idbFn.includes('get.onerror=()=>tx.abort();'),
+  'a failed read must abort, not overwrite a potentially newer save');
+assert(!idbFn.includes("get.onerror=()=>store.put(str,'save')"),
+  'never bypass the timestamp guard after a read error');
 console.log('PASS: asynchronous save writes cannot roll progress back');
