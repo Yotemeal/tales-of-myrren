@@ -7,7 +7,9 @@ const createGame=require('./game-runtime.cjs');
 
 (async()=>{
   const {game:g,memory,elements}=await createGame();
-  const oldNow=Date.now;let clock=1_000_000;Date.now=()=>clock;
+  const oldNow=Date.now,oldRandom=Math.random;let clock=1_000_000;
+  Date.now=()=>clock;
+  Math.random=()=>.5; // Prevent random pet unlocks from changing the expected unboosted XP.
   try{
     const furnace=g.VILLAGE.stations.find(s=>s.kind==='furnace');
     const anvil=g.VILLAGE.stations.find(s=>s.kind==='anvil');
@@ -112,5 +114,5 @@ const createGame=require('./game-runtime.cjs');
     assert(!source.includes('Smelt:[]'),'blacksmith merchant categories do not sell smelting');
     assert(source.includes('smelt:rSmelt'),'furnace must render without executing rShop');
     console.log('PASS: furnace and anvil batches, one-at-a-time intervals, real XP and materials, All, duplicates, cancel, skill gates and saved progress.');
-  }finally{Date.now=oldNow}
+  }finally{Date.now=oldNow;Math.random=oldRandom}
 })().catch(e=>{console.error(e);process.exitCode=1});
