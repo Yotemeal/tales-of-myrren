@@ -1448,7 +1448,7 @@ function resolveSwing(now){
     if(dmg>0)recordCombatHit(m,now,strike.x,strike.y,w?.kind==='sword');
     burst(m.x,m.y-8,dmg>0?['#d83a2a','#ffffff','#ffd24a']:['#ffffff','#b5c8d8'],dmg>0?7:3,20);
     me.tgt=m;me.tgtUntil=now+4000;
-    if(m.hp>0&&save.perks.spiked&&w&&w.kind==='sword'){const dd=d||1;m.x+=tx/dd*8;m.y+=ty/dd*8;m.cd=-.5}
+    if(m.hp>0&&save.perks.spiked&&w&&w.kind==='sword'){const dd=d||1;m.x+=tx/dd*8;m.y+=ty/dd*8;m.cd=-.5;m.warn=null}
     if(m.hp<=0)killMon(m,now);
   }
 }
