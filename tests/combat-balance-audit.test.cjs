@@ -77,7 +77,9 @@ assert.match(src, /t&&t\.state!=='dead'&&meleeDistance\(t\)<=reach\?t:nearestMon
 assert.match(src, /const lockedEnemy=started&&!inside&&combatHeld\?meleeTarget\(\):null/, 'held attacks should track a reachable enemy');
 assert.match(src, /if\(target\)\{faceMeleeTarget\(target\)/, 'swing must face the acquired target');
 assert.match(src, /function meleeDistance\(m,x=me\.x,y=me\.y\)/, 'targeting must use strike-centre hit distance');
-const targetBody = capture(/const iv=SWING_IV\/1000;a\.t\+=dt;([\s\S]*?)\n\s*\}\n\s*\}\nfunction update/, 'targeted combat action')[1];
+const targetStart=src.indexOf('const iv=SWING_IV/1000;a.t+=dt;'),targetEnd=src.indexOf('function beginMonsterWarning(',targetStart);
+assert.ok(targetStart>=0&&targetEnd>targetStart,'could not locate targeted combat action');
+const targetBody=src.slice(targetStart,targetEnd);
 assert.match(targetBody, /m\.hp-=dmg/, 'targeted combat action resolves against one monster');
 assert.doesNotMatch(src, /wearItem|wearArmour|wearOf|repairCost|rRepair|save\\.wear|Repair:\\[\\]/, 'durability and repair systems must remain removed');
 assert.match(src, /const activeDef=slot=>\{const d=eqDef\(slot\);return d&&usable\(d\)\?d:null\}/, 'usable gear must not depend on condition');

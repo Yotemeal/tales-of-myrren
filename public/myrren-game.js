@@ -203,10 +203,19 @@ const MT={
   wolf:{name:'Dire wolf',lv:12,hp:20,def:10,max:4,iv:2.4,sp:34,ag:50,xpm:2.2,coins:[10,24],bread:.2,drop:{p:.08,mats:[2,3]}},
   boar:{name:'Wild boar',lv:8,hp:14,def:6,max:3,iv:2.4,sp:30,ag:36,xpm:1.6,coins:[8,18],bread:.3,drop:{p:.07,mats:[1,2]}},
   bear:{name:'Brown bear',lv:22,hp:42,def:18,max:6,iv:2.6,sp:30,ag:44,xpm:4,coins:[24,52],bread:.1,drop:{p:.1,mats:[3,4]}},
-  cave:{name:'Cave bear',lv:40,hp:150,def:38,max:14,iv:2.4,sp:32,ag:50,xpm:30,coins:[30,70],bread:0,drop:{p:.12,mats:[4,5]}},
-  abear:{name:'Aether bear',lv:70,hp:520,def:68,max:28,iv:2.2,sp:34,ag:56,xpm:220,coins:[120,260],bread:0,drop:{p:.14,mats:[5,6]}}
+  cave:{name:'Cave bear',lv:40,hp:150,def:38,max:14,iv:2.4,sp:32,ag:50,xpm:30,coins:[30,70],bread:0,telegraph:{ms:700,radius:16},drop:{p:.12,mats:[4,5]}},
+  abear:{name:'Aether bear',lv:70,hp:520,def:68,max:28,iv:2.2,sp:34,ag:56,xpm:220,coins:[120,260],bread:0,telegraph:{ms:850,radius:18},drop:{p:.14,mats:[5,6]}}
 };
 
+// Attack warnings are opt-in. Future bosses default to a readable dodge
+// marker; ordinary mobs remain untelegraphed unless their entry specifies
+// `telegraph:{ms,radius}`. `telegraph:false` also lets a boss opt out.
+const DEFAULT_BOSS_TELEGRAPH=Object.freeze({ms:900,radius:18});
+function monsterWarningConfig(mt){
+  const cfg=mt.telegraph===false?null:mt.telegraph||(mt.boss?DEFAULT_BOSS_TELEGRAPH:null);
+  return cfg&&Number.isFinite(cfg.ms)&&cfg.ms>=250&&cfg.ms<mt.iv*1000
+    &&Number.isFinite(cfg.radius)&&cfg.radius>=8&&cfg.radius<=40?cfg:null;
+}
 /* monster max hit = share of the HP a player of that level has (bosses use r of .15 to .20) */
 const MR={slime:.09,goblin:.10,boar:.12,wolf:.13,bear:.11,cave:.12,abear:.12};
 for(const k in MT)MT[k].max=Math.max(1,Math.round(hpAt(MT[k].lv)*(MR[k]||.12)));
@@ -1439,7 +1448,7 @@ function resolveSwing(now){
     if(dmg>0)recordCombatHit(m,now,strike.x,strike.y,w?.kind==='sword');
     burst(m.x,m.y-8,dmg>0?['#d83a2a','#ffffff','#ffd24a']:['#ffffff','#b5c8d8'],dmg>0?7:3,20);
     me.tgt=m;me.tgtUntil=now+4000;
-    if(m.hp>0&&save.perks.spiked&&w&&w.kind==='sword'){const dd=d||1;m.x+=tx/dd*8;m.y+=ty/dd*8;m.cd=-.5}
+    if(m.hp>0&&save.perks.spiked&&w&&w.kind==='sword'){const dd=d||1;m.x+=tx/dd*8;m.y+=ty/dd*8;m.cd=-.5;m.warn=null}
     if(m.hp<=0)killMon(m,now);
   }
 }
@@ -1756,7 +1765,7 @@ function enterBuilding(b,now){
   if(b.open){openSmithy('trade');return}
   if(b.id!=='arms'){outdoorShop=TRADER;openShop();return}
   inside=b;me.ox=b.x;me.oy=b.y+6;me.x=88;me.y=112;me.face=1;act=null;marker=null;petsTeleport();
-  for(const m of mons)if(m.state==='chase')m.state='return';
+  for(const m of mons){if(m.state==='chase')m.state='return';m.warn=null}
   fade=0;snapCam=true;exitCD=now+700;
   say('You enter '+SHOPS[b.id].name+'.');sendPresence();
 }
@@ -1771,7 +1780,7 @@ function die(){
   me.deathAt=performance.now();me.hp=0;me.moving=false;me.pend=0;pendingStrike=null;me.swing=-99999;
   act=null;marker=null;wantSwing=false;closeModal();
   say('Oh dear, you are dead!','red');toast('YOU DIED');uiHud();
-  for(const m of mons)if(m.state==='chase')m.state='return';
+  for(const m of mons){if(m.state==='chase')m.state='return';m.warn=null}
 }
 function respawnPlayer(){
   me.deathAt=null;inside=null;me.x=CX;me.y=CY+40;me.hp=hpMax();me.hurtAt=-99999;
@@ -1783,7 +1792,7 @@ function respawnPlayer(){
 function combatKillXp(mt){return Math.max(1,Math.round(mt.hp*mt.xpm))}
 function killMon(m,now){
   if(m.state==='dead')return;
-  const mt=MT[m.t];m.state='dead';m.back=now+12000;m.dieAt=now;
+  const mt=MT[m.t];m.state='dead';m.warn=null;m.back=now+12000;m.dieAt=now;
   decals.push({x:m.x,y:m.y,t:now,c:m.t==='slime'?'#e86a86':'#a82418'});
   say('You have defeated the '+mt.name.toLowerCase()+'.','gold');
   addXp('melee',combatKillXp(mt));
@@ -1870,6 +1879,35 @@ function doAction(dt,now){
     }
   }
 }
+// The marker is locked to the player's position at wind-up start. It never
+// homes in during the countdown, so dodging the indicated ground really
+// avoids the hit. Unconfigured mobs still use their original instant strike.
+function beginMonsterWarning(m,mt,now){
+  const cfg=monsterWarningConfig(mt);
+  if(!cfg||m.warn)return false;
+  m.warn={x:Math.round(me.x),y:Math.round(me.y),start:now,until:now+cfg.ms,radius:cfg.radius};
+  m.face=me.x>=m.x?1:-1;
+  return true;
+}
+function damagePlayerFromMonster(m,mt,now){
+  m.lunge=now;
+  const L=lvlFor(save.xp.melee),D=defTotal();
+  let dmg=Math.random()<clamp(.75+(mt.lv-L)*.008-D*.0012,.35,.9)?rint(1,mt.max):0;
+  if(dmg>0)dmg=Math.max(1,Math.round(dmg*(1-defRed())));
+  me.hp-=dmg;if(dmg>0)me.hurtAt=performance.now();splat(me.x,me.y-18,dmg);uiHud();
+  if(dmg>0&&me.hp>0&&me.hp<=hpMax()*.25&&foodCount()>0)say('You are low on health. Tap the food button to eat.','warn');
+  if(me.hp<=0)die();
+}
+function completeMonsterWarning(m,mt,now){
+  const warn=m.warn;
+  if(!warn||now<warn.until)return false;
+  m.warn=null;m.cd=0;
+  // Missed ground-zone attacks still play their attack animation but do not
+  // roll damage, consume health or spawn a misleading damage number.
+  if(Math.hypot(me.x-warn.x,me.y-warn.y)<=warn.radius)damagePlayerFromMonster(m,mt,now);
+  else m.lunge=now;
+  return true;
+}
 function update(dt,now){
   if(me.deathAt!=null){me.moving=false;if(now-me.deathAt>=1050)respawnPlayer();return}
   regen+=dt;if(regen>6){regen=0;if(me.hp<hpMax()){me.hp=Math.min(hpMax(),me.hp+Math.max(1,Math.floor(hpMax()/40)));uiHud()}}
@@ -1941,25 +1979,23 @@ function update(dt,now){
   if(!inside)critUpdate(dt,now);
   if(!inside)for(const m of mons){
     const mt=MT[m.t];
-    if(m.state==='dead'){if(now>=m.back){m.state='idle';m.prov=false;m.hp=mt.hp;m.x=m.hx;m.y=m.hy}continue}
+    if(m.state==='dead'){m.warn=null;if(now>=m.back){m.state='idle';m.prov=false;m.hp=mt.hp;m.x=m.hx;m.y=m.hy;m.cd=0}continue}
     const dxp=me.x-m.x,dyp=me.y-m.y,dp=Math.hypot(dxp,dyp);
     if(m.state==='chase'){
-      if(!m.prov&&lvlFor(save.xp.melee)>=2*mt.lv)m.state='return';else
-      if(Math.hypot(m.x-m.hx,m.y-m.hy)>170||dp>130)m.state='return';
-      else if(dp>11){const st=mt.sp*dt;m.x+=dxp/dp*st;m.y+=dyp/dp*st;if(Math.abs(dxp)>.6)m.face=dxp>0?1:-1}
+      if(!m.prov&&lvlFor(save.xp.melee)>=2*mt.lv){m.state='return';m.warn=null}else
+      if(Math.hypot(m.x-m.hx,m.y-m.hy)>170||dp>130){m.state='return';m.warn=null}
+      else if(m.warn){
+        // Freeze the enemy and its telegraph origin until the warning resolves.
+        completeMonsterWarning(m,mt,now);
+      }else if(dp>11){const st=mt.sp*dt;m.x+=dxp/dp*st;m.y+=dyp/dp*st;if(Math.abs(dxp)>.6)m.face=dxp>0?1:-1}
       else{
         m.cd+=dt;
-        if(m.cd>=mt.iv){
-          m.cd=0;m.lunge=now;
-          const L=lvlFor(save.xp.melee),D=defTotal();
-          let dmg=Math.random()<clamp(.75+(mt.lv-L)*.008-D*.0012,.35,.9)?rint(1,mt.max):0;
-          if(dmg>0){dmg=Math.max(1,Math.round(dmg*(1-defRed())))}
-          me.hp-=dmg;if(dmg>0)me.hurtAt=performance.now();splat(me.x,me.y-18,dmg);uiHud();
-          if(dmg>0&&me.hp>0&&me.hp<=hpMax()*.25&&foodCount()>0)say('You are low on health. Tap the food button to eat.','warn');
-          if(me.hp<=0)die();
-        }
+        const warning=monsterWarningConfig(mt);
+        if(warning&&m.cd>=mt.iv-warning.ms/1000)beginMonsterWarning(m,mt,now);
+        else if(!warning&&m.cd>=mt.iv){m.cd=0;damagePlayerFromMonster(m,mt,now)}
       }
     }else if(m.state==='return'){
+      m.warn=null;
       const dx=m.hx-m.x,dy=m.hy-m.y,d=Math.hypot(dx,dy);
       if(d<3){m.state='idle';m.hp=mt.hp;m.prov=false}else{m.x+=dx/d*mt.sp*dt;m.y+=dy/d*mt.sp*dt}
     }else if(started&&dp<(mt.ag||40)&&lvlFor(save.xp.melee)<2*mt.lv){m.state='chase';m.cd=mt.iv*.5}else{
@@ -1982,6 +2018,25 @@ function update(dt,now){
 function R(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
 // Compact pixel sparks exist only at the contact point of successful hits.
 // No blur, extra sprite sheets or unbounded allocations on mobile.
+// A modest native-pixel warning painted on the ground, underneath characters.
+// The outer amber ring is the actual hit radius; red pixels fill as
+// impact approaches. Only explicitly configured enemies produce these markers.
+function drawMonsterWarning(m,cx,cy,now){
+  const warn=m.warn;
+  if(!warn||m.state!=='chase'||now>=warn.until)return;
+  const phase=clamp((now-warn.start)/(warn.until-warn.start),0,1);
+  const x=Math.round(warn.x-cx),y=Math.round(warn.y-cy),r=warn.radius;
+  ctx.save();ctx.globalAlpha=.55+.3*phase;
+  for(let i=0;i<24;i++){
+    const a=i*Math.PI/12,px=x+Math.round(Math.cos(a)*r),py=y+Math.round(Math.sin(a)*r);
+    R(px,py,2,2,i/24<=phase?'#ff6543':'#e4ae57');
+  }
+  // Interior hint without a solid overlay that would hide grass or loot.
+  ctx.globalAlpha=.28+.2*phase;
+  R(x-2,y-1,5,2,phase>.65?'#e86a47':'#e9ae62');
+  R(x-1,y-3,2,6,phase>.65?'#e86a47':'#e9ae62');
+  ctx.restore();
+}
 function drawCombatImpacts(now,cx,cy){
   for(let i=combatImpacts.length-1;i>=0;i--){
     const p=combatImpacts[i],age=now-p.t;
@@ -2350,6 +2405,7 @@ function drawMon(m,x,y,now){
   let mode='idle',age=0;
   if(dead){age=Math.max(0,now-(m.dieAt??now));mode=age<90?'hit':'dead'}
   else if(ha>=0&&ha<190)mode='hit'; // Confirmed hits interrupt the visual windup, not the actual AI attack timer.
+  else if(m.warn)mode='windup';
   else if(m.state==='chase'&&m.cd>mt.iv-.3&&Math.hypot(m.x-me.x,m.y-me.y)<=14)mode='windup';
   else if(la>=0&&la<130)mode='lunge';
   else if(la>=130&&la<300)mode='recover';
@@ -3092,6 +3148,7 @@ function drawOutdoor(cx,cy,now){
   }
   for(const tree of forestEdge)list.push({y:tree.y,f:()=>drawTree(tree,Math.round(tree.x-cx),Math.round(tree.y-cy),now)});
   for(const n of nodes)if(vis(n.x,n.y))list.push({y:n.y,f:()=>{const sx=Math.round(n.x-cx),sy=Math.round(n.y-cy);n.k.startsWith('spot')?drawSpot(n,sx,sy,now):TREEK.includes(n.k)?drawTree(n,sx,sy,now):drawRock(n,sx,sy,now);nodeTip(n,sx,sy,now)}});
+  for(const m of mons)if(m.warn&&m.state==='chase'&&vis(m.warn.x,m.warn.y))list.push({y:m.warn.y-.5,f:()=>drawMonsterWarning(m,cx,cy,now)});
   for(const m of mons)if((m.state!=='dead'||now-(m.dieAt||-99999)<1600)&&vis(m.x,m.y))list.push({y:m.y,f:()=>drawMon(m,Math.round(m.x-cx),Math.round(m.y-cy),now)});
   for(const c of crits)if(vis(c.x,c.y))list.push({y:c.y,f:()=>drawCritter(c,Math.round(c.x-cx),Math.round(c.y-cy),now)});
   list.push({y:CY+57,f:()=>drawVillageSquare(cx,cy,now)});
