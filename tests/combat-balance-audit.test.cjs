@@ -18,8 +18,13 @@ assert.ok(swingMs > 0 && targetedSeconds > 0);
 const swingDpsFactor = targetedSeconds / directionalSeconds;
 assert.equal(swingDpsFactor, 1, 'attack methods must have identical theoretical single-target DPS');
 
-const manualGate = capture(/if\(started&&!inside&&!me\.pend&&\(atkHeld\|\|gpAtk\|\|wantSwing\|\|keys\[' '\]\)&&now>=nextSwing\)\{nextSwing=now\+SWING_IV;wantSwing=false;beginSwing\(now\)\}/, 'manual attack cooldown gate');
+const manualGate = capture(/if\(started&&!inside&&!me\.pend&&\(combatHeld\|\|wantSwing\)&&now>=nextSwing\)\{\s*nextSwing=now\+SWING_IV;wantSwing=false;beginSwing\(now\);\s*\}/, 'manual attack cooldown gate');
 assert.ok(manualGate);
+const updateCode = capture(/function update\(dt,now\)\{([\s\S]*?)\n\}\n\n\/\* ---------- drawing/, 'main update loop')[1];
+const gamepadInput = updateCode.indexOf('const gp=pollPad(now)');
+const collisionEnd = updateCode.indexOf('const lockedEnemy=started&&!inside&&combatHeld');
+const attackGate = updateCode.indexOf('if(started&&!inside&&!me.pend&&(combatHeld||wantSwing)');
+assert.ok(gamepadInput>=0&&collisionEnd>gamepadInput&&attackGate>collisionEnd, 'gamepad input and collision-adjusted facing must precede attack scheduling');
 assert.match(src, /if\(!a\.swung&&a\.t>=iv-\.2&&now>=nextSwing-200\)\{a\.swung=true;startSwing\(now\)\}/, 'targeted attack animation must wait until shared cooldown is nearly ready');
 assert.match(src, /if\(a\.t>=iv&&now>=nextSwing\)\{\s*\/\/ Manual and targeted attacks consume the same per-character cooldown\.[\s\S]*?nextSwing=now\+SWING_IV;\s*a\.t=0;/, 'targeted attacks must consume the manual attack cooldown and discard queued time');
 
@@ -67,9 +72,11 @@ if(Math.abs(swingDpsFactor-1)>0.05){
 const swingBody = capture(/function resolveSwing\(now\)\{([\s\S]*?)\n\}\nfunction nearFire/, 'directional strike resolution')[1];
 assert.match(swingBody, /for\(const m of mons\)/, 'directional swing currently iterates all monsters');
 assert.match(swingBody, /if\(strike\.target\?m!==strike\.target:!strikeHitsTarget\(strike,m\)\)continue;/, 'locked melee attacks hit their selected enemy; empty swings use directional fallback');
-assert.match(src, /let target=me\.tgt&&me\.tgt\.state!=='dead'/, 'combat retains living target');
-assert.match(src, /if\(!target\)target=nearestMon\(reach\)/, 'combat selects only enemies in weapon reach');
-assert.match(src, /const lockedEnemy=combatHeld&&me\.tgt/, 'movement should face locked enemy while attacking');
+assert.match(src, /function meleeTarget\(reach=meleeReach\(\)\)/, 'attacks and strafing use shared target selection');
+assert.match(src, /t&&t\.state!=='dead'&&meleeDistance\(t\)<=reach\?t:nearestMon\(reach\)/, 'lock must retain only living in-range enemies');
+assert.match(src, /const lockedEnemy=started&&!inside&&combatHeld\?meleeTarget\(\):null/, 'held attacks should track a reachable enemy');
+assert.match(src, /if\(target\)\{faceMeleeTarget\(target\)/, 'swing must face the acquired target');
+assert.match(src, /function meleeDistance\(m,x=me\.x,y=me\.y\)/, 'targeting must use strike-centre hit distance');
 const targetBody = capture(/const iv=SWING_IV\/1000;a\.t\+=dt;([\s\S]*?)\n\s*\}\n\s*\}\nfunction update/, 'targeted combat action')[1];
 assert.match(targetBody, /m\.hp-=dmg/, 'targeted combat action resolves against one monster');
 assert.doesNotMatch(src, /wearItem|wearArmour|wearOf|repairCost|rRepair|save\\.wear|Repair:\\[\\]/, 'durability and repair systems must remain removed');

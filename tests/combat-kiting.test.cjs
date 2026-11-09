@@ -18,21 +18,25 @@ const fist={...strike,reach:22};
 assert(!hits(fist,{x:125,y:104}),'unarmed attacks must retain shorter reach');
 const begin=source.slice(source.indexOf('function beginSwing(now){'),source.indexOf('function resolveSwing(now){'));
 const resolve=source.slice(source.indexOf('function resolveSwing(now){'),source.indexOf('function nearFire(){'));
-assert(begin.includes('pendingStrike={x:me.x,y:me.y,fx:me.fx,fy:me.fy,reach:w?30:22}'),
-  'capture player position, direction and weapon reach at swing input');
-assert(resolve.includes('if(!strikeHitsTarget(strike,m))continue;'),
-  'delayed damage must use original strike rather than movement during animation');
+assert(begin.includes('pendingStrike={x:me.x,y:me.y,fx:me.fx,fy:me.fy,reach,target};'),
+  'capture player position, facing, weapon reach and selected enemy at swing input');
+assert(resolve.includes('if(strike.target?m!==strike.target:!strikeHitsTarget(strike,m))continue;'),
+  'locked strikes hit their chosen target while unselected strikes use the facing cone');
+assert(resolve.includes('if(strike.target&&meleeDistance(m,strike.x,strike.y)>strike.reach)continue;'),
+  'locked strikes cannot reach enemies beyond their original swing origin');
 assert(source.includes('me.pend=0;pendingStrike=null;me.swing=-99999;'),
   'death must clear pending damage');
 assert(source.includes('const SWING_IV=900'),'attack cooldown must not be accelerated by kiting');
-const faceMatch=source.match(/function shouldHoldAttackFacing\(mx,my,fx,fy,attacking\)\{[\s\S]*?\n\}/);
-assert(faceMatch,'attack-strafe facing helper must exist');
-const holdFacing=vm.runInNewContext('('+faceMatch[0]+')');
-assert.equal(holdFacing(-1,0,1,0,true),true,'backpedalling with attack held must preserve facing');
-assert.equal(holdFacing(0,1,1,0,true),true,'sideways strafing with attack held must preserve facing');
-assert.equal(holdFacing(1,0,1,0,true),false,'moving forward must update facing');
-assert.equal(holdFacing(-1,0,1,0,false),false,'normal movement must always turn');
-assert.equal(holdFacing(0.8,0.6,1,0,true),false,'forward diagonals must be able to turn');
-assert(source.includes("atkHeld||gpAtk||keys[' ']"),'touch, gamepad and keyboard attack must share strafe behavior');
-assert(source.includes('if(!shouldHoldAttackFacing(mx,my,me.fx,me.fy,'),'facing update must honour attack strafing');
-console.log('PASS: strike snapshot enables responsive kiting without extra range or attack speed');
+const faceMatch=source.match(/function faceMeleeTarget\(m\)\{[\s\S]*?\n\}/);
+assert(faceMatch,'enemy-facing helper must exist');
+const me={x:100,y:100,fx:0,fy:1,face:1,dv:'d'};
+const faceEnemy=vm.runInNewContext('('+faceMatch[0]+')',{Math,me});
+faceEnemy({x:80,y:104});
+assert.equal(me.face,-1,'moving away does not change facing away from the locked enemy');
+assert.equal(me.fx,-1,'attack direction points at enemy while strafing');
+faceEnemy({x:100,y:80});
+assert.equal(me.dv,'u','locked facing tracks enemies above the character');
+assert(source.includes("const combatHeld=atkHeld||gpAtk||keys[' ']"),'touch, gamepad and keyboard attack share targeting');
+assert(source.includes('const lockedEnemy=started&&!inside&&combatHeld?meleeTarget():null'),'active melee targets are selected each held frame');
+assert(source.includes('faceMeleeTarget(lockedEnemy);me.tgt=lockedEnemy;'),'held melee attacks continue to face enemies after moving');
+console.log('PASS: strike snapshot, directional fallback, targeted range, and responsive strafe facing');
