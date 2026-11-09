@@ -25,4 +25,14 @@ assert(resolve.includes('if(!strikeHitsTarget(strike,m))continue;'),
 assert(source.includes('me.pend=0;pendingStrike=null;me.swing=-99999;'),
   'death must clear pending damage');
 assert(source.includes('const SWING_IV=900'),'attack cooldown must not be accelerated by kiting');
+const faceMatch=source.match(/function shouldHoldAttackFacing\(mx,my,fx,fy,attacking\)\{[\s\S]*?\n\}/);
+assert(faceMatch,'attack-strafe facing helper must exist');
+const holdFacing=vm.runInNewContext('('+faceMatch[0]+')');
+assert.equal(holdFacing(-1,0,1,0,true),true,'backpedalling with attack held must preserve facing');
+assert.equal(holdFacing(0,1,1,0,true),true,'sideways strafing with attack held must preserve facing');
+assert.equal(holdFacing(1,0,1,0,true),false,'moving forward must update facing');
+assert.equal(holdFacing(-1,0,1,0,false),false,'normal movement must always turn');
+assert.equal(holdFacing(0.8,0.6,1,0,true),false,'forward diagonals must be able to turn');
+assert(source.includes("atkHeld||gpAtk||keys[' ']"),'touch, gamepad and keyboard attack must share strafe behavior');
+assert(source.includes('if(!shouldHoldAttackFacing(mx,my,me.fx,me.fy,'),'facing update must honour attack strafing');
 console.log('PASS: strike snapshot enables responsive kiting without extra range or attack speed');

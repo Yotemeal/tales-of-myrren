@@ -1423,6 +1423,11 @@ function strikeHitsTarget(strike,m){
   const tx=m.x-strike.x,ty=(m.y-4)-strike.y,d=Math.hypot(tx,ty);
   return d<=strike.reach&&(d<=7||(tx*strike.fx+ty*strike.fy)/d>=COS_ARC);
 }
+// Keep attack facing when retreating or sidestepping with the attack held.
+// Moving toward the current facing updates it normally; no target auto-aim.
+function shouldHoldAttackFacing(mx,my,fx,fy,attacking){
+  return !!attacking&&mx*fx+my*fy<0.25;
+}
 function beginSwing(now){
   if(me.deathAt!=null)return;
   if(me.pend)return;
@@ -1877,9 +1882,11 @@ function update(dt,now){
     act=null;blocked.clear();idleT=0;
     const sp=SPD*mag;
     me.x+=mx/mag*sp*dt;me.y+=my/mag*sp*dt;me.moving=true;
-    const i8=Math.round(Math.atan2(my,mx)/(Math.PI/4));me.fx=+Math.cos(i8*Math.PI/4).toFixed(3);me.fy=+Math.sin(i8*Math.PI/4).toFixed(3);
-    if(Math.abs(me.fx)>.3)me.face=me.fx>0?1:-1;
-    me.dv=Math.abs(me.fy)>Math.abs(me.fx)*1.1?(me.fy>0?'d':'u'):'s';
+    if(!shouldHoldAttackFacing(mx,my,me.fx,me.fy,atkHeld||gpAtk||keys[' '])){
+      const i8=Math.round(Math.atan2(my,mx)/(Math.PI/4));me.fx=+Math.cos(i8*Math.PI/4).toFixed(3);me.fy=+Math.sin(i8*Math.PI/4).toFixed(3);
+      if(Math.abs(me.fx)>.3)me.face=me.fx>0?1:-1;
+      me.dv=Math.abs(me.fy)>Math.abs(me.fx)*1.1?(me.fy>0?'d':'u'):'s';
+    }
   }else if(started){
     if(act){inRange=true;idleT=0}else idleT+=dt;
   }
