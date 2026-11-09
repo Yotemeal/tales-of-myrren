@@ -384,9 +384,9 @@ async function idbGetAll(){
 }
 async function idbGet(){try{const d=await idbOpen();const v=await new Promise(res=>{const q=d.transaction('s').objectStore('s').get('save');q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)});d.close();return v}catch(e){return null}}
 let cdoc=null,cloudState='checking',cloudSig='',cloudAt=0,cloudBusy=false,bakAt=0,lastSavedAt=0;
-async // Save timestamps change every autosave; ignore them when comparing content.
+// Save timestamps change every autosave; ignore them when comparing content.
 function saveSignature(str){return str.replace(/"ts":\d+,?/,'')}
-function cloudPush(str,force){
+async function cloudPush(str,force){
   if(!cdoc||cloudBusy)return;const sig=saveSignature(str);if(sig===cloudSig)return;
   if(!force&&Date.now()-cloudAt<20000)return;
   cloudBusy=true;try{await cdoc.set({json:str,ts:saveTs});cloudSig=sig;cloudAt=Date.now();cloudState='on'}catch(e){cloudState='error'}cloudBusy=false;
