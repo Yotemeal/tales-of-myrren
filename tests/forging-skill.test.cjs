@@ -5,7 +5,7 @@ const vm=require('node:vm');
 const src=fs.readFileSync(require('node:path').join(__dirname,'../public/myrren-game.js'),'utf8');
 new vm.Script(src,{filename:'myrren-game.js'});
 const has=x=>assert.ok(src.includes(x),'Missing runtime contract: '+x);
-has("forging:'Forging'");
+has("forging:'Smithing'");
 has("'cooking','forging']");
 has("forging:'skill_forging'");
 has("addXp('forging',r.xp)");
@@ -16,8 +16,8 @@ has("const forgeXp=(r,cost)=>cost*r.xp*2");
 has("const PRODUCTION_MS={smelt:1500,forge:2500}");
 has("markProduction('smelt')");
 has("markProduction('forge')");
-has("if(!productionReady('smelt'))return");
-has("if(!productionReady('forge'))return");
+has("if(!productionReady('smelt',batch))return false");
+has("if(!productionReady('forge',batch))return false");
 const section=src.slice(src.indexOf('const ingName=id=>'),src.indexOf('function rForge(){'));
 assert.ok(!section.includes("addXp('mining'"),'Production must not award Delving XP');
 const skill=src.match(/const SK=\[([^\]]+)\]/);
@@ -32,7 +32,7 @@ for(const base of tiers)for(const [kind,offset] of Object.entries(requirements))
 /* Execute the real production functions in isolation with deterministic mocks. */
 const runtime=fs.readFileSync(require('node:path').join(__dirname,'../public/myrren-game.js'),'utf8');
 function extract(start,end){const a=runtime.indexOf(start),b=runtime.indexOf(end,a+start.length);assert.ok(a>=0&&b>a,'Cannot extract '+start);return runtime.slice(a,b)}
-const production=extract('const ingName=id=>','function rSmelt()')+ '\n'+extract('function forge(kind){','function rForge(){');
+const production=extract('const PRODUCTION_MS={smelt:1500,forge:2500};','function rShop(){');
 let now=10000;
 const ctx={
  Date:{now:()=>now},save:{xp:{forging:0,mining:12345},inv:{copper:2,tin:2,ing_bronze:0},eq:{weapon:null},bag:[]},
@@ -45,7 +45,7 @@ const ctx={
  addXp:(skill,xp)=>{ctx.save.xp[skill]+=xp},rollPet:()=>{},Math
 };
 vm.createContext(ctx);
-vm.runInContext('const ingName=id=>ITEMS[\'ing_\'+id].name;\nlet forgeMat=2;\n'+production.slice(production.indexOf('/* Production cooldowns')),ctx);
+vm.runInContext(production,ctx);
 vm.runInContext('smelt(SMELT[0])',ctx);
 assert.equal(ctx.save.inv.ing_bronze,1);
 assert.equal(ctx.save.inv.copper,1);
