@@ -1837,7 +1837,7 @@ function update(dt,now){
   const pxv=me.x,pyv=me.y;
   refreshHeld();
   if(!started){const g=activePad();if(g){if(g.buttons[0]&&g.buttons[0].pressed&&!gpPrev[0])$('go').click();gpPrev=g.buttons.map(b=>!!b.pressed)}}
-  if(started&&!inside&&(atkHeld||gpAtk||wantSwing||keys[' '])&&now>=nextSwing){nextSwing=now+SWING_IV;wantSwing=false;beginSwing(now)}
+  if(started&&!inside&&!me.pend&&(atkHeld||gpAtk||wantSwing||keys[' '])&&now>=nextSwing){nextSwing=now+SWING_IV;wantSwing=false;beginSwing(now)}
   if(me.pend&&now>=me.pend){me.pend=0;resolveSwing(now)}
   let mx=0,my=0;
   if(started){
