@@ -359,7 +359,9 @@ async function idbPut(str){
         if(prev&&(+prev.ts||0)<(+incoming.ts||0))store.put(get.result,'backup');
         store.put(str,'save');
       };
-      get.onerror=()=>store.put(str,'save');
+      // A failed read cannot establish which snapshot is newer. Abort instead
+      // of overwriting potentially newer progress with an unverified write.
+      get.onerror=()=>tx.abort();
       tx.oncomplete=resolve;
       tx.onerror=()=>reject(tx.error);
       tx.onabort=()=>reject(tx.error);
