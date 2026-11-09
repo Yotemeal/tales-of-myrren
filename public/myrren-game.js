@@ -82,7 +82,8 @@ const ITEMS={
 Object.assign(ITEMS,{obsidianite:{art:'ore',pal:{o:'#df5356',R:'#442b3c'},name:'Obsidianite Chunk'},meteorite:{art:'ore',pal:{o:'#83e6ff',R:'#46516e'},name:'Meteorite Fragment'},ing_obsidianite:{art:'ingot',pal:{M:'#442b3c',h:'#e65456',d:'#201c29'},name:'Obsidianite Ingot'},ing_starsteel:{art:'ingot',pal:{M:'#a2c9e2',h:'#f0f8ff',d:'#41485f'},name:'Starsteel Ingot'}});
 const SELL={obsidianite:90,meteorite:500,ing_obsidianite:265,ing_starsteel:1300,logs:4,oak:8,maple:20,elder:60,myrren:180,copper:6,tin:6,iron:14,coal:12,cobalt:45,aether:170,ing_bronze:10,ing_iron:24,ing_steel:34,ing_cobalt:135,ing_aether:608,rshrimp:3,rtrout:9,rsalmon:20,rtuna:40,reel:110,shrimp:6,trout:16,salmon:34,tuna:70,eel:200};
 const FOOD={bread:{heal:5,price:6},pie:{heal:10,price:18},stew:{heal:20,price:45},shrimp:{heal:4},trout:{heal:9},salmon:{heal:15},tuna:{heal:28},eel:{heal:45}};
-const COOK={rshrimp:{to:'shrimp',req:1,xp:30},rtrout:{to:'trout',req:12,xp:70},rsalmon:{to:'salmon',req:25,xp:120},rtuna:{to:'tuna',req:40,xp:260},reel:{to:'eel',req:70,xp:800}};
+// Cooking XP follows the value of the catch. Burn chance and food healing are unchanged.
+const COOK={rshrimp:{to:'shrimp',req:1,xp:35},rtrout:{to:'trout',req:12,xp:90},rsalmon:{to:'salmon',req:25,xp:165},rtuna:{to:'tuna',req:40,xp:360},reel:{to:'eel',req:70,xp:1300}};
 const SHOPS={
   axe:{name:'Woodland Town Hall',sign:'Town Hall',keeper:'Brann',wall:'#b8a888',roof:'#3f7a3a',hue:110,hair:'#8a5a30',cats:{Hatchets:['axe']},kinds:['axe'],buys:['logs','oak','maple','elder','myrren'],greet:'Brann: Welcome to town hall. I buy timber for the village. Dorn at the open forge sells axes.'},
   pick:{name:'Deepdig Picks',sign:'Picks',keeper:'Hilda',wall:'#a8a8a0',roof:'#5a6270',hue:210,hair:'#c8c0b0',cats:{Pickaxes:['pick']},kinds:['pick'],buys:['copper','tin','iron','coal','cobalt','aether','obsidianite','meteorite'],greet:'Hilda: Pickaxes for every rock. I pay well for raw chunks and coal.'},
@@ -144,18 +145,20 @@ for(const kind in ARMOUR_DEF){
 const SLOTS=['head','body','hands','legs','boots','weapon','shield','ring','neck'];
 const SLOTNAME={head:'Head',body:'Body',hands:'Hands',legs:'Legs',boots:'Boots',weapon:'Weapon',shield:'Shield',ring:'Ring',neck:'Amulet'};
 /* smelting + forging (ingot costs from the design doc) */
+// Smithing earns a slightly larger share of XP from smelting instead of
+// relying on forging a finished item. Total ore-to-gear XP stays ~unchanged.
 const SMELT=[
-  {id:'bronze',mat:2,req:1,xp:12,in:{copper:1,tin:1}},
-  {id:'iron',mat:3,req:10,xp:30,in:{iron:2}},
-  {id:'steel',mat:4,req:20,xp:55,in:{iron:2,coal:1}},
-  {id:'cobalt',mat:5,req:30,xp:140,in:{cobalt:3,coal:2}},
-  {id:'obsidianite',mat:7,req:40,xp:300,in:{obsidianite:3,coal:2}},
-  {id:'aether',mat:6,req:55,xp:600,in:{aether:4,coal:3}},
-  {id:'starsteel',mat:8,req:70,xp:1000,in:{meteorite:3,coal:4}}];
+  {id:'bronze',mat:2,req:1,xp:14,in:{copper:1,tin:1}},
+  {id:'iron',mat:3,req:10,xp:35,in:{iron:2}},
+  {id:'steel',mat:4,req:20,xp:65,in:{iron:2,coal:1}},
+  {id:'cobalt',mat:5,req:30,xp:160,in:{cobalt:3,coal:2}},
+  {id:'obsidianite',mat:7,req:40,xp:350,in:{obsidianite:3,coal:2}},
+  {id:'aether',mat:6,req:55,xp:700,in:{aether:4,coal:3}},
+  {id:'starsteel',mat:8,req:70,xp:1150,in:{meteorite:3,coal:4}}];
 const FORGE={axe:3,pick:3,sword:4,shield:5,helm:4,gloves:4,boots:4,legs:5,body:6};
 const FORGE_UNLOCK={pick:0,axe:1,helm:2,boots:3,gloves:3,sword:4,shield:5,legs:7,body:8};
 const forgeReq=(r,kind)=>r.req+FORGE_UNLOCK[kind];
-const forgeXp=(r,cost)=>cost*r.xp*2;
+const forgeXp=(r,cost)=>Math.round(cost*r.xp*1.5);
 /* economy: shop price of forgeable gear = 2x its ingot value, so smelting+forging always beats buying and coins are a sink */
 for(const id in DEFS){const d=DEFS[id];if(FORGE[d.kind]&&d.mat>=2){const ik='ing_'+MATS[d.mat].k;if(SELL[ik])d.price=Math.round(2*FORGE[d.kind]*SELL[ik])}}
 const gearSvg=(d,s)=>{if(d.kind==='sword'&&window.MyrrenSwords?.ready)return window.MyrrenSwords.icon(d.mat,s);if(window.MyrrenArmour?.ready&&ARMOUR_DEF[d.kind])return window.MyrrenArmour.icon(d.kind,d.mat,s);const m=MATS[d.mat];return svg(d.art,s,{M:m.M,H:m.H,D:m.D,S:m.H})};
@@ -171,40 +174,45 @@ const xpTable=[0,0];
 const lvlFor=xp=>{let L=1;while(L<MAXL&&xp>=xpTable[L+1])L++;return L};
 const oldXp=[0,0];(()=>{let pts=0;for(let L=1;L<99;L++){pts+=Math.floor(L+300*Math.pow(2,L/7));oldXp[L+1]=Math.floor(pts/4)}})();
 const CODE_KIND=['','axe','pick','sword','fist','net','rod'];
+// Gathering XP rewards now keep Forestry, Delving and Fishing in a
+// comparable training band at milestone levels; rare resources still differ
+// in success chance and value, and XP is awarded only on successful gathers.
 const NT={
   tree:{name:'Tree',skill:'woodcutting',tool:'axe',req:1,xp:25,item:'logs',base:.34,dep:.5,rt:[12,20],verb:'cut'},
-  oak:{name:'Oak tree',skill:'woodcutting',tool:'axe',req:10,xp:38,item:'oak',base:.22,dep:.65,rt:[16,26],verb:'cut'},
-  maple:{name:'Maple tree',skill:'woodcutting',tool:'axe',req:30,xp:95,item:'maple',base:.2,dep:.7,rt:[20,30],verb:'cut'},
-  elder:{name:'Elderwood tree',skill:'woodcutting',tool:'axe',req:60,xp:380,item:'elder',base:.15,dep:.75,rt:[24,36],verb:'cut'},
-  myrren:{name:'Myrrenwood tree',skill:'woodcutting',tool:'axe',req:85,xp:1500,item:'myrren',base:.1,dep:.8,rt:[30,45],verb:'cut'},
+  oak:{name:'Oak tree',skill:'woodcutting',tool:'axe',req:10,xp:55,item:'oak',base:.22,dep:.65,rt:[16,26],verb:'cut'},
+  maple:{name:'Maple tree',skill:'woodcutting',tool:'axe',req:30,xp:120,item:'maple',base:.2,dep:.7,rt:[20,30],verb:'cut'},
+  elder:{name:'Elderwood tree',skill:'woodcutting',tool:'axe',req:60,xp:520,item:'elder',base:.15,dep:.75,rt:[24,36],verb:'cut'},
+  myrren:{name:'Myrrenwood tree',skill:'woodcutting',tool:'axe',req:85,xp:1900,item:'myrren',base:.1,dep:.8,rt:[30,45],verb:'cut'},
   copper:{name:'Copper rock',skill:'mining',tool:'pick',req:1,xp:18,item:'copper',base:.32,dep:1,rt:[8,14],verb:'mine'},
   tin:{name:'Tin rock',skill:'mining',tool:'pick',req:1,xp:18,item:'tin',base:.32,dep:1,rt:[8,14],verb:'mine'},
   iron:{name:'Iron rock',skill:'mining',tool:'pick',req:10,xp:45,item:'iron',base:.2,dep:1,rt:[12,20],verb:'mine'},
   coal:{name:'Coal seam',skill:'mining',tool:'pick',req:20,xp:75,item:'coal',base:.2,dep:1,rt:[14,22],verb:'mine'},
-  cobalt:{name:'Black Iron rock',skill:'mining',tool:'pick',req:30,xp:210,item:'cobalt',base:.15,dep:1,rt:[18,28],verb:'mine'},
-  aether:{name:'Myrrenite rock',skill:'mining',tool:'pick',req:55,xp:900,item:'aether',base:.1,dep:1,rt:[24,36],verb:'mine'}
+  cobalt:{name:'Black Iron rock',skill:'mining',tool:'pick',req:30,xp:190,item:'cobalt',base:.15,dep:1,rt:[18,28],verb:'mine'},
+  aether:{name:'Myrrenite rock',skill:'mining',tool:'pick',req:55,xp:650,item:'aether',base:.1,dep:1,rt:[24,36],verb:'mine'}
 };
-Object.assign(NT,{obsidianite:{name:'Obsidianite rock',skill:'mining',tool:'pick',req:40,xp:400,item:'obsidianite',base:.12,dep:1,rt:[22,32],verb:'mine',msg:'You swing your pickaxe at the rock.'},meteorite:{name:'Meteorite deposit',skill:'mining',tool:'pick',req:70,xp:1200,item:'meteorite',base:.08,dep:1,rt:[30,45],verb:'mine',msg:'You swing your pickaxe at the meteorite.'}});
+Object.assign(NT,{obsidianite:{name:'Obsidianite rock',skill:'mining',tool:'pick',req:40,xp:300,item:'obsidianite',base:.12,dep:1,rt:[22,32],verb:'mine',msg:'You swing your pickaxe at the rock.'},meteorite:{name:'Meteorite deposit',skill:'mining',tool:'pick',req:70,xp:900,item:'meteorite',base:.08,dep:1,rt:[30,45],verb:'mine',msg:'You swing your pickaxe at the meteorite.'}});
 const TREEK=['tree','oak','maple','elder','myrren'];
 const TOOLNAME={axe:'a hatchet',pick:'a pickaxe',net:'a net',rod:'a fishing rod'};
 Object.assign(NT,{
-  spot1:{name:'Shallow fishing spot',skill:'fishing',tool:'net',req:1,xp:22,item:'rshrimp',base:.38,dep:.2,rt:[8,14],verb:'fish',reach:22},
-  spot2:{name:'Deep fishing spot',skill:'fishing',tool:'rod',req:12,xp:50,item:'rtrout',base:.26,dep:.2,rt:[10,16],verb:'fish',reach:22},
-  spot3:{name:'Far fishing spot',skill:'fishing',tool:'rod',req:25,xp:95,item:'rsalmon',base:.18,dep:.2,rt:[12,18],verb:'fish',reach:22},
-  spot4:{name:'Tuna shoal',skill:'fishing',tool:'rod',req:40,xp:260,item:'rtuna',base:.14,dep:.2,rt:[14,20],verb:'fish',reach:22},
-  spot5:{name:'Aether eel pool',skill:'fishing',tool:'rod',req:70,xp:850,item:'reel',base:.1,dep:.2,rt:[16,24],verb:'fish',reach:22}
+  spot1:{name:'Shallow fishing spot',skill:'fishing',tool:'net',req:1,xp:28,item:'rshrimp',base:.38,dep:.2,rt:[8,14],verb:'fish',reach:22},
+  spot2:{name:'Deep fishing spot',skill:'fishing',tool:'rod',req:12,xp:68,item:'rtrout',base:.26,dep:.2,rt:[10,16],verb:'fish',reach:22},
+  spot3:{name:'Far fishing spot',skill:'fishing',tool:'rod',req:25,xp:150,item:'rsalmon',base:.18,dep:.2,rt:[12,18],verb:'fish',reach:22},
+  spot4:{name:'Tuna shoal',skill:'fishing',tool:'rod',req:40,xp:400,item:'rtuna',base:.14,dep:.2,rt:[14,20],verb:'fish',reach:22},
+  spot5:{name:'Aether eel pool',skill:'fishing',tool:'rod',req:70,xp:1550,item:'reel',base:.1,dep:.2,rt:[16,24],verb:'fish',reach:22}
 });
 for(const k of ['tree','oak','maple','elder','myrren'])NT[k].msg='You swing your hatchet at the '+NT[k].name.toLowerCase()+'.';
 for(const k of ['copper','tin','iron','coal','cobalt','aether'])NT[k].msg='You swing your pickaxe at the rock.';
 for(const k of ['spot1','spot2','spot3','spot4','spot5'])NT[k].msg='You cast your line into the water.';
+// Large-monster rewards reflect fight difficulty without letting one
+// elite kill skip entire skill brackets; coins and loot remain untouched.
 const MT={
   slime:{name:'Pink slime',lv:1,hp:5,def:1,max:1,iv:2.4,sp:26,ag:30,xpm:1,coins:[2,6],bread:.1,drop:{p:.04,mats:[1]}},
   goblin:{name:'Goblin',lv:5,hp:10,def:4,max:2,iv:2.4,sp:28,ag:40,xpm:1.2,coins:[5,12],bread:.25,drop:{p:.07,mats:[1,2]}},
   wolf:{name:'Dire wolf',lv:12,hp:20,def:10,max:4,iv:2.4,sp:34,ag:50,xpm:2.2,coins:[10,24],bread:.2,drop:{p:.08,mats:[2,3]}},
   boar:{name:'Wild boar',lv:8,hp:14,def:6,max:3,iv:2.4,sp:30,ag:36,xpm:1.6,coins:[8,18],bread:.3,drop:{p:.07,mats:[1,2]}},
   bear:{name:'Brown bear',lv:22,hp:42,def:18,max:6,iv:2.6,sp:30,ag:44,xpm:4,coins:[24,52],bread:.1,drop:{p:.1,mats:[3,4]}},
-  cave:{name:'Cave bear',lv:40,hp:150,def:38,max:14,iv:2.4,sp:32,ag:50,xpm:30,coins:[30,70],bread:0,telegraph:{ms:700,radius:16},drop:{p:.12,mats:[4,5]}},
-  abear:{name:'Aether bear',lv:70,hp:520,def:68,max:28,iv:2.2,sp:34,ag:56,xpm:220,coins:[120,260],bread:0,telegraph:{ms:850,radius:18},drop:{p:.14,mats:[5,6]}}
+  cave:{name:'Cave bear',lv:40,hp:150,def:38,max:14,iv:2.4,sp:32,ag:50,xpm:7,coins:[30,70],bread:0,telegraph:{ms:700,radius:16},drop:{p:.12,mats:[4,5]}},
+  abear:{name:'Aether bear',lv:70,hp:520,def:68,max:28,iv:2.2,sp:34,ag:56,xpm:6,coins:[120,260],bread:0,telegraph:{ms:850,radius:18},drop:{p:.14,mats:[5,6]}}
 };
 
 // Attack warnings are opt-in. Future bosses default to a readable dodge
