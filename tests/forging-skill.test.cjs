@@ -12,7 +12,7 @@ has("addXp('forging',r.xp)");
 has("addXp('forging',forgeXp(r,cost))");
 has("lvlFor(save.xp.forging)<r.req");
 has("lvlFor(save.xp.forging)<forgeReq(r,kind)");
-has("const forgeXp=(r,cost)=>cost*r.xp*2");
+has("const forgeXp=(r,cost)=>Math.round(cost*r.xp*1.5)");
 has("const PRODUCTION_MS={smelt:1500,forge:2500}");
 has("markProduction('smelt')");
 has("markProduction('forge')");
@@ -36,9 +36,9 @@ const production=extract('const PRODUCTION_MS={smelt:1500,forge:2500};','functio
 let now=10000;
 const ctx={
  Date:{now:()=>now},save:{xp:{forging:0,mining:12345},inv:{copper:2,tin:2,ing_bronze:0},eq:{weapon:null},bag:[]},
- SMELT:[{id:'bronze',mat:2,req:1,xp:12,in:{copper:1,tin:1}}],
+ SMELT:[{id:'bronze',mat:2,req:1,xp:14,in:{copper:1,tin:1}}],
  MATS:{2:{k:'bronze'}},DEFS:{bronze_sword:{id:'bronze_sword',name:'Bronze sword',slot:'weapon',kind:'sword'}},
- FORGE:{sword:4},FORGE_UNLOCK:{sword:4},forgeReq:(r,kind)=>r.req+4,forgeXp:(r,cost)=>cost*r.xp*2,ITEMS:{ing_bronze:{name:'Bronze Ingot'}},
+ FORGE:{sword:4},FORGE_UNLOCK:{sword:4},forgeReq:(r,kind)=>r.req+4,forgeXp:(r,cost)=>Math.round(cost*r.xp*1.5),ITEMS:{ing_bronze:{name:'Bronze Ingot'}},
  NAMES:{forging:'Forging'},lvlFor:xp=>xp>=100?5:1,
  canFitInventory:()=>true,usable:()=>true,inside:false,me:{x:0,y:0},
  say:()=>{},burst:()=>{},persist:()=>{},renderModal:()=>{},uiHud:()=>{},onGearChange:()=>{},
@@ -49,7 +49,7 @@ vm.runInContext(production,ctx);
 vm.runInContext('smelt(SMELT[0])',ctx);
 assert.equal(ctx.save.inv.ing_bronze,1);
 assert.equal(ctx.save.inv.copper,1);
-assert.equal(ctx.save.xp.forging,12);
+assert.equal(ctx.save.xp.forging,14);
 assert.equal(ctx.save.xp.mining,12345);
 vm.runInContext('smelt(SMELT[0])',ctx);
 assert.equal(ctx.save.inv.ing_bronze,1,'Rapid smelt must not duplicate items');
@@ -61,7 +61,7 @@ ctx.save.xp.forging=100;
 now+=1500;
 vm.runInContext('forge("sword")',ctx);
 assert.equal(ctx.save.inv.ing_bronze,0);
-assert.equal(ctx.save.xp.forging,196);
+assert.equal(ctx.save.xp.forging,184);
 assert.equal(ctx.save.xp.mining,12345);
 assert.equal(ctx.save.eq.weapon,'bronze_sword');
 vm.runInContext('forge("sword")',ctx);
@@ -79,7 +79,7 @@ assert.equal(ctx.save.inv.ing_bronze,before.ingots,'Locked recipe must not consu
 ctx.save.xp.forging=100;
 vm.runInContext('forge("sword")',ctx);
 assert.equal(ctx.save.bag.length,1,'Valid crafting should work immediately after rejected attempt');
-assert.equal(ctx.save.xp.forging,196);
+assert.equal(ctx.save.xp.forging,184);
 now+=2500;
 ctx.save.inv.ing_bronze=0;
 vm.runInContext('forge("sword")',ctx);

@@ -7,7 +7,9 @@ const createGame=require('./game-runtime.cjs');
 
 (async()=>{
   const {game:g,memory,elements}=await createGame();
-  const oldNow=Date.now;let clock=1_000_000;Date.now=()=>clock;
+  const oldNow=Date.now,oldRandom=Math.random;let clock=1_000_000;
+  Date.now=()=>clock;
+  Math.random=()=>.5; // Prevent random pet unlocks from changing the expected unboosted XP.
   try{
     const furnace=g.VILLAGE.stations.find(s=>s.kind==='furnace');
     const anvil=g.VILLAGE.stations.find(s=>s.kind==='anvil');
@@ -34,14 +36,14 @@ const createGame=require('./game-runtime.cjs');
     assert.equal(g.save.inv.ing_bronze,0,'no production before the 1.5-second smelt interval');
     clock++;g.smithingTick(clock);
     assert.equal(g.save.inv.ing_bronze,1,'first ingot is forged when interval ends');
-    assert.equal(g.save.xp.forging-beforeXp,12,'first smelt awards the existing amount of Smithing XP');
+    assert.equal(g.save.xp.forging-beforeXp,g.SMELT[0].xp,'first smelt awards the balanced ingot XP');
     assert.equal(g.save.inv.copper,11);assert.equal(g.save.inv.tin,11);
     for(let i=0;i<4;i++){clock+=1500;g.smithingTick(clock)}
     assert.equal(g.getSmithJob(),null,'selected five-bar batch completes');
     assert.equal(g.save.inv.ing_bronze,5);
     assert.equal(g.save.inv.copper,7);
     assert.equal(g.save.inv.tin,7);
-    assert.equal(g.save.xp.forging-beforeXp,5*12,'batch gives exact normal XP, never a shortcut bonus');
+    assert.equal(g.save.xp.forging-beforeXp,5*g.SMELT[0].xp,'batch gives exact per-ingot XP, never a shortcut bonus');
     assert.equal(JSON.parse(memory.get('ember-reach-v2')).inv.ing_bronze,5,'batch outputs persist normally');
 
     // All respects available ores and still stops automatically.
@@ -84,7 +86,7 @@ const createGame=require('./game-runtime.cjs');
     assert.deepEqual(g.save.bag.slice(-2),['bronze_sword','bronze_sword'],'batch preserves duplicate crafted gear');
     assert.equal(g.save.inv.ing_bronze,12,'each sword consumes four bars');
     assert.equal(g.save.eq.weapon,equipped,'batch crafting does not change player equipment');
-    assert.equal(g.save.xp.forging-forgingBefore,2*g.SMELT[0].xp*2*4,'forge batch preserves the existing per-item XP');
+    assert.equal(g.save.xp.forging-forgingBefore,2*Math.round(g.SMELT[0].xp*1.5*4),'forge batch preserves the balanced per-item XP');
 
     // Moving away or exhausting supplies cannot continue consuming materials.
     g.me.x=furnace.x;g.me.y=furnace.y;g.openSmithy('furnace');
@@ -112,5 +114,5 @@ const createGame=require('./game-runtime.cjs');
     assert(!source.includes('Smelt:[]'),'blacksmith merchant categories do not sell smelting');
     assert(source.includes('smelt:rSmelt'),'furnace must render without executing rShop');
     console.log('PASS: furnace and anvil batches, one-at-a-time intervals, real XP and materials, All, duplicates, cancel, skill gates and saved progress.');
-  }finally{Date.now=oldNow}
+  }finally{Date.now=oldNow;Math.random=oldRandom}
 })().catch(e=>{console.error(e);process.exitCode=1});
