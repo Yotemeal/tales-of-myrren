@@ -1850,8 +1850,11 @@ function doAction(dt,now){
     me.tool=w?'sword':'fist';me.mat=w?w.mat:2;
     const iv=SWING_IV/1000;a.t+=dt;
     if(!a.swung&&a.t>=iv-.2){a.swung=true;startSwing(now)}
-    if(a.t>=iv){
-      a.t-=iv;a.swung=false;
+    if(a.t>=iv&&now>=nextSwing){
+      // Manual and targeted attacks consume the same per-character cooldown.
+      // Discard accumulated action time to prevent burst attacks on mode switch.
+      nextSwing=now+SWING_IV;
+      a.t=0;a.swung=false;
       const atk=atkBonus();
       const hit=Math.random()<clamp(.55+(L-mt.def)*.03+atk*.01,.25,.95);
       const dmg=hit?rint(1,2+Math.floor(L/4)+atk):0;
