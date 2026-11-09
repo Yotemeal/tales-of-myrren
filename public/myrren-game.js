@@ -1396,7 +1396,7 @@ function startSmithing(type,id){
   if(count<=0){say('You need more materials, skill levels or bag space.','warn');return false}
   if(smithJob)stopSmithing('',false);
   const now=Date.now();
-  smithJob={type,id,total:count,remaining:count,done:0,nextAt:Math.max(now,productionReadyAt)+PRODUCTION_MS[type]};
+  smithJob={type,id,total:count,remaining:count,done:0,nextAt:Math.max(now+PRODUCTION_MS[type],productionReadyAt)};
   renderModal();return true;
 }
 function smelt(r,batch=false){
