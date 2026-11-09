@@ -17,7 +17,13 @@ const createGame=require('./game-runtime.cjs');
     g.save.inv.copper=12;g.save.inv.tin=12;
     g.save.inv.ing_bronze=0;
     g.openSmithy('furnace');
-    assert.equal(g.getTab(),'shop','station opens a usable workstation menu');
+    assert.equal(g.getTab(),'smelt','furnace must use a dedicated smelting screen');
+    assert.equal(elements.get('modal').dataset.screen,'smelt','furnace screen is not the merchant shop');
+    assert.equal(elements.get('mTitle').textContent,'Furnace · Smelting');
+    assert.equal(g.curShop(),null,'furnace must not activate a merchant shop');
+    const furnaceRows=elements.get('mBody').children;
+    assert(!furnaceRows.some(row=>row.className==='shophead'),'furnace must have no merchant banner or coin totals');
+    assert(furnaceRows.some(row=>row.className==='smith-work'),'furnace must retain the smelting production controls');
     assert.equal(g.smithMaximum('smelt','bronze'),12,'batch capacity derives from available ore');
     g.setSmithQuantity(5);
     assert(g.startSmithing('smelt','bronze'));
@@ -58,6 +64,10 @@ const createGame=require('./game-runtime.cjs');
 
     // Forged batch items stay in the pack, not automatically put on the player.
     g.me.x=anvil.x;g.me.y=anvil.y;g.openSmithy('anvil');
+    assert.equal(g.getTab(),'shop','anvil retains its existing forging screen');
+    assert.equal(elements.get('modal').dataset.screen,'shop');
+    assert(g.curShop(),'anvil still accesses its existing blacksmith shop');
+    assert(elements.get('mBody').children.some(row=>row.className==='shophead'),'blacksmith shop banner remains available at the anvil');
     g.setForgeMat(2);
     g.save.inv.ing_bronze=20;
     g.setSmithQuantity(2);
@@ -94,7 +104,13 @@ const createGame=require('./game-runtime.cjs');
 
     assert(!Object.hasOwn(g.snap(),'smithJob'),'temporary queue is never written into the player save');
     assert(fs.readFileSync('public/myrren-game.js','utf8').includes("forging:'Smithing'"),'UI calls it Smithing without changing save identifiers');
-    assert(fs.readFileSync('public/myrren-ui.css','utf8').includes('.smith-progress'),'progress bar is styled');
+    const css=fs.readFileSync('public/myrren-ui.css','utf8');
+    assert(css.includes('.smith-progress'),'progress bar is styled');
+    assert(css.includes('#modal[data-screen="smelt"] .window-footer { display:none; }'),'furnace hides shop currency and token footer');
+    assert(css.includes('#modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-work'),'smelt-specific controls keep their styling');
+    const source=fs.readFileSync('public/myrren-game.js','utf8');
+    assert(!source.includes('Smelt:[]'),'blacksmith merchant categories do not sell smelting');
+    assert(source.includes('smelt:rSmelt'),'furnace must render without executing rShop');
     console.log('PASS: furnace and anvil batches, one-at-a-time intervals, real XP and materials, All, duplicates, cancel, skill gates and saved progress.');
   }finally{Date.now=oldNow}
 })().catch(e=>{console.error(e);process.exitCode=1});
