@@ -337,15 +337,24 @@ function loadLocalProgress(){
 if(!loadLocalProgress()){finalizeSave();save.inv.coins=30}
 function snap(){const px=me.deathAt!=null?CX:inside?me.ox:me.x,py=me.deathAt!=null?CY+40:inside?me.oy:me.y;save.x=Math.round(px);save.y=Math.round(py);return{v:3,ts:Date.now(),name:save.name,xp:save.xp,inv:save.inv,eq:save.eq,bag:save.bag,pets:save.pets,notes:save.notes,bank:save.bank,packOrder:save.packOrder,bankOrder:save.bankOrder,wear:save.wear,jobs:save.jobs,tokens:save.tokens,perks:save.perks,dye:save.dye,x:save.x,y:save.y}}
 function idbOpen(){return new Promise((res,rej)=>{try{const r=indexedDB.open('ember-reach',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>res(r.result);r.onerror=()=>rej()}catch(e){rej()}})}
+// IndexedDB opens asynchronously: an older save may reach the database after
+// a newer one. Never let a delayed write roll back the player's progress.
+function shouldWriteSnapshot(previous,next){
+  if(!next)return false;
+  return !previous||(+next.ts||0)>=(+previous.ts||0);
+}
 async function idbPut(str){
   try{
+    const incoming=parseSavedProgress(str);
+    if(!incoming)return false;
     const d=await idbOpen();
     await new Promise((resolve,reject)=>{
       const tx=d.transaction('s','readwrite'),store=tx.objectStore('s');
       const get=store.get('save');
       get.onsuccess=()=>{
         const prev=parseSavedProgress(get.result);
-        if(prev&&(+prev.ts||0)<(+parseSavedProgress(str).ts||0))store.put(get.result,'backup');
+        if(!shouldWriteSnapshot(prev,incoming))return;
+        if(prev&&(+prev.ts||0)<(+incoming.ts||0))store.put(get.result,'backup');
         store.put(str,'save');
       };
       get.onerror=()=>store.put(str,'save');
@@ -375,8 +384,10 @@ async function idbGetAll(){
 }
 async function idbGet(){try{const d=await idbOpen();const v=await new Promise(res=>{const q=d.transaction('s').objectStore('s').get('save');q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)});d.close();return v}catch(e){return null}}
 let cdoc=null,cloudState='checking',cloudSig='',cloudAt=0,cloudBusy=false,bakAt=0,lastSavedAt=0;
+// Save timestamps change every autosave; ignore them when comparing content.
+function saveSignature(str){return str.replace(/"ts":\d+,?/,'')}
 async function cloudPush(str,force){
-  if(!cdoc||cloudBusy)return;const sig=str.replace(/"ts":\d+,?/,'');if(sig===cloudSig)return;
+  if(!cdoc||cloudBusy)return;const sig=saveSignature(str);if(sig===cloudSig)return;
   if(!force&&Date.now()-cloudAt<20000)return;
   cloudBusy=true;try{await cdoc.set({json:str,ts:saveTs});cloudSig=sig;cloudAt=Date.now();cloudState='on'}catch(e){cloudState='error'}cloudBusy=false;
 }
@@ -418,7 +429,7 @@ async function sbLoad(){
 }
 async function sbPush(str,force){
   if(!sbSession||!sbReady||sbBusy)return;
-  const sig=str.replace(/"ts":\\d+,?/,'');
+  const sig=saveSignature(str);
   if(sig===sbLastSig||(!force&&Date.now()-sbLastAt<20000))return;
   sbBusy=true;
   try{

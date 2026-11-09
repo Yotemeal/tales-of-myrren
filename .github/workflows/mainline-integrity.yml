@@ -40,6 +40,7 @@ jobs:
           node tests/armour-progression.test.cjs
           node tests/inventory-capacity.cjs
           node tests/save-inventory.test.cjs
+          node tests/save-write-order.test.cjs
           node tests/bank-notes.test.cjs
           node tests/combat-kill-xp.test.cjs
           node tests/movement-speed.test.cjs
