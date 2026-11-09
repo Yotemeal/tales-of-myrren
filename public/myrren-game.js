@@ -1816,7 +1816,7 @@ function doAction(dt,now){
     const w=activeDef('weapon');
     me.tool=w?'sword':'fist';me.mat=w?w.mat:2;
     const iv=SWING_IV/1000;a.t+=dt;
-    if(!a.swung&&a.t>=iv-.2){a.swung=true;startSwing(now)}
+    if(!a.swung&&a.t>=iv-.2&&now>=nextSwing-200){a.swung=true;startSwing(now)}
     if(a.t>=iv&&now>=nextSwing){
       // Manual and targeted attacks consume the same per-character cooldown.
       // Discard accumulated action time to prevent burst attacks on mode switch.
