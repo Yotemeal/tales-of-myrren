@@ -161,7 +161,7 @@ for(const id in DEFS){const d=DEFS[id];if(FORGE[d.kind]&&d.mat>=2){const ik='ing
 const gearSvg=(d,s)=>{if(d.kind==='sword'&&window.MyrrenSwords?.ready)return window.MyrrenSwords.icon(d.mat,s);if(window.MyrrenArmour?.ready&&ARMOUR_DEF[d.kind])return window.MyrrenArmour.icon(d.kind,d.mat,s);const m=MATS[d.mat];return svg(d.art,s,{M:m.M,H:m.H,D:m.D,S:m.H})};
 
 /* ---------- rules ---------- */
-const NAMES={melee:'Combat',woodcutting:'Forestry',mining:'Delving',fishing:'Fishing',cooking:'Cooking',forging:'Forging'};
+const NAMES={melee:'Combat',woodcutting:'Forestry',mining:'Delving',fishing:'Fishing',cooking:'Cooking',forging:'Smithing'};
 const SK=['melee','woodcutting','mining','fishing','cooking','forging'];
 const SKILL_ART={melee:'skill_combat',woodcutting:'skill_forestry',mining:'skill_delving',fishing:'skill_fishing',cooking:'skill_cooking',forging:'skill_forging'};
 const MAXL=100,XPK=24;
@@ -672,8 +672,8 @@ function addXp(skill,amt){
 /* ---------- modal ---------- */
 const modal=$('modal'),mBody=$('mBody');
 const TITLES={gear:'Equipment',pack:'Inventory',skills:'Skills',players:'Party',shop:'Shop',settings:'Settings',board:'Community Board',jobs:'Odd Jobs',odd:'Odd Shop',bank:'Storage Chest'};
-function openModal(t){if(me.deathAt!=null)return;closeItemMenu();if(!tab)gpIdx=-1;tab=t;if(t!=='shop'&&t!=='settings'&&t!=='board'&&t!=='odd')lastTab=t;sel=null;renderModal()}
-function closeModal(){closeItemMenu();tab='';sel=null;outdoorShop=null;renderModal()}
+function openModal(t){if(me.deathAt!=null)return;if(smithJob&&t!=='shop')stopSmithing('',false);closeItemMenu();if(!tab)gpIdx=-1;tab=t;if(t!=='shop'&&t!=='settings'&&t!=='board'&&t!=='odd')lastTab=t;sel=null;renderModal()}
+function closeModal(){stopSmithing('',false);closeItemMenu();tab='';sel=null;outdoorShop=null;renderModal()}
 function renderModal(){
   modal.dataset.screen=tab;
   modal.hidden=!tab;
@@ -1309,63 +1309,194 @@ function buyFood(k){
   save.inv.coins-=foodPrice(k);save.inv[k]++;say('You buy some '+ITEMS[k].name.toLowerCase()+'.');persist();renderModal();uiHud();
 }
 const ingName=id=>ITEMS['ing_'+id].name;
-/* Production cooldowns prevent rapid click/repeat inputs from bypassing intended training pace. */
+/* Smithing uses the same ore, ingot, XP and item tables as before.
+   The new furnace/anvil queue only automates deliberate repeated actions.
+   Never craft while away from the station, after closing the menu or offline. */
 const PRODUCTION_MS={smelt:1500,forge:2500};
-let productionReadyAt=0;
-function productionReady(action){if(Date.now()<productionReadyAt){say('The forge is still cooling.','warn');return false}return true}
+let productionReadyAt=0,forgeMat=2,smithJob=null,smithQuantity=1;
+const smithSelected={smelt:'bronze',forge:'sword'};
+function productionReady(action,quiet=false){
+  if(Date.now()>=productionReadyAt)return true;
+  if(!quiet)say('The '+(action==='smelt'?'furnace':'anvil')+' is still working.','warn');
+  return false;
+}
 function markProduction(action){productionReadyAt=Date.now()+PRODUCTION_MS[action]}
-
-function smelt(r){
-  if(!productionReady('smelt'))return;
-  if(lvlFor(save.xp.forging)<r.req){say('You need '+NAMES.forging+' '+r.req+' to smelt that.','warn');return}
-  for(const k in r.in)if(save.inv[k]<r.in[k]){say('You do not have enough materials.','warn');return}
+function smithRecipe(type,id){
+  if(type==='smelt')return SMELT.find(r=>r.id===id)||null;
+  if(type==='forge')return SMELT.find(r=>r.mat===forgeMat)&&FORGE[id]&&DEFS[MATS[forgeMat].k+'_'+id]?id:null;
+  return null;
+}
+function smithMaterials(type,id){
+  if(type==='smelt'){
+    const r=smithRecipe(type,id);
+    if(!r)return 0;
+    return Math.max(0,Math.min(...Object.entries(r.in).map(([k,n])=>Math.floor((save.inv[k]||0)/n))));
+  }
+  const r=SMELT.find(x=>x.mat===forgeMat),kind=smithRecipe(type,id);
+  return r&&kind?Math.max(0,Math.floor((save.inv['ing_'+r.id]||0)/FORGE[kind])):0;
+}
+function smithMaximum(type,id){
+  const r=type==='smelt'?smithRecipe(type,id):SMELT.find(x=>x.mat===forgeMat);
+  if(!r||!smithRecipe(type,id)||lvlFor(save.xp.forging)<(type==='smelt'?r.req:forgeReq(r,id)))return 0;
+  const limit=smithMaterials(type,id);
+  if(type==='smelt'){
+    const changes={['ing_'+r.id]:1};
+    for(const [k,n] of Object.entries(r.in))changes[k]=-n;
+    return limit&&canFitInventory(changes)?limit:0;
+  }
+  // Each forged piece occupies a bag slot. Never assume a stacked bar can
+  // produce unlimited gear when the player's inventory is almost full.
+  const key='ing_'+r.id,cost=FORGE[id];
+  let count=0;
+  for(let n=1;n<=Math.min(limit,PACK_CAPACITY+1);n++){
+    if(!canFitInventory({[key]:-cost*n},n))break;
+    count=n;
+  }
+  return count;
+}
+function smithStation(type){
+  const kind=type==='smelt'?'furnace':'anvil',station=VILLAGE.stations.find(s=>s.kind===kind);
+  return station&&!inside&&Math.hypot(me.x-station.x,me.y-station.y)<=38?station:null;
+}
+function smithCanContinue(job){
+  return me.deathAt==null&&tab==='shop'&&shopCat===(job.type==='smelt'?'Smelt':'Forge')
+    &&!!smithStation(job.type)&&!!curShop()&&smithMaximum(job.type,job.id)>0;
+}
+function stopSmithing(message='',refresh=true){
+  const old=smithJob;smithJob=null;
+  if(!old)return;
+  if(message)say(message,'gold');
+  if(refresh&&tab==='shop')renderModal();
+}
+function smithingTick(now=Date.now()){
+  const job=smithJob;
+  if(!job)return;
+  if(!smithCanContinue(job)){stopSmithing('Smithing stopped: move closer or check your materials.');return}
+  if(now<job.nextAt)return;
+  const made=job.type==='smelt'?smelt(smithRecipe('smelt',job.id),true):forge(job.id,true);
+  if(!made){stopSmithing('Smithing stopped: check your supplies or pack space.');return}
+  job.remaining--;job.done++;
+  if(job.remaining<=0){stopSmithing('Finished '+job.done+' '+(job.type==='smelt'?'ingot':'equipment')+(job.done===1?'':'s')+'.',false)}
+  else job.nextAt=Math.max(now,productionReadyAt);
+  if(tab==='shop')renderModal();
+}
+function smithingProgress(now=Date.now()){
+  const job=smithJob;
+  if(!job)return;
+  const fill=$('smithingFill'),labelNode=$('smithingStatus');
+  if(fill)fill.style.width=(100*clamp(1-(job.nextAt-now)/PRODUCTION_MS[job.type],0,1))+'%';
+  if(labelNode)labelNode.textContent=(job.type==='smelt'?'Smelting':'Forging')+' · '+job.done+'/'+job.total+' made';
+}
+function startSmithing(type,id){
+  const recipe=smithRecipe(type,id);
+  if(!recipe||!smithStation(type)||tab!=='shop'||shopCat!==(type==='smelt'?'Smelt':'Forge')){
+    say('Use the '+(type==='smelt'?'furnace':'anvil')+' to make this.','warn');return false;
+  }
+  const maximum=smithMaximum(type,id),count=smithQuantity==='all'?maximum:Math.min(smithQuantity,maximum);
+  if(count<=0){say('You need more materials, skill levels or bag space.','warn');return false}
+  if(smithJob)stopSmithing('',false);
+  const now=Date.now();
+  smithJob={type,id,total:count,remaining:count,done:0,nextAt:Math.max(now,productionReadyAt)+PRODUCTION_MS[type]};
+  renderModal();return true;
+}
+function smelt(r,batch=false){
+  if(!r||!productionReady('smelt',batch))return false;
+  if(lvlFor(save.xp.forging)<r.req){if(!batch)say('You need '+NAMES.forging+' '+r.req+' to smelt that.','warn');return false}
+  for(const k in r.in)if((save.inv[k]||0)<r.in[k]){if(!batch)say('You do not have enough materials.','warn');return false}
   const key='ing_'+r.id,changes={[key]:1};
   for(const k in r.in)changes[k]=-r.in[k];
-  if(!canFitInventory(changes)){say('Your pack is full.','warn');return}
+  if(!canFitInventory(changes)){if(!batch)say('Your pack is full.','warn');return false}
   markProduction('smelt');
-  for(const k in r.in)save.inv[k]-=r.in[k];save.inv[key]++;
-  say('You smelt a '+ITEMS[key].name.toLowerCase()+'.');burst(inside?88:me.x,inside?60:me.y-8,['#ff7b3a','#ffd24a','#fff2b0'],8,22);
-  addXp('forging',r.xp);rollPet('forging');persist();renderModal();uiHud();
+  for(const k in r.in)save.inv[k]-=r.in[k];save.inv[key]=(save.inv[key]||0)+1;
+  if(!batch)say('You smelt a '+ITEMS[key].name.toLowerCase()+'.');
+  burst(inside?88:me.x,inside?60:me.y-8,['#ff7b3a','#ffd24a','#fff2b0'],8,22);
+  addXp('forging',r.xp);rollPet('forging');persist();
+  if(!batch){renderModal();uiHud()}
+  return true;
+}
+function forge(kind,batch=false){
+  if(!productionReady('forge',batch))return false;
+  const r=SMELT.find(x=>x.mat===forgeMat),id=MATS[forgeMat]?.k+'_'+kind,d=DEFS[id],cost=FORGE[kind];
+  if(!r||!d||!cost)return false;
+  const key='ing_'+r.id;
+  if(lvlFor(save.xp.forging)<forgeReq(r,kind)){if(!batch)say('You need '+NAMES.forging+' '+forgeReq(r,kind)+' to forge with that.','warn');return false}
+  if((save.inv[key]||0)<cost){if(!batch)say('You need '+cost+' '+ITEMS[key].name.toLowerCase()+'s.','warn');return false}
+  const equip=!batch&&!save.eq[d.slot]&&usable(d);
+  if(!canFitInventory({[key]:-cost},equip?0:1)){if(!batch)say('Your pack is full.','warn');return false}
+  markProduction('forge');save.inv[key]-=cost;
+  if(equip){save.eq[d.slot]=id;say('You forge and equip a '+d.name.toLowerCase()+'.','gold')}
+  else {save.bag.push(id);if(!batch)say('You forge a '+d.name.toLowerCase()+'.','gold')}
+  burst(inside?88:me.x,inside?60:me.y-8,['#ff7b3a','#ffd24a','#fff2b0'],8,22);
+  addXp('forging',forgeXp(r,cost));rollPet('forging');
+  if(batch)persist();else if(equip)onGearChange();else{persist();renderModal();uiHud()}
+  return true;
+}
+function smithQuantityPicker(){
+  const wrap=el('div','smith-qty');
+  wrap.append(el('span','smith-label','Make'));
+  for(const [value,text] of [[1,'1'],[5,'5'],[10,'10'],['all','All']]){
+    const b=el('button','chip',text);b.type='button';b.disabled=!!smithJob;
+    b.setAttribute('aria-pressed',String(smithQuantity===value));
+    b.addEventListener('click',()=>{smithQuantity=value;renderModal()});wrap.append(b);
+  }
+  mBody.append(wrap);
+}
+function smithingPanel(type){
+  const id=smithSelected[type],r=type==='smelt'?smithRecipe(type,id):SMELT.find(x=>x.mat===forgeMat);
+  if(!r||!smithRecipe(type,id))return;
+  const count=smithMaximum(type,id),selected=smithQuantity==='all'?count:Math.min(count,smithQuantity);
+  const name=type==='smelt'?ITEMS['ing_'+r.id].name:DEFS[MATS[forgeMat].k+'_'+id].name;
+  const xp=type==='smelt'?r.xp:forgeXp(r,FORGE[id]);
+  const status=el('div','smith-work');
+  if(smithJob){
+    status.append(el('b','smith-work-title','Working: '+name));
+    status.append(el('p','note','Production continues until the chosen quantity is done, your materials run out, or you leave.'));
+    const progress=el('div','smith-progress'),fill=el('i','');fill.id='smithingFill';progress.append(fill);status.append(progress);
+    const detail=el('small','smith-work-status','');detail.id='smithingStatus';status.append(detail);
+    const stop=el('button','btn smith-primary','Stop smithing');stop.type='button';stop.addEventListener('click',()=>stopSmithing());status.append(stop);
+  }else{
+    status.append(el('b','smith-work-title',name));
+    status.append(el('p','note',(type==='smelt'?'Smelt':'Forge')+' '+(selected||0)+' · '+xp.toLocaleString()+' XP each · '+count+' possible now'));
+    const go=el('button','btn smith-primary',type==='smelt'?'Smelt '+selected:'Forge '+selected);
+    go.type='button';go.disabled=!selected;go.addEventListener('click',()=>startSmithing(type,id));status.append(go);
+  }
+  mBody.append(status);
+  smithingProgress();
 }
 function rSmelt(){
-  mBody.append(el('p','note','Smelt chunks and coal into ingots. Uses '+NAMES.forging+' level.'));
-  SMELT.forEach(r=>{
-    const key='ing_'+r.id,lv=lvlFor(save.xp.forging);
-    const can=lv>=r.req&&Object.keys(r.in).every(k=>save.inv[k]>=r.in[k]);
-    const need=Object.keys(r.in).map(k=>r.in[k]+' '+ITEMS[k].name+' ('+save.inv[k]+')').join(' + ');
-    const row=el('div','shoprow');
-    row.innerHTML=itemSvg(key,32)+'<span>'+ITEMS[key].name+'<small>'+need+'</small><small class="'+(lv>=r.req?'':'bad')+'">Needs '+NAMES.forging+' '+r.req+' | You have '+save.inv[key]+'</small></span>';
-    const b=el('button','btn','Smelt');b.type='button';b.disabled=!can;b.addEventListener('click',()=>smelt(r));row.append(b);mBody.append(row);
-  });
-}
-let forgeMat=2;
-function forge(kind){
-  if(!productionReady('forge'))return;
-  const r=SMELT.find(x=>x.mat===forgeMat),id=MATS[forgeMat]?.k+'_'+kind,d=DEFS[id],cost=FORGE[kind];
-  if(!r||!d||!cost)return;const key='ing_'+r.id;
-  if(lvlFor(save.xp.forging)<forgeReq(r,kind)){say('You need '+NAMES.forging+' '+forgeReq(r,kind)+' to forge with that.','warn');return}
-  if(save.inv[key]<cost){say('You need '+cost+' '+ITEMS[key].name.toLowerCase()+'s.','warn');return}
-  if(!canFitInventory({[key]:-cost},!save.eq[d.slot]&&usable(d)?0:1)){say('Your pack is full.','warn');return}
-  markProduction('forge');
-  save.inv[key]-=cost;
-  if(!save.eq[d.slot]&&usable(d)){save.eq[d.slot]=id;say('You forge and equip a '+d.name.toLowerCase()+'.','gold')}
-  else{save.bag.push(id);say('You forge a '+d.name.toLowerCase()+'.','gold')}
-  burst(inside?88:me.x,inside?60:me.y-8,['#ff7b3a','#ffd24a','#fff2b0'],8,22);
-  addXp('forging',forgeXp(r,cost));rollPet('forging');onGearChange();
+  mBody.append(el('p','note','Furnace · select a metal, choose an amount, then smelt automatically.'));
+  smithQuantityPicker();
+  for(const r of SMELT){
+    const key='ing_'+r.id,lv=lvlFor(save.xp.forging),row=el('div','shoprow smith-recipe');
+    const selected=smithSelected.smelt===r.id;
+    row.setAttribute('aria-selected',String(selected));
+    const need=Object.entries(r.in).map(([k,n])=>n+' '+ITEMS[k].name+' ('+(save.inv[k]||0)+')').join(' + ');
+    row.innerHTML=itemSvg(key,32)+'<span>'+ITEMS[key].name+
+      '<small>'+need+'</small><small class="'+(lv<r.req?'bad':'')+'">Level '+r.req+' · '+r.xp+' XP · '+(save.inv[key]||0)+' owned</small></span>';
+    const b=el('button','btn',selected?'Selected':'Choose');b.type='button';b.disabled=!!smithJob;
+    b.addEventListener('click',()=>{smithSelected.smelt=r.id;renderModal()});row.append(b);mBody.append(row);
+  }
+  smithingPanel('smelt');
 }
 function rForge(){
   const chips=el('div','chips');
-  SMELT.forEach(r=>{const b=el('button','chip',MATS[r.mat].n);b.type='button';b.setAttribute('aria-pressed',String(forgeMat===r.mat));b.addEventListener('click',()=>{forgeMat=r.mat;renderModal()});chips.append(b)});
+  SMELT.forEach(r=>{const b=el('button','chip',MATS[r.mat].n);b.type='button';b.disabled=!!smithJob;
+    b.setAttribute('aria-pressed',String(forgeMat===r.mat));
+    b.addEventListener('click',()=>{forgeMat=r.mat;renderModal()});chips.append(b)});
   mBody.append(chips);
+  smithQuantityPicker();
   const r=SMELT.find(x=>x.mat===forgeMat),key='ing_'+r.id,lv=lvlFor(save.xp.forging);
-  mBody.append(el('p','note','You have '+save.inv[key]+' '+ITEMS[key].name.toLowerCase()+'s. Needs '+NAMES.forging+' '+r.req+' to smelt; equipment unlocks gradually.'+(lv>=r.req?'.':' (you have '+lv+').')));
+  mBody.append(el('p','note','Anvil · '+(save.inv[key]||0)+' '+ITEMS[key].name+' available. Forged gear goes into your pack during batch crafting.'));
   Object.keys(FORGE).forEach(kind=>{
     const id=MATS[forgeMat].k+'_'+kind,d=DEFS[id];if(!d)return;
-    const cost=FORGE[kind],can=lv>=forgeReq(r,kind)&&save.inv[key]>=cost,row=el('div','shoprow');
-    row.innerHTML=gearSvg(d,32)+'<span>'+d.name+'<small>'+statLine(d)+'</small><small>'+cost+' ingots | Forging '+forgeReq(r,kind)+' | needs '+NAMES[d.skill]+' '+d.req+' to use</small></span>';
-    const b=el('button','btn','Forge '+cost);b.type='button';b.disabled=!can;b.addEventListener('click',()=>forge(kind));row.append(b);mBody.append(row);
+    const cost=FORGE[kind],row=el('div','shoprow smith-recipe'),selected=smithSelected.forge===kind;
+    row.setAttribute('aria-selected',String(selected));
+    row.innerHTML=gearSvg(d,32)+'<span>'+d.name+
+      '<small>'+statLine(d)+'</small><small class="'+(lv<forgeReq(r,kind)?'bad':'')+'">'+cost+' ingots · Smithing '+forgeReq(r,kind)+' · '+forgeXp(r,cost)+' XP</small></span>';
+    const b=el('button','btn',selected?'Selected':'Choose');b.type='button';b.disabled=!!smithJob;
+    b.addEventListener('click',()=>{smithSelected.forge=kind;renderModal()});row.append(b);mBody.append(row);
   });
-  mBody.append(el('p','note','A full combat set is 32 ingots: sword 4, shield 5, helmet 4, gauntlets 4, boots 4, legs 5, body 6.'));
+  smithingPanel('forge');
 }
 function rShop(){
   const S=curShop();if(!S){closeModal();return}
@@ -1393,6 +1524,7 @@ function rShop(){
       mBody.append(chips);
     }
     const special=S.id==='arms'&&(shopCat==='Smelt'||shopCat==='Forge');
+    if(smithJob&&shopCat!==(smithJob.type==='smelt'?'Smelt':'Forge'))stopSmithing('',false);
     if(special){if(shopCat==='Smelt')rSmelt();else rForge()}
     const list=special?[]:Object.values(DEFS).filter(d=>S.cats[shopCat].includes(d.kind)&&!owned(d.id)&&(S.id==='cart'?d.mat===KINDS[d.kind].mats[0]:d.mat<=(SHOPMAX[d.kind]||3))).sort((a,b)=>a.price-b.price);
     if(!list.length&&!special)mBody.append(el('p','note','You own everything in this section.'));
@@ -1808,6 +1940,7 @@ function leaveBuilding(now){
 }
 function die(){
   if(me.deathAt!=null)return;
+  stopSmithing('',false);
   me.deathAt=performance.now();me.hp=0;me.moving=false;me.pend=0;pendingStrike=null;me.swing=-99999;
   act=null;marker=null;wantSwing=false;closeModal();
   say('Oh dear, you are dead!','red');toast('YOU DIED');uiHud();
@@ -1956,7 +2089,7 @@ function update(dt,now){
   const manual=mag>.18;
   me.moving=false;let inRange=false;
   if(manual){
-    act=null;blocked.clear();idleT=0;
+    stopSmithing('',false);act=null;blocked.clear();idleT=0;
     const sp=SPD*mag;
     me.x+=mx/mag*sp*dt;me.y+=my/mag*sp*dt;me.moving=true;
   }else if(started){
@@ -1984,6 +2117,7 @@ function update(dt,now){
       }
     }
   }
+  smithingTick();smithingProgress();
   // Evaluate attack after gamepad input, joystick movement and collision
   // resolution. The first pressed frame now uses the correct controller state
   // and the strike begins from the player's actual post-movement position.
@@ -3307,8 +3441,8 @@ window.addEventListener('storage',event=>{
   if(event.key!==KEY||!started||saveConflict)return;
   if(isNewerExternalSave(event.newValue,saveTs))markSaveConflict();
 });
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&started)persist(true)});
-window.addEventListener('pagehide',()=>{if(started)persist(true)});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){stopSmithing('',false);if(started)persist(true)}});
+window.addEventListener('pagehide',()=>{stopSmithing('',false);if(started)persist(true)});
 bootLoad();
 requestAnimationFrame(frame);
 })();
