@@ -1416,23 +1416,33 @@ aAtk.addEventListener('pointerdown',e=>{e.preventDefault();if(inside){say('No fi
 ['pointerup','pointercancel'].forEach(t=>aAtk.addEventListener(t,e=>{atkPtrs.delete(e.pointerId);atkHeld=atkPtrs.size>0}));
 addEventListener('blur',()=>{atkPtrs.clear();atkHeld=false});
 aAtk.addEventListener('contextmenu',e=>e.preventDefault());
+// Lock the strike's position and facing at input time. Players can retreat
+// immediately without the 110ms animation delay changing an already-aimed hit.
+let pendingStrike=null;
+function strikeHitsTarget(strike,m){
+  const tx=m.x-strike.x,ty=(m.y-4)-strike.y,d=Math.hypot(tx,ty);
+  return d<=strike.reach&&(d<=7||(tx*strike.fx+ty*strike.fy)/d>=COS_ARC);
+}
 function beginSwing(now){
   if(me.deathAt!=null)return;
   if(me.pend)return;
   if(act&&act.kind!=='cook')act=null;
   refreshHeld();
+  const w=activeDef('weapon');
+  pendingStrike={x:me.x,y:me.y,fx:me.fx,fy:me.fy,reach:w?30:22};
   startSwing(now);me.pend=now+110;
 }
 function resolveSwing(now){
-  if(me.deathAt!=null)return;
-  if(inside)return;
+  const strike=pendingStrike;
+  pendingStrike=null;
+  if(me.deathAt!=null||inside||!strike)return;
   wearItem(save.eq.weapon,1);
-  const w=activeDef('weapon'),reach=w?30:22,L=lvlFor(save.xp.melee),atk=atkBonus();
+  const w=activeDef('weapon'),L=lvlFor(save.xp.melee),atk=atkBonus();
   for(const m of mons){
     if(m.state==='dead')continue;
-    const mt=MT[m.t],tx=m.x-me.x,ty=(m.y-4)-me.y,d=Math.hypot(tx,ty);
-    if(d>reach)continue;
-    if(d>7&&(tx*me.fx+ty*me.fy)/d<COS_ARC)continue;
+    const mt=MT[m.t];
+    if(!strikeHitsTarget(strike,m))continue;
+    const tx=m.x-strike.x,ty=(m.y-4)-strike.y,d=Math.hypot(tx,ty);
     m.prov=true;if(m.state==='idle'||m.state==='return')m.state='chase';
     const hit=Math.random()<clamp(.55+(L-mt.def)*.03+atk*.01,.25,.95);
     const dmg=hit?rint(1,2+Math.floor(L/4)+atk):0;
@@ -1746,7 +1756,7 @@ function leaveBuilding(now){
 }
 function die(){
   if(me.deathAt!=null)return;
-  me.deathAt=performance.now();me.hp=0;me.moving=false;me.pend=0;me.swing=-99999;
+  me.deathAt=performance.now();me.hp=0;me.moving=false;me.pend=0;pendingStrike=null;me.swing=-99999;
   act=null;marker=null;wantSwing=false;closeModal();
   say('Oh dear, you are dead!','red');toast('YOU DIED');uiHud();
   for(const m of mons)if(m.state==='chase')m.state='return';
