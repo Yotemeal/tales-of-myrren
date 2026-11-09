@@ -4,9 +4,12 @@ on:
     paths:
       - 'public/myrren-game.js'
       - 'tests/combat-balance-audit.test.cjs'
+      - 'tests/combat-input.test.cjs'
+      - 'tests/game-runtime.cjs'
       - '.github/workflows/combat-balance.yml'
   push:
     branches:
+      - 'main'
       - 'balance/combat-audit-2026-11'
     paths:
       - 'public/myrren-game.js'
@@ -21,6 +24,8 @@ jobs:
         with:
           node-version: '22'
       - name: JavaScript syntax
-        run: node --check public/myrren-game.js && node --check tests/combat-balance-audit.test.cjs
+        run: node --check public/myrren-game.js && node --check tests/combat-balance-audit.test.cjs && node --check tests/combat-input.test.cjs
       - name: Combat parity and balance baseline
         run: node tests/combat-balance-audit.test.cjs
+      - name: Target locking and attack input behaviour
+        run: node tests/combat-input.test.cjs
