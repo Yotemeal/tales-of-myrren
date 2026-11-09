@@ -20,6 +20,7 @@ assert.equal(swingDpsFactor, 1, 'attack methods must have identical theoretical 
 
 const manualGate = capture(/if\(started&&!inside&&!me\.pend&&\(atkHeld\|\|gpAtk\|\|wantSwing\|\|keys\[' '\]\)&&now>=nextSwing\)\{nextSwing=now\+SWING_IV;wantSwing=false;beginSwing\(now\)\}/, 'manual attack cooldown gate');
 assert.ok(manualGate);
+assert.match(src, /if\(!a\.swung&&a\.t>=iv-\.2&&now>=nextSwing-200\)\{a\.swung=true;startSwing\(now\)\}/, 'targeted attack animation must wait until shared cooldown is nearly ready');
 assert.match(src, /if\(a\.t>=iv&&now>=nextSwing\)\{\s*\/\/ Manual and targeted attacks consume the same per-character cooldown\.[\s\S]*?nextSwing=now\+SWING_IV;\s*a\.t=0;/, 'targeted attacks must consume the manual attack cooldown and discard queued time');
 
 const tiers = [
