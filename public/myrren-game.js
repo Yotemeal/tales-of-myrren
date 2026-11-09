@@ -1404,7 +1404,11 @@ function beginSwing(now){
   if(act&&act.kind!=='cook')act=null;
   refreshHeld();
   const w=activeDef('weapon');
-  pendingStrike={x:me.x,y:me.y,fx:me.fx,fy:me.fy,reach:w?30:22};
+  // Attack-button combat automatically faces the closest enemy in weapon reach.
+  // Movement remains player-controlled; no narrow directional hit-cone required.
+  const reach=w?30:22,target=nearestMon(reach+4);
+  if(target){const dx=target.x-me.x,dy=target.y-4-me.y,d=Math.hypot(dx,dy)||1;me.fx=dx/d;me.fy=dy/d;me.face=dx>=0?1:-1;me.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s'}
+  pendingStrike={x:me.x,y:me.y,fx:me.fx,fy:me.fy,reach,target};
   startSwing(now);me.pend=now+110;
 }
 function resolveSwing(now){
@@ -1415,7 +1419,8 @@ function resolveSwing(now){
   for(const m of mons){
     if(m.state==='dead')continue;
     const mt=MT[m.t];
-    if(!strikeHitsTarget(strike,m))continue;
+    if(strike.target?m!==strike.target:!strikeHitsTarget(strike,m))continue;
+    if(strike.target&&Math.hypot(m.x-strike.x,m.y-4-strike.y)>strike.reach)continue;
     const tx=m.x-strike.x,ty=(m.y-4)-strike.y,d=Math.hypot(tx,ty);
     m.prov=true;if(m.state==='idle'||m.state==='return')m.state='chase';
     const hit=Math.random()<clamp(.55+(L-mt.def)*.03+atk*.01,.25,.95);
