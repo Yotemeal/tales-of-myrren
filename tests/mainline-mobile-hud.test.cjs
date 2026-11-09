@@ -59,6 +59,14 @@ const serve=http.createServer((req,res)=>{
       assert(state.activeCamera>0,'game canvas must be initialized');
       assert.deepEqual(errors,[],'browser must not have uncaught script errors');
       if(name==='portrait'){
+        // Save a real running character, then verify persisted inventory and
+        // name before another tab attempts to supersede that snapshot.
+        await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));
+        const persisted=await page.evaluate(()=>JSON.parse(localStorage.getItem('ember-reach-v2')));
+        assert.equal(persisted.name,'Myrren QA','character name must survive a real browser save');
+        assert.equal(persisted.inv.coins,777,'earned coins must survive the save round-trip');
+        assert.equal(persisted.inv.logs,4,'gathered resources must survive the save round-trip');
+        assert(persisted.ts>0,'persisted save must have a valid timestamp');
         // A second real tab on the same origin updates shared progress.
         // The running older tab must not overwrite it on pagehide/autosave.
         const second=await page.context().newPage();
