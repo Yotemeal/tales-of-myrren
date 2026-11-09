@@ -391,6 +391,7 @@ let cdoc=null,cloudState='checking',cloudSig='',cloudAt=0,cloudBusy=false,bakAt=
 // Save timestamps change every autosave; ignore them when comparing content.
 function saveSignature(str){return str.replace(/"ts":\d+,?/,'')}
 async function cloudPush(str,force){
+  if(saveConflict)return;
   if(!cdoc||cloudBusy)return;const sig=saveSignature(str);if(sig===cloudSig)return;
   if(!force&&Date.now()-cloudAt<20000)return;
   cloudBusy=true;try{await cdoc.set({json:str,ts:saveTs});cloudSig=sig;cloudAt=Date.now();cloudState='on'}catch(e){cloudState='error'}cloudBusy=false;
@@ -432,6 +433,7 @@ async function sbLoad(){
   if(!sbRemote&&!fresh)await sbPush(JSON.stringify(snap()),true);
 }
 async function sbPush(str,force){
+  if(saveConflict)return;
   if(!sbSession||!sbReady||sbBusy)return;
   const sig=saveSignature(str);
   if(sig===sbLastSig||(!force&&Date.now()-sbLastAt<20000))return;
