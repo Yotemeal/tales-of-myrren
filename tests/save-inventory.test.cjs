@@ -22,7 +22,7 @@ const model={v:3,ts:100,name:'Kez',xp:{melee:10000000,mining:10000000,woodcuttin
  // Gathering must stop before spending a tool use or adding an extra stack.
  t.applySave({...model,inv:{coins:98765},bag:Array(36).fill('iron_pick')});
  const node={k:'copper',x:t.me.x,y:t.me.y+10,back:0};t.beginAct('node',node);t.doAction(2,2000);
- assert.equal(t.save.inv.copper,0);assert.equal(t.getAct(),null);assert.equal(t.save.wear.iron_pick||0,0);
+ assert.equal(t.save.inv.copper,0);assert.equal(t.getAct(),null);assert(!('wear' in t.save),'durability data is no longer part of active character state');
  // Combat still pays gold when no item slots are free.
  t.applySave({...model,inv:{coins:1000},bag:Array(36).fill('iron_pick')});
  t.killMon({t:'slime',x:900,y:900},3000);
