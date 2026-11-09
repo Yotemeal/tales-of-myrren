@@ -76,7 +76,7 @@ const createGame=require('./game-runtime.cjs');
   cave.hx=cave.x;cave.hy=cave.y;cave.cd=1.69;cave.prov=true;cave.state='chase';
   g.update(.03,3000);
   assert(cave.warn,'new cast begins');
-  me.x+=135;
+  me.x+=145; // 139px from the enemy: outside its existing 130px leash
   g.update(.02,3050);
   assert.equal(cave.state,'return','leashing enemy returns home');
   assert.equal(cave.warn,null,'leashing cancels its pending warning');
