@@ -337,15 +337,24 @@ function loadLocalProgress(){
 if(!loadLocalProgress()){finalizeSave();save.inv.coins=30}
 function snap(){const px=me.deathAt!=null?CX:inside?me.ox:me.x,py=me.deathAt!=null?CY+40:inside?me.oy:me.y;save.x=Math.round(px);save.y=Math.round(py);return{v:3,ts:Date.now(),name:save.name,xp:save.xp,inv:save.inv,eq:save.eq,bag:save.bag,pets:save.pets,notes:save.notes,bank:save.bank,packOrder:save.packOrder,bankOrder:save.bankOrder,wear:save.wear,jobs:save.jobs,tokens:save.tokens,perks:save.perks,dye:save.dye,x:save.x,y:save.y}}
 function idbOpen(){return new Promise((res,rej)=>{try{const r=indexedDB.open('ember-reach',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>res(r.result);r.onerror=()=>rej()}catch(e){rej()}})}
+// IndexedDB opens asynchronously: an older save may reach the database after
+// a newer one. Never let a delayed write roll back the player's progress.
+function shouldWriteSnapshot(previous,next){
+  if(!next)return false;
+  return !previous||(+next.ts||0)>=(+previous.ts||0);
+}
 async function idbPut(str){
   try{
+    const incoming=parseSavedProgress(str);
+    if(!incoming)return false;
     const d=await idbOpen();
     await new Promise((resolve,reject)=>{
       const tx=d.transaction('s','readwrite'),store=tx.objectStore('s');
       const get=store.get('save');
       get.onsuccess=()=>{
         const prev=parseSavedProgress(get.result);
-        if(prev&&(+prev.ts||0)<(+parseSavedProgress(str).ts||0))store.put(get.result,'backup');
+        if(!shouldWriteSnapshot(prev,incoming))return;
+        if(prev&&(+prev.ts||0)<(+incoming.ts||0))store.put(get.result,'backup');
         store.put(str,'save');
       };
       get.onerror=()=>store.put(str,'save');
