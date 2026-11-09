@@ -88,7 +88,7 @@ const SHOPS={
   pick:{name:'Deepdig Picks',sign:'Picks',keeper:'Hilda',wall:'#a8a8a0',roof:'#5a6270',hue:210,hair:'#c8c0b0',cats:{Pickaxes:['pick']},kinds:['pick'],buys:['copper','tin','iron','coal','cobalt','aether','obsidianite','meteorite'],greet:'Hilda: Pickaxes for every rock. I pay well for raw chunks and coal.'},
   food:{name:'Hearth Bakery',sign:'Bakery',keeper:'Mara',wall:'#d4b890',roof:'#d8863a',hue:30,hair:'#4a2a18',food:true,cats:{},kinds:[],buys:[],greet:'Mara: Fresh bread, pies and stew. Eat up before you fight.'},
   fish:{name:'Tidewater Rods',sign:'Fishing',keeper:'Odo',wall:'#9ab0c0',roof:'#3a6a9a',hue:200,hair:'#d8d8c8',bait:true,cats:{Nets:['net'],Rods:['rod']},kinds:['net','rod'],buys:['rshrimp','rtrout','rsalmon','rtuna','reel','shrimp','trout','salmon','tuna','eel'],greet:'Odo: A net for the shallows, a rod and bait for the deep. I buy your catch, raw or cooked.'},
-  arms:{name:'Elderwood Blacksmith',sign:'Forge',keeper:'Dorn',wall:'#a89c9c',roof:'#a8422a',hue:0,hair:'#2a2a30',cats:{Axes:['axe'],Weapons:['sword'],Armour:['helm','body','gloves','legs','boots','shield'],Smelt:[],Forge:[]},kinds:['axe','sword','helm','body','gloves','legs','boots','shield','ring','amulet'],buys:['ing_bronze','ing_iron','ing_steel','ing_cobalt','ing_aether','ing_obsidianite','ing_starsteel'],greet:'Dorn: Axes, blades and armour for sale. Use the furnace and anvil to train Forging.'}
+  arms:{name:'Elderwood Blacksmith',sign:'Forge',keeper:'Dorn',wall:'#a89c9c',roof:'#a8422a',hue:0,hair:'#2a2a30',cats:{Axes:['axe'],Weapons:['sword'],Armour:['helm','body','gloves','legs','boots','shield'],Forge:[]},kinds:['axe','sword','helm','body','gloves','legs','boots','shield','ring','amulet'],buys:['ing_bronze','ing_iron','ing_steel','ing_cobalt','ing_aether','ing_obsidianite','ing_starsteel'],greet:'Dorn: Axes, blades and armour for sale. Use the furnace and anvil to train Forging.'}
 };
 SHOPS.cart={name:'Wandering Trader',sign:'Traveller',keeper:'Trader Gus',cats:{Gathering:['axe','pick','net','rod'],Combat:['sword','shield']},kinds:['axe','pick','net','rod','sword','shield'],buys:[...new Set([...SHOPS.axe.buys,...SHOPS.pick.buys,...SHOPS.fish.buys])],greet:'Trader Gus: Starter supplies for sale. I also buy your timber, minerals and fish.'};
 for(const k in SHOPS)SHOPS[k].id=k;
@@ -671,8 +671,8 @@ function addXp(skill,amt){
 
 /* ---------- modal ---------- */
 const modal=$('modal'),mBody=$('mBody');
-const TITLES={gear:'Equipment',pack:'Inventory',skills:'Skills',players:'Party',shop:'Shop',settings:'Settings',board:'Community Board',jobs:'Odd Jobs',odd:'Odd Shop',bank:'Storage Chest'};
-function openModal(t){if(me.deathAt!=null)return;if(smithJob&&t!=='shop')stopSmithing('',false);closeItemMenu();if(!tab)gpIdx=-1;tab=t;if(t!=='shop'&&t!=='settings'&&t!=='board'&&t!=='odd')lastTab=t;sel=null;renderModal()}
+const TITLES={gear:'Equipment',pack:'Inventory',skills:'Skills',players:'Party',shop:'Shop',smelt:'Furnace · Smelting',settings:'Settings',board:'Community Board',jobs:'Odd Jobs',odd:'Odd Shop',bank:'Storage Chest'};
+function openModal(t){if(me.deathAt!=null)return;if(smithJob&&t!==(smithJob.type==='smelt'?'smelt':'shop'))stopSmithing('',false);closeItemMenu();if(!tab)gpIdx=-1;tab=t;if(t!=='shop'&&t!=='smelt'&&t!=='settings'&&t!=='board'&&t!=='odd')lastTab=t;sel=null;renderModal()}
 function closeModal(){stopSmithing('',false);closeItemMenu();tab='';sel=null;outdoorShop=null;renderModal()}
 function renderModal(){
   modal.dataset.screen=tab;
@@ -687,7 +687,7 @@ function renderModal(){
   const st=mBody.scrollTop;
   $('mTitle').textContent=tab==='shop'&&curShop()?curShop().name:TITLES[tab];
   mBody.textContent='';
-  ({gear:rGear,pack:rPack,skills:rSkills,players:rPlayers,shop:rShop,settings:rSettings,board:rBoard,jobs:rJobs,odd:rOdd,bank:rBank})[tab]();
+  ({gear:rGear,pack:rPack,skills:rSkills,players:rPlayers,shop:rShop,smelt:rSmelt,settings:rSettings,board:rBoard,jobs:rJobs,odd:rOdd,bank:rBank})[tab]();
   mBody.scrollTop=st;
   gpAfterRender();
 }
@@ -1359,14 +1359,15 @@ function smithStation(type){
   return station&&!inside&&Math.hypot(me.x-station.x,me.y-station.y)<=38?station:null;
 }
 function smithCanContinue(job){
-  return me.deathAt==null&&tab==='shop'&&shopCat===(job.type==='smelt'?'Smelt':'Forge')
-    &&!!smithStation(job.type)&&!!curShop()&&smithMaximum(job.type,job.id)>0;
+  return me.deathAt==null&&tab===(job.type==='smelt'?'smelt':'shop')
+    &&(job.type==='smelt'||shopCat==='Forge')
+    &&!!smithStation(job.type)&&(job.type==='smelt'||!!curShop())&&smithMaximum(job.type,job.id)>0;
 }
 function stopSmithing(message='',refresh=true){
   const old=smithJob;smithJob=null;
   if(!old)return;
   if(message)say(message,'gold');
-  if(refresh&&tab==='shop')renderModal();
+  if(refresh&&(tab==='shop'||tab==='smelt'))renderModal();
 }
 function smithingTick(now=Date.now()){
   const job=smithJob;
@@ -1378,7 +1379,7 @@ function smithingTick(now=Date.now()){
   job.remaining--;job.done++;
   if(job.remaining<=0){stopSmithing('Finished '+job.done+' '+(job.type==='smelt'?'ingot':'equipment')+(job.done===1?'':'s')+'.',false)}
   else job.nextAt=Math.max(now,productionReadyAt);
-  if(tab==='shop')renderModal();
+  if(tab==='shop'||tab==='smelt')renderModal();
 }
 function smithingProgress(now=Date.now()){
   const job=smithJob;
@@ -1389,7 +1390,7 @@ function smithingProgress(now=Date.now()){
 }
 function startSmithing(type,id){
   const recipe=smithRecipe(type,id);
-  if(!recipe||!smithStation(type)||tab!=='shop'||shopCat!==(type==='smelt'?'Smelt':'Forge')){
+  if(!recipe||!smithStation(type)||tab!==(type==='smelt'?'smelt':'shop')||(type==='forge'&&shopCat!=='Forge')){
     say('Use the '+(type==='smelt'?'furnace':'anvil')+' to make this.','warn');return false;
   }
   const maximum=smithMaximum(type,id),count=smithQuantity==='all'?maximum:Math.min(smithQuantity,maximum);
@@ -1523,9 +1524,9 @@ function rShop(){
       names.forEach(c=>{const b=el('button','chip',c);b.type='button';b.setAttribute('aria-pressed',String(shopCat===c));b.addEventListener('click',()=>{shopCat=c;renderModal()});chips.append(b)});
       mBody.append(chips);
     }
-    const special=S.id==='arms'&&(shopCat==='Smelt'||shopCat==='Forge');
-    if(smithJob&&shopCat!==(smithJob.type==='smelt'?'Smelt':'Forge'))stopSmithing('',false);
-    if(special){if(shopCat==='Smelt')rSmelt();else rForge()}
+    const special=S.id==='arms'&&shopCat==='Forge';
+    if(smithJob&&smithJob.type==='forge'&&shopCat!=='Forge')stopSmithing('',false);
+    if(special)rForge();
     const list=special?[]:Object.values(DEFS).filter(d=>S.cats[shopCat].includes(d.kind)&&!owned(d.id)&&(S.id==='cart'?d.mat===KINDS[d.kind].mats[0]:d.mat<=(SHOPMAX[d.kind]||3))).sort((a,b)=>a.price-b.price);
     if(!list.length&&!special)mBody.append(el('p','note','You own everything in this section.'));
     list.forEach(d=>{
@@ -1636,9 +1637,15 @@ function nearSmithy(x=me.x,y=me.y,reach=33){
 function openSmithy(kind){
  const station=VILLAGE.stations.find(s=>s.kind===kind);
  if(!station||Math.hypot(me.x-station.x,me.y-station.y)>38){say('Walk closer to the '+(kind==='anvil'?'anvil':kind==='furnace'?'furnace':'tool rack')+'.');return}
- outdoorShop=BLD.find(b=>b.id==='arms');act=null;
- shopCat=kind==='furnace'?'Smelt':kind==='anvil'?'Forge':'Axes';openModal('shop');
- say(kind==='furnace'?'Use the furnace to smelt your ore into ingots.':kind==='anvil'?'Use the anvil to forge your ingots into equipment.':SHOPS.arms.greet);
+ act=null;
+ if(kind==='furnace'){
+   // Furnaces are crafting stations, not merchants: no shop state or currency UI.
+   outdoorShop=null;openModal('smelt');
+   say('Select an ingot recipe and quantity to start smelting.');return;
+ }
+ outdoorShop=BLD.find(b=>b.id==='arms');
+ shopCat=kind==='anvil'?'Forge':'Axes';openModal('shop');
+ say(kind==='anvil'?'Use the anvil to forge your ingots into equipment.':SHOPS.arms.greet);
 }
 function relocateSavedPosition(){
  const blockedAt=(x,y)=>BLD.some(b=>!b.open&&Math.abs(x-b.x)<b.w/2+3&&y>b.y-14&&y<b.y)||SOLID.some(q=>x>q.x0&&x<q.x1&&y>q.y0&&y<q.y1);
