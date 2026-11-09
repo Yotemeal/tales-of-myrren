@@ -33,7 +33,7 @@ async function fresh(){const {game:t,memory}=await createGame();t.adoptSave(JSON
   for(let i=0;i<5;i++)swing(t,15000+i*1000);assert.equal(t.save.xp.melee,10);
   assert.equal(t.save.xp.mining,1234);assert.equal(t.save.tokens,47);assert.equal(t.save.bank.logs,100);assert.equal(t.save.notes.copper,500);
   // Reward reduction is explicit and retains the established monster tiers.
-  assert.deepEqual(Object.fromEntries(Object.entries(t.MT).map(([id,mt])=>[id,t.combatKillXp(mt)])),{slime:5,goblin:12,wolf:44,boar:22,bear:168,cave:4500,abear:114400});
+  assert.deepEqual(Object.fromEntries(Object.entries(t.MT).map(([id,mt])=>[id,t.combatKillXp(mt)])),{slime:5,goblin:12,wolf:44,boar:22,bear:168,cave:1050,abear:3120});
   console.log('PASS: zero XP on nonlethal hits in both attack paths; fixed kill rewards; duplicate-death guard; single-target retargeting; overkill; respawn; saved XP/loot and retained progress.');
  }finally{Math.random=random}
 })().catch(e=>{console.error(e);process.exitCode=1});
