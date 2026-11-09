@@ -23,7 +23,8 @@ const serve=http.createServer((req,res)=>{
   try{
     browser=await chromium.launch({headless:true});
     for(const [name,width,height] of [['portrait',390,844],['landscape',844,390]]){
-      const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+      const context=await browser.newContext({viewport:{width,height},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+      const page=await context.newPage();
       const errors=[];
       page.on('pageerror',err=>errors.push(err.message));
       if(name==='portrait')await page.addInitScript(()=>{
@@ -88,7 +89,7 @@ const serve=http.createServer((req,res)=>{
       const rect=await page.locator('.win').boundingBox();
       assert(rect&&rect.x>=-1&&rect.x+rect.width<=width+1,'equipment window must fit viewport');
       await page.screenshot({path:`/tmp/myrren-${name}-equipment.png`});
-      await page.close();
+      await context.close();
     }
     console.log('PASS: canonical game, local save restoration, mobile portrait + landscape HUD and equipment.');
   }finally{await browser?.close();await new Promise(resolve=>serve.close(resolve))}
