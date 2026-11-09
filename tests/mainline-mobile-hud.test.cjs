@@ -33,15 +33,16 @@ const serve=http.createServer((req,res)=>{
       await page.waitForFunction(()=>document.querySelector('#intro').hidden && !document.querySelector('#chat').hidden,{timeout:5000});
       await page.waitForTimeout(250);
       const state=await page.evaluate(()=>{
-        const chat=document.getElementById('chat'),mini=document.getElementById('minimap');
-        const a=chat.getBoundingClientRect(),b=mini.getBoundingClientRect();
+        const chat=document.getElementById('chat'),hud=document.getElementById('hud');
+        const a=chat.getBoundingClientRect(),b=hud.getBoundingClientRect();
         const last=chat.lastElementChild;
-        return {chat:{left:a.left,right:a.right,top:a.top,bottom:a.bottom,width:a.width},mini:{left:b.left,right:b.right,hidden:mini.hidden},
+        return {chat:{left:a.left,right:a.right,top:a.top,bottom:a.bottom,width:a.width},hud:{left:b.left,right:b.right,top:b.top,bottom:b.bottom,hidden:hud.hidden},
           chatLines:chat.children.length,clamp:getComputedStyle(last).webkitLineClamp,
           activeCamera:document.querySelector('#cv').width,viewport:innerWidth};
       });
-      assert.equal(state.mini.hidden,false,'compass should show after starting the game');
-      assert(state.chat.right<=state.mini.left-4,`chat overlaps compass on ${name}: ${JSON.stringify(state)}`);
+      assert.equal(state.hud.hidden,false,'HUD should show after starting the game');
+      assert(state.hud.left>=-1&&state.hud.right<=state.viewport+1,`HUD escapes viewport on ${name}: ${JSON.stringify(state)}`);
+      assert(state.chat.bottom<=state.hud.top+2||state.chat.top>=state.hud.bottom-2||state.chat.right<=state.hud.left+2||state.chat.left>=state.hud.right-2,`chat overlaps HUD on ${name}: ${JSON.stringify(state)}`);
       assert(state.chat.left>=0&&state.chat.right<=state.viewport,'chat escapes viewport');
       assert(state.chatLines<=2,'old chat entries must not obscure the scene');
       assert.equal(state.clamp,'2','long messages must be clamped');
@@ -55,6 +56,6 @@ const serve=http.createServer((req,res)=>{
       await page.screenshot({path:`/tmp/myrren-${name}-equipment.png`});
       await page.close();
     }
-    console.log('PASS: real production game, mobile portrait + landscape chat/compass separation, UI overflow and equipment window.');
+    console.log('PASS: real production game, mobile portrait + landscape chat/HUD separation, UI overflow and equipment window.');
   }finally{await browser?.close();await new Promise(resolve=>serve.close(resolve))}
 })().catch(err=>{console.error(err);process.exitCode=1});

@@ -2927,84 +2927,6 @@ function drawOutdoor(cx,cy,now){
   for(const e of list)e.f();
 }
 const GRASS=['#263d31','#344d39','#3b5840'];
-/* Crater compass: lightweight player-centred map, north always up. */
-const miniRoot=$('minimap'),miniCanvas=$('miniCanvas');
-const miniCtx=miniCanvas&&miniCanvas.getContext('2d');
-let miniLast=0;
-function drawMini(now){
-  if(!miniRoot||!miniCtx)return;
-  miniRoot.hidden=!started||!!inside;
-  if(miniRoot.hidden||now-miniLast<90)return;
-  miniLast=now;
-  const g=miniCtx,mid=80,scale=.24;
-  const mapX=x=>mid+(x-me.x)*scale;
-  const mapY=y=>mid+(y-me.y)*scale;
-  g.clearRect(0,0,160,160);
-  g.save();g.beginPath();g.arc(mid,mid,77,0,Math.PI*2);g.clip();
-  g.fillStyle='#304734';g.fillRect(0,0,160,160);
-  // Stable world-coordinate forest texture: scenery scrolls, not the player marker.
-  const tile=48,reach=80/scale;
-  for(let gy=Math.floor((me.y-reach)/tile)-1;gy<=Math.ceil((me.y+reach)/tile)+1;gy++){
-    for(let gx=Math.floor((me.x-reach)/tile)-1;gx<=Math.ceil((me.x+reach)/tile)+1;gx++){
-      const wx=gx*tile,wy=gy*tile,px=mapX(wx),py=mapY(wy);
-      const hash=((gx*73856093)^(gy*19349663))>>>0;
-      const dist=Math.hypot(wx-CX,wy-CY);
-      if(dist<275)continue;
-      g.fillStyle=hash%4===0?'#415b3c':hash%4===1?'#263b30':'#354d36';
-      g.fillRect(Math.floor(px),Math.floor(py),Math.ceil(tile*scale)+1,Math.ceil(tile*scale)+1);
-      if(hash%5<3){
-        g.fillStyle='#192d25';g.fillRect(Math.floor(px+3),Math.floor(py+4),8,8);
-        g.fillStyle=hash%2?'#61704a':'#536746';g.fillRect(Math.floor(px+2),Math.floor(py+2),7,6);
-        g.fillStyle='#78805c';g.fillRect(Math.floor(px+3),Math.floor(py+2),4,2);
-      }
-    }
-  }
-  // The crater clearing is anchored in world coordinates and scrolls away naturally.
-  const x=mapX(CX),y=mapY(CY);
-  g.fillStyle='#77634a';g.beginPath();g.ellipse(x,y,245*scale,205*scale,0,0,Math.PI*2);g.fill();
-  g.fillStyle='#8c7351';g.beginPath();g.ellipse(x,y,224*scale,186*scale,0,0,Math.PI*2);g.fill();
-  g.fillStyle='#a0835b';g.beginPath();
-  g.moveTo(mapX(CX-39),mapY(CY+125));g.lineTo(mapX(CX+39),mapY(CY+125));
-  g.lineTo(mapX(CX+39),mapY(WH));g.lineTo(mapX(CX-39),mapY(WH));g.closePath();g.fill();
-  // Rock wall segments around the rim; southern entry remains open.
-  for(let i=0;i<45;i++){
-    const ang=-Math.PI+(i/45)*Math.PI*2;
-    if(Math.sin(ang)>.70)continue;
-    const wx=CX+242*Math.cos(ang),wy=CY+202*Math.sin(ang);
-    const px=mapX(wx),py=mapY(wy);
-    if(px< -14||px>174||py< -14||py>174)continue;
-    const w=7+i%5,h=8+i%6;
-    g.fillStyle='#272b29';g.fillRect(Math.round(px-w/2)+1,Math.round(py-h/2)+2,w,h);
-    g.fillStyle=i%3?'#777b72':'#95948a';g.fillRect(Math.round(px-w/2),Math.round(py-h/2),w,h);
-    g.fillStyle='#aaa89b';g.fillRect(Math.round(px-w/2),Math.round(py-h/2),w-2,2);
-  }
-  const landmark=(wx,wy,col)=>{
-    const px=mapX(wx),py=mapY(wy);
-    if(px<5||px>155||py<5||py>155)return;
-    g.fillStyle='#2b2119';g.fillRect(Math.round(px)-5,Math.round(py)-5,11,11);
-    g.fillStyle='#c9a16b';g.fillRect(Math.round(px)-4,Math.round(py)-4,9,9);
-    g.fillStyle=col;g.fillRect(Math.round(px)-2,Math.round(py)-2,5,5);
-  };
-  landmark(TRADER.x,TRADER.y,'#e7b96d');
-  landmark(BOARD.x,BOARD.y,'#e7d5ac');
-  landmark(SPOTS.bank.x,SPOTS.bank.y,'#a7825e');
-  // Directional player arrow, rotating with Kez's actual facing vector.
-  let dx=me.fx||0,dy=me.fy||0;
-  const mag=Math.hypot(dx,dy)||1;dx/=mag;dy/=mag;
-  const nx=-dy,ny=dx;
-  g.fillStyle='#211a10';g.beginPath();
-  g.moveTo(mid+dx*10,mid+dy*10);
-  g.lineTo(mid-dx*6+nx*7,mid-dy*6+ny*7);
-  g.lineTo(mid-dx*6-nx*7,mid-dy*6-ny*7);
-  g.closePath();g.fill();
-  g.fillStyle='#f7c542';g.beginPath();
-  g.moveTo(mid+dx*8,mid+dy*8);
-  g.lineTo(mid-dx*5+nx*5,mid-dy*5+ny*5);
-  g.lineTo(mid-dx*5-nx*5,mid-dy*5-ny*5);
-  g.closePath();g.fill();
-  g.fillStyle='#fff5c8';g.beginPath();g.arc(mid,mid,2.5,0,Math.PI*2);g.fill();
-  g.restore();
-}
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;
   const cssW=cv.clientWidth,cssH=cv.clientHeight;
@@ -3015,7 +2937,6 @@ function frame(now){
   if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}
   ctx.imageSmoothingEnabled=false;
   update(dt,now);
-  drawMini(now)
 
   const tx=inside?RX/2-cv.width/2:me.x-cv.width/2,ty=inside?RY/2-cv.height*.36:me.y-cv.height*.47;
   const k=snapCam?1:Math.min(1,dt*7);snapCam=false;cam.x+=(tx-cam.x)*k;cam.y+=(ty-cam.y)*k;
