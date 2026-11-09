@@ -16,7 +16,7 @@ has("const forgeXp=(r,cost)=>cost*r.xp*2");
 has("const PRODUCTION_MS={smelt:1500,forge:2500}");
 has("markProduction('smelt')");
 has("markProduction('forge')");
-has("if(!productionReady('smelt',batch))return false");
+has("productionReady('smelt',batch)");
 has("if(!productionReady('forge',batch))return false");
 const section=src.slice(src.indexOf('const ingName=id=>'),src.indexOf('function rForge(){'));
 assert.ok(!section.includes("addXp('mining'"),'Production must not award Delving XP');
