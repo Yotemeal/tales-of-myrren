@@ -29,4 +29,12 @@ assert.notEqual(signature(JSON.stringify(snapshot(100,50))),signature(JSON.strin
   'actual inventory changes must still trigger a cloud write');
 assert.equal((source.match(/const sig=saveSignature\(str\)/g)||[]).length,2,
   'both cloud save providers must use the same timestamp-neutral comparison');
+const timestampMatch=source.match(/function nextSnapshotTimestamp\(now,stored,issued\)\{[^}]*\}/);
+assert(timestampMatch,'save timestamps must be monotonic');
+const nextTimestamp=vm.runInNewContext('('+timestampMatch[0]+')');
+assert.equal(nextTimestamp(1000,0,0),1000,'use wall clock when it advances');
+assert.equal(nextTimestamp(1000,1000,1000),1001,'same-millisecond saves must have unique order');
+assert.equal(nextTimestamp(900,1200,1300),1301,'clock rollback must not rewind save timestamps');
+assert(source.includes('lastSnapshotTs=nextSnapshotTimestamp(Date.now(),saveTs,lastSnapshotTs)'),
+  'every snapshot must use the monotonic timestamp generator');
 console.log('PASS: asynchronous save writes cannot roll progress back');
