@@ -72,7 +72,7 @@ const serve=http.createServer((req,res)=>{
         await page.waitForFunction(()=>{
           const toast=document.querySelector('#toast');
           return toast?.textContent.includes('updated in another tab')&&toast.classList.contains('on');
-        },{timeout:5000});
+        },null,{timeout:5000});
         await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));
         const after=await second.evaluate(()=>JSON.parse(localStorage.getItem('ember-reach-v2')));
         assert.equal(after.ts,newer.ts,'older tab must not overwrite the newer save timestamp');
