@@ -29,7 +29,7 @@ assert.notEqual(signature(JSON.stringify(snapshot(100,50))),signature(JSON.strin
   'actual inventory changes must still trigger a cloud write');
 assert.equal((source.match(/const sig=saveSignature\(str\)/g)||[]).length,2,
   'both cloud save providers must use the same timestamp-neutral comparison');
-const timestampMatch=source.match(/function nextSnapshotTimestamp\\(now,stored,issued\\)\\{[^}]*\\}/);
+const timestampMatch=source.match(/function nextSnapshotTimestamp\(now,stored,issued\)\{[^}]*\}/);
 assert(timestampMatch,'save timestamps must be monotonic');
 const nextTimestamp=vm.runInNewContext('('+timestampMatch[0]+')');
 assert.equal(nextTimestamp(1000,0,0),1000,'use wall clock when it advances');
