@@ -627,11 +627,42 @@ function giveGear(id){
   if(!canFitInventory({},1)){say('You find a '+DEFS[id].name.toLowerCase()+' but your pack is full.','warn');return}
   save.bag.push(id);say('Rare drop: '+DEFS[id].name+'!','gold');
 }
+// OSRS-style XP drops are transient UI only; they never enter the save file.
+// All six skills and monster-kill rewards pass through addXp.
+const XP_DROP_MS=1200,XP_DROP_CAP=5,XP_DROP_COALESCE_MS=125;
+const xpPopups=[],xpDropLayer=$('xpDrops');
+function queueXpDrop(skill,amount,now=performance.now()){
+  if(!SKILL_ART[skill]||!Number.isFinite(amount)||amount<=0)return null;
+  // Multiple XP grants of the same skill in one instant become one readable tick.
+  const latest=xpPopups[0];
+  if(latest&&latest.skill===skill&&now>=latest.at&&now-latest.at<XP_DROP_COALESCE_MS){
+    latest.amount+=amount;
+    latest.label.textContent='+'+latest.amount.toLocaleString('en-AU');
+    return latest;
+  }
+  const node=document.createElement('div'),icon=document.createElement('span'),labelNode=document.createElement('span');
+  node.className='xp-drop';icon.className='xp-drop-icon';labelNode.className='xp-drop-amount';
+  node.setAttribute('title',NAMES[skill]+' XP');
+  icon.innerHTML=svg(SKILL_ART[skill],15);
+  labelNode.textContent='+'+amount.toLocaleString('en-AU');
+  node.append(icon,labelNode);
+  xpDropLayer.prepend(node);
+  const drop={skill,amount,at:now,element:node,label:labelNode};
+  xpPopups.unshift(drop);
+  if(xpPopups.length>XP_DROP_CAP){const old=xpPopups.pop();old.element.remove()}
+  setTimeout(()=>{
+    const index=xpPopups.indexOf(drop);
+    if(index!==-1)xpPopups.splice(index,1);
+    node.remove();
+  },XP_DROP_MS);
+  return drop;
+}
 function addXp(skill,amt){
   const before=lvlFor(save.xp[skill]),pm=hpMax();
   // Skill-pet bonus applies only while its owner has called the pet (state 1).
   const awarded=skill==='forging'&&save.pets.forging===1?Math.floor(amt*1.03):amt;
   save.xp[skill]+=awarded;lastSkill=skill;
+  queueXpDrop(skill,awarded);
   if(skill==='forging'&&save.pets.forging===1)reactForgingPet(awarded-amt);const after=lvlFor(save.xp[skill]);
   if(after>before){say('Congratulations, you just advanced a '+NAMES[skill]+' level. You are now level '+after+'.','gold');toast(NAMES[skill].toUpperCase()+'\nLEVEL '+after);if(skill==='melee')me.hp=Math.min(hpMax(),me.hp+Math.max(1,hpMax()-pm));blocked.clear()}
   if(after>before)sfx('level');else if(skill!=='melee')sfx('gather');
