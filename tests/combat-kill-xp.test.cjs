@@ -20,9 +20,11 @@ async function fresh(){const {game:t,memory}=await createGame();t.adoptSave(JSON
   ({t}=await fresh());m=monster(t);t.beginAct('monster',m);t.doAction(.71,1000);assert.equal(m.hp,4);assert.equal(t.save.xp.melee,0);
   for(let hit=0;hit<4;hit++)t.doAction(1.6,2000+hit*2000);
   assert.equal(t.save.xp.melee,5);assert.equal(m.state,'dead');
-  // An area swing rewards each killed creature, not a still-living neighbour.
+  // Auto-targeted attacks hit one creature at a time. The next held swing
+  // should automatically switch to the surviving enemy after the first dies.
   ({t}=await fresh());const dead=monster(t,'slime',1),alive=monster(t,'slime',5);t.mons.push(dead,alive);swing(t,1000);
-  assert.equal(t.save.xp.melee,5);assert.equal(alive.hp,4);assert.equal(dead.state,'dead');
+  assert.equal(t.save.xp.melee,5);assert.equal(alive.hp,5,'single-target strike must not cleave the bystander');assert.equal(dead.state,'dead');
+  swing(t,2000);assert.equal(alive.hp,4,'next swing should automatically reacquire the survivor');assert.equal(t.save.xp.melee,5);
   // High damage and overkill cannot enlarge a creature's fixed reward.
   ({t}=await fresh());t.save.xp.melee=t.xpTable[75];t.save.eq.weapon='steel_sword';m=monster(t,'slime',1);t.mons.push(m);const start=t.save.xp.melee;
   Math.random=()=>.5;swing(t,1000);assert(m.hp<0);assert.equal(t.save.xp.melee-start,5);
@@ -32,6 +34,6 @@ async function fresh(){const {game:t,memory}=await createGame();t.adoptSave(JSON
   assert.equal(t.save.xp.mining,1234);assert.equal(t.save.tokens,47);assert.equal(t.save.bank.logs,100);assert.equal(t.save.notes.copper,500);
   // Reward reduction is explicit and retains the established monster tiers.
   assert.deepEqual(Object.fromEntries(Object.entries(t.MT).map(([id,mt])=>[id,t.combatKillXp(mt)])),{slime:5,goblin:12,wolf:44,boar:22,bear:168,cave:4500,abear:114400});
-  console.log('PASS: zero XP on nonlethal hits in both attack paths; fixed kill rewards; duplicate-death guard; area kills; overkill; respawn; saved XP/loot and retained progress.');
+  console.log('PASS: zero XP on nonlethal hits in both attack paths; fixed kill rewards; duplicate-death guard; single-target retargeting; overkill; respawn; saved XP/loot and retained progress.');
  }finally{Math.random=random}
 })().catch(e=>{console.error(e);process.exitCode=1});
