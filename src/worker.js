@@ -16,7 +16,7 @@ export default {
     // HTML, scripts, styles and manifests must move together after deployment.
     // Avoid split-version sessions when users reopen links inside in-app browsers.
     const path = url.pathname;
-    if (path === '/' || /\\.(?:html|js|css|json)$/i.test(path)) {
+    if (path === '/' || /\.(?:html|js|css|json)$/i.test(path)) {
       headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
       headers.set('CDN-Cache-Control', 'no-store');
       headers.set('Cloudflare-CDN-Cache-Control', 'no-store');
