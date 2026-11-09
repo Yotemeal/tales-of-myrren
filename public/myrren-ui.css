@@ -3343,25 +3343,25 @@ input[type=range] {
 
 
 /* Smithing: compact workstation controls, no one-button-per-ingot grind. */
-#modal[data-screen="shop"] .smith-qty {
+#modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-qty {
   display:flex;
   flex-wrap:wrap;
   align-items:center;
   gap:5px;
   margin:7px 0;
 }
-#modal[data-screen="shop"] .smith-label {
+#modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-label {
   color:#eddcbb;
   font:17px/1 'VT323', monospace;
   padding-right:5px;
 }
-#modal[data-screen="shop"] .smith-qty .chip {
+#modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-qty .chip {
   min-width:38px;
   min-height:33px;
   padding:3px 9px;
   border-radius:7px;
 }
-#modal[data-screen="shop"] .smith-work {
+#modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-work {
   display:flex;
   flex-direction:column;
   align-items:stretch;
@@ -3372,51 +3372,63 @@ input[type=range] {
   border-radius:9px;
   background:rgba(37,32,29,.88);
 }
-#modal[data-screen="shop"] .smith-work-title {
+#modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-work-title {
   font:22px/1.05 'VT323',monospace;
   color:#ffe4a2;
 }
-#modal[data-screen="shop"] .smith-work .note {margin:0;font-size:15px;line-height:1.15}
-#modal[data-screen="shop"] .smith-primary {
+#modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-work .note {margin:0;font-size:15px;line-height:1.15}
+#modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-primary {
   min-height:42px;
   width:100%;
   border-radius:8px;
   font-size:19px;
 }
-#modal[data-screen="shop"] .smith-work-status {
+#modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-work-status {
   color:#f2d395;
   font:16px/1.1 'VT323',monospace;
 }
-#modal[data-screen="shop"] .smith-progress {
+#modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-progress {
   height:8px;
   border-radius:5px;
   border:1px solid #9c7849;
   background:#211b17;
   overflow:hidden;
 }
-#modal[data-screen="shop"] .smith-progress i {
+#modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-progress i {
   display:block;
   height:100%;
   width:0;
   background:linear-gradient(90deg,#bf8140,#ffd78f);
 }
-#modal[data-screen="shop"] .smith-recipe {
+#modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-recipe {
   gap:5px;
   margin:3px 0;
   border-radius:8px;
   overflow:hidden;
 }
-#modal[data-screen="shop"] .smith-recipe[aria-selected="true"] {
+#modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-recipe[aria-selected="true"] {
   outline:2px solid #e6c47f;
   outline-offset:-2px;
   background:rgba(142,102,60,.3);
 }
-#modal[data-screen="shop"] .smith-recipe .btn {
+#modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-recipe .btn {
   flex-shrink:0;
   min-height:36px;
   border-radius:7px;
 }
 @media(max-width:440px) {
-  #modal[data-screen="shop"] .smith-work {padding:7px}
-  #modal[data-screen="shop"] .smith-recipe .btn {min-width:64px;padding:3px 6px}
+  #modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-work {padding:7px}
+  #modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-recipe .btn {min-width:64px;padding:3px 6px}
+}
+
+/* Furnace is a standalone production station, not a shop. Hide all
+   currency/shop footer elements and give recipe selection the freed space. */
+#modal[data-screen="smelt"] .window-footer { display:none; }
+#modal[data-screen="smelt"] .win {
+  grid-template-rows: 38px minmax(0,1fr);
+}
+@media(max-width:600px) {
+  #modal[data-screen="smelt"] .win {
+    grid-template-rows: 34px minmax(0,1fr);
+  }
 }
