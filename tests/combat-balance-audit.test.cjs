@@ -62,16 +62,18 @@ if(Math.abs(swingDpsFactor-1)>0.05){
   console.warn('BALANCE WARNING: attack input methods differ by '+((swingDpsFactor-1)*100).toFixed(1)+'% in theoretical DPS. This is a known baseline, not a test failure.');
 }
 
-// Directional strikes intentionally sweep every enemy inside the arc.
-// This is an AoE advantage, not single-target DPS parity; protect the behaviour
-// from accidental changes until a deliberate cleave-balance decision is made.
+// Auto-targeted swings hit one enemy. Directional fallback applies only when
+// no enemy was selected at swing start.
 const swingBody = capture(/function resolveSwing\(now\)\{([\s\S]*?)\n\}\nfunction nearFire/, 'directional strike resolution')[1];
 assert.match(swingBody, /for\(const m of mons\)/, 'directional swing currently iterates all monsters');
-assert.match(swingBody, /if\(!strikeHitsTarget\(strike,m\)\)continue;/, 'directional swing requires arc and reach');
+assert.match(swingBody, /if\(strike\.target\?m!==strike\.target:!strikeHitsTarget\(strike,m\)\)continue;/, 'locked melee attacks hit their selected enemy; empty swings use directional fallback');
+assert.match(src, /let target=me\.tgt&&me\.tgt\.state!=='dead'/, 'combat retains living target');
+assert.match(src, /if\(!target\)target=nearestMon\(reach\)/, 'combat selects only enemies in weapon reach');
+assert.match(src, /const lockedEnemy=combatHeld&&me\.tgt/, 'movement should face locked enemy while attacking');
 const targetBody = capture(/const iv=SWING_IV\/1000;a\.t\+=dt;([\s\S]*?)\n\s*\}\n\s*\}\nfunction update/, 'targeted combat action')[1];
 assert.match(targetBody, /m\.hp-=dmg/, 'targeted combat action resolves against one monster');
 assert.doesNotMatch(src, /wearItem|wearArmour|wearOf|repairCost|rRepair|save\\.wear|Repair:\\[\\]/, 'durability and repair systems must remain removed');
 assert.match(src, /const activeDef=slot=>\{const d=eqDef\(slot\);return d&&usable\(d\)\?d:null\}/, 'usable gear must not depend on condition');
-console.log('DESIGN NOTE: directional swings cleave multiple enemies in arc; targeted actions hit one enemy. Equal cooldowns do not imply equal multi-target DPS.');
+console.log('DESIGN NOTE: auto-targeted swings hit one enemy; untargeted swings retain a directional fallback.');
 
 console.log('PASS: source contracts and mathematical invariants; not a browser, multiplayer, or live-game test.');
