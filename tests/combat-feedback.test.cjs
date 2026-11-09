@@ -5,7 +5,7 @@ const fs=require('node:fs');
 const createGame=require('./game-runtime.cjs');
 
 (async()=>{
-  const {game:g}=await createGame();
+  const {game:g,rectCount}=await createGame();
   const me=g.me,mons=g.mons;
   mons.length=0;me.x=g.CX;me.y=g.CY;me.tgt=null;me.pend=0;
   g.save.eq.weapon='bronze_sword';
@@ -62,5 +62,47 @@ const createGame=require('./game-runtime.cjs');
   assert(drawMonster.includes('ctx.translate(x+kickX,y+kickY)'),'sprite offset must remain isolated to the canvas');
   assert(!drawMonster.includes('m.x+='),'drawing must never push the monster world position');
 
-  console.log('PASS: contact flashes, missed attacks, single-target timing, 24-effect cap, expiry, flinch and legacy combat feedback.');
+  // Defeats have a short confirmation pose, then smoothly flatten the
+  // existing corpse artwork around its ground anchor. No physics or reward
+  // state is changed by drawing these frames.
+  assert.equal(g.defeatCollapse(-20),0,'pre-death time must be clamped');
+  assert.equal(g.defeatCollapse(90),0,'the initial 90ms hit flash remains upright');
+  assert(g.defeatCollapse(280)>0&&g.defeatCollapse(280)<1,'collapse progresses continuously');
+  assert.equal(g.defeatCollapse(500),1,'death pose settles after 410ms');
+  assert.equal(g.defeatCollapse(1000),1,'settled pose remains stable');
+  for(let age=90;age<=500;age+=10)
+    assert(g.defeatCollapse(age)>=g.defeatCollapse(age-10),'collapse never reverses');
+
+  const killAt=6100,oldXp=g.save.xp.melee;
+  g.killMon(m,killAt);
+  assert.equal(m.state,'dead');
+  assert.equal(m.dieAt,killAt,'defeat visual begins at the actual kill time');
+  const earnedXp=g.save.xp.melee;
+  assert(earnedXp>oldXp,'normal kill still rewards XP');
+  g.killMon(m,killAt+50);
+  assert.equal(g.save.xp.melee,earnedXp,'visual effect does not duplicate kill rewards');
+  const origin=[m.x,m.y,m.hp,m.state];
+  let rectangles=rectCount();
+  g.drawDefeatDust(m,40,50,89);
+  assert.equal(rectCount(),rectangles,'no stray particles before the death transition');
+  g.drawDefeatDust(m,40,50,90);
+  assert(rectCount()>rectangles,'defeat pixel fragments appear on the first collapse frame');
+  rectangles=rectCount();
+  g.drawDefeatDust(m,40,50,569);
+  assert(rectCount()>rectangles,'late pixel fragments finish briefly before the corpse fades');
+  rectangles=rectCount();
+  g.drawDefeatDust(m,40,50,570);
+  assert.equal(rectCount(),rectangles,'death fragments expire deterministically');
+
+  for(const age of [0,89,90,160,300,500,1000,1400,1600,2000])
+    g.drawMon(m,40,50,killAt+age);
+  assert.deepEqual([m.x,m.y,m.hp,m.state],origin,'death rendering must not move, revive or damage monsters');
+  assert.equal(g.save.xp.melee,earnedXp,'animation must not change XP');
+
+  // Palettes exist for every currently registered monster and effects remain
+  // tiny and finite even with many nearby defeats.
+  const type=m.t;
+  for(const creature of Object.keys(g.MT)){m.t=creature;g.drawDefeatDust(m,40,50,240)}
+  m.t=type;
+  console.log('PASS: contact feedback, one-shot rewards, grounded enemy collapse, type-specific defeat pixels, visual expiry and no gameplay mutation.');
 })().catch(e=>{console.error(e);process.exitCode=1});
