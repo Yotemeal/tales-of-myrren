@@ -1,0 +1,26 @@
+name: Combat balance regression
+on:
+  pull_request:
+    paths:
+      - 'public/myrren-game.js'
+      - 'tests/combat-balance-audit.test.cjs'
+      - '.github/workflows/combat-balance.yml'
+  push:
+    branches:
+      - 'balance/combat-audit-2026-11'
+    paths:
+      - 'public/myrren-game.js'
+      - 'tests/combat-balance-audit.test.cjs'
+      - '.github/workflows/combat-balance.yml'
+jobs:
+  combat-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: node --check public/myrren-game.js && node --check tests/combat-balance-audit.test.cjs
+      - name: Combat parity and balance baseline
+        run: node tests/combat-balance-audit.test.cjs
