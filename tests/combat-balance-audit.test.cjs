@@ -17,6 +17,11 @@ const directionalSeconds = swingMs / 1000;
 assert.ok(swingMs > 0 && targetedSeconds > 0);
 const swingDpsFactor = targetedSeconds / directionalSeconds;
 assert.equal(swingDpsFactor, 1, 'attack methods must have identical theoretical single-target DPS');
+
+const manualGate = capture(/if\(started&&!inside&&\(atkHeld\|\|gpAtk\|\|wantSwing\|\|keys\[' '\]\)&&now>=nextSwing\)\{nextSwing=now\+SWING_IV;wantSwing=false;beginSwing\(now\)\}/, 'manual attack cooldown gate');
+assert.ok(manualGate);
+assert.match(src, /if\(a\.t>=iv&&now>=nextSwing\)\{\s*\/\/ Manual and targeted attacks consume the same per-character cooldown\.[\s\S]*?nextSwing=now\+SWING_IV;\s*a\.t=0;/, 'targeted attacks must consume the manual attack cooldown and discard queued time');
+
 const tiers = [
   {name:'Bronze', level:1, attack:1},
   {name:'Iron', level:10, attack:3},
