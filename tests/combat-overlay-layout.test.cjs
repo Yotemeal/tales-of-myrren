@@ -18,7 +18,7 @@ const createGame=require('./game-runtime.cjs');
   assert(bars.length>1,'crowded wounded monsters retain useful secondary health bars');
   assert.equal(bars[0].m,focus,'the current target receives first screen-space priority');
   assert.equal(bars[0].showBar,true,'focused target keeps a bar even when healthy');
-  assert(bars[0].name.includes('Slime'),'focused target keeps its identity label');
+  assert(bars[0].name.includes(g.MT.slime.name),'focused target keeps its identity label');
   assert(bars.slice(1).every(b=>!b.name),'secondary names disappear in a crowd');
   for(let i=0;i<bars.length;i++)for(let j=0;j<i;j++)
     assert(!g.combatRectOverlaps(bars[i].rect,bars[j].rect),'monster overhead panels never overlap');
@@ -27,7 +27,7 @@ const createGame=require('./game-runtime.cjs');
   g.me.tgt=null;g.mons.splice(2);
   const pair=g.layoutMonsterOverlays(cx,cy,now);
   assert.equal(pair.length,2,'both monsters remain identifiable when the area is quiet');
-  assert(pair.every(p=>p.name.includes('Slime')),'names remain available outside crowded fights');
+  assert(pair.every(p=>p.name.includes(g.MT.slime.name)),'names remain available outside crowded fights');
   assert(!g.combatRectOverlaps(pair[0].rect,pair[1].rect),'pair labels must stagger apart');
 
   g.mons.length=0;g.mons.push(...group);g.me.tgt=focus;
