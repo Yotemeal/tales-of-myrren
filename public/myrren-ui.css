@@ -3284,3 +3284,59 @@ input[type=range] {
   touch-action: none !important;
   -webkit-user-drag: none;
 }
+
+
+/* OSRS-style skill XP ticks: readable over combat and production menus.
+   Purely visual, pointer-transparent and independent of save/XP calculations. */
+#xpDrops {
+  position: fixed;
+  z-index: 90;
+  top: max(72px, calc(env(safe-area-inset-top) + 62px));
+  right: max(12px, env(safe-area-inset-right));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  max-width: min(188px, calc(100vw - 24px));
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#xpDrops:empty { display: none; }
+#xpDrops .xp-drop {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 20px;
+  max-width: 100%;
+  padding: 2px 6px 2px 4px;
+  border: 1px solid rgba(188, 158, 96, .48);
+  border-radius: 6px;
+  background: rgba(28, 28, 25, .72);
+  color: #f8da82;
+  font: 18px/19px 'VT323', monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-shadow: 1px 1px 0 #21180f;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+  animation: myrren-xp-rise 1200ms ease-out both;
+}
+#xpDrops .xp-drop-icon {
+  display: flex;
+  flex: 0 0 15px;
+  width: 15px;
+  height: 15px;
+}
+#xpDrops .xp-drop-icon svg {
+  display: block;
+  width: 15px;
+  height: 15px;
+  shape-rendering: crispEdges;
+}
+#xpDrops .xp-drop-amount { display: block; min-width: 25px; text-align: right; }
+@keyframes myrren-xp-rise {
+  0%   { opacity: 0; transform: translateY(11px); }
+  12%  { opacity: 1; }
+  69%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-20px); }
+}
