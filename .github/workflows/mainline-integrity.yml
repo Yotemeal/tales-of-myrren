@@ -42,6 +42,7 @@ jobs:
           node tests/inventory-capacity.cjs
           node tests/save-inventory.test.cjs
           node tests/save-write-order.test.cjs
+          node tests/combat-kiting.test.cjs
           node tests/cross-tab-save.test.cjs
           node tests/bank-notes.test.cjs
           node tests/combat-kill-xp.test.cjs
