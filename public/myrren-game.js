@@ -2227,27 +2227,56 @@ function critUpdate(dt,now){
     c.mode=mode;
   }
 }
+// Defeat presentation is evaluated from dieAt, not a separate particle list.
+// This keeps repeated kills and mobile frame rates deterministic and bounded.
+const DEFEAT_DUST={
+  slime:['#ffd0da','#db7f99'],
+  goblin:['#afce84','#587f43'],
+  wolf:['#d6dbe3','#8292a6'],
+  boar:['#d6b393','#826950'],
+  bear:['#c3a77c','#78674f'],
+  cave:['#d0ba92','#80745f'],
+  abear:['#c5e8f7','#87bad8']
+};
+function defeatCollapse(age){
+  const t=clamp((age-90)/410,0,1);
+  return t*t*(3-2*t);
+}
+function drawDefeatDust(m,x,y,age){
+  if(age<90||age>=570)return;
+  const t=(age-90)/480,colors=DEFEAT_DUST[m.t]||DEFEAT_DUST.bear;
+  for(let i=0;i<5;i++){
+    if(t>.67&&i%2)continue;
+    const side=i%2?1:-1;
+    const px=Math.round(x+(i-2)*2+side*(4+(i%3)*3)*t);
+    const py=Math.round(y-3-(i%3)*2-Math.sin(t*Math.PI)*(3+(i%2)*3));
+    R(px,py,t<.25?2:1,1,colors[i%2]);
+  }
+}
 function drawMon(m,x,y,now){
   const f=m.face||1,dead=m.state==='dead',mt=MT[m.t];
   if(m.lx===undefined){m.lx=m.x;m.ly=m.y;m.mvT=0}
   if(Math.hypot(m.x-m.lx,m.y-m.ly)>.03)m.mvT=now;m.lx=m.x;m.ly=m.y;
   const moving=now-m.mvT<160,la=now-m.lunge,ha=now-(m.hitAt||-99999);
   let mode='idle',age=0;
-  if(dead){mode='dead';age=now-(m.dieAt||now)}
+  if(dead){age=Math.max(0,now-(m.dieAt??now));mode=age<90?'hit':'dead'}
   else if(ha>=0&&ha<190)mode='hit'; // Confirmed hits interrupt the visual windup, not the actual AI attack timer.
   else if(m.state==='chase'&&m.cd>mt.iv-.3&&Math.hypot(m.x-me.x,m.y-me.y)<=14)mode='windup';
   else if(la>=0&&la<130)mode='lunge';
   else if(la>=130&&la<300)mode='recover';
   else if(moving)mode='walk';
-  const flash=(mode==='hit'&&ha<90)||(mode==='dead'&&age<120);
+  const flash=(mode==='hit'&&ha<90)||(dead&&age<90);
   const ph=Math.floor(now/(mode==='walk'?110:230))%4;
   let al=1;if(dead&&age>1000)al=Math.max(0,1-(age-1000)/600);
   if(al<=0)return;
-  shadowE(x+1,y,mode==='dead'?10:8,2,.28*al);
+  shadowE(x+1,y,dead?10:8,2,.28*al);
+  if(dead)drawDefeatDust(m,x,y,age);
   // Two-pixel sprite-only flinch. Shadow, collision, AI and health bar stay anchored.
   const kick=!dead&&ha>=0&&ha<150?(ha<55?2:ha<105?1:0):0;
   const kickX=Math.round((m.hitPushX||0)*kick),kickY=Math.round((m.hitPushY||0)*kick*.5);
-  ctx.save();ctx.globalAlpha=al;ctx.translate(x+kickX,y+kickY);ctx.scale(f,1);
+  ctx.save();ctx.globalAlpha=al;ctx.translate(x+kickX,y+kickY);
+  if(dead){const fall=defeatCollapse(age);ctx.scale(f*(1+fall*.09),1-fall*.34)}
+  else ctx.scale(f,1);
   if(m.t==='slime')sprSlime(mode,ph,age,flash);else if(m.t==='goblin')sprGoblin(mode,ph,age,flash);else if(m.t==='boar')sprBoar(mode,ph,age,flash);else if(m.t==='bear')sprBear(mode,ph,age,flash);else if(m.t==='cave')sprQuad(Q_CAVE,mode,ph,age,flash);else if(m.t==='abear')sprQuad(Q_ABEAR,mode,ph,age,flash);else sprWolf(mode,ph,age,flash);
   // Native-pixel creature finishing pass: fur, eyes, tusks and equipment.
   // Applied after existing animation so movement and combat timing remain intact.
