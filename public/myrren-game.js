@@ -1861,7 +1861,15 @@ function update(dt,now){
     act=null;blocked.clear();idleT=0;
     const sp=SPD*mag;
     me.x+=mx/mag*sp*dt;me.y+=my/mag*sp*dt;me.moving=true;
-    if(!shouldHoldAttackFacing(mx,my,me.fx,me.fy,atkHeld||gpAtk||keys[' '])){
+    // Keep the character facing the locked enemy while strafing or retreating.
+    // Without an enemy, movement determines facing as normal.
+    const combatHeld=atkHeld||gpAtk||keys[' '];
+    const lockedEnemy=combatHeld&&me.tgt&&me.tgt.state!=='dead'&&Math.hypot(me.tgt.x-me.x,me.tgt.y-4-me.y)<=(activeDef('weapon')?30:22);
+    if(lockedEnemy){
+      const dx=me.tgt.x-me.x,dy=me.tgt.y-4-me.y,d=Math.hypot(dx,dy)||1;
+      me.fx=dx/d;me.fy=dy/d;me.face=dx>=0?1:-1;
+      me.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s';
+    }else if(!shouldHoldAttackFacing(mx,my,me.fx,me.fy,combatHeld)){
       const i8=Math.round(Math.atan2(my,mx)/(Math.PI/4));me.fx=+Math.cos(i8*Math.PI/4).toFixed(3);me.fy=+Math.sin(i8*Math.PI/4).toFixed(3);
       if(Math.abs(me.fx)>.3)me.face=me.fx>0?1:-1;
       me.dv=Math.abs(me.fy)>Math.abs(me.fx)*1.1?(me.fy>0?'d':'u'):'s';
