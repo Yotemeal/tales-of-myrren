@@ -11,10 +11,12 @@ function capture(re, name) {
   return match;
 }
 const swingMs = Number(capture(/const SWING_IV\s*=\s*(\d+)/, 'directional swing interval')[1]);
-const targetedSeconds = Number(capture(/const iv\s*=\s*(\d+(?:\.\d+)?)\s*;a\.t\+=dt/, 'targeted attack interval')[1]);
+assert.match(src, /const iv=SWING_IV\/1000;a\.t\+=dt;/, 'targeted attacks must use shared swing cooldown');
+const targetedSeconds = swingMs / 1000;
 const directionalSeconds = swingMs / 1000;
 assert.ok(swingMs > 0 && targetedSeconds > 0);
 const swingDpsFactor = targetedSeconds / directionalSeconds;
+assert.equal(swingDpsFactor, 1, 'attack methods must have identical theoretical single-target DPS');
 const tiers = [
   {name:'Bronze', level:1, attack:1},
   {name:'Iron', level:10, attack:3},
