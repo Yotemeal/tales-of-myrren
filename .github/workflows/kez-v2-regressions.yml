@@ -33,7 +33,9 @@ jobs:
           node --check public/wardrobe-v5.js
           node --check public/sword-actions-v1.js
       - name: Native Kez V2 rendering contracts
-        run: node tests/kez-v2-rendering.test.cjs
+        run: |
+          node tests/kez-v2-rendering.test.cjs
+          node tests/idle-pixel-integrity.test.cjs
       - name: Save, balance and gameplay regressions
         run: |
           node tests/armour-progression.test.cjs
