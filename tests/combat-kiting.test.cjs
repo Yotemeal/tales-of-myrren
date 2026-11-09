@@ -25,7 +25,7 @@ assert(resolve.includes('if(!strikeHitsTarget(strike,m))continue;'),
 assert(source.includes('me.pend=0;pendingStrike=null;me.swing=-99999;'),
   'death must clear pending damage');
 assert(source.includes('const SWING_IV=900'),'attack cooldown must not be accelerated by kiting');
-const faceMatch=source.match(/function shouldHoldAttackFacing\\(mx,my,fx,fy,attacking\\)\\{[\\s\\S]*?\\n\\}/);
+const faceMatch=source.match(/function shouldHoldAttackFacing\(mx,my,fx,fy,attacking\)\{[\s\S]*?\n\}/);
 assert(faceMatch,'attack-strafe facing helper must exist');
 const holdFacing=vm.runInNewContext('('+faceMatch[0]+')');
 assert.equal(holdFacing(-1,0,1,0,true),true,'backpedalling with attack held must preserve facing');
