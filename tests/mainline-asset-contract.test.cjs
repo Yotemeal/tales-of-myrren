@@ -35,5 +35,6 @@ assert(game.includes('Starter tools: Trader Gus.'),'welcome instructions should 
 assert(game.includes("buys:[...new Set([...SHOPS.axe.buys,...SHOPS.pick.buys,...SHOPS.fish.buys])]"),'Crater trader must retain resource buyback');
 const css=fs.readFileSync(path.join(publicDir,'myrren-ui.css'),'utf8');
 assert(css.includes('-webkit-line-clamp:2'),'chat messages must clamp');
-assert(css.includes('width:min(260px,calc(100% - 168px))'),'mobile notifications must reserve compass space');
+assert(!entry.includes('id="minimap"'),'canonical game must not restore the retired minimap');
+assert(!css.includes('#minimap'),'retired minimap CSS must not return');
 console.log('PASS: canonical Cloudflare entry, dependency files/order, single runtime registration, mobile HUD and Crater economy contracts.');
