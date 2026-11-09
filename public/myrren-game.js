@@ -522,6 +522,8 @@ me.ox=me.x;me.oy=me.y;
 const cam={x:me.x-100,y:me.y-100};
 let started=false,act=null,regen=0,waveN=0,marker=null,idleT=0,lastSkill='melee',inside=null,exitCD=0,fade=0,snapCam=false;
 const blocked=new Set(),splats=[],fx=[],decals=[];
+// Short-lived, capped contact flashes are visual-only and never enter saves.
+const combatImpacts=[];
 
 /* ---------- hud + chat ---------- */
 const chat=$('chat'),chatLines=[];
@@ -1433,7 +1435,8 @@ function resolveSwing(now){
     m.prov=true;if(m.state==='idle'||m.state==='return')m.state='chase';
     const hit=Math.random()<clamp(.55+(L-mt.def)*.03+atk*.01,.25,.95);
     const dmg=hit?rint(1,2+Math.floor(L/4)+atk):0;
-    m.hp-=dmg;splat(m.x,m.y-16,dmg);sfx(dmg>0?'hit':'miss');if(dmg>0)m.hitAt=now;
+    m.hp-=dmg;splat(m.x,m.y-16,dmg);sfx(dmg>0?'hit':'miss');
+    if(dmg>0)recordCombatHit(m,now,strike.x,strike.y,w?.kind==='sword');
     burst(m.x,m.y-8,dmg>0?['#d83a2a','#ffffff','#ffd24a']:['#ffffff','#b5c8d8'],dmg>0?7:3,20);
     me.tgt=m;me.tgtUntil=now+4000;
     if(m.hp>0&&save.perks.spiked&&w&&w.kind==='sword'){const dd=d||1;m.x+=tx/dd*8;m.y+=ty/dd*8;m.cd=-.5}
@@ -1647,6 +1650,16 @@ function beginAct(kind,ref){
 /* ---------- simulation ---------- */
 function splat(x,y,v){splats.push({x,y,v,t:performance.now(),c:v>0?'#d83a2a':'#3a6ac4'})}
 function burst(x,y,cols,n,power){for(let i=0;i<n;i++)fx.push({x,y,vx:(Math.random()-.5)*power*2,vy:-Math.random()*power-8,t:performance.now(),c:cols[i%cols.length]})}
+// Combat contact is purely presentation: never alter world position, HP,
+// collision or attack intervals. Use the original attacker position so
+// strafing after the strike cannot change the recoil direction.
+function recordCombatHit(m,now,fromX,fromY,sword){
+  const dx=m.x-fromX,dy=m.y-4-fromY,d=Math.hypot(dx,dy);
+  const nx=d>.01?dx/d:(me.fx||1),ny=d>.01?dy/d:(me.fy||0);
+  m.hitAt=now;m.hitPushX=nx;m.hitPushY=ny;
+  if(combatImpacts.length>=24)combatImpacts.shift();
+  combatImpacts.push({x:m.x,y:m.y-10,nx,ny,t:now,sword:!!sword});
+}
 function startSwing(now){sfx('swing');me.swing=now;me.swings++;me.hold=now+3500;sendPresence()}
 const PETS={
   woodcutting:{name:'Timber Glider',art:'pet_glider',what:'log'},
@@ -1838,7 +1851,8 @@ function doAction(dt,now){
           const atk=atkBonus();
       const hit=Math.random()<clamp(.55+(L-mt.def)*.03+atk*.01,.25,.95);
       const dmg=hit?rint(1,2+Math.floor(L/4)+atk):0;
-      m.hp-=dmg;splat(m.x,m.y-16,dmg);if(dmg>0)m.hitAt=now;
+      m.hp-=dmg;splat(m.x,m.y-16,dmg);sfx(dmg>0?'hit':'miss');
+      if(dmg>0)recordCombatHit(m,now,me.x,me.y,w?.kind==='sword');
       burst(m.x,m.y-8,dmg>0?['#d83a2a','#ffffff','#ffd24a']:['#ffffff','#b5c8d8'],dmg>0?7:3,20);
       if(m.hp<=0)killMon(m,now);
     }
@@ -1954,6 +1968,27 @@ function update(dt,now){
 
 /* ---------- drawing ---------- */
 function R(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
+// Compact pixel sparks exist only at the contact point of successful hits.
+// No blur, extra sprite sheets or unbounded allocations on mobile.
+function drawCombatImpacts(now,cx,cy){
+  for(let i=combatImpacts.length-1;i>=0;i--){
+    const p=combatImpacts[i],age=now-p.t;
+    if(age<0||age>=180){combatImpacts.splice(i,1);continue}
+    const x=Math.round(p.x-cx),y=Math.round(p.y-cy);
+    const sx=p.nx>=0?1:-1,sy=p.ny>=0?1:-1;
+    if(age<52){
+      R(x-1,y-1,3,3,'#fff9da');
+      R(x-4,y,2,1,'#ffd27e');R(x+3,y,2,1,'#ffd27e');
+      R(x,y-4,1,2,'#ffffff');
+      if(p.sword){R(x+sx*4,y+sy*2,2,1,'#fff1ba');R(x-sx*4,y-sy*2,1,2,'#f6b847')}
+    }else if(age<105){
+      R(x-2,y-1,2,1,'#f5c768');R(x+2,y,2,1,'#f5c768');
+      if(p.sword)R(x+sx*5,y+sy*3,2,1,'#ffffff');
+    }else if(p.sword){
+      R(x+sx*6,y+sy*4,1,1,'#dda54b');
+    }
+  }
+}
 function label(t,x,y,col){ctx.font='12px VT323, monospace';ctx.textAlign='center';ctx.fillStyle='#000';ctx.fillText(t,x+1,y);ctx.fillText(t,x-1,y);ctx.fillText(t,x,y+1);ctx.fillText(t,x,y-1);ctx.fillStyle=col;ctx.fillText(t,x,y)}
 function bar(x,y,p){R(x-9,y-1,18,5,'#1d120a');R(x-8,y,16,3,'#4a1410');R(x-8,y,Math.round(16*clamp(p,0,1)),3,'#e84a30');R(x-8,y,Math.round(16*clamp(p,0,1)),1,'#ff9a70');R(x-12,y-1,3,5,'#c9803a');R(x+9,y-1,3,5,'#c9803a')}
 function swingAng(age){
@@ -2199,17 +2234,20 @@ function drawMon(m,x,y,now){
   const moving=now-m.mvT<160,la=now-m.lunge,ha=now-(m.hitAt||-99999);
   let mode='idle',age=0;
   if(dead){mode='dead';age=now-(m.dieAt||now)}
+  else if(ha>=0&&ha<190)mode='hit'; // Confirmed hits interrupt the visual windup, not the actual AI attack timer.
   else if(m.state==='chase'&&m.cd>mt.iv-.3&&Math.hypot(m.x-me.x,m.y-me.y)<=14)mode='windup';
   else if(la>=0&&la<130)mode='lunge';
   else if(la>=130&&la<300)mode='recover';
-  else if(ha>=0&&ha<260)mode='hit';
   else if(moving)mode='walk';
   const flash=(mode==='hit'&&ha<90)||(mode==='dead'&&age<120);
   const ph=Math.floor(now/(mode==='walk'?110:230))%4;
   let al=1;if(dead&&age>1000)al=Math.max(0,1-(age-1000)/600);
   if(al<=0)return;
   shadowE(x+1,y,mode==='dead'?10:8,2,.28*al);
-  ctx.save();ctx.globalAlpha=al;ctx.translate(x,y);ctx.scale(f,1);
+  // Two-pixel sprite-only flinch. Shadow, collision, AI and health bar stay anchored.
+  const kick=!dead&&ha>=0&&ha<150?(ha<55?2:ha<105?1:0):0;
+  const kickX=Math.round((m.hitPushX||0)*kick),kickY=Math.round((m.hitPushY||0)*kick*.5);
+  ctx.save();ctx.globalAlpha=al;ctx.translate(x+kickX,y+kickY);ctx.scale(f,1);
   if(m.t==='slime')sprSlime(mode,ph,age,flash);else if(m.t==='goblin')sprGoblin(mode,ph,age,flash);else if(m.t==='boar')sprBoar(mode,ph,age,flash);else if(m.t==='bear')sprBear(mode,ph,age,flash);else if(m.t==='cave')sprQuad(Q_CAVE,mode,ph,age,flash);else if(m.t==='abear')sprQuad(Q_ABEAR,mode,ph,age,flash);else sprWolf(mode,ph,age,flash);
   // Native-pixel creature finishing pass: fur, eyes, tusks and equipment.
   // Applied after existing animation so movement and combat timing remain intact.
@@ -3009,6 +3047,7 @@ function frame(now){
     if(age<600){const x=Math.round(marker.x-cx),y=Math.round(marker.y-cy),s=age<200?3:2;R(x-s,y-1,s*2+1,2,marker.c);R(x-1,y-s,2,s*2+1,marker.c)}else marker=null;
   }
   for(const p of fx){const a=1-(now-p.t)/520;R(Math.round(p.x-cx),Math.round(p.y-cy),a>.5?2:1,a>.5?2:1,p.c)}
+  drawCombatImpacts(now,cx,cy);
   for(let i=splats.length-1;i>=0;i--){
     const s=splats[i],age=now-s.t;if(age>900){splats.splice(i,1);continue}
     const x=Math.round(s.x-cx),y=Math.round(s.y-cy-age/90);
