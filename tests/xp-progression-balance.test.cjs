@@ -17,7 +17,7 @@ const createGame=require('./game-runtime.cjs');
     return Math.max(1,...Object.values(g.DEFS).filter(d=>kinds.includes(d.kind)&&d.req<=level).map(d=>d.mat));
   };
   const chance=(n,level,toolMat)=>Math.max(.05,Math.min(.92,n.base+(level-n.req)*.025+Math.max(0,toolMat-2)*.06));
-  const rate=(n,level,mat)=>n.xp*chance(n,level,mat)*3600/(n.skill==='fishing'?3.3:1.8);
+  const rate=(n,level,mat)=>n.xp*chance(n,level,mat)*3600/(n.skill==='fishing'?3.3:n.skill==='mining'?g.miningInterval({mat}):1.8);
   const best=(skill,level)=>{
     const mat=bestToolMat(skill,level);
     return Object.entries(g.NT).filter(([,n])=>n.skill===skill&&level>=n.req)
