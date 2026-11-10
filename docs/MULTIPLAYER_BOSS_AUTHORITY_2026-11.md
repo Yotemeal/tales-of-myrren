@@ -87,6 +87,13 @@ permitted. The prototype reserves 36 gear slots, followed by a bounded 128
 item claim queue; if both are full, the whole payout remains pending rather
 than silently discarding rare gear or issuing a false receipt.
 
+A private `src/boss-reward-delivery.mjs` reconciler demonstrates the full
+outbox-to-account-to-acknowledgement sequence. If an account credit commits
+but the room acknowledgement fails, the item remains pending; retrying
+returns the original account receipt without additional coins, XP or gear.
+The reconciliation test simulates that exact crash window. Failed or
+capacity-blocked awards remain pending for an authenticated service to retry.
+
 This is a **test-only parallel account ledger**. It does not migrate or read
 players' existing inventories, XP, cloud saves, real identities, bank chests or
 equipment. No trade, claim UI, authoritative login, webhook, Durable Object
