@@ -146,6 +146,29 @@ A runner automatically executes queued jobs; it does **not** independently
 write or push new code. Production Cloudflare deployment should stay gated
 behind a reviewed, tested main-branch release.
 
+## Server-owned boss AI (isolated prototype)
+
+`src/server-boss-behavior.mjs` introduces a deterministic server-ticked
+behaviour state machine for Cave and Aether bears, with their pursuit speeds,
+aggro ranges, attack intervals, warning durations and warning radii checked
+against the existing live monster definitions.
+
+It selects trusted room players, moves no faster than the server elapsed-time
+limit (100 ms maximum simulation step), respects a server collision callback,
+and returns to the original spawn after disengaging. Telegraphs freeze the
+boss's attack origin; a player who dodges outside the warning circle before
+its deadline is excluded from the strike event. Every strike and completed
+leash reset has a unique monotonic event key per boss life. Private state
+including pending warnings, next attack time and counters can be restored
+without rerolling earlier attacks.
+
+**Not wired to production yet.** Strike events do not change player health;
+a future server-owned health authority must resolve damage and armour.
+The final shared-room transaction must update boss AI, boss HP/contributions,
+player HP, movement and event outbox atomically. Spawns and respawns must
+also be coordinated with persisted life IDs. The live solo monster AI and
+combat UI are unchanged.
+
 ## Required before production multiplayer
 
 1. **Authentication and character authority.** Replace the optional presence
