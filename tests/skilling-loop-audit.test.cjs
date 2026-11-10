@@ -25,7 +25,10 @@ const createGame=require('./game-runtime.cjs');
     const actionSeconds=gatherInterval(node.skill);
     const cooldownSeconds=(node.rt[0]+node.rt[1])/2*node.dep;
     const actionLimited=3600*chance/actionSeconds;
-    const oneNode=3600/(actionSeconds/chance+cooldownSeconds);
+    // A mining vein supports several successful gathers before its one
+    // recharge, unlike the old one-success-per-rock cooldown model.
+    const capacity=node.skill==='mining'?node.vein:1;
+    const oneNode=3600*capacity/(capacity*actionSeconds/chance+cooldownSeconds);
     assert(oneNode<=actionLimited+1e-7,'cooldowns must not increase XP/hour');
     return {name,tool:tool.id,chance,actionLimited,oneNode,
       idealXpHour:actionLimited*node.xp,oneNodeXpHour:oneNode*node.xp};
