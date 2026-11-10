@@ -19,6 +19,8 @@ const createGame=require('./game-runtime.cjs');
    assert.equal(kinds.reduce((sum,k)=>sum+g.FORGE[k],0),28,
      'complete armour plus shield should require 28 ingots');
    assert.equal(g.FORGE.sword,4);
+   const fullSetUnlocks={bronze:9,iron:18,steel:28,cobalt:38,
+     obsidianite:46,aether:59,starsteel:73};
    for(const r of g.SMELT){
      const armour=g.equipmentSetPlan(r.mat);
      const withSword=g.equipmentSetPlan(r.mat,true);
@@ -27,10 +29,11 @@ const createGame=require('./game-runtime.cjs');
      assert.equal(armour.totalBars,28);
      assert.equal(armour.barsNeeded,28,'new player requires all 28 bars');
      assert.equal(armour.barsToSmelt,28);
-     assert.equal(armour.levelRequired,r.req+8,'platebody is last armour Smithing unlock');
+     assert.equal(armour.levelRequired,fullSetUnlocks[r.id],
+       'tier-specific late Smithing spacing should stay achievable');
      assert.equal(withSword.totalBars,32);
      assert.equal(withSword.pieces.length,7);
-     assert.equal(withSword.levelRequired,r.req+8,
+     assert.equal(withSword.levelRequired,fullSetUnlocks[r.id],
        'including the sword does not raise the final Smithing gate');
      assert.equal(armour.totalForgeXp,28*r.forgeXpPerBar,
        'forging XP is based on actual ingot cost');
@@ -82,7 +85,7 @@ const createGame=require('./game-runtime.cjs');
    assert.equal(plan.heldBars,3);
    assert.equal(plan.bankBars,2);
    assert.equal(plan.barsToSmelt,4);
-   assert.equal(plan.remainingLevel,star.req+7,'legs are highest outstanding Smithing gate');
+   assert.equal(plan.remainingLevel,73,'missing Starsteel legs/boots unlock by Smithing 73');
    assert.deepEqual(plan.ores.map(o=>[o.id,o.needed,o.available,o.missing]),
      [['meteorite',12,9,3],['coal',16,12,4]]);
    const swordPlan=g.equipmentSetPlan(star.mat,true);
@@ -113,6 +116,19 @@ const createGame=require('./game-runtime.cjs');
      'full-set planner never replaces regular forging controls');
    assert(elements.get('mBody').children.some(c=>c.className==='smith-work'),
      'regular one-recipe forging controls are unchanged');
+
+   // Original gear combat requirements remain fixed; only late Smithing
+   // recipe gates are compressed. A player cannot forge the body at 72,
+   // but can use their existing bars to make it at 73.
+   assert.equal(g.DEFS.starsteel_body.req,70,
+     'Starsteel equipment combat level must not change');
+   g.save.inv.ing_starsteel=6;
+   g.save.xp.forging=g.xpTable[72];
+   assert.equal(g.smithMaximum('forge','body'),0,
+     'platebody is still locked immediately before its Smithing level');
+   g.save.xp.forging=g.xpTable[73];
+   assert(g.smithMaximum('forge','body')>=1,
+     'platebody can be made at Smithing 73');
 
    // Work through the COMPLETE six-piece Starsteel set using the real queued
    // anvil actions. Material and XP checks are based on actual creations.
