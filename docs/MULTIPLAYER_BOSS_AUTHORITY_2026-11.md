@@ -71,6 +71,30 @@ Cloudflare currently recommends SQLite-backed Durable Objects, with declarative
 storage namespace, new public API or deployment configuration was added**.
 The live `src/worker.js` and `wrangler.jsonc` stay untouched.
 
+## Private account settlement prototype
+
+An additional isolated module, `src/boss-account-ledger.mjs`, now models an
+account-owned transactional ledger for boss payouts. It consumes only a
+server-provided pending outbox record, validates room/boss/spawn/account
+identity and coin/XP/gear bounds, then atomically saves the credit and its
+unique receipt. A duplicate delivery returns the original receipt and
+**cannot credit coins or XP twice**. A mismatched replay is rejected.
+
+Rare gear rolls select from the exact currently defined item IDs and material
+pools in the real game; the regression test checks every eligible item against
+the live game's `DEFS`. Duplicate equipment from separate boss spawns is
+permitted. The prototype reserves 36 gear slots, followed by a bounded 128
+item claim queue; if both are full, the whole payout remains pending rather
+than silently discarding rare gear or issuing a false receipt.
+
+This is a **test-only parallel account ledger**. It does not migrate or read
+players' existing inventories, XP, cloud saves, real identities, bank chests or
+equipment. No trade, claim UI, authoritative login, webhook, Durable Object
+namespace or integration with the current live game has been deployed.
+A future trusted delivery worker must source entitlements directly from the
+private room outbox, call the authenticated account ledger, then acknowledge
+the room receipt. It must not accept reward records sent by players.
+
 ## Required before production multiplayer
 
 1. **Authentication and character authority.** Replace the optional presence
@@ -111,6 +135,7 @@ From the repository root:
 
     node tests/server-boss-encounter.test.cjs
     node tests/boss-room-coordinator.test.cjs
+    node tests/boss-account-ledger.test.cjs
     node tests/boss-contribution-loot.test.cjs
 
 The new test uses the existing headless game harness for parity, plus
