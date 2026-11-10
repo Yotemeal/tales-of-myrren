@@ -23,10 +23,12 @@ for path in \
   src/boss-account-ledger.mjs \
   src/boss-reward-delivery.mjs \
   src/server-player-positions.mjs \
+  src/server-boss-behavior.mjs \
   tests/server-boss-encounter.test.cjs \
   tests/boss-room-coordinator.test.cjs \
   tests/boss-account-ledger.test.cjs \
-  tests/server-player-positions.test.cjs
+  tests/server-player-positions.test.cjs \
+  tests/server-boss-behavior.test.cjs
 do
   node --check "$path"
 done
@@ -37,7 +39,8 @@ for path in \
   tests/server-boss-encounter.test.cjs \
   tests/boss-room-coordinator.test.cjs \
   tests/boss-account-ledger.test.cjs \
-  tests/server-player-positions.test.cjs
+  tests/server-player-positions.test.cjs \
+  tests/server-boss-behavior.test.cjs
 do
   echo "[Myrren] Running $path"
   node "$path"
