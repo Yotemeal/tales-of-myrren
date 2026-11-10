@@ -7,7 +7,8 @@ const fs=require('node:fs');
 const createGame=require('./game-runtime.cjs');
 
 (async()=>{
- const {game:g,rectCount,renderedText}=await createGame();
+ const {game:g,rectCount,renderedText,elements}=await createGame();
+ const recentChat=()=>elements.get('chat').children.slice(-2).map(e=>e.textContent).join('\n');
  const previous={
    copper:[8,14],tin:[8,14],iron:[12,20],coal:[14,22],
    cobalt:[18,28],obsidianite:[22,32],aether:[24,36],meteorite:[30,45]
@@ -69,6 +70,9 @@ const createGame=require('./game-runtime.cjs');
    assert.equal(g.save.inv.copper,ore0+1,'one real ore per success');
    assert.equal(g.save.xp.mining,xp0+g.NT.copper.xp,'award the original mining XP');
    assert.equal(copper.oreLeft,5,'six-gather vein should have five charges remaining');
+   assert.match(recentChat(),
+     /5 ores left in this vein/,
+     'the running game must show remaining ore charges after a real gather');
    assert.equal(copper.back,0,'one successful gather should not deplete a full vein');
    assert(g.getAct(),'continue mining the same rock without reselecting it');
 
@@ -77,6 +81,15 @@ const createGame=require('./game-runtime.cjs');
      g.doAction(1.8,now);
      assert.equal(copper.oreLeft,6-success,'one charge per real success');
      assert.equal(g.save.inv.copper,ore0+success,'one ore per success');
+     if(success<6){
+       assert.match(recentChat(),
+         new RegExp((6-success)+' ores left in this vein'),
+         'remaining charges must update after every successful ore');
+     }else{
+       assert.match(recentChat(),
+         /vein is exhausted/i,
+         'only the last successful ore announces depletion');
+     }
      assert.equal(g.save.xp.mining,xp0+success*g.NT.copper.xp,
        'original XP per successful ore, no extra XP for vein exhaustion');
      if(success<6){
@@ -121,6 +134,9 @@ const createGame=require('./game-runtime.cjs');
    g.beginAct('node',copper);
    g.doAction(.9,18000);
    assert.equal(copper.oreLeft,5,'expired vein restarts with full durability');
+   assert.match(recentChat(),
+     /5 ores left in this vein/,
+     'respawned rock visibly resets charge count');
    assert.equal(g.save.inv.copper,ore0+7);
    assert.equal(g.save.xp.mining,xp0+7*g.NT.copper.xp);
 

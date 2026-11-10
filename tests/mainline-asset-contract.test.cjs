@@ -30,6 +30,19 @@ for(const src of [...scripts,...[...entry.matchAll(/<link[^>]+href="([^"]+\.css(
   assetFiles.add(src.split('?')[0]);
 }
 const game=fs.readFileSync(path.join(publicDir,'myrren-game.js'),'utf8');
+// A new mining build must invalidate the previous script URL; otherwise
+// long-lived in-app browser tabs can keep the old one-yield ore logic.
+const gameSrc=scripts.find(s=>s.startsWith('/myrren-game.js'));
+const buildVersion=/^\/myrren-game\.js\?v=(\d+)$/.exec(gameSrc);
+const runtimeVersion=/window\.MyrrenBuild=(\d+);/.exec(game);
+assert(buildVersion&&runtimeVersion,'game HTML/runtime require matching build markers');
+assert.equal(Number(buildVersion[1]),Number(runtimeVersion[1]),
+  'Cloudflare script URL and the loaded game build must match');
+assert(Number(runtimeVersion[1])>=84,'multi-ore update must not reuse the old v83 bundle');
+assert(game.includes('const veinExhausted=nt.skill===\'mining\'&&consumeOreVein(n,nt,now)'),
+  'mining success must use the multi-yield depletion handler');
+assert(game.includes('ores left in this vein'),
+  'running game must visibly confirm ore durability to the player');
 assert(game.includes("chatLines.slice(-2)"),'mobile notification log must show at most two items');
 assert(game.includes('Starter tools: Trader Gus.'),'welcome instructions should remain compact');
 assert(game.includes("buys:[...new Set([...SHOPS.axe.buys,...SHOPS.pick.buys,...SHOPS.fish.buys])]"),'Crater trader must retain resource buyback');

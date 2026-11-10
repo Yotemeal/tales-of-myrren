@@ -1,0 +1,42 @@
+name: Verify deployed mining build
+
+on:
+  pull_request:
+    paths:
+      - 'public/myrren-game.js'
+      - 'public/index.html'
+      - 'scripts/check-live-mining.mjs'
+      - '.github/workflows/mining-live-release.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'public/myrren-game.js'
+      - 'public/index.html'
+      - 'scripts/check-live-mining.mjs'
+      - '.github/workflows/mining-live-release.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deployment:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify live asset checker syntax
+        run: node --check scripts/check-live-mining.mjs
+      - name: Report current Cloudflare release before merging
+        if: github.event_name == 'pull_request'
+        run: node scripts/check-live-mining.mjs
+      - name: Wait for the tested mining build to appear on Cloudflare
+        if: github.event_name == 'push'
+        run: node scripts/check-live-mining.mjs --require-current
