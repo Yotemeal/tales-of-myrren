@@ -86,8 +86,8 @@ const createGame=require('./game-runtime.cjs');
      inspect({k:'iron',back:9000},9500,'Iron rock (Lv 10)');
  }finally{Math.random=originalRandom}
 
- // Other skill nodes retain their existing respawn timers and labels.
- assert.deepEqual(Array.from(g.NT.tree.rt),[12,20]);
+ // Forestry regrowth is tuned independently; fishing respawn stays unchanged.
+ assert.deepEqual(Array.from(g.NT.tree.rt),[10,16]);
  assert.deepEqual(Array.from(g.NT.spot1.rt),[8,14]);
  const source=fs.readFileSync('public/myrren-game.js','utf8');
  assert(source.includes('if(best){best.tipAt=now;return}'),'canvas tapping resources must inspect only');
