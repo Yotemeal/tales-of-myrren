@@ -39,8 +39,13 @@ export function createBossCommandGateway({ authenticator, createTrustedRoom }) {
         (!Number.isSafeInteger(command.afterSequence) ||
           command.afterSequence < 0))
       return denied('invalid-command');
-    const authorized = await authenticator.verifyBearer(authorization);
-    if (!authorized.ok) return denied('unauthorized');
+    let authorized;
+    try { authorized = await authenticator.verifyBearer(authorization); }
+    catch { return denied('unauthorized'); }
+    if (!authorized?.ok ||
+        typeof authorized.accountId !== 'string' ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(authorized.accountId))
+      return denied('unauthorized');
     try {
       // createTrustedRoom is the private backend boundary: the returned
       // sessionKey must be valid only for the verified accountId. The
