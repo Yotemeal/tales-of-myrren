@@ -5,6 +5,7 @@ on:
       - 'src/boss-encounter.mjs'
       - 'src/boss-room-coordinator.mjs'
       - 'src/boss-account-ledger.mjs'
+      - 'src/boss-reward-delivery.mjs'
       - 'tests/server-boss-encounter.test.cjs'
       - 'tests/boss-room-coordinator.test.cjs'
       - 'tests/boss-account-ledger.test.cjs'
@@ -18,6 +19,7 @@ on:
       - 'src/boss-encounter.mjs'
       - 'src/boss-room-coordinator.mjs'
       - 'src/boss-account-ledger.mjs'
+      - 'src/boss-reward-delivery.mjs'
       - 'tests/server-boss-encounter.test.cjs'
       - 'tests/boss-room-coordinator.test.cjs'
       - 'tests/boss-account-ledger.test.cjs'
@@ -37,6 +39,7 @@ jobs:
           node --check src/boss-encounter.mjs
           node --check src/boss-room-coordinator.mjs
           node --check src/boss-account-ledger.mjs
+          node --check src/boss-reward-delivery.mjs
           node --check tests/server-boss-encounter.test.cjs
           node tests/server-boss-encounter.test.cjs
           node tests/boss-room-coordinator.test.cjs
