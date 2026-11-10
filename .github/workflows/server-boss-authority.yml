@@ -16,6 +16,8 @@ on:
       - 'src/server-boss-command-gateway.mjs'
       - 'src/server-trusted-characters.mjs'
       - 'src/server-boss-durable-service.mjs'
+      - 'src/server-global-account.mjs'
+      - 'src/server-account-preview-object.mjs'
       - 'src/multiplayer-preview-worker.mjs'
       - 'wrangler.multiplayer-preview.jsonc'
       - 'wrangler.jsonc'
@@ -31,6 +33,7 @@ on:
       - 'tests/server-supabase-auth.test.cjs'
       - 'tests/server-boss-command-gateway.test.cjs'
       - 'tests/server-boss-durable-service.test.cjs'
+      - 'tests/server-global-account.test.cjs'
       - 'tests/server-boss-preview-contract.test.cjs'
       - 'tests/game-runtime.cjs'
       - 'public/myrren-game.js'
@@ -65,6 +68,8 @@ jobs:
           node --check src/server-boss-command-gateway.mjs
           node --check src/server-trusted-characters.mjs
           node --check src/server-boss-durable-service.mjs
+          node --check src/server-global-account.mjs
+          node --check src/server-account-preview-object.mjs
           node --check src/multiplayer-preview-worker.mjs
           node --check tests/server-player-positions.test.cjs
           node --check tests/server-boss-behavior.test.cjs
@@ -74,6 +79,7 @@ jobs:
           node --check tests/server-supabase-auth.test.cjs
           node --check tests/server-boss-command-gateway.test.cjs
           node --check tests/server-boss-durable-service.test.cjs
+          node --check tests/server-global-account.test.cjs
           node --check tests/server-boss-preview-contract.test.cjs
           node --check tests/server-boss-encounter.test.cjs
           node tests/server-boss-encounter.test.cjs
@@ -89,6 +95,7 @@ jobs:
           node tests/server-supabase-auth.test.cjs
           node tests/server-boss-command-gateway.test.cjs
           node tests/server-boss-durable-service.test.cjs
+          node tests/server-global-account.test.cjs
           node tests/server-boss-preview-contract.test.cjs
       - name: Bundle SQLite preview Worker without deploying
         run: |
