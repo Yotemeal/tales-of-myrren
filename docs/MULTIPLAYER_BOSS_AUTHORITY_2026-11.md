@@ -131,10 +131,11 @@ From the repository root on a Linux PC with Node.js 22 or later:
 
 This executes JavaScript syntax checks and the boss, account, room and
 movement regressions locally, without consuming GitHub-hosted Actions minutes.
-The `Myrren-Linux` Fedora self-hosted runner is now installed as a
-systemd service and successfully completed the existing server boss regression
-and game integrity suites on the earlier draft commit. Additional atomic room
-and combat-event replay tests require the latest CI run to pass before review.
+The `Myrren-Linux` Fedora self-hosted runner is installed as a
+systemd service and has successfully completed the boss, atomic room,
+reconnection and mainline regression suites on the earlier draft commits.
+The new server-side Supabase identity and command-gateway tests need an
+additional passing run before this draft branch can be considered verified.
 
 The dedicated workflow uses `runs-on: [self-hosted, Linux, X64]`;
 work-in-progress documentation-only commits may use `[skip ci]`, but any
@@ -195,6 +196,47 @@ handler must poll/subscribe to the feed, preserve each client's cursor,
 reconcile snapshots after network gaps, and enforce actual Cloudflare room
 transactions and per-account storage. No new live game UI or network route
 has been changed.
+
+## Supabase account authentication boundary (isolated)
+
+The existing game already supports Supabase sign-in and user-owned cloud
+saves. That is useful for identifying a player but **does not authenticate
+their combat stats or carried items**: `player_saves.save_data` is currently
+client-writable. It must never determine multiplayer damage, equipment,
+coins, HP or combat XP.
+
+`src/server-supabase-auth.mjs` provides a server-only identity verifier for
+the project's Supabase Auth JWTs. It checks issuer, audience, role, UUID
+subject, expiry and issued-at/not-before constraints. For ES256/RS256 tokens
+it fetches the project's fixed JWKS URL and verifies the signature with
+WebCrypto, refreshing the public keys at most every five minutes. For legacy
+HS256 it **does not** accept the JWT payload at face value: it requests the
+authenticated `/auth/v1/user` endpoint with a publishable API key on every
+verification, then compares verified user ID with the signed token subject.
+Network failures and invalid JWTs fail closed. No JWT secret, service-role
+key or private authentication key belongs in the browser or repository.
+
+`src/server-boss-command-gateway.mjs` implements a strict request
+allowlist: `join`, `snapshot`, `move(dx,dy)`, `attack` and
+`updates(afterSequence)`. A trusted server session is passed from
+the verified user account to the room. Browser-supplied character stats,
+positions, attack damage, timestamps, payout receipts, room identity, boss
+spawns and tick/award/admin actions are rejected. The standalone HTTP
+adapter accepts only small same-origin-style JSON POST commands and masks
+private service exceptions. It is deliberately **not imported by
+`src/worker.js`**, so it does not publish a new live API yet.
+
+Regression tests generate synthetic signed RSA and P-256 JWTs and check
+signature tampering, key rotation, claims expiry and legacy token validation.
+They also check forbidden commands, body size limits, no CORS by default
+and that unauthorized clients cannot create or mutate a boss room.
+
+**Production blockers:** implement a Cloudflare SQLite-backed Durable Object
+namespace and persistent account character records; wire a server-owned
+character profile/level/equipment store; verify the Supabase project signing
+mode; add session rate limiting and actual authenticated network transport;
+and test two signed-in players end to end. Never trust the current
+Supabase client-uploaded save as the server's authoritative character.
 
 ## Required before production multiplayer
 
