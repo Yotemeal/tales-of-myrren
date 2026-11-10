@@ -168,7 +168,7 @@ class FakeDurableStorage {
   assert.equal(strikeFeed.events[0].kind,'strike');
   assert.equal(strikeFeed.events[0].me?.damage>0,true);
   assert.equal((await call('alice',{type:'updates',afterSequence:1})).events[0].me,
-    null,'do not leak another player's HP');
+    null,"do not leak another player's HP");
   const after=(await api2({
     authorization:'Bearer bob',command:{type:'snapshot'}
   })).me.hp;
