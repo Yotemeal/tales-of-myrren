@@ -12,6 +12,8 @@ on:
       - 'src/server-player-health.mjs'
       - 'src/server-boss-room.mjs'
       - 'src/server-room-events.mjs'
+      - 'src/server-supabase-auth.mjs'
+      - 'src/server-boss-command-gateway.mjs'
       - 'tests/server-boss-encounter.test.cjs'
       - 'tests/boss-room-coordinator.test.cjs'
       - 'tests/boss-account-ledger.test.cjs'
@@ -20,6 +22,8 @@ on:
       - 'tests/server-player-health.test.cjs'
       - 'tests/server-boss-room.test.cjs'
       - 'tests/server-room-events.test.cjs'
+      - 'tests/server-supabase-auth.test.cjs'
+      - 'tests/server-boss-command-gateway.test.cjs'
       - 'tests/game-runtime.cjs'
       - 'public/myrren-game.js'
       - '.github/workflows/server-boss-authority.yml'
@@ -49,11 +53,15 @@ jobs:
           node --check src/server-player-health.mjs
           node --check src/server-boss-room.mjs
           node --check src/server-room-events.mjs
+          node --check src/server-supabase-auth.mjs
+          node --check src/server-boss-command-gateway.mjs
           node --check tests/server-player-positions.test.cjs
           node --check tests/server-boss-behavior.test.cjs
           node --check tests/server-player-health.test.cjs
           node --check tests/server-boss-room.test.cjs
           node --check tests/server-room-events.test.cjs
+          node --check tests/server-supabase-auth.test.cjs
+          node --check tests/server-boss-command-gateway.test.cjs
           node --check tests/server-boss-encounter.test.cjs
           node tests/server-boss-encounter.test.cjs
           node tests/boss-room-coordinator.test.cjs
@@ -63,5 +71,7 @@ jobs:
           node tests/server-player-health.test.cjs
           node tests/server-boss-room.test.cjs
           node tests/server-room-events.test.cjs
+          node tests/server-supabase-auth.test.cjs
+          node tests/server-boss-command-gateway.test.cjs
       - name: Existing boss contribution regression
         run: node tests/boss-contribution-loot.test.cjs
