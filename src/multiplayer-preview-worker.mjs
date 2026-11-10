@@ -7,6 +7,9 @@ import { DurableObject } from 'cloudflare:workers';
 import { DurableBossRoomService } from './server-boss-durable-service.mjs';
 import { SupabaseCombatAuthenticator } from './server-supabase-auth.mjs';
 import { createBossHttpCommandHandler } from './server-boss-command-gateway.mjs';
+import { deliverBossOutbox } from './boss-reward-delivery.mjs';
+import { AUTH_ACCOUNT_ID } from './server-global-account.mjs';
+export { MyrrenAccountPreview } from './server-account-preview-object.mjs';
 
 const ROOM_KEY = 'preview-grove-bear-v1';
 const IDLE_MS = 15_000;
@@ -21,7 +24,8 @@ const response = (body, status) => new Response(JSON.stringify(body), {
 export class MyrrenBossPreviewRoom extends DurableObject {
   constructor(ctx, env) {
     super(ctx, env);
-    if (!env.SUPABASE_PROJECT_URL || !env.SUPABASE_PUBLISHABLE_KEY)
+    if (!env.SUPABASE_PROJECT_URL || !env.SUPABASE_PUBLISHABLE_KEY ||
+        !env.ACCOUNT_RECORDS)
       throw new Error('Preview Supabase Auth configuration is missing');
     const authenticator = new SupabaseCombatAuthenticator({
       projectUrl: env.SUPABASE_PROJECT_URL,
@@ -57,12 +61,39 @@ export class MyrrenBossPreviewRoom extends DurableObject {
     return result;
   }
 
+  // Only the server's persisted boss-outbox may call an account's private
+  // settlement RPC. This is intentionally NOT a client-facing command.
+  async reconcileAwards() {
+    const { room } = this.room.roomFor();
+    return deliverBossOutbox({
+      room,
+      getAccountLedger: async accountId => {
+        if (typeof accountId !== 'string' ||
+            !AUTH_ACCOUNT_ID.test(accountId))
+          throw new TypeError('Unverified boss reward account');
+        const account = this.env.ACCOUNT_RECORDS.getByName(accountId.toLowerCase());
+        return {
+          settleTrustedAward: award => account.settleRoomAward(award)
+        };
+      }
+    });
+  }
+
   async alarm() {
     const last = await this.ctx.storage.get('preview-last-active:v1');
-    if (!Number.isFinite(last) || Date.now() - last > IDLE_MS)
-      return; // Timers are server-side; users cannot submit tick commands.
-    await this.room.tick();
-    await this.ctx.storage.setAlarm(Date.now() + TICK_MS);
+    const active = Number.isFinite(last) &&
+      Date.now() - last <= IDLE_MS;
+    if (active) await this.room.tick();
+    // Cross-DO transfers cannot be one transaction. The room writes its
+    // outbox first; the account writes a durable receipt second, then the
+    // room acknowledges. Retries are idempotent after crashes.
+    await this.reconcileAwards();
+    const { room } = this.room.roomFor();
+    const pending = await room.pendingAwards();
+    if (active || pending.length)
+      await this.ctx.storage.setAlarm(
+        Date.now() + (active ? TICK_MS : 60_000)
+      );
   }
 }
 
