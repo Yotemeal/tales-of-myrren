@@ -683,9 +683,9 @@ function addXp(skill,amt){
 
 /* ---------- modal ---------- */
 const modal=$('modal'),mBody=$('mBody');
-const TITLES={gear:'Equipment',pack:'Inventory',skills:'Skills',players:'Party',shop:'Shop',smelt:'Furnace · Smelting',forge:'Anvil · Forging',settings:'Settings',board:'Community Board',jobs:'Odd Jobs',odd:'Odd Shop',bank:'Storage Chest'};
-function openModal(t){if(me.deathAt!=null)return;if(smithJob&&t!==(smithJob.type==='smelt'?'smelt':'forge'))stopSmithing('',false);closeItemMenu();if(!tab)gpIdx=-1;tab=t;if(t!=='shop'&&t!=='smelt'&&t!=='forge'&&t!=='settings'&&t!=='board'&&t!=='odd')lastTab=t;sel=null;renderModal()}
-function closeModal(){stopSmithing('',false);closeItemMenu();tab='';sel=null;outdoorShop=null;renderModal()}
+const TITLES={gear:'Equipment',pack:'Inventory',skills:'Skills',players:'Party',shop:'Shop',smelt:'Furnace · Smelting',forge:'Anvil · Forging',cook:'Campfire · Cooking',settings:'Settings',board:'Community Board',jobs:'Odd Jobs',odd:'Odd Shop',bank:'Storage Chest'};
+function openModal(t){if(me.deathAt!=null)return;if(smithJob&&t!==(smithJob.type==='smelt'?'smelt':'forge'))stopSmithing('',false);if(cookJob&&t!=='cook')stopCooking('',false);closeItemMenu();if(!tab)gpIdx=-1;tab=t;if(t!=='shop'&&t!=='smelt'&&t!=='forge'&&t!=='cook'&&t!=='settings'&&t!=='board'&&t!=='odd')lastTab=t;sel=null;renderModal()}
+function closeModal(){stopSmithing('',false);stopCooking('',false);closeItemMenu();tab='';sel=null;outdoorShop=null;renderModal()}
 function renderModal(){
   modal.dataset.screen=tab;
   modal.hidden=!tab;
@@ -699,7 +699,7 @@ function renderModal(){
   const st=mBody.scrollTop;
   $('mTitle').textContent=tab==='shop'&&curShop()?curShop().name:TITLES[tab];
   mBody.textContent='';
-  ({gear:rGear,pack:rPack,skills:rSkills,players:rPlayers,shop:rShop,smelt:rSmelt,forge:rForge,settings:rSettings,board:rBoard,jobs:rJobs,odd:rOdd,bank:rBank})[tab]();
+  ({gear:rGear,pack:rPack,skills:rSkills,players:rPlayers,shop:rShop,smelt:rSmelt,forge:rForge,cook:rCook,settings:rSettings,board:rBoard,jobs:rJobs,odd:rOdd,bank:rBank})[tab]();
   mBody.scrollTop=st;
   gpAfterRender();
 }
@@ -1666,7 +1666,7 @@ function useAction(){if(me.deathAt!=null)return;
   const now=performance.now();
   if(inside){
     if(Math.hypot(me.x-88,me.y-62)<44){act=null;openShop();return}
-    if(inside.id==='food'&&Math.hypot(me.x-24,me.y-74)<30){act={kind:'cook',where:'oven',t:0};return}
+    if(inside.id==='food'&&Math.hypot(me.x-24,me.y-74)<30){openCooking('oven');return}
     say('Walk up to the counter, then press the button.');return;
   }
   if(Math.hypot(me.x-TRADER.x,me.y-TRADER.y)<47){outdoorShop=TRADER;openShop();return}
@@ -1674,7 +1674,7 @@ function useAction(){if(me.deathAt!=null)return;
   const n=facingNode(now);
   if(n){beginAct('node',n);return}
   {const sp=nearSpot();if(sp){act=null;if(sp==='board')openModal('board');else if(sp==='crate')supplyDeposit();else if(sp==='bank')openModal('bank');else openModal('odd');return}}
-  if(nearFire()){act={kind:'cook',where:'fire',t:0};return}
+  if(nearFire()){openCooking('fire');return}
   const f=nodeNear(now);
   if(f)say('Face the '+NT[f.k].name.toLowerCase()+' to work on it.','warn');
   else say('Nothing to gather right in front of you.');
@@ -1938,26 +1938,124 @@ function petsUpdate(dt,now){
     while(p.trail.length&&now-p.trail[0].t>1300)p.trail.shift();
   });
 }
-function cookTick(dt,now){
-  const a=act,L=lvlFor(save.xp.cooking);
-  const raws=Object.keys(COOK).filter(k=>save.inv[k]>0);
-  if(!a.started){a.started=true;if(!raws.length){say('You have no raw fish to cook. Catch some at the lake.','warn');act=null;return}}
-  const k=raws.find(r=>L>=COOK[r].req);
-  if(!k){say(raws.length?'You need Cooking '+COOK[raws[0]].req+' to cook that.':'You finish cooking.',raws.length?'warn':'');act=null;return}
-  a.t+=dt;
-  if(a.t>=1.5){
-    a.t-=1.5;
-    const c=COOK[k];
-    if(!canFitInventory({[k]:-1,[c.to]:1})){say('Your pack is full.','warn');act=null;return}
-    save.inv[k]--;
-    burst(a.where==='oven'?17:CX,a.where==='oven'?44:CY+14,['#ff7b3a','#ffd24a','#8a8a8a'],7,22);
-    if(Math.random()<clamp(.5+(L-c.req)*.04,.4,.97)){
-      save.inv[c.to]++;say('You cook the '+ITEMS[k].name.toLowerCase().replace('raw ','')+'.');addXp('cooking',c.xp);
-    }else say('You accidentally burn the '+ITEMS[k].name.toLowerCase().replace('raw ','')+'.','warn');
-    persist();uiHud();if(tab)renderModal();
+/* Cooking has a dedicated workstation menu, matching the furnace and
+   anvil. The raw fish, burn probabilities and XP rewards are unchanged.
+   Attempts are real-time only: no queue completion when the app is hidden. */
+const COOK_MS=1500;
+let cookJob=null,cookSelected='rshrimp',cookQuantity=1;
+function cookingStation(where){
+  if(where==='oven')return !!inside&&inside.id==='food'&&Math.hypot(me.x-24,me.y-74)<30;
+  if(where==='fire')return !inside&&nearFire();
+  return false;
+}
+function cookingChance(raw){
+  const recipe=COOK[raw];
+  if(!recipe)return 0;
+  return clamp(.5+(lvlFor(save.xp.cooking)-recipe.req)*.04,.4,.97);
+}
+function stopCooking(message='',refresh=true){
+  const old=cookJob;cookJob=null;
+  if(!old)return;
+  if(message)say(message,'gold');
+  if(refresh&&tab==='cook')renderModal();
+}
+function openCooking(where){
+  if(!cookingStation(where)){say('Stand beside the cooking fire first.','warn');return false}
+  act=null;
+  openModal('cook');
+  return true;
+}
+function startCooking(raw){
+  const recipe=COOK[raw];
+  if(!recipe||tab!=='cook'||!cookingStation(inside?'oven':'fire')){
+    say('Use the campfire to cook your catch.','warn');return false
   }
+  if(lvlFor(save.xp.cooking)<recipe.req){say('You need Cooking '+recipe.req+' for that.','warn');return false}
+  const available=save.inv[raw]||0;
+  const total=cookQuantity==='all'?available:Math.min(available,cookQuantity);
+  if(total<=0){say('You do not have any '+ITEMS[raw].name.toLowerCase()+'.','warn');return false}
+  if(!canFitInventory({[raw]:-1,[recipe.to]:1})){say('Your pack is full.','warn');return false}
+  if(cookJob)stopCooking('',false);
+  cookJob={raw,where:inside?'oven':'fire',total,remaining:total,done:0,cooked:0,burned:0,nextAt:Date.now()+COOK_MS};
+  renderModal();return true;
+}
+function cookTick(now=Date.now()){
+  const job=cookJob;
+  if(!job)return;
+  const recipe=COOK[job.raw];
+  if(tab!=='cook'||!cookingStation(job.where)||me.deathAt!=null){
+    stopCooking('Cooking stopped: return to the fire.');return
+  }
+  if(now<job.nextAt)return;
+  if(lvlFor(save.xp.cooking)<recipe.req||!(save.inv[job.raw]>0)){
+    stopCooking('Cooking stopped: no usable raw fish remain.');return
+  }
+  if(!canFitInventory({[job.raw]:-1,[recipe.to]:1})){
+    stopCooking('Cooking stopped: your pack is full.');return
+  }
+  // Every attempt consumes exactly one raw fish. Only successful cooking
+  // yields food and XP; the original burn formula is shared with old saves.
+  save.inv[job.raw]--;
+  burst(job.where==='oven'?17:CX,job.where==='oven'?44:CY+14,['#ff7b3a','#ffd24a','#8a8a8a'],7,22);
+  if(Math.random()<cookingChance(job.raw)){
+    save.inv[recipe.to]=(save.inv[recipe.to]||0)+1;
+    addXp('cooking',recipe.xp);job.cooked++;
+  }else job.burned++;
+  job.done++;job.remaining--;
+  persist();uiHud();
+  if(job.remaining<=0){
+    stopCooking('Finished cooking: '+job.cooked+' cooked, '+job.burned+' burnt.',false);
+  }else job.nextAt=now+COOK_MS;
+  if(tab==='cook')renderModal();
+}
+function cookingProgress(now=Date.now()){
+  const job=cookJob;if(!job)return;
+  const fill=$('cookingFill'),labelNode=$('cookingStatus');
+  if(fill)fill.style.width=(100*clamp(1-(job.nextAt-now)/COOK_MS,0,1))+'%';
+  if(labelNode)labelNode.textContent=job.done+'/'+job.total+' prepared · '+job.cooked+' cooked · '+job.burned+' burnt';
+}
+function rCook(){
+  mBody.append(el('p','note','Choose a fish to cook. Burnt fish is lost; only successful food earns XP.'));
+  const qty=el('div','smith-qty');
+  qty.append(el('span','smith-label','Make'));
+  for(const [value,caption] of [[1,'1'],[5,'5'],[10,'10'],['all','All']]){
+    const b=el('button','chip',caption);b.type='button';b.disabled=!!cookJob;
+    b.setAttribute('aria-pressed',String(cookQuantity===value));
+    b.addEventListener('click',()=>{cookQuantity=value;renderModal()});qty.append(b);
+  }
+  mBody.append(qty);
+  const recipe=COOK[cookSelected];
+  const available=save.inv[cookSelected]||0;
+  const count=cookQuantity==='all'?available:Math.min(available,cookQuantity);
+  const canMake=lvlFor(save.xp.cooking)>=recipe.req&&count>0&&canFitInventory({[cookSelected]:-1,[recipe.to]:1});
+  const work=el('div','smith-work');
+  if(cookJob){
+    work.append(el('b','smith-work-title','Cooking '+ITEMS[cookJob.raw].name.replace('Raw ','').toLowerCase()));
+    const progress=el('div','smith-progress'),fill=el('i','');fill.id='cookingFill';progress.append(fill);work.append(progress);
+    const status=el('small','smith-work-status','');status.id='cookingStatus';work.append(status);
+    const stop=el('button','btn smith-primary','Stop cooking');stop.type='button';
+    stop.addEventListener('click',()=>stopCooking());work.append(stop);
+  }else{
+    work.append(el('b','smith-work-title',ITEMS[recipe.to].name));
+    work.append(el('p','note',count+' selected · '+recipe.xp+' XP on success · '+Math.round(cookingChance(cookSelected)*100)+'% success chance'));
+    const go=el('button','btn smith-primary','Cook '+count);go.type='button';go.disabled=!canMake;
+    go.addEventListener('click',()=>startCooking(cookSelected));work.append(go);
+  }
+  mBody.append(work);
+  for(const [raw,r] of Object.entries(COOK)){
+    const row=el('div','shoprow smith-recipe');
+    const selected=cookSelected===raw,level=lvlFor(save.xp.cooking);
+    row.setAttribute('aria-selected',String(selected));
+    row.innerHTML=itemSvg(r.to,32)+'<span>'+ITEMS[r.to].name+
+      '<small>'+ITEMS[raw].name+' · '+(save.inv[raw]||0)+' available · heals '+FOOD[r.to].heal+'</small>'+
+      '<small class="'+(level<r.req?'bad':'')+'">Cooking '+r.req+' · '+r.xp+' XP · '+Math.round(cookingChance(raw)*100)+'% success</small></span>';
+    const b=el('button','btn',selected?'Selected':'Choose');b.type='button';b.disabled=!!cookJob;
+    b.addEventListener('click',()=>{cookSelected=raw;renderModal()});row.append(b);mBody.append(row);
+  }
+  cookingProgress();
 }
 function enterBuilding(b,now){
+  stopCooking('',false);
   if(b.open){openSmithy('trade');return}
   if(b.id!=='arms'){outdoorShop=TRADER;openShop();return}
   inside=b;me.ox=b.x;me.oy=b.y+6;me.x=88;me.y=112;me.face=1;act=null;marker=null;petsTeleport();
@@ -1966,14 +2064,15 @@ function enterBuilding(b,now){
   say('You enter '+SHOPS[b.id].name+'.');sendPresence();
 }
 function leaveBuilding(now){
+  stopCooking('',false);
   const b=inside;inside=null;
   me.x=b.x;me.y=b.y+9;act=null;fade=0;me.fx=0;me.fy=1;me.dv='d';snapCam=true;exitCD=now+700;petsTeleport();
-  if(tab==='shop')closeModal();
+  if(tab==='shop'||tab==='cook')closeModal();
   sendPresence();
 }
 function die(){
   if(me.deathAt!=null)return;
-  stopSmithing('',false);
+  stopSmithing('',false);stopCooking('',false);
   me.deathAt=performance.now();me.hp=0;me.moving=false;me.pend=0;pendingStrike=null;me.swing=-99999;
   act=null;marker=null;wantSwing=false;closeModal();
   say('Oh dear, you are dead!','red');toast('YOU DIED');uiHud();
@@ -2037,7 +2136,7 @@ function doAction(dt,now){
     if(fishing){
       if(!a.casted&&a.t>=0){
         if(slot==='rod'){if(!(save.inv.bait>0)){say('You are out of bait. Buy more at the fishing shop.','warn');act=null;return}save.inv.bait--;if(tab)renderModal()}
-        a.casted=true;a.cast0=now;startSwing(now);
+        a.casted=true;a.cast0=now;n.fishCastAt=now;startSwing(now);
       }
     }else if(!a.swung&&a.t>=a.iv-.2){a.swung=true;startSwing(now)}
     if(a.t>=a.iv){
@@ -2045,6 +2144,7 @@ function doAction(dt,now){
       if(fishing){a.casted=false;a.t=-.9}
       const success=Math.random()<clamp(nt.base+(L-nt.req)*.025+Math.max(0,d.mat-2)*.06,.05,.92);
       if(nt.skill==='mining')recordMiningHit(n,now,success);
+      if(fishing){n.fishHitAt=now;n.fishSucceeded=success;}
       burst(n.x,n.y-10,nt.tool==='axe'?['#9a6a38','#5a3a1f','#7ab648']:fishing?['#8cc0f4','#ffffff','#3f7fcc']:nt.skill==='mining'?miningDustColors(n):['#ffe14a','#ffffff','#c8d2d6'],nt.skill==='mining'&&!success?3:6,22);
       if(success){
         save.inv[nt.item]++;
@@ -2124,7 +2224,7 @@ function update(dt,now){
   const manual=mag>.18;
   me.moving=false;let inRange=false;
   if(manual){
-    stopSmithing('',false);act=null;blocked.clear();idleT=0;
+    stopSmithing('',false);stopCooking('',false);act=null;blocked.clear();idleT=0;
     const sp=SPD*mag;
     me.x+=mx/mag*sp*dt;me.y+=my/mag*sp*dt;me.moving=true;
   }else if(started){
@@ -2152,7 +2252,7 @@ function update(dt,now){
       }
     }
   }
-  smithingTick();smithingProgress();
+  smithingTick();smithingProgress();cookTick();cookingProgress();
   // Evaluate attack after gamepad input, joystick movement and collision
   // resolution. The first pressed frame now uses the correct controller state
   // and the strike begins from the player's actual post-movement position.
@@ -2172,7 +2272,6 @@ function update(dt,now){
   if(act&&inRange){
     if(act.kind==='npc'){act=null;openShop()}
     else if(act.kind==='door'){const b=act.ref;act=null;if(!inside&&b.open)enterBuilding(b,now)}
-    else if(act.kind==='cook')cookTick(dt,now);
     else doAction(dt,now);
   }
 
@@ -3041,7 +3140,25 @@ function drawDecor(kind,x,y,a,b){
   else if(kind==='hay')drawHay(x,y);else if(kind==='pot')drawPot(x,y);else if(kind==='fbox')drawFbox(x,y);else if(kind==='sack')drawSack(x,y);else if(kind==='fence')drawFence(x,y,a,b);else if(kind==='bush')drawBush(x,y,a);else if(kind==='provisions')drawProvisions(x,y);
   if(kind==='stall'&&a==='#3a7a9a'&&Math.hypot(me.x-SPOTS.odd.x,me.y-SPOTS.odd.y)<64)label('Odd Shop',x,y-34,'#ffffff');
 }
-function drawSpot(n,x,y,now){MyrrenEnvironment.fishing(ctx,n,x,y,now)}
+// Fishing ripples are read-only pixel feedback. Taps continue to identify
+// the fishing spot and its skill requirement, never to cast automatically.
+function drawSpot(n,x,y,now){
+  MyrrenEnvironment.fishing(ctx,n,x,y,now);
+  const cast=now-(n.fishCastAt??-99999);
+  if(cast>=0&&cast<380){
+    const d=Math.floor(cast/95);
+    R(x-3-d,y-1,3,1,'#c6e8f4');R(x+1+d,y-1,3,1,'#c6e8f4');
+  }
+  const age=now-(n.fishHitAt??-99999);
+  if(age>=0&&age<440){
+    const p=age/440,col=n.fishSucceeded?'#f4f8d9':'#86bed6';
+    for(let i=0;i<(n.fishSucceeded?4:2);i++){
+      const dx=(i%2?1:-1)*(2+Math.round(5*p)+i);
+      const dy=Math.round(-2-Math.sin(Math.PI*p)*(2+i%2));
+      R(x+dx,y+dy,2,1,col);
+    }
+  }
+}
 const SLATE=['#7a7874','#8c8a86','#9a9894','#b4b2ac'],SLATE_D=['#55535a','#66646c','#767480','#8e8c98'],SLATE_B=['#5e7488','#6e869a','#7e96aa','#a0b8c8'],TERRA=['#9a5a40','#ac6a4c','#bc7a58','#d4986e'];
 function slateRoof(x,top,w,H,tone,seed,moss){
   const x0=x-(w>>1),rn=Math.ceil(H/4);
@@ -3499,8 +3616,8 @@ window.addEventListener('storage',event=>{
   if(event.key!==KEY||!started||saveConflict)return;
   if(isNewerExternalSave(event.newValue,saveTs))markSaveConflict();
 });
-document.addEventListener('visibilitychange',()=>{if(document.hidden){stopSmithing('',false);if(started)persist(true)}});
-window.addEventListener('pagehide',()=>{stopSmithing('',false);if(started)persist(true)});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){stopSmithing('',false);stopCooking('',false);if(started)persist(true)}});
+window.addEventListener('pagehide',()=>{stopSmithing('',false);stopCooking('',false);if(started)persist(true)});
 bootLoad();
 requestAnimationFrame(frame);
 })();
