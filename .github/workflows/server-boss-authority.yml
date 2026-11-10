@@ -1,5 +1,6 @@
 name: Server boss authority regression
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'src/boss-encounter.mjs'
@@ -14,25 +15,16 @@ on:
       - 'tests/game-runtime.cjs'
       - 'public/myrren-game.js'
       - '.github/workflows/server-boss-authority.yml'
-  push:
-    branches:
-      - 'feature/server-owned-boss-combat-2026-11'
-    paths:
-      - 'src/boss-encounter.mjs'
-      - 'src/boss-room-coordinator.mjs'
-      - 'src/boss-account-ledger.mjs'
-      - 'src/boss-reward-delivery.mjs'
-      - 'src/server-player-positions.mjs'
-      - 'tests/server-boss-encounter.test.cjs'
-      - 'tests/boss-room-coordinator.test.cjs'
-      - 'tests/boss-account-ledger.test.cjs'
-      - 'tests/server-player-positions.test.cjs'
-      - 'tests/game-runtime.cjs'
-      - 'public/myrren-game.js'
-      - '.github/workflows/server-boss-authority.yml'
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   authority:
-    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
