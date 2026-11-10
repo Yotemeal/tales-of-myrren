@@ -185,14 +185,16 @@ const NT={
   maple:{name:'Maple tree',skill:'woodcutting',tool:'axe',req:30,xp:120,item:'maple',base:.2,dep:.7,rt:[20,30],verb:'cut'},
   elder:{name:'Elderwood tree',skill:'woodcutting',tool:'axe',req:60,xp:520,item:'elder',base:.15,dep:.75,rt:[24,36],verb:'cut'},
   myrren:{name:'Myrrenwood tree',skill:'woodcutting',tool:'axe',req:85,xp:1900,item:'myrren',base:.1,dep:.8,rt:[30,45],verb:'cut'},
-  copper:{name:'Copper rock',skill:'mining',tool:'pick',req:1,xp:18,item:'copper',base:.32,dep:1,rt:[8,14],verb:'mine'},
-  tin:{name:'Tin rock',skill:'mining',tool:'pick',req:1,xp:18,item:'tin',base:.32,dep:1,rt:[8,14],verb:'mine'},
-  iron:{name:'Iron rock',skill:'mining',tool:'pick',req:10,xp:45,item:'iron',base:.2,dep:1,rt:[12,20],verb:'mine'},
-  coal:{name:'Coal seam',skill:'mining',tool:'pick',req:20,xp:75,item:'coal',base:.2,dep:1,rt:[14,22],verb:'mine'},
-  cobalt:{name:'Black Iron rock',skill:'mining',tool:'pick',req:30,xp:190,item:'cobalt',base:.15,dep:1,rt:[18,28],verb:'mine'},
-  aether:{name:'Myrrenite rock',skill:'mining',tool:'pick',req:55,xp:650,item:'aether',base:.1,dep:1,rt:[24,36],verb:'mine'}
+  // Common ores recharge sooner so early Smithing has a usable material loop.
+  // Higher-tier ore stays scarce; chances, ore per success and XP are unchanged.
+  copper:{name:'Copper rock',skill:'mining',tool:'pick',req:1,xp:18,item:'copper',base:.32,dep:1,rt:[6,10],verb:'mine'},
+  tin:{name:'Tin rock',skill:'mining',tool:'pick',req:1,xp:18,item:'tin',base:.32,dep:1,rt:[6,10],verb:'mine'},
+  iron:{name:'Iron rock',skill:'mining',tool:'pick',req:10,xp:45,item:'iron',base:.2,dep:1,rt:[9,14],verb:'mine'},
+  coal:{name:'Coal seam',skill:'mining',tool:'pick',req:20,xp:75,item:'coal',base:.2,dep:1,rt:[11,17],verb:'mine'},
+  cobalt:{name:'Black Iron rock',skill:'mining',tool:'pick',req:30,xp:190,item:'cobalt',base:.15,dep:1,rt:[16,24],verb:'mine'},
+  aether:{name:'Myrrenite rock',skill:'mining',tool:'pick',req:55,xp:650,item:'aether',base:.1,dep:1,rt:[22,33],verb:'mine'}
 };
-Object.assign(NT,{obsidianite:{name:'Obsidianite rock',skill:'mining',tool:'pick',req:40,xp:300,item:'obsidianite',base:.12,dep:1,rt:[22,32],verb:'mine',msg:'You swing your pickaxe at the rock.'},meteorite:{name:'Meteorite deposit',skill:'mining',tool:'pick',req:70,xp:900,item:'meteorite',base:.08,dep:1,rt:[30,45],verb:'mine',msg:'You swing your pickaxe at the meteorite.'}});
+Object.assign(NT,{obsidianite:{name:'Obsidianite rock',skill:'mining',tool:'pick',req:40,xp:300,item:'obsidianite',base:.12,dep:1,rt:[19,29],verb:'mine',msg:'You swing your pickaxe at the rock.'},meteorite:{name:'Meteorite deposit',skill:'mining',tool:'pick',req:70,xp:900,item:'meteorite',base:.08,dep:1,rt:[28,42],verb:'mine',msg:'You swing your pickaxe at the meteorite.'}});
 const TREEK=['tree','oak','maple','elder','myrren'];
 const TOOLNAME={axe:'a hatchet',pick:'a pickaxe',net:'a net',rod:'a fishing rod'};
 Object.assign(NT,{
@@ -1849,6 +1851,22 @@ function splat(x,y,v){
   splats.push({x,y,v,t:now,lane:nearby%5,c:v>0?'#d83a2a':'#3a6ac4'});
 }
 function burst(x,y,cols,n,power){for(let i=0;i<n;i++)fx.push({x,y,vx:(Math.random()-.5)*power*2,vy:-Math.random()*power-8,t:performance.now(),c:cols[i%cols.length]})}
+// Tiny colour-matched fragments only at the point of pickaxe contact.
+// All mining hit state is short-lived presentation data on the existing node.
+const ORE_HIT_PALETTE={
+  copper:['#d8a272','#f5cf96'],tin:['#91aaa7','#e1ecdf'],
+  iron:['#8295a1','#d0dfe0'],coal:['#535767','#929bab'],
+  cobalt:['#5d77a8','#bad7ed'],obsidianite:['#9e5d80','#ff8d98'],
+  aether:['#936dc2','#ddbdff'],meteorite:['#7eb4d6','#d2f9ff']
+};
+function recordMiningHit(n,now,success){
+  n.mineHitAt=now;
+  n.mineSucceeded=!!success;
+}
+function miningDustColors(n){
+  const ore=ORE_HIT_PALETTE[n.k]||ORE_HIT_PALETTE.iron;
+  return n.mineSucceeded?[ore[0],ore[1],'#ffffff']:['#808b8c','#aab1a8'];
+}
 // Combat contact is purely presentation: never alter world position, HP,
 // collision or attack intervals. Use the original attacker position so
 // strafing after the strike cannot change the recoil direction.
@@ -2025,8 +2043,10 @@ function doAction(dt,now){
     if(a.t>=a.iv){
           a.t-=a.iv;a.swung=false;
       if(fishing){a.casted=false;a.t=-.9}
-      burst(n.x,n.y-10,nt.tool==='axe'?['#9a6a38','#5a3a1f','#7ab648']:fishing?['#8cc0f4','#ffffff','#3f7fcc']:['#ffe14a','#ffffff','#c8d2d6'],6,22);
-      if(Math.random()<clamp(nt.base+(L-nt.req)*.025+Math.max(0,d.mat-2)*.06,.05,.92)){
+      const success=Math.random()<clamp(nt.base+(L-nt.req)*.025+Math.max(0,d.mat-2)*.06,.05,.92);
+      if(nt.skill==='mining')recordMiningHit(n,now,success);
+      burst(n.x,n.y-10,nt.tool==='axe'?['#9a6a38','#5a3a1f','#7ab648']:fishing?['#8cc0f4','#ffffff','#3f7fcc']:nt.skill==='mining'?miningDustColors(n):['#ffe14a','#ffffff','#c8d2d6'],nt.skill==='mining'&&!success?3:6,22);
+      if(success){
         save.inv[nt.item]++;
         if(n.k==='aether'&&save.perks.magnet&&Math.random()<.05){save.inv.aether++;say('The aether magnet doubles your yield!','gold')}
         say(fishing?'You catch some '+ITEMS[nt.item].name.toLowerCase().replace('raw ','raw ')+'.':'You get some '+ITEMS[nt.item].name.toLowerCase()+'.');
@@ -2347,6 +2367,8 @@ function drawBush(x,y,gold){MyrrenEnvironment.fern(ctx,x,y,gold?2:0)}
 function nodeTip(n,x,y,now){
   if(!n.tipAt)return;const age=now-n.tipAt;if(age>2600){n.tipAt=0;return}
   const nt=NT[n.k];ctx.globalAlpha=age<1800?1:1-(age-1800)/800;
+  // Tapping any tree, fishing spot or ore deposit ONLY identifies the
+  // resource and required level, even while a vein is depleted.
   label(nt.name+' (Lv '+nt.req+')',x,y-(TREEK.includes(n.k)?(n.k==='tree'?42:52):n.k.startsWith('spot')?12:20),'#ffffff');
   ctx.globalAlpha=1;
 }
@@ -2355,7 +2377,28 @@ function nodeTip(n,x,y,now){
 function drawAncientTree(n,x,y,now){MyrrenEnvironment.tree(ctx,n,x,y,now,true)}
 function drawTree(n,x,y,now){ctx.save();if(Math.abs(me.x-n.x)<31&&me.y<n.y&&me.y>n.y-90)ctx.globalAlpha=.48;MyrrenEnvironment.tree(ctx,n,x,y,now);ctx.restore()}
 // Ore nodes sit below character height; preserve their ground anchor and mining reach.
-function drawRock(n,x,y,now){ctx.save();ctx.translate(x,y);ctx.scale(.72,.72);MyrrenEnvironment.rock(ctx,n,0,0,now);ctx.restore()}
+// Short 1px recoil and tiny fragments make contact feel tangible, with no hitbox,
+// mining timer, reward or saved-position changes.
+function drawRock(n,x,y,now){
+  const age=now-(n.mineHitAt??-99999),recent=age>=0&&age<360;
+  const recoil=recent&&age<120?(Math.floor(age/35)%2?1:-1):0;
+  ctx.save();ctx.translate(x+recoil,y);ctx.scale(.72,.72);
+  MyrrenEnvironment.rock(ctx,n,0,0,now);ctx.restore();
+  if(recent){
+    const colors=miningDustColors(n),p=age/360,fragments=n.mineSucceeded?5:3;
+    for(let i=0;i<fragments;i++){
+      const dir=i%2?1:-1;
+      const px=Math.round(x+(i-2)*2+dir*(3+i%3)*p);
+      const py=Math.round(y-8-(i%3)*2-Math.sin(Math.PI*p)*(4+i%2*2));
+      R(px,py,p<.4?2:1,1,colors[i%colors.length]);
+    }
+  }
+  // A small, bounded glint tells players when a depleted vein has returned.
+  if(n.back>0&&now>=n.back&&now-n.back<480){
+    const h=Math.round(2*(1-(now-n.back)/480));
+    R(x-2,y-12-h,4,2,'#e5dbac');
+  }
+}
 function parts(list,O){
   for(const p of list)R(p[0]-1,p[1]-1,p[2]+2,p[3]+2,O);
   for(const p of list)R(p[0],p[1],p[2],p[3],p[4]);
