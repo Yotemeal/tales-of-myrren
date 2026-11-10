@@ -2364,18 +2364,12 @@ function treeTile(px,py,v){
   if(v%5===0)R(px+11,py+2,2,2,'#d6b240');
 }
 function drawBush(x,y,gold){MyrrenEnvironment.fern(ctx,x,y,gold?2:0)}
-function miningNodeCaption(n,now){
-  const nt=NT[n.k];
-  return nt.skill==='mining'&&now<n.back
-    ?'Depleted · '+Math.ceil((n.back-now)/1000)+'s'
-    :nt.name+' (Lv '+nt.req+')';
-}
 function nodeTip(n,x,y,now){
   if(!n.tipAt)return;const age=now-n.tipAt;if(age>2600){n.tipAt=0;return}
   const nt=NT[n.k];ctx.globalAlpha=age<1800?1:1-(age-1800)/800;
-  const exhausted=nt.skill==='mining'&&now<n.back;
-  const caption=miningNodeCaption(n,now);
-  label(caption,x,y-(TREEK.includes(n.k)?(n.k==='tree'?42:52):n.k.startsWith('spot')?12:20),exhausted?'#b4c0b7':'#ffffff');
+  // Tapping any tree, fishing spot or ore deposit ONLY identifies the
+  // resource and required level, even while a vein is depleted.
+  label(nt.name+' (Lv '+nt.req+')',x,y-(TREEK.includes(n.k)?(n.k==='tree'?42:52):n.k.startsWith('spot')?12:20),'#ffffff');
   ctx.globalAlpha=1;
 }
 // Monumental, non-harvestable ancient rainforest trees. Native-pixel art, not scaled resource trees.
