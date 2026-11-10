@@ -14,6 +14,7 @@ on:
       - 'tests/smithing-batch.test.cjs'
       - 'tests/xp-progression-balance.test.cjs'
       - 'tests/mining-feedback-respawn.test.cjs'
+      - 'tests/cooking-fishing-workflow.test.cjs'
       - 'tests/game-runtime.cjs'
       - '.github/workflows/combat-balance.yml'
   push:
@@ -30,6 +31,7 @@ on:
       - 'tests/smithing-batch.test.cjs'
       - 'tests/xp-progression-balance.test.cjs'
       - 'tests/mining-feedback-respawn.test.cjs'
+      - 'tests/cooking-fishing-workflow.test.cjs'
       - '.github/workflows/combat-balance.yml'
 jobs:
   combat-audit:
@@ -40,7 +42,7 @@ jobs:
         with:
           node-version: '22'
       - name: JavaScript syntax
-        run: node --check public/myrren-game.js && node --check tests/combat-balance-audit.test.cjs && node --check tests/combat-input.test.cjs && node --check tests/combat-feedback.test.cjs && node --check tests/combat-overlay-layout.test.cjs && node --check tests/combat-telegraph.test.cjs && node --check tests/skill-xp-drops.test.cjs && node --check tests/smithing-batch.test.cjs && node --check tests/xp-progression-balance.test.cjs && node --check tests/mining-feedback-respawn.test.cjs
+        run: node --check public/myrren-game.js && node --check tests/combat-balance-audit.test.cjs && node --check tests/combat-input.test.cjs && node --check tests/combat-feedback.test.cjs && node --check tests/combat-overlay-layout.test.cjs && node --check tests/combat-telegraph.test.cjs && node --check tests/skill-xp-drops.test.cjs && node --check tests/smithing-batch.test.cjs && node --check tests/xp-progression-balance.test.cjs && node --check tests/mining-feedback-respawn.test.cjs && node --check tests/cooking-fishing-workflow.test.cjs
       - name: Combat parity and balance baseline
         run: node tests/combat-balance-audit.test.cjs
       - name: Target locking and attack input behaviour
@@ -59,3 +61,5 @@ jobs:
         run: node tests/xp-progression-balance.test.cjs
       - name: Mining feedback, respawns and inspect-only tapping
         run: node tests/mining-feedback-respawn.test.cjs
+      - name: Cooking and fishing workflows
+        run: node tests/cooking-fishing-workflow.test.cjs
