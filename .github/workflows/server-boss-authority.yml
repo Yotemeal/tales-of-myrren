@@ -1,0 +1,33 @@
+name: Server boss authority regression
+on:
+  pull_request:
+    paths:
+      - 'src/boss-encounter.mjs'
+      - 'tests/server-boss-encounter.test.cjs'
+      - 'tests/game-runtime.cjs'
+      - 'public/myrren-game.js'
+      - '.github/workflows/server-boss-authority.yml'
+  push:
+    branches:
+      - 'feature/server-owned-boss-combat-2026-11'
+    paths:
+      - 'src/boss-encounter.mjs'
+      - 'tests/server-boss-encounter.test.cjs'
+      - 'tests/game-runtime.cjs'
+      - 'public/myrren-game.js'
+      - '.github/workflows/server-boss-authority.yml'
+jobs:
+  authority:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and authoritative boss combat parity
+        run: |
+          node --check src/boss-encounter.mjs
+          node --check tests/server-boss-encounter.test.cjs
+          node tests/server-boss-encounter.test.cjs
+      - name: Existing boss contribution regression
+        run: node tests/boss-contribution-loot.test.cjs
