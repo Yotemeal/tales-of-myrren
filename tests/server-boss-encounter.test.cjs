@@ -143,6 +143,43 @@ const createGame = require('./game-runtime.cjs');
   assert.notEqual(finishSolo('life-03'), finishSolo('life-04'),
     'two valid boss spawns never share an idempotency key');
 
+  // Trusted Durable Object storage must round-trip the entire boss life,
+  // including cooldowns, damage credit and the exact already-rolled rewards.
+  const deadStored = JSON.parse(JSON.stringify(boss.exportDurableState()));
+  const restoredDead = ServerBossEncounter.fromDurableState(deadStored, {
+    resolveVerifiedPlayer: s => directory.get(s), clock: () => now,
+    random: () => { throw new Error('Defeated boss must never reroll'); }
+  });
+  assert.deepEqual(restoredDead.defeatEvent, boss.defeatEvent);
+  assert.deepEqual(restoredDead.attack('s1'), { ok: false, reason: 'defeated' });
+  assert.strictEqual(restoredDead.finishKill(), restoredDead.defeatEvent);
+  assert.deepEqual(restoredDead.exportDurableState(), deadStored);
+  const alteredCredit = JSON.parse(JSON.stringify(deadStored));
+  alteredCredit.ledger[0][1]++;
+  assert.throws(() => ServerBossEncounter.fromDurableState(alteredCredit, {
+    resolveVerifiedPlayer: s => directory.get(s)
+  }), /credit disagree/);
+  const alteredCoins = JSON.parse(JSON.stringify(deadStored));
+  alteredCoins.rewardEvent.rewards[0].coins++;
+  assert.throws(() => ServerBossEncounter.fromDurableState(alteredCoins, {
+    resolveVerifiedPlayer: s => directory.get(s)
+  }), /Stored reward/);
+
+  const midStored = JSON.parse(JSON.stringify(leashed.exportDurableState()));
+  const restoredMid = ServerBossEncounter.fromDurableState(midStored, {
+    resolveVerifiedPlayer: s => directory.get(s),
+    clock: () => now, random: () => (++rngCalls % 2 === 1 ? 0 : .999)
+  });
+  assert.equal(restoredMid.state.hp, leashed.state.hp);
+  now = 20000;
+  assert.deepEqual(restoredMid.attack('s1'), { ok: false, reason: 'cooldown' },
+    'restored account cooldown prevents rapid reconnect/restart attacks');
+  now = 20900;
+  assert.equal(restoredMid.attack('s1').damage, 43);
+  assert.equal(restoredMid.state.hp, 64);
+  assert.deepEqual(restoredMid.exportDurableState().ledger, [['leader', 86]],
+    'verified damage credit continues from the durable snapshot');
+
   const missing = () => new ServerBossEncounter({
     roomId: 'x', bossId: 'b', spawnId: 'life', type: 'non-boss',
     x: 0, y: 0, resolveVerifiedPlayer: () => null
