@@ -120,9 +120,12 @@ const assert = require('node:assert/strict');
   });
   // Alice is now safely stopped by the x=330 collider but still within 30px
   // of the boss's x=300 position.
+  now += 100;
+  const retreat = restored.move('a', { dx: -1, dy: -1 });
+  assert(retreat.ok, 'server-authorized movement can return within sword reach');
   const distance = Math.hypot(
     restored.resolveVerifiedPlayer('a').x - 300,
-    restored.resolveVerifiedPlayer('a').y - 304
+    restored.resolveVerifiedPlayer('a').y - 296
   );
   assert(distance < 30);
   const hit = boss.attack('a');
