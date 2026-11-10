@@ -151,7 +151,8 @@ export class ServerBossBehavior {
         }
       } else if (dist(this.x, this.y, target.x, target.y) > this.profile.touch) {
         this.moveTowards(target.x, target.y, this.profile.speed * dt);
-        this.nextStrikeAt = null;
+        // Preserve the last attack cooldown while pursuing a dodging target.
+        // A duplicate tick at the same server time must not erase it.
       } else {
         if (this.nextStrikeAt == null)
           this.nextStrikeAt = now +
