@@ -44,6 +44,7 @@ export class ServerBossBehavior {
     this.nextStrikeAt = null;
     this.warning = null;
     this.sequence = 0;
+    this.resetSequence = 0;
     this.dead = false;
   }
 
@@ -177,8 +178,9 @@ export class ServerBossBehavior {
         this.x = this.homeX;
         this.y = this.homeY;
         this.mode = 'idle';
+        this.resetSequence++;
         events.push({ kind: 'leash-reset',
-          key: JSON.stringify([this.roomId, this.bossId, this.spawnId, 'leash', this.sequence]) });
+          key: JSON.stringify([this.roomId, this.bossId, this.spawnId, 'leash', this.resetSequence]) });
       } else {
         this.moveTowards(this.homeX, this.homeY, this.profile.speed * dt);
       }
@@ -194,7 +196,7 @@ export class ServerBossBehavior {
       mode: this.mode, targetId: this.targetId,
       lastAt: this.lastAt, nextStrikeAt: this.nextStrikeAt,
       warning: this.warning ? { ...this.warning } : null,
-      sequence: this.sequence, dead: this.dead
+      sequence: this.sequence, resetSequence: this.resetSequence, dead: this.dead
     });
   }
 
@@ -212,6 +214,7 @@ export class ServerBossBehavior {
         (state.nextStrikeAt !== null &&
           (!finite(state.nextStrikeAt) || state.nextStrikeAt < 0)) ||
         !Number.isSafeInteger(state.sequence) || state.sequence < 0 ||
+        !Number.isSafeInteger(state.resetSequence) || state.resetSequence < 0 ||
         typeof state.dead !== 'boolean' ||
         (state.dead !== (state.mode === 'dead')))
       reject('Invalid private boss behaviour snapshot');
@@ -237,7 +240,9 @@ export class ServerBossBehavior {
     ai.targetId = state.targetId; ai.lastAt = state.lastAt;
     ai.nextStrikeAt = state.nextStrikeAt;
     ai.warning = state.warning ? { ...state.warning } : null;
-    ai.sequence = state.sequence; ai.dead = state.dead;
+    ai.sequence = state.sequence;
+    ai.resetSequence = state.resetSequence;
+    ai.dead = state.dead;
     return ai;
   }
 
