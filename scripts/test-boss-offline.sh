@@ -26,13 +26,15 @@ for path in \
   src/server-boss-behavior.mjs \
   src/server-player-health.mjs \
   src/server-boss-room.mjs \
+  src/server-room-events.mjs \
   tests/server-boss-encounter.test.cjs \
   tests/boss-room-coordinator.test.cjs \
   tests/boss-account-ledger.test.cjs \
   tests/server-player-positions.test.cjs \
   tests/server-boss-behavior.test.cjs \
   tests/server-player-health.test.cjs \
-  tests/server-boss-room.test.cjs
+  tests/server-boss-room.test.cjs \
+  tests/server-room-events.test.cjs
 do
   node --check "$path"
 done
@@ -46,7 +48,8 @@ for path in \
   tests/server-player-positions.test.cjs \
   tests/server-boss-behavior.test.cjs \
   tests/server-player-health.test.cjs \
-  tests/server-boss-room.test.cjs
+  tests/server-boss-room.test.cjs \
+  tests/server-room-events.test.cjs
 do
   echo "[Myrren] Running $path"
   node "$path"
