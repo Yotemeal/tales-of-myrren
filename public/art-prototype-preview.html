@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Myrren · 32×48 armour prototype</title>
+<style>
+:root{color-scheme:dark;background:#171a19;color:#f2e8d6;font-family:system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0}main{max-width:1180px;margin:auto;padding:22px 18px 60px}
+h1{font:600 clamp(25px,4vw,38px) Georgia,serif;margin:7px 0}
+h2{font-size:18px;margin:0 0 9px}p{color:#c3c1b1;line-height:1.48}
+section{padding:18px;background:#222724;border:1px solid #45564b;border-radius:12px;margin-top:18px}
+.tag{font-size:11px;letter-spacing:.17em;color:#e4c47a;font-weight:700}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+label{display:grid;gap:6px;color:#d9d1bc;font-size:12px}
+select,button{font:inherit;color:#f4e5c9;background:#333d34;border:1px solid #73816c;border-radius:8px;padding:9px 10px}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible{outline:2px solid #e4c47a;outline-offset:2px}
+canvas{display:block;background:#304532;border-radius:6px;image-rendering:pixelated;max-width:none}
+.scroller{overflow-x:auto;padding-bottom:5px}
+#poses{width:960px;height:710px}#scale{width:960px;height:222px}
+.check{display:flex;align-items:center;gap:7px;padding-bottom:8px}
+.note{font-size:12px;color:#d9caa9}
+.warning{border-left:3px solid #c69b55;padding-left:12px}
+a{color:#e7c477}
+</style></head><body><main>
+<div class="tag">TALES OF MYRREN · DEVELOPMENT ONLY · NOT MERGED</div>
+<h1>Bronze / Myrrenite armour prototype</h1>
+<p>Hand-authored 32×48 native-pixel study. The original Kez V2 silhouette and equipment reference guided the designs, but no game sprite was stretched to make these. This is a separate proof of concept and is not wired into live gameplay.</p>
+<section><div class="controls">
+<label>Preset<select id="preset">
+<option value="bronze">Full Bronze</option><option value="myrrenite" selected>Full Myrrenite</option>
+<option value="mixed">Bronze + Myrrenite mix</option><option value="base">No armour</option>
+</select></label>
+<label>Animation frame<select id="frame"><option value="0">Frame 1</option><option value="1">Frame 2</option><option value="2">Frame 3</option><option value="3">Frame 4</option></select></label>
+<label>Inspection zoom<select id="zoom"><option value="3">3×</option><option value="4" selected>4×</option><option value="5">5×</option></select></label>
+<button type="button" id="pause">Pause</button><button type="button" id="step">Next frame</button>
+<label class="check"><input type="checkbox" id="grid">Show pixel grid</label>
+</div>
+<p id="status" class="note" role="status">Preparing prototype renderer…</p>
+<h2>Four true facings · idle, walk, fist, sword</h2>
+<div class="scroller"><canvas id="poses" width="960" height="710" aria-label="Four facing directions and four motions on prototype character"></canvas></div>
+<p class="note">The shield is face-on in front/back and a slim profile behind the character in side views. Sword movement here is a single visual pose, not the final combat animation. Head, torso, legs, boots, gloves and shield can have independent tiers.</p>
+</section>
+<section>
+<h2>At original world-pixel scale</h2>
+<p>A 16px tile grid and the current unmodified 21×27 Kez V2 character sit beside the 32×48 proposal. A larger native sprite must earn its space in the world, rather than looking better only when magnified.</p>
+<div class="scroller"><canvas id="scale" width="960" height="222" aria-label="Current native character compared against candidate on sixteen pixel tile grid"></canvas></div>
+</section>
+<section>
+<h2>Criteria before integration</h2>
+<p class="warning">This prototype is <strong>not approved finished art</strong>. It tests silhouette, colour, layers and directional positioning. A final production implementation still needs real animated character sprite frames, walking arm/leg sockets, sword impact frames, death, dyes, collision-scale checks, equipment portrait, peer avatars and visual review on a phone. No game systems or saves are changed here.</p>
+<p class="note"><a href="/art-fit-lab.html">View current live-armour fitting lab</a> · <a href="/">Return to live game</a></p>
+</section></main>
+<script src="/kez-v2-atlas.js?v=1"></script>
+<script src="/art-prototype-32x48.js?v=1"></script>
+<script src="/art-prototype-preview.js?v=1"></script>
+</body></html>
