@@ -18,6 +18,8 @@ on:
       - 'src/server-boss-durable-service.mjs'
       - 'src/multiplayer-preview-worker.mjs'
       - 'wrangler.multiplayer-preview.jsonc'
+      - 'wrangler.jsonc'
+      - 'src/worker.js'
       - 'tests/server-boss-encounter.test.cjs'
       - 'tests/boss-room-coordinator.test.cjs'
       - 'tests/boss-account-ledger.test.cjs'
