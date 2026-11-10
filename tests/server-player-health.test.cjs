@@ -108,7 +108,7 @@ const createGame = require('./game-runtime.cjs');
   let seq = 0;
   while (lethal.isAlive('alice')) {
     seq++;
-    assert(seq < 100, 'lethal sequence terminates');
+    assert(seq <= playerHpAt(40), 'lethal sequence terminates');
     lethal.applyVerifiedStrike({
       ...first, sequence: seq, targets: ['alice'],
       key: JSON.stringify(['r1', 'boss', 'final', 'strike', seq])
