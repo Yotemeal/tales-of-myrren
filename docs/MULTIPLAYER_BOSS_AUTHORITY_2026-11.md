@@ -280,13 +280,49 @@ simulated Durable Object restart, a rolled-back lethal strike that must
 not persist damage/events, and cross-account event privacy. Another
 static contract protects production Worker routing and binding isolation.
 
-**Remaining before real multiplayer:** server-authoritative equipment,
-progression, inventory and global account ledger; full world colliders;
+**Remaining before real multiplayer:** global server-authoritative character
+progression, equipment and general inventory (boss rewards are now in a
+private account-specific preview ledger); full world colliders;
 cross-room character consistency; secure per-user rate limits; proper
 respawn and boss life scheduling; reliable WebSocket/SSE subscriptions;
 end-to-end tests using the real Cloudflare runtime and two Supabase
 accounts; safe staged deployment and rollback. The preview arena uses
 deliberately simplified collision geometry and a level-one test roster.
+
+## Global account reward persistence (isolated preview)
+
+The private preview now declares a **second** SQLite-backed Durable Object,
+`MyrrenAccountPreview` under the `ACCOUNT_RECORDS` namespace. A globally
+stable Supabase UUID is its Durable Object name, so rewards from different
+boss arenas reach one account. The DO exposes internal Cloudflare RPC methods
+only; **there is no public account-reward HTTP route**.
+
+`src/server-global-account.mjs` reuses the existing validated
+`BossAccountRewardLedger` for global account coins, combat XP, rare items
+and an overflow queue. The per-account ledger and receipt are committed in
+one transaction. Legitimate identical rare drops from different boss
+spawn IDs are retained as duplicates. Concurrent or repeated delivery of the
+**same** room event key credits that award once.
+
+The preview boss room's private alarm reconciles its committed outbox using
+`deliverBossOutbox`: write the account receipt, then acknowledge the room
+award. Cloudflare Durable Objects cannot share a single transaction across
+two separate objects; this **idempotent outbox/receipt protocol** safely
+retries a crash or network interruption between commits. When the room is
+idle, unfinished awards retry at a slower cadence. The test suite simulates
+separate rooms and accounts, account transaction failure, an acknowledgement
+crash, replay, concurrent retries, fake account IDs and item duplication
+rules.
+
+**Important limitations:** This adds globally owned *boss reward balances*,
+not yet globally owned character combat levels, equipment loadouts, skills
+or all inventory items. Existing preview room profiles are still isolated
+level-one starters. Credited combat XP and rare gear do not yet change the
+room's trusted combat stats, and are never copied into live player saves.
+There is no deployed account store, no public balance request, and no
+migration from client-controlled Supabase saves. The actual Cloudflare
+preview and dual-DO reconciliation still require staging tests before
+any production integration.
 
 ## Required before production multiplayer
 
