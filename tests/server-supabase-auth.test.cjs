@@ -98,7 +98,9 @@ const { generateKeyPairSync, createSign, sign: nodeSign, webcrypto } =
   const wrongKid = token('RS256', standard(), 'attacker-kid', rsaPrivate);
   assert.equal((await auth.verifyAccessToken(wrongKid)).ok, false,
     'unknown verification keys cannot bypass JWKS');
-  const wrongSig = token('RS256', standard(), 'rsa-1', ecPrivate);
+  const { privateKey: unrelatedRsa } =
+    generateKeyPairSync('rsa', { modulusLength: 2048 });
+  const wrongSig = token('RS256', standard(), 'rsa-1', unrelatedRsa);
   assert.equal((await auth.verifyAccessToken(wrongSig)).ok, false,
     'invalid signature is always denied');
 
