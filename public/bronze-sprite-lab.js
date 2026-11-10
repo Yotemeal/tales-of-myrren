@@ -3,7 +3,9 @@
  const $=id=>document.getElementById(id),W=21,H=27;
  const directions=[{name:'Front',dv:'d',f:1,row:1},{name:'Back',dv:'u',f:1,row:2},
    {name:'Left',dv:'s',f:-1,row:3},{name:'Right',dv:'s',f:1,row:4}];
- const slots=['shield','helmet','body','legs','boots','gloves'];
+ const gear=window.MyrrenNativeGearLayers;
+ if(!gear)throw new Error('Native gear layer contract must load before sprite lab');
+ const slots=gear.slots;
  const bronze=new Image(),bodySource=new Image();
  let ready=false,bodyReady=false,geometry=[],frame=0,playing=false,lastTick=0;
  const status=$('status');
@@ -20,9 +22,8 @@
     let left=W,top=H,right=-1,bottom=-1;
     for(let iy=0;iy<H;iy++)for(let ix=0;ix<W;ix++)
       if(img[(iy*W+ix)*4+3]>16){left=Math.min(left,ix);top=Math.min(top,iy);right=Math.max(right,ix);bottom=Math.max(bottom,iy)}
-    if(right<0){geometry[row][frame]={x:-10,y:-26};continue}
-    const sw=right-left+1,sh=bottom-top+1,offset=Math.round((left+right)/2-10.5);
-    geometry[row][frame]={x:Math.round(-sw/2+offset)-left,y:1-sh-top};
+    if(right<0){geometry[row][frame]=null;continue}
+    geometry[row][frame]=gear.placement({left,right,top,bottom});
    }
   }
  }
@@ -41,29 +42,22 @@
  bodySource.src='/assets/kez-v2/kez_v2_atlas.png?v=1';
  window.addEventListener('myrren-kez-v2-ready',load);
 
- function layer(ctx,slot,row,f,geox,geoy){
-  ctx.drawImage(bronze,f*W,(slot*6+row)*H,W,H,geox,geoy,W,H);
- }
  function person(ctx,worldX,worldY,dir,withBronze,now,moving){
   const k=window.MyrrenKezV2Atlas,old=window.MyrrenKezV2Equipment;
   const state={dv:dir.dv,f:dir.f,moving,now,g:Array(6).fill(2),tool:'fist',swingAt:-999999};
-  const sourceRow=moving?dir.row:dir.dv==='d'?0:dir.row;
-  const sourceFrame=moving?frame:dir.dv==='d'?Math.floor(now/440)%4:0;
-  const fit=geometry[sourceRow][sourceFrame]||{x:-10,y:-26};
+  const pose=gear.pose(state,now);
+  const fit=geometry[pose.row]?.[pose.frame];
+  if(!fit){status.textContent='Missing base character frame geometry: '+pose.direction;return}
+  const visible=Object.fromEntries(slots.map(slot=>[slot,$(slot).checked]));
   ctx.save();ctx.translate(Math.round(worldX),Math.round(worldY));
   if(withBronze&&$('mode').value==='procedural'){
    old?.draw(ctx,0,0,state,'under');k.draw(ctx,0,0,state,now);old?.draw(ctx,0,0,state,'over');
   }else if(!withBronze){
    k.draw(ctx,0,0,state,now);
   }else{
-   const spriteRow=dir.row;
-   if(dir.dv==='s'&&$('shield').checked)layer(ctx,0,spriteRow,frame,fit.x,fit.y);
+   gear.draw(ctx,bronze,{pose,anchor:fit,pass:'under',visible});
    k.draw(ctx,0,0,state,now);
-   const selected=[3,4,2,5,1];
-   for(const s of selected){
-    if($(slots[s]).checked)layer(ctx,s,spriteRow,frame,fit.x,fit.y);
-   }
-   if(dir.dv!=='s'&&$('shield').checked)layer(ctx,0,spriteRow,frame,fit.x,fit.y);
+   gear.draw(ctx,bronze,{pose,anchor:fit,pass:'over',visible});
   }
   ctx.restore();
  }
@@ -71,12 +65,13 @@
   const c=canvas.getContext('2d');if(!c)return;
   c.imageSmoothingEnabled=false;
   c.fillStyle='#2b3d36';c.fillRect(0,0,canvas.width,canvas.height);
-  const zoom=Number($('zoom').value),now=frame*130,moving=$('motion').value==='walk';
+  const zoom=Number($('zoom').value),moving=$('motion').value==='walk';
+  const now=frame*(moving?130:440);
   for(let i=0;i<4;i++){
    const dir=directions[i],x=20+i*216,y=40,footX=x+105,footY=184;
    c.fillStyle='#334b3d';c.fillRect(x,y,210,canvas.height-58);
    c.save();c.translate(footX,footY);c.scale(zoom,zoom);c.imageSmoothingEnabled=false;
-   person(c,0,0,dir,mode==='equipped',moving?now:frame*440,moving);c.restore();
+   person(c,0,0,dir,mode==='equipped',now,moving);c.restore();
    c.fillStyle='#e9d6ac';c.font='600 13px system-ui';c.textAlign='center';
    c.fillText(dir.name,footX,24);c.fillText(mode==='equipped'?'Bronze armour':'Base character',footX,canvas.height-17);
   }
