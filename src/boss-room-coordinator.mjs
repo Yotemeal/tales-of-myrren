@@ -87,6 +87,8 @@ export class BossRoomCoordinator {
           }
           await tx.put(key, {
             schema: 1, status: 'pending', key: reward.key,
+            type: boss.type, roomId: boss.roomId, bossId: boss.bossId,
+            spawnId: boss.spawnId,
             reward: clone(reward), receipt: null
           });
         }
