@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tales-of-myrren-multiplayer-preview",
+  "main": "src/multiplayer-preview-worker.mjs",
+  "compatibility_date": "2026-11-10",
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "BOSS_ROOMS",
+        "class_name": "MyrrenBossPreviewRoom"
+      }
+    ]
+  },
+  "exports": {
+    "MyrrenBossPreviewRoom": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    }
+  }
+}
