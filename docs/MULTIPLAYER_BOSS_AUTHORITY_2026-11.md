@@ -131,20 +131,18 @@ From the repository root on a Linux PC with Node.js 22 or later:
 
 This executes JavaScript syntax checks and the boss, account, room and
 movement regressions locally, without consuming GitHub-hosted Actions minutes.
-The script is committed as source but has not yet been run on the user's Linux
-machine. The new movement module has passed an isolated in-process smoke
-test; its full Node regression suite awaits local or self-hosted execution.
+The `Myrren-Linux` Fedora self-hosted runner is now installed as a
+systemd service and successfully completed the existing server boss regression
+and game integrity suites on the earlier draft commit. Additional atomic room
+and combat-event replay tests require the latest CI run to pass before review.
 
-When the Linux self-hosted runner is connected, we can change the workflow
-runner labels to target it and configure it as a system service. **Until
-then, GitHub Actions still uses hosted Ubuntu for regular non-skipped commits.**
-For this development branch, work-in-progress commits use `[skip ci]` to
-avoid further hosted minutes. Never ship by skipping release checks;
-a final unskipped commit must pass mandatory tests before merge/deploy.
-
-A runner automatically executes queued jobs; it does **not** independently
-write or push new code. Production Cloudflare deployment should stay gated
-behind a reviewed, tested main-branch release.
+The dedicated workflow uses `runs-on: [self-hosted, Linux, X64]`;
+work-in-progress documentation-only commits may use `[skip ci]`, but any
+review or production release must have an unskipped, successful final
+verification. Self-hosted runner execution does not consume GitHub-hosted
+Actions minutes. A runner automatically executes queued jobs; it does **not**
+independently write or push new code. Cloudflare deployment remains a separate
+controlled production step.
 
 ## Server-owned boss AI (isolated prototype)
 
