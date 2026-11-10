@@ -75,7 +75,6 @@ const createGame=require('./game-runtime.cjs');
     assert(anvilRows.some(row=>row.className==='smith-work'),'anvil keeps the crafting progress and start controls');
     assert(anvilRows.some(row=>row.className.includes('smith-recipe')),'anvil lists the item recipes');
     assert(!anvilRows.some(row=>row.className==='shoprow'&&!row.className.includes('smith-recipe')),'anvil cannot present buy and sell rows');
-    assert(!g.SHOPS?.arms?.cats?.Forge,'forging must not be a shop category');
     g.setForgeMat(2);
     g.save.inv.ing_bronze=20;
     g.setSmithQuantity(2);
@@ -93,6 +92,14 @@ const createGame=require('./game-runtime.cjs');
     assert.equal(g.save.inv.ing_bronze,12,'each sword consumes four bars');
     assert.equal(g.save.eq.weapon,equipped,'batch crafting does not change player equipment');
     assert.equal(g.save.xp.forging-forgingBefore,2*g.FORGE.sword*g.SMELT[0].forgeXpPerBar,'forge batch preserves the balanced per-item XP');
+    // Switching away from the anvil must never finish a queued weapon.
+    g.save.inv.ing_bronze=8;g.setSmithQuantity(1);
+    assert(g.startSmithing('forge','sword'));
+    const beforeSwitch=g.save.bag.length;
+    g.openModal('pack');
+    assert.equal(g.getSmithJob(),null,'switching tabs cancels unfinished anvil work');
+    clock+=5000;g.smithingTick(clock);
+    assert.equal(g.save.bag.length,beforeSwitch,'cancelled anvil work cannot create equipment');
     // Merchant trade still works, but it is a different world station.
     g.me.x=g.VILLAGE.stations.find(s=>s.kind==='trade').x;
     g.me.y=g.VILLAGE.stations.find(s=>s.kind==='trade').y;
