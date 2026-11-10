@@ -90,5 +90,8 @@ jobs:
           node tests/server-boss-command-gateway.test.cjs
           node tests/server-boss-durable-service.test.cjs
           node tests/server-boss-preview-contract.test.cjs
+      - name: Bundle SQLite preview Worker without deploying
+        run: |
+          npx --yes wrangler@latest deploy --config wrangler.multiplayer-preview.jsonc --dry-run --outdir /tmp/myrren-boss-preview-build
       - name: Existing boss contribution regression
         run: node tests/boss-contribution-loot.test.cjs
