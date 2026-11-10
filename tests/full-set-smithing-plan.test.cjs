@@ -119,9 +119,28 @@ const createGame=require('./game-runtime.cjs');
    g.closeModal();
    g.save.eq.head=null;g.save.bag.length=0;
    g.save.bank.starsteel_gloves=0;g.save.bank.starsteel_shield=0;
-   g.save.inv.ing_starsteel=28;g.save.bank.ing_starsteel=0;
+   g.save.inv.ing_starsteel=0;g.save.bank.ing_starsteel=0;
+   g.save.inv.meteorite=84;g.save.inv.coal=112;
+   g.save.bank.meteorite=0;g.save.bank.coal=0;g.save.notes.meteorite=0;
    g.save.xp.forging=g.xpTable[80];
    const startingXp=g.save.xp.forging;
+   const furnace=g.VILLAGE.stations.find(s=>s.kind==='furnace');
+   g.me.x=furnace.x;g.me.y=furnace.y;
+   g.openSmithy('furnace');
+   g.setSmithQuantity('all');
+   assert.equal(g.smithMaximum('smelt','starsteel'),28,
+     'enough ore for precisely one complete set of bars');
+   assert(g.startSmithing('smelt','starsteel'),
+     'furnace queue accepts existing high-level recipe');
+   for(let i=0;i<28;i++){clock+=1500;g.smithingTick(clock)}
+   assert.equal(g.getSmithJob(),null,'the 28-bar furnace queue finishes');
+   assert.equal(g.save.inv.meteorite,0,'all meteorite is consumed once');
+   assert.equal(g.save.inv.coal,0,'all coal is consumed once');
+   assert.equal(g.save.inv.ing_starsteel,28,'twenty-eight real ingots were produced');
+   assert.equal(g.save.xp.forging-startingXp,28*star.xp,
+     'smelting rewards exactly the current modest per-bar XP');
+   g.closeModal();
+   g.me.x=anvil.x;g.me.y=anvil.y;
    g.openSmithy('anvil');
    g.setSmithQuantity(1);
    for(const kind of kinds){
@@ -138,8 +157,8 @@ const createGame=require('./game-runtime.cjs');
      assert.equal(g.save.bag.at(-1),'starsteel_'+kind);
    }
    assert.equal(g.save.inv.ing_starsteel,0);
-   assert.equal(g.save.xp.forging-startingXp,28*star.forgeXpPerBar,
-     'full set awards only the current per-bar forging XP');
+   assert.equal(g.save.xp.forging-startingXp,28*(star.xp+star.forgeXpPerBar),
+     'full ore-to-six-piece set awards exact smelting and forging XP');
    plan=g.equipmentSetPlan(star.mat);
    assert.equal(plan.missing.length,0,'finished set is recognised from saved backpack items');
    assert.equal(plan.barsToSmelt,0,'completed set requires no further materials');
@@ -154,6 +173,6 @@ const createGame=require('./game-runtime.cjs');
      'compact planner CSS is scoped only to the anvil');
    assert(css.includes('.forge-set-summary:focus-visible'),
      'keyboard/gamepad focus remains readable');
-   console.log('PASS: seven full-set ore budgets, owned/banked/noted deductions, compact anvil UI, exact six-item production, XP, bag space and save parity');
+   console.log('PASS: seven full-set ore budgets, inventory/bank/notes, compact anvil UI, 28-bar smelting then six-item forging, exact XP, backpack and save parity');
  }finally{Date.now=oldNow;Math.random=oldRandom}
 })().catch(e=>{console.error(e);process.exitCode=1});
