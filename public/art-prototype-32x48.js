@@ -134,7 +134,9 @@
   function legs(p,o) {
     const {px}=p,B=BODY,g=o.gear,m=o.motion==='walk',shift=m?[0,-2,0,2][o.frame]:0;
     for(let i=0;i<2;i++){
-      const mat=g[2],p0=PALETTES[mat],x=(i?18:10)+(i?-shift:shift);
+      const mat=g[2],p0=PALETTES[mat];
+      const side=o.dir==='left'||o.dir==='right';
+      const x=(side?(i?17:12):(i?18:10))+(i?-shift:shift);
       if(p0){
         px(x,36,6,9,p0.ink);px(x+1,37,4,7,p0.base);
         px(x+1,38,1,5,p0.light);px(x+4,40,1,4,p0.dark);
@@ -151,7 +153,24 @@
   function chest(p,o) {
     const {px,poly}=p,t=PALETTES[o.gear[1]];
     if(!t)return;
-    const back=o.dir==='back';
+    const back=o.dir==='back',side=o.dir==='left'||o.dir==='right';
+    if(side){
+      // Narrow, offset profile: don't paint a second front-facing chest on side poses.
+      poly([[12,27],[20,27],[23,30],[22,38],[12,38],[10,31]],t.ink);
+      poly([[13,28],[19,28],[21,31],[20,36],[13,36],[12,31]],t.base);
+      px(13,29,7,1,t.light);px(14,35,6,1,t.dark);
+      const near=o.dir==='right'?22:7;
+      px(near,28,5,5,t.ink);px(near+1,28,3,3,t.base);
+      px(near+1,28,3,1,t.light);
+      if(o.gear[1]===6){
+        px(o.dir==='right'?19:13,31,2,4,t.accent);
+        px(15,36,4,1,t.light);
+      }else{
+        px(o.dir==='right'?19:13,32,2,4,t.dark);
+        px(13,37,8,1,t.accent);
+      }
+      return;
+    }
     poly([[11,27],[22,27],[25,31],[23,39],[10,39],[8,31]],t.ink);
     poly([[12,28],[21,28],[23,31],[22,37],[11,37],[10,31]],t.base);
     px(12,29,9,1,t.light);px(12,35,9,1,t.dark);
@@ -224,16 +243,23 @@
             [11,24],[9,21]],t.base);
       px(11,11,9,2,t.light);px(15,5,3,3,t.accent);
       px(16,4,1,11,t.accent);px(15,9,3,2,'#fff0ac');
-      px(9,16,16,2,t.accent);px(10,17,14,1,'#fff0ac');
       if(front){
+        // True full-face T visor and continuous golden brow are front-only.
+        px(9,16,16,2,t.accent);px(10,17,14,1,'#fff0ac');
         px(10,19,14,3,t.ink);px(15,20,4,6,t.ink);
         px(10,23,3,2,t.light);px(21,23,3,2,t.light);
         px(13,25,9,1,t.accent);
       }else if(back){
-        px(16,17,2,9,t.accent);px(11,21,12,2,t.dark);
+        // A closed rear plate, not a second face or front-view eye slit.
+        px(10,16,14,2,t.dark);px(13,19,8,5,t.base);
+        px(16,17,2,9,t.accent);px(11,24,12,1,t.light);
       }else {
-        if(o.dir==='right'){px(15,19,10,3,t.ink);px(19,21,3,5,t.ink);px(11,23,3,2,t.light);}
-        else{px(9,19,10,3,t.ink);px(13,21,3,5,t.ink);px(20,23,3,2,t.light);}
+        // Ocular slit only on the facing edge; side panels have no full T.
+        const right=o.dir==='right',eye=right?19:9;
+        px(right?17:9,16,8,2,t.accent);
+        px(eye,19,6,3,t.ink);
+        px(right?19:13,21,2,5,t.ink);
+        px(right?10:21,23,3,2,t.light);
         px(13,25,8,1,t.accent);
       }
     }
