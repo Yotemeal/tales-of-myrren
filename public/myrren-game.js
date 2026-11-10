@@ -2136,7 +2136,7 @@ function doAction(dt,now){
     if(fishing){
       if(!a.casted&&a.t>=0){
         if(slot==='rod'){if(!(save.inv.bait>0)){say('You are out of bait. Buy more at the fishing shop.','warn');act=null;return}save.inv.bait--;if(tab)renderModal()}
-        a.casted=true;a.cast0=now;startSwing(now);
+        a.casted=true;a.cast0=now;n.fishCastAt=now;startSwing(now);
       }
     }else if(!a.swung&&a.t>=a.iv-.2){a.swung=true;startSwing(now)}
     if(a.t>=a.iv){
@@ -2144,6 +2144,7 @@ function doAction(dt,now){
       if(fishing){a.casted=false;a.t=-.9}
       const success=Math.random()<clamp(nt.base+(L-nt.req)*.025+Math.max(0,d.mat-2)*.06,.05,.92);
       if(nt.skill==='mining')recordMiningHit(n,now,success);
+      if(fishing){n.fishHitAt=now;n.fishSucceeded=success;}
       burst(n.x,n.y-10,nt.tool==='axe'?['#9a6a38','#5a3a1f','#7ab648']:fishing?['#8cc0f4','#ffffff','#3f7fcc']:nt.skill==='mining'?miningDustColors(n):['#ffe14a','#ffffff','#c8d2d6'],nt.skill==='mining'&&!success?3:6,22);
       if(success){
         save.inv[nt.item]++;
@@ -3139,7 +3140,25 @@ function drawDecor(kind,x,y,a,b){
   else if(kind==='hay')drawHay(x,y);else if(kind==='pot')drawPot(x,y);else if(kind==='fbox')drawFbox(x,y);else if(kind==='sack')drawSack(x,y);else if(kind==='fence')drawFence(x,y,a,b);else if(kind==='bush')drawBush(x,y,a);else if(kind==='provisions')drawProvisions(x,y);
   if(kind==='stall'&&a==='#3a7a9a'&&Math.hypot(me.x-SPOTS.odd.x,me.y-SPOTS.odd.y)<64)label('Odd Shop',x,y-34,'#ffffff');
 }
-function drawSpot(n,x,y,now){MyrrenEnvironment.fishing(ctx,n,x,y,now)}
+// Fishing ripples are read-only pixel feedback. Taps continue to identify
+// the fishing spot and its skill requirement, never to cast automatically.
+function drawSpot(n,x,y,now){
+  MyrrenEnvironment.fishing(ctx,n,x,y,now);
+  const cast=now-(n.fishCastAt??-99999);
+  if(cast>=0&&cast<380){
+    const d=Math.floor(cast/95);
+    R(x-3-d,y-1,3,1,'#c6e8f4');R(x+1+d,y-1,3,1,'#c6e8f4');
+  }
+  const age=now-(n.fishHitAt??-99999);
+  if(age>=0&&age<440){
+    const p=age/440,col=n.fishSucceeded?'#f4f8d9':'#86bed6';
+    for(let i=0;i<(n.fishSucceeded?4:2);i++){
+      const dx=(i%2?1:-1)*(2+Math.round(5*p)+i);
+      const dy=Math.round(-2-Math.sin(Math.PI*p)*(2+i%2));
+      R(x+dx,y+dy,2,1,col);
+    }
+  }
+}
 const SLATE=['#7a7874','#8c8a86','#9a9894','#b4b2ac'],SLATE_D=['#55535a','#66646c','#767480','#8e8c98'],SLATE_B=['#5e7488','#6e869a','#7e96aa','#a0b8c8'],TERRA=['#9a5a40','#ac6a4c','#bc7a58','#d4986e'];
 function slateRoof(x,top,w,H,tone,seed,moss){
   const x0=x-(w>>1),rn=Math.ceil(H/4);
