@@ -31,6 +31,7 @@ for path in \
   src/server-boss-command-gateway.mjs \
   src/server-trusted-characters.mjs \
   src/server-boss-durable-service.mjs \
+  src/multiplayer-preview-worker.mjs \
   tests/server-boss-encounter.test.cjs \
   tests/boss-room-coordinator.test.cjs \
   tests/boss-account-ledger.test.cjs \
@@ -41,7 +42,8 @@ for path in \
   tests/server-room-events.test.cjs \
   tests/server-supabase-auth.test.cjs \
   tests/server-boss-command-gateway.test.cjs \
-  tests/server-boss-durable-service.test.cjs
+  tests/server-boss-durable-service.test.cjs \
+  tests/server-boss-preview-contract.test.cjs
 do
   node --check "$path"
 done
@@ -59,7 +61,8 @@ for path in \
   tests/server-room-events.test.cjs \
   tests/server-supabase-auth.test.cjs \
   tests/server-boss-command-gateway.test.cjs \
-  tests/server-boss-durable-service.test.cjs
+  tests/server-boss-durable-service.test.cjs \
+  tests/server-boss-preview-contract.test.cjs
 do
   echo "[Myrren] Running $path"
   node "$path"
