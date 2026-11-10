@@ -86,6 +86,8 @@ jobs:
         run: "${RUNNER_TEMP}/myrren-paperdoll-venv/bin/python scripts/build-kez-v2-paperdoll.py --out /tmp/kez-v2-paperdoll"
       - name: Verify native equipment parts and pose metadata
         run: "${RUNNER_TEMP}/myrren-paperdoll-venv/bin/python tests/kez-v2-paperdoll.test.py"
+      - name: Verify isolated Bronze PNG atlas contract
+        run: "${RUNNER_TEMP}/myrren-paperdoll-venv/bin/python tests/bronze-sprite-atlas.test.py"
       - name: Save experimental sprite atlas and comparison image
         if: always()
         uses: actions/upload-artifact@v4
