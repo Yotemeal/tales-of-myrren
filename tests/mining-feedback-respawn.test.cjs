@@ -34,6 +34,16 @@ const createGame=require('./game-runtime.cjs');
    assert.equal(pal.length,3,'each ore needs a distinct hit palette');
  }
 
+ // Upgraded pickaxes must become noticeably quicker without boosting XP
+ // per ore. This follows the long-term tool progression feel of Curse of Aros.
+ for(const [id,seconds] of [
+   ['bronze_pick',1.8],['iron_pick',1.65],['steel_pick',1.5],
+   ['cobalt_pick',1.35],['aether_pick',1.2]
+ ]){
+   assert.equal(g.miningInterval(g.DEFS[id]),seconds,id+' action interval');
+ }
+ assert.equal(g.miningInterval(null),1.8,'legacy missing tool uses safe timing');
+
  // Both successful and failed swings produce a brief rock reaction, but only
  // a successful hit awards ore and XP.
  const originalRandom=Math.random;
@@ -113,6 +123,24 @@ const createGame=require('./game-runtime.cjs');
    assert.equal(copper.oreLeft,5,'expired vein restarts with full durability');
    assert.equal(g.save.inv.copper,ore0+7);
    assert.equal(g.save.xp.mining,xp0+7*g.NT.copper.xp);
+
+   // A real equipped upgraded pickaxe should finish a swing earlier than
+   // Bronze without giving double items or XP.
+   const beforeIronXp=g.save.xp.mining,beforeIronOre=g.save.inv.iron||0;
+   const oldWeapon=g.save.eq.weapon,oldMiningXp=g.save.xp.mining;
+   g.save.eq.weapon='iron_pick';
+   g.save.xp.mining=Math.max(g.save.xp.mining,g.xpTable[15]);
+   const iron={k:'iron',x:g.me.x+12,y:g.me.y+2,back:0};
+   g.beginAct('node',iron);
+   g.doAction(.74,22000);
+   assert.equal(iron.oreLeft,undefined,'one iron swing takes more than 1.64 seconds');
+   g.doAction(.01,22010);
+   assert.equal(iron.oreLeft,4,'iron pickaxe completes one 1.65s gather');
+   assert.equal(g.save.inv.iron,beforeIronOre+1,'faster tools still give only one ore');
+   assert.equal(g.save.xp.mining,Math.max(beforeIronXp,g.xpTable[15])+g.NT.iron.xp,
+     'faster pickaxe earns one normal XP drop');
+   g.save.eq.weapon=oldWeapon;
+   g.save.xp.mining=oldMiningXp;
 
    // Every ore tier consumes exactly its declared charges. Failures only
    // occur in doAction; this helper is called after a verified success.
