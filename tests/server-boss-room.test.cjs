@@ -65,6 +65,9 @@ class TransactionalMemory {
   assert.equal((await room.join('a2')).health.hp, 410,
     'reconnecting cannot create a duplicate character');
   assert.equal((await room.snapshot('fake')).reason, 'unauthorized');
+  assert.equal((await room.updates('fake')).reason, 'unauthorized');
+  assert.equal((await room.snapshot('a')).eventSequence, 0);
+  assert.deepEqual((await room.updates('a')).events, []);
   assert.equal((await room.move('a', { x: 999, dx: 1, dy: 0 })).reason,
     'invalid-input');
   assert.equal((await room.snapshot('a')).me.hp, 410);
@@ -75,6 +78,12 @@ class TransactionalMemory {
   assert.equal(warning.length, 1);
   assert.equal(warning[0].kind, 'warning');
   assert.equal(warning[0].endsAt, 1200);
+  const firstFeed = await room.updates('a');
+  assert.equal(firstFeed.latestSequence, 1);
+  assert.deepEqual(firstFeed.events.map(e => e.kind), ['warning']);
+  assert.equal(firstFeed.events[0].endsAt, 1200);
+  assert.deepEqual((await room.updates('b')).events, firstFeed.events,
+    'both members see the same boss warning');
 
   // A real server-validated dodge moves Alice beyond the warning radius.
   now = 600;
@@ -90,6 +99,18 @@ class TransactionalMemory {
     'server boss damage rolls obey existing Cave Bear maximum');
   assert.equal((await room.snapshot('a')).me.hp, 410);
   assert.equal((await room.snapshot('b')).me.hp, 397);
+  const aliceFeed = await room.updates('a');
+  const bobFeed = await room.updates('b', 1);
+  assert.deepEqual(aliceFeed.events.map(e => e.kind), ['warning', 'strike']);
+  assert.equal(aliceFeed.events[1].me, null,
+    'dodging Alice must not expose Bob health');
+  assert.equal(bobFeed.events[0].me.damage, 13);
+  assert.equal(bobFeed.events[0].me.hp, 397);
+  assert(!JSON.stringify(aliceFeed).includes('"bob"'),
+    'public feed must not expose other player account IDs');
+  assert(!JSON.stringify(aliceFeed).includes('"hp":397'),
+    'public feed must not expose other player health');
+  assert.equal((await room.snapshot('a')).eventSequence, 2);
   assert.deepEqual(await room.tick(), [], 'a repeated tick cannot double-strike');
   assert.equal((await room.snapshot('b')).me.hp, 397);
 
@@ -99,6 +120,12 @@ class TransactionalMemory {
   assert.equal((await restarted.snapshot('b')).me.hp, 397);
   assert.equal((await restarted.snapshot('a')).behavior.mode, 'chase');
   assert.deepEqual(await restarted.tick(), [], 'restart cannot replay strike');
+  assert.deepEqual((await restarted.updates('b', 1)).events, bobFeed.events,
+    'reconnecting through a new room instance resumes missed hit');
+  assert.deepEqual((await restarted.updates('a2', 2)).events, [],
+    'same account on reconnect does not duplicate old notifications');
+  await assert.rejects(() => restarted.updates('a', 1000), /cursor/,
+    'future notifications cannot be forged');
   now = 1300;
   assert(Math.abs((await restarted.move('a', { dx: -1, dy: 0 })).x - 209) < 1e-8);
   now = 1400;
@@ -123,6 +150,8 @@ class TransactionalMemory {
   await assert.rejects(() => restarted.attack('b'), /simulated atomic/);
   assert.equal((await restarted.snapshot('a')).boss.hp, 21);
   assert.deepEqual(await room.pendingAwards(), []);
+  assert.equal((await room.updates('a')).latestSequence, 2,
+    'failed fatal transaction must not publish a ghost boss defeat');
   // Failed transactions do not roll back the PRNG stream, so a retry can
   // legitimately miss. Retry on the verified account cooldown until the
   // first committed fatal strike; it must credit only effective damage.
@@ -134,6 +163,13 @@ class TransactionalMemory {
   assert.equal(kill.damage, 21);
   assert.equal(kill.boss.defeated, true);
   assert.equal((await restarted.snapshot('a')).behavior.mode, 'dead');
+  const deathFeed = await restarted.updates('a', 2);
+  assert.deepEqual(deathFeed.events.map(e => e.kind), ['boss-defeated']);
+  assert(!JSON.stringify(deathFeed).includes('coins') &&
+    !JSON.stringify(deathFeed).includes('rare'),
+    'public boss defeat does not include private payout rolls');
+  assert.deepEqual((await room.updates('a', deathFeed.nextSequence)).events, [],
+    'a resumed listener does not repeat boss death');
   assert.equal((await restarted.attack('a')).reason, 'defeated');
   assert.deepEqual(await restarted.tick(), [], 'a dead boss cannot attack');
 
