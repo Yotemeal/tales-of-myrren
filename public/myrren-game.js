@@ -137,7 +137,11 @@ for(const kind in KINDS){
 }
 // Stable material IDs keep existing equipment and saves compatible.
 const ARMOUR_ORDER=[2,3,4,5,7,6,8],ARMOUR_LEVELS=[1,10,20,30,40,55,70];
-const ARMOUR_DEF={helm:[2,4,7,11,14,16,21],body:[4,8,14,22,27,32,42],gloves:[1,2,4,6,8,9,12],legs:[3,6,10,16,20,24,31],boots:[1,2,4,7,9,10,14],shield:[2,4,8,13,16,19,25]};
+// Myrrenite's full six-piece defence was only marginally stronger than
+// Obsidianite for its substantially greater rare-ore cost. Distribute an
+// eight-point defensive improvement across all six pieces. Starsteel and
+// lower tiers remain unchanged; the existing diminishing-return curve stays.
+const ARMOUR_DEF={helm:[2,4,7,11,14,17,21],body:[4,8,14,22,27,34,42],gloves:[1,2,4,6,8,10,12],legs:[3,6,10,16,20,26,31],boots:[1,2,4,7,9,11,14],shield:[2,4,8,13,16,20,25]};
 for(const kind in ARMOUR_DEF){
  const K=KINDS[kind];K.mats=ARMOUR_ORDER.slice();delete DEFS['leather_'+kind];
  ARMOUR_ORDER.forEach((mat,i)=>{const id=MATS[mat].k+'_'+kind;DEFS[id]={id,kind,slot:K.slot,art:K.art,mat,name:MATS[mat].n+' '+K.nm.d,req:ARMOUR_LEVELS[i],skill:K.skill,price:0,atk:0,def:ARMOUR_DEF[kind][i],tool:false}});
