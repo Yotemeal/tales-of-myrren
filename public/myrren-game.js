@@ -1528,7 +1528,7 @@ function equipmentSetPlan(mat,includeSword=false){
   const pieces=kinds.map(kind=>{
     const id=material.k+'_'+kind,def=DEFS[id];
     if(!def||!FORGE[kind])return null;
-    const owned=save.eq[def.slot]===id||save.bag.includes(id)||(save.bank[id]||0)>0;
+    const owned=save.eq[def.slot]===id||save.bag.includes(id)||(save.bank[id]||0)>0||(save.notes[id]||0)>0;
     return {kind,id,owned,bars:FORGE[kind],level:forgeReq(recipe,kind)};
   });
   if(pieces.some(p=>!p))return null;
@@ -1573,7 +1573,7 @@ function rForgeSetPlan(){
     ' to forge every piece · '+plan.totalSmeltXp.toLocaleString()+' smelting XP + '+
     plan.totalForgeXp.toLocaleString()+' forging XP if crafted from scratch.'));
   if(!plan.missing.length){
-    content.append(el('p','note','You already own this entire set across your equipment, backpack and bank.'));
+    content.append(el('p','note','You already own this entire set across equipment, backpack, bank and notes.'));
   }else{
     for(const p of plan.pieces){
       content.append(el('div','forge-set-line',
