@@ -123,7 +123,14 @@ class TransactionalMemory {
   await assert.rejects(() => restarted.attack('b'), /simulated atomic/);
   assert.equal((await restarted.snapshot('a')).boss.hp, 21);
   assert.deepEqual(await room.pendingAwards(), []);
-  const kill = await room.attack('b');
+  // Failed transactions do not roll back the PRNG stream, so a retry can
+  // legitimately miss. Retry on the verified account cooldown until the
+  // first committed fatal strike; it must credit only effective damage.
+  let kill = await room.attack('b');
+  for (let attempt = 0; !kill.defeated && attempt < 6; attempt++) {
+    now += 900;
+    kill = await room.attack('b');
+  }
   assert.equal(kill.damage, 21);
   assert.equal(kill.boss.defeated, true);
   assert.equal((await restarted.snapshot('a')).behavior.mode, 'dead');
