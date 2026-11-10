@@ -238,6 +238,56 @@ mode; add session rate limiting and actual authenticated network transport;
 and test two signed-in players end to end. Never trust the current
 Supabase client-uploaded save as the server's authoritative character.
 
+## SQLite-backed Cloudflare room preview (isolated)
+
+`src/server-trusted-characters.mjs` now defines a separate private character
+roster. After Supabase Auth has cryptographically verified an account, its
+first `join` transaction creates a **fixed level-one unarmed starter**.
+No existing browser-uploaded `player_saves.save_data` is imported as a
+combat profile. Records validate room/account identity and stat limits. A
+joining user's starter record and shared boss/player state are committed in
+one storage transaction; failed commits roll back both.
+
+`src/server-boss-durable-service.mjs` adapts Cloudflare Durable Object
+`ctx.storage.transaction(tx => ...)` to `ServerBossRoom`. Each request
+loads the trusted roster *inside that same transaction*, exposes read-only
+stats to synchronous hit/movement callbacks and discards the snapshot
+afterwards. The authenticated command gateway supplies a **server-minted,
+private** session key per request. Only `join` can provision a starter.
+Other commands cannot create accounts or inject character changes.
+
+The experimental entrypoint
+`src/multiplayer-preview-worker.mjs` and its **separate**
+`wrangler.multiplayer-preview.jsonc` configuration define a SQLite-backed
+`MyrrenBossPreviewRoom` Durable Object. It uses a single fixed server arena,
+a preview-only `/preview/boss` route, Supabase token verification, and
+100 ms server-owned AI alarm ticks that stop after 15 seconds without a
+valid command. The real game's `src/worker.js` and `wrangler.jsonc`
+are **unchanged**, so the isolated preview cannot deploy over the game.
+Cloudflare recommends declaring new namespaces with
+`exports.<class> = { type: "durable-object", storage: "sqlite" }`.
+
+To run in a future *separate* private preview environment, configure
+`SUPABASE_PROJECT_URL` and `SUPABASE_PUBLISHABLE_KEY` in Cloudflare
+for the preview Worker and independently review the access policy, then
+use the preview Wrangler configuration. **No preview has been deployed**
+and no live routes have been created by this work. Never supply a
+Supabase service-role key or JWT signing secret.
+
+The test suite covers two authenticated accounts, default character
+provisioning, forged XP/gear rejection, shared movement and HP after a
+simulated Durable Object restart, a rolled-back lethal strike that must
+not persist damage/events, and cross-account event privacy. Another
+static contract protects production Worker routing and binding isolation.
+
+**Remaining before real multiplayer:** server-authoritative equipment,
+progression, inventory and global account ledger; full world colliders;
+cross-room character consistency; secure per-user rate limits; proper
+respawn and boss life scheduling; reliable WebSocket/SSE subscriptions;
+end-to-end tests using the real Cloudflare runtime and two Supabase
+accounts; safe staged deployment and rollback. The preview arena uses
+deliberately simplified collision geometry and a level-one test roster.
+
 ## Required before production multiplayer
 
 1. **Authentication and character authority.** Replace the optional presence
@@ -250,11 +300,11 @@ Supabase client-uploaded save as the server's authoritative character.
    attack telegraphs, target selection, aggression, leash and respawn timers.
    The current isolated room prototype models boss movement, enemy attacks
    and player death, but **has not been wired to live authenticated multiplayer**.
-3. **Durable shared rooms.** Configure a Cloudflare Durable Object binding and
-   persistent room/boss state with serial attack processing and globally
-   unique spawn IDs. The module now provides a validated private state
-   serializer/restore path, but **nothing calls it or durably stores it yet**;
-   in-memory instances alone lose state on Worker restart.
+3. **Durable shared rooms.** The isolated SQLite-backed preview Worker now
+   has a Durable Object binding and persists boss/player state transactionally.
+   It is **not deployed or wired to the live game**. Production still needs
+   validated world geometry, spawn lifecycle, global account records,
+   rate limits and live-runtime integration tests.
 4. **Atomic persistent rewards.** At boss death, persist an authoritative
    entitlement ledger and apply each reward once in a transaction keyed by its
    stable reward key. The gear roll must select an existing real item from the
