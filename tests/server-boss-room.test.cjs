@@ -169,6 +169,65 @@ class TransactionalMemory {
     (await ledgers.get('bob').snapshot()).coins, total
   );
 
+  // Server-owned pursuit/leash must atomically reset all prior damage credit.
+  // It must never manufacture a reward from an abandoned fight.
+  let leashNow = 0, leashRoll = 0;
+  const leashStore = new TransactionalMemory();
+  const leash = build({
+    storage: leashStore, spawnId: 'leash-life',
+    clock: () => leashNow,
+    random: () => leashRoll++ % 2 ? .99 : 0
+  });
+  await leash.join('a');
+  await leash.tick(); // boss acquires Alice as its real server target
+  assert.equal((await leash.attack('a')).damage, 43);
+  assert.equal((await leash.snapshot('a')).boss.hp, 107);
+  for (let i = 0; i < 16; i++) {
+    leashNow += 100;
+    assert.equal((await leash.move('a', { dx: 1, dy: 0 })).ok, true);
+  }
+  const resetEvents = await leash.tick();
+  assert.equal(resetEvents.length, 1);
+  assert.equal(resetEvents[0].kind, 'leash-reset');
+  assert.equal((await leash.snapshot('a')).boss.hp, 150,
+    'boss HP and damage ledger reset when target leaves the arena');
+  assert.deepEqual(await leash.pendingAwards(), []);
+  assert.equal((await build({
+    storage: leashStore, spawnId: 'leash-life', clock: () => leashNow
+  }).snapshot('a')).boss.hp, 150, 'reset survives restart');
+  assert.equal((await leash.attack('a')).damage, 43,
+    'successful leash reset clears old player attack cooldown');
+  assert.equal((await leash.snapshot('a')).boss.hp, 107);
+
+  // Test fixture seeds a genuinely low-HP player in private committed state.
+  // A lethal server-owned strike must stop movement, combat and reconnect
+  // heals. The browser has no write access to this internal health record.
+  let deathNow = 0;
+  const deathStore = new TransactionalMemory();
+  const deathRoom = build({
+    storage: deathStore, spawnId: 'death-life',
+    clock: () => deathNow, random: () => 0
+  });
+  await deathRoom.join('a');
+  const committed = deathStore.data.get(deathRoom.stateKey);
+  committed.health.members[0][1].hp = 1;
+  await deathRoom.tick();
+  deathNow = 500;
+  assert.equal((await deathRoom.tick())[0].kind, 'warning');
+  deathNow = 1200;
+  const lethalStrike = await deathRoom.tick();
+  assert.equal(lethalStrike[0].kind, 'strike');
+  assert.equal(lethalStrike[0].hits[0].damage, 1);
+  assert.equal(lethalStrike[0].hits[0].defeated, true);
+  assert.equal((await deathRoom.snapshot('a')).me.hp, 0);
+  assert.equal((await deathRoom.move('a', { dx: 1, dy: 0 })).reason, 'cannot-move');
+  assert.equal((await deathRoom.attack('a')).reason, 'unauthorized');
+  assert.equal((await deathRoom.join('a2')).health.hp, 0,
+    'reconnecting cannot refill server-owned health');
+  assert.equal((await build({
+    storage: deathStore, spawnId: 'death-life', clock: () => deathNow
+  }).snapshot('a')).me.hp, 0, 'death survives restart');
+
   // Reject persisted disagreement between boss physical location, death
   // state and AI position; a corrupt save must never create a payout.
   const raw = clone(store.data.get(room.stateKey));
