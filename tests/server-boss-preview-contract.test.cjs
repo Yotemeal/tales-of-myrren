@@ -58,8 +58,17 @@ assert(previewWorker.includes('SUPABASE_PUBLISHABLE_KEY') &&
   previewWorker.includes('SUPABASE_PROJECT_URL'),
   'preview must require independently configured public Auth settings');
 assert(previewWorker.includes("await this.room.tick()") &&
-  previewWorker.includes('IDLE_MS'),
-  'only timed server-owned ticks, with idle timeout, may advance AI');
+  previewWorker.includes('IDLE_MS') &&
+  previewWorker.includes('body?.ok === true'),
+  'only successful authenticated commands may keep server-owned AI active');
+assert(previewWorker.includes('await this.reconcileAwards()') &&
+  previewWorker.includes('pending.length') &&
+  previewWorker.includes('60_000'),
+  'account receipts must be retried from durable room outbox without busy-looping');
+const accountAdapter=fs.readFileSync('src/server-global-account.mjs','utf8');
+assert(accountAdapter.includes('BossAccountRewardLedger') &&
+  accountAdapter.includes('settleRoomAward(pending)'),
+  'cross-room payouts require per-UUID ledger and its committed receipts');
 assert(!previewWorker.includes('player_saves') &&
   !previewWorker.includes('service_role'),
   'worker must not load user-editable stats or embed privileged keys');
