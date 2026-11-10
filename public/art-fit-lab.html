@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Tales of Myrren — armour fitting lab</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#151719;color:#f3e9d5}
+*{box-sizing:border-box}body{margin:0}
+main{max-width:1250px;margin:auto;padding:20px clamp(12px,3vw,30px) 40px}
+h1{font:600 clamp(25px,4vw,38px) Georgia,serif;margin:.3em 0}
+h2{font-size:18px;margin:0 0 8px}
+p{color:#c3bfae;line-height:1.5}
+.eyebrow{color:#dcbf7d;letter-spacing:.12em;font-size:11px;font-weight:700;text-transform:uppercase}
+.panel{border:1px solid #49483e;border-radius:12px;background:#202321;padding:16px;margin-top:16px}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+label{display:grid;gap:5px;font-size:12px;color:#d9d2bd}
+select,button{background:#343a34;color:#f7e8ce;border:1px solid #77745c;border-radius:8px;font:inherit;padding:9px}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible{outline:2px solid #e8c277;outline-offset:2px}
+.status{font-size:13px;min-height:22px;color:#f2d08a}
+.scroll{overflow-x:auto}
+canvas{display:block;image-rendering:pixelated;border-radius:6px;background:#28372e;max-width:none}
+#directional{width:896px;height:220px}
+#lineup{width:1050px;height:175px}
+#mixed{width:896px;height:220px}
+.reference{display:block;width:100%;height:auto;max-width:1160px;image-rendering:pixelated;object-fit:contain;background:#252328;border-radius:8px}
+.small{font-size:12px}
+a{color:#f5d598}
+.note{border-left:3px solid #96784b;padding-left:13px}
+@media(max-width:600px){main{padding:15px 12px 30px}.panel{padding:12px}}
+</style>
+</head>
+<body><main>
+<div class="eyebrow">Tales of Myrren · Art QA · Preview only</div>
+<h1>Armour fitting lab</h1>
+<p>Live Kez V2 game renderer against the approved seven-tier, front-only visual reference. This lab renders existing artwork unchanged. It does not modify saves, gear, resources, collision or gameplay.</p>
+<section class="panel">
+<div class="controls">
+<label>Selected metal
+<select id="metal">
+<option value="2">Bronze</option><option value="3">Iron</option><option value="4">Steel</option>
+<option value="5">Black Iron</option><option value="7">Obsidianite</option><option value="6" selected>Myrrenite</option><option value="8">Starsteel</option>
+</select></label>
+<label>Motion
+<select id="motion"><option value="idle">Idle</option><option value="walk">Walking</option></select>
+</label>
+<label>Canvas magnification
+<select id="zoom"><option value="3">3×</option><option value="4" selected>4×</option><option value="5">5×</option></select>
+</label>
+<button type="button" id="pause">Pause</button>
+<button type="button" id="step">Next pose</button>
+</div>
+<p id="status" class="status" role="status">Loading native Kez V2 sprite…</p>
+<h2>Selected metal · 4 actual facings</h2>
+<div class="scroll"><canvas id="directional" width="896" height="220" aria-label="Current equipment on front, back, left and right game character"></canvas></div>
+<p class="small">Source is 21×27 native pixels; canvas zoom only magnifies pixels for inspection, it does not change the character’s actual in-world scale.</p>
+</section>
+<section class="panel">
+<h2>All seven live metals · front view</h2>
+<div class="scroll"><canvas id="lineup" width="1050" height="175" aria-label="Current armour on all seven materials"></canvas></div>
+</section>
+<section class="panel">
+<h2>Independent slots · mixed-tier stress test</h2>
+<p>Bronze helmet, Steel chest, Iron legs, Starsteel boots, Myrrenite shield and Obsidianite gloves. These must align with both the base character and one another in every facing.</p>
+<div class="scroll"><canvas id="mixed" width="896" height="220" aria-label="Mixed armour materials on all directions"></canvas></div>
+</section>
+<section class="panel">
+<h2>Approved front-only reference — NOT an animation atlas</h2>
+<img class="reference" loading="lazy" src="/assets/kez-v2/smithing_armour_front_atlas.png" alt="Bronze, Iron, Steel, Black Iron, Obsidianite, Myrrenite and Starsteel approved full-body armour designs">
+<p class="small">The illustrated Myrrenite helmet in the sheet is superseded by the approved teal/gold T-visor close-up. The reference image is 176×276 pixels per figure; cropping or stretching it onto 21×27 movement frames is not acceptable.</p>
+</section>
+<p class="note">Next work: hand-author **real native-frame** Bronze and Myrrenite prototypes, compare their character proportions, then decide whether the tentative 32×48 art budget actually improves fit and readability before implementing seven sets. This inspection page is intentionally not a new in-game renderer.</p>
+<p class="small"><a href="/">Return to game</a> · <a href="https://github.com/Yotemeal/tales-of-myrren/blob/art/armour-scale-and-world-style-2026-11/docs/ART_REBUILD_BRIEF_2026-11.md">Art brief</a></p>
+</main>
+<script src="/kez-v2-atlas.js?v=1"></script>
+<script src="/kez-v2-equipment.js?v=1"></script>
+<script src="/art-fit-lab.js?v=1"></script>
+</body></html>
