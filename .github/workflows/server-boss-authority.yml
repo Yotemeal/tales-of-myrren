@@ -3,7 +3,9 @@ on:
   pull_request:
     paths:
       - 'src/boss-encounter.mjs'
+      - 'src/boss-room-coordinator.mjs'
       - 'tests/server-boss-encounter.test.cjs'
+      - 'tests/boss-room-coordinator.test.cjs'
       - 'tests/game-runtime.cjs'
       - 'public/myrren-game.js'
       - '.github/workflows/server-boss-authority.yml'
@@ -12,7 +14,9 @@ on:
       - 'feature/server-owned-boss-combat-2026-11'
     paths:
       - 'src/boss-encounter.mjs'
+      - 'src/boss-room-coordinator.mjs'
       - 'tests/server-boss-encounter.test.cjs'
+      - 'tests/boss-room-coordinator.test.cjs'
       - 'tests/game-runtime.cjs'
       - 'public/myrren-game.js'
       - '.github/workflows/server-boss-authority.yml'
@@ -27,7 +31,9 @@ jobs:
       - name: Syntax and authoritative boss combat parity
         run: |
           node --check src/boss-encounter.mjs
+          node --check src/boss-room-coordinator.mjs
           node --check tests/server-boss-encounter.test.cjs
           node tests/server-boss-encounter.test.cjs
+          node tests/boss-room-coordinator.test.cjs
       - name: Existing boss contribution regression
         run: node tests/boss-contribution-loot.test.cjs
