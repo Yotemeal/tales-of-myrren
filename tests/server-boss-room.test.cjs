@@ -231,8 +231,14 @@ class TransactionalMemory {
   assert.equal((await build({
     storage: leashStore, spawnId: 'leash-life', clock: () => leashNow
   }).snapshot('a')).boss.hp, 150, 'reset survives restart');
+  // Leash recovery resets boss credit/cooldown, but it does not teleport
+  // players back to the boss. Walk back into validated melee reach first.
+  for (let i = 0; i < 16; i++) {
+    leashNow += 100;
+    assert.equal((await leash.move('a', { dx: -1, dy: 0 })).ok, true);
+  }
   assert.equal((await leash.attack('a')).damage, 43,
-    'successful leash reset clears old player attack cooldown');
+    're-engaging at real server-confirmed range works after leash reset');
   assert.equal((await leash.snapshot('a')).boss.hp, 107);
 
   // Test fixture seeds a genuinely low-HP player in private committed state.
