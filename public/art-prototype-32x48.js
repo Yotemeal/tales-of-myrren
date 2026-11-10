@@ -77,9 +77,14 @@
     px(7,29+armLeft,4,10,B.skin);
     px(7,30+armLeft,1,5,B.lit);
     if(fighting){
-      // Dominant arm drives out from the shoulder, not from a fixed waist socket.
-      px(21,28,7,5,B.ink);px(22,29,6,3,B.skin);
-      px(27,27,4,5,B.ink);px(28,28,3,3,B.skin);
+      // Dominant arm drives toward the facing direction, not a fixed screen side.
+      if(o.dir==='left'||o.dir==='back'){
+        px(4,28,8,5,B.ink);px(5,29,7,3,B.skin);
+        px(1,27,5,5,B.ink);px(2,28,3,3,B.skin);
+      }else{
+        px(21,28,7,5,B.ink);px(22,29,6,3,B.skin);
+        px(27,27,5,5,B.ink);px(28,28,3,3,B.skin);
+      }
     } else {
       px(22,28+armRight,6,12,B.ink);
       px(23,29+armRight,4,10,B.skin);
@@ -98,7 +103,6 @@
       if(side){
         // Profile is not mirrored front art; it has a proper side fringe and ear.
         const left=o.dir==='left';
-        if(left){ctxFlipHint();} // This function is a deliberate no-op: positions are directional below.
         poly(left?[[9,12],[11,7],[15,6],[19,8],[23,12],[22,22],[17,27],[10,24],[8,19]]:
           [[10,12],[14,8],[19,7],[23,11],[25,18],[22,25],[15,27],[10,23]],B.ink);
         poly(left?[[10,13],[12,9],[17,8],[21,12],[21,21],[17,25],[11,23]]:
@@ -126,7 +130,6 @@
         px(ey,21,2,2,B.ink);px(ey,20,1,1,B.hairDark);
       }else{px(12,21,2,3,B.ink);px(20,21,2,3,B.ink);}
     }
-    function ctxFlipHint() {} // Reserved for future flipped-animation validation.
   }
   function legs(p,o) {
     const {px}=p,B=BODY,g=o.gear,m=o.motion==='walk',shift=m?[0,-2,0,2][o.frame]:0;
@@ -175,13 +178,21 @@
     if(!mat)return;
     px(6,36,6,5,mat.ink);px(7,37,4,3,mat.base);px(7,37,3,1,mat.light);
     if(fighting){
-      px(27,27,5,5,mat.ink);px(28,28,4,3,mat.base);px(28,28,3,1,mat.light);
+      if(o.dir==='left'||o.dir==='back'){
+        px(0,27,6,5,mat.ink);px(1,28,4,3,mat.base);px(2,28,3,1,mat.light);
+      }else{
+        px(27,27,5,5,mat.ink);px(28,28,4,3,mat.base);px(28,28,3,1,mat.light);
+      }
     }else{
       const off=o.motion==='walk'?[0,-1,0,1][o.frame]:0;
       px(22,36+off,6,5,mat.ink);px(23,37+off,4,3,mat.base);
       px(23,37+off,3,1,mat.light);
     }
-    if(g[5]===6){px(8,37,2,1,mat.accent);px(fighting?29:24,fighting?28:37,2,1,mat.accent);}
+    if(g[5]===6){
+      px(8,37,2,1,mat.accent);
+      if(fighting)px(o.dir==='left'||o.dir==='back'?2:29,28,2,1,mat.accent);
+      else px(24,37,2,1,mat.accent);
+    }
   }
   function helmet(p,o) {
     const {px,poly}=p,t=PALETTES[o.gear[0]];
@@ -253,18 +264,25 @@
     }
   }
   function sword(p,o) {
-    const {px}=p,t=PALETTES[o.gear[5]]||PALETTES[o.gear[1]]||PALETTES[2];
     if(o.motion!=='sword')return;
-    // Pixel staircase diagonal: source-native 1px; no baked-in white slash.
-    const x=o.dir==='left'?0:29,sign=o.dir==='left'?-1:1;
-    // Grip lies behind the dominant hand at y≈29, not beside it.
-    px(x,28,2,6,t.dark);px(x,30,3,2,t.ink);
-    for(let i=0;i<11;i++){
-      const xx=x+sign*Math.floor(i*.42),yy=27-i;
-      px(xx,yy,3,2,t.ink);
-      px(xx+1,yy,1,2,t.light);
+    const {px}=p,t=PALETTES[o.gear[5]]||PALETTES[o.gear[1]]||PALETTES[2];
+    const left=o.dir==='left'||o.dir==='back',sign=left?-1:1;
+    // Four distinct one-blade frames, with follow-through and no duplicate slash.
+    const tipByFrame=[[0,-15],[11,-12],[17,-2],[9,9]];
+    const [tipX,tipY]=tipByFrame[o.frame];
+    const hx=left?3:28,hy=28;
+    // Handle drawn beneath the glove; the hand visibly covers its grip.
+    px(hx,hy-2,3,5,t.dark);
+    px(hx-sign*2,hy-3,7,2,t.ink);
+    px(hx,hy-3,3,1,t.accent);
+    const ex=hx+sign*tipX,ey=hy+tipY;
+    const segments=Math.max(Math.abs(ex-hx),Math.abs(ey-(hy-4)));
+    for(let i=0;i<=segments;i++){
+      const frac=i/Math.max(1,segments),x=Math.round(hx+(ex-hx)*frac);
+      const y=Math.round(hy-4+(ey-(hy-4))*frac);
+      px(x-1,y,3,2,t.ink);px(x,y,1,2,t.light);
     }
-    px(x+sign*4,15,3,2,t.light);
+    px(ex,ey,1,1,'#fff4d8');
   }
   function draw(ctx,footX,footY,options={}) {
     if(!ctx||typeof ctx.fillRect!=='function')return false;
@@ -272,13 +290,14 @@
     ctx.save();
     ctx.imageSmoothingEnabled=false;
     shield(p,o,true);
+    if(o.dir==='back')sword(p,o); // Rear-facing blade is truly behind the body.
     base(p,o);
     legs(p,o);
     chest(p,o);
-    gloves(p,o);
+    if(o.dir!=='back')sword(p,o);
+    gloves(p,o); // Fingers cover the sword handle, not the reverse.
     helmet(p,o);
     shield(p,o,false);
-    sword(p,o);
     ctx.restore();
     return true;
   }
