@@ -17,15 +17,18 @@ const createGame=require('./game-runtime.cjs');
   };
   const successChance=(node,level,mat)=>
     Math.max(.05,Math.min(.92,node.base+(level-node.req)*.025+Math.max(0,mat-2)*.06));
-  const gatherInterval=(skill)=>skill==='fishing'?3.3:1.8;
+  const gatherInterval=(skill,tool)=>skill==='fishing'?3.3:skill==='mining'?g.miningInterval(tool):1.8;
   const resourceRate=(name,node,level)=>{
     const tool=toolAt(node.tool,level);
     assert(tool,'no usable '+node.tool+' at level '+level);
     const chance=successChance(node,level,tool.mat);
-    const actionSeconds=gatherInterval(node.skill);
+    const actionSeconds=gatherInterval(node.skill,tool);
     const cooldownSeconds=(node.rt[0]+node.rt[1])/2*node.dep;
     const actionLimited=3600*chance/actionSeconds;
-    const oneNode=3600/(actionSeconds/chance+cooldownSeconds);
+    // A mining vein supports several successful gathers before its one
+    // recharge, unlike the old one-success-per-rock cooldown model.
+    const capacity=node.skill==='mining'?node.vein:1;
+    const oneNode=3600*capacity/(capacity*actionSeconds/chance+cooldownSeconds);
     assert(oneNode<=actionLimited+1e-7,'cooldowns must not increase XP/hour');
     return {name,tool:tool.id,chance,actionLimited,oneNode,
       idealXpHour:actionLimited*node.xp,oneNodeXpHour:oneNode*node.xp};
