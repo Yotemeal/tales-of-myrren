@@ -1,6 +1,7 @@
 name: Mainline game integrity
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'public/**'
@@ -17,9 +18,16 @@ on:
       - 'wrangler.jsonc'
       - '.github/workflows/mainline-integrity.yml'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   core:
-    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -49,7 +57,8 @@ jobs:
           node tests/movement-speed.test.cjs
 
   mobile:
-    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -59,7 +68,7 @@ jobs:
       - name: Install mobile browser
         run: |
           npm install --no-save --no-package-lock playwright
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Validate live public entry in portrait and landscape
         run: node tests/mainline-mobile-hud.test.cjs
       - name: Keep mobile screenshot references

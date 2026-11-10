@@ -1,5 +1,6 @@
 name: Combat balance regression
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'public/myrren-game.js'
@@ -47,9 +48,16 @@ on:
       - 'tests/equipment-combat-progression.test.cjs'
       - 'tests/boss-contribution-loot.test.cjs'
       - '.github/workflows/combat-balance.yml'
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   combat-audit:
-    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
