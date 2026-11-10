@@ -21,9 +21,13 @@ assert.equal(preview.name,'tales-of-myrren-multiplayer-preview');
 assert.notEqual(preview.name,live.name,
   'preview must never deploy over the live game');
 assert.equal(preview.main,'src/multiplayer-preview-worker.mjs');
-assert.deepEqual(preview.durable_objects.bindings,
-  [{name:'BOSS_ROOMS',class_name:'MyrrenBossPreviewRoom'}]);
+assert.deepEqual(preview.durable_objects.bindings, [
+  {name:'BOSS_ROOMS',class_name:'MyrrenBossPreviewRoom'},
+  {name:'ACCOUNT_RECORDS',class_name:'MyrrenAccountPreview'}
+]);
 assert.deepEqual(preview.exports.MyrrenBossPreviewRoom,
+  {type:'durable-object',storage:'sqlite'});
+assert.deepEqual(preview.exports.MyrrenAccountPreview,
   {type:'durable-object',storage:'sqlite'});
 assert(!preview.assets,
   'preview may not inadvertently publish live player game assets');
@@ -41,6 +45,15 @@ assert(previewWorker.includes("new Request(internal, request)") &&
   'browser cannot send commands directly to DO internal endpoint');
 assert(previewWorker.includes("origin !== url.origin"),
   'cross-origin calls must be denied without CORS');
+assert(previewWorker.includes('ACCOUNT_RECORDS') &&
+  previewWorker.includes('account.settleRoomAward(award)') &&
+  previewWorker.includes('deliverBossOutbox'),
+  'private account RPC must settle only committed room award records');
+const accountSource=fs.readFileSync('src/server-account-preview-object.mjs','utf8');
+assert(accountSource.includes('ctx.id.name') &&
+  accountSource.includes('extends DurableObject') &&
+  !accountSource.includes('async fetch('),
+  'global account DO uses UUID-derived identity without a public HTTP route');
 assert(previewWorker.includes('SUPABASE_PUBLISHABLE_KEY') &&
   previewWorker.includes('SUPABASE_PROJECT_URL'),
   'preview must require independently configured public Auth settings');
@@ -53,4 +66,4 @@ assert(!previewWorker.includes('player_saves') &&
 assert(!JSON.stringify(preview).includes('sb_publishable_'),
   'no account settings or secrets embedded in preview Wrangler config');
 
-console.log('PASS: isolated SQLite-backed Cloudflare preview, production release unchanged, fixed arena route, auth settings and private server timer');
+console.log('PASS: isolated room/account SQLite preview, production release unchanged, authenticated route, idempotent private account RPC and server timer');
