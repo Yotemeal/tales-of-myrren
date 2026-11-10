@@ -3343,25 +3343,25 @@ input[type=range] {
 
 
 /* Smithing: compact workstation controls, no one-button-per-ingot grind. */
-#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-qty {
+#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .smith-qty {
   display:flex;
   flex-wrap:wrap;
   align-items:center;
   gap:5px;
   margin:7px 0;
 }
-#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-label {
+#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .smith-label {
   color:#eddcbb;
   font:17px/1 'VT323', monospace;
   padding-right:5px;
 }
-#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-qty .chip {
+#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .smith-qty .chip {
   min-width:38px;
   min-height:33px;
   padding:3px 9px;
   border-radius:7px;
 }
-#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-work {
+#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .smith-work {
   display:flex;
   flex-direction:column;
   align-items:stretch;
@@ -3372,64 +3372,64 @@ input[type=range] {
   border-radius:9px;
   background:rgba(37,32,29,.88);
 }
-#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-work-title {
+#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .smith-work-title {
   font:22px/1.05 'VT323',monospace;
   color:#ffe4a2;
 }
-#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-work .note {margin:0;font-size:15px;line-height:1.15}
-#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-primary {
+#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .smith-work .note {margin:0;font-size:15px;line-height:1.15}
+#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .smith-primary {
   min-height:42px;
   width:100%;
   border-radius:8px;
   font-size:19px;
 }
-#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-work-status {
+#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .smith-work-status {
   color:#f2d395;
   font:16px/1.1 'VT323',monospace;
 }
-#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-progress {
+#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .smith-progress {
   height:8px;
   border-radius:5px;
   border:1px solid #9c7849;
   background:#211b17;
   overflow:hidden;
 }
-#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-progress i {
+#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .smith-progress i {
   display:block;
   height:100%;
   width:0;
   background:linear-gradient(90deg,#bf8140,#ffd78f);
 }
-#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-recipe {
+#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .smith-recipe {
   gap:5px;
   margin:3px 0;
   border-radius:8px;
   overflow:hidden;
 }
-#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-recipe[aria-selected="true"] {
+#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .smith-recipe[aria-selected="true"] {
   outline:2px solid #e6c47f;
   outline-offset:-2px;
   background:rgba(142,102,60,.3);
 }
-#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-recipe .btn {
+#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .smith-recipe .btn {
   flex-shrink:0;
   min-height:36px;
   border-radius:7px;
 }
 @media(max-width:440px) {
-  #modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-work {padding:7px}
-  #modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-recipe .btn {min-width:64px;padding:3px 6px}
+  #modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .smith-work {padding:7px}
+  #modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .smith-recipe .btn {min-width:64px;padding:3px 6px}
 }
 
 /* Furnace is a standalone production station, not a shop. Hide all
    currency/shop footer elements and give recipe selection the freed space. */
 /* Furnace and anvil are workstations, never merchant panels. */
-#modal:is([data-screen="smelt"],[data-screen="forge"]) .window-footer { display:none; }
-#modal:is([data-screen="smelt"],[data-screen="forge"]) .win {
+#modal:is([data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .window-footer { display:none; }
+#modal:is([data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .win {
   grid-template-rows: 38px minmax(0,1fr);
 }
 @media(max-width:600px) {
-  #modal:is([data-screen="smelt"],[data-screen="forge"]) .win {
+  #modal:is([data-screen="smelt"],[data-screen="forge"],[data-screen="cook"]) .win {
     grid-template-rows: 34px minmax(0,1fr);
   }
 }
@@ -3443,3 +3443,8 @@ input[type=range] {
 #modal[data-screen="forge"] .chips .chip {
   min-height:31px;
 }
+
+/* The campfire is a production station, not a merchant or cooking shop. */
+#modal[data-screen="cook"] .smith-recipe small {line-height:1.2}
+#modal[data-screen="cook"] .smith-recipe .btn {min-width:63px}
+#modal[data-screen="cook"] .smith-work-title {color:#ffd99e}
