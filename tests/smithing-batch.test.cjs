@@ -66,10 +66,16 @@ const createGame=require('./game-runtime.cjs');
 
     // Forged batch items stay in the pack, not automatically put on the player.
     g.me.x=anvil.x;g.me.y=anvil.y;g.openSmithy('anvil');
-    assert.equal(g.getTab(),'shop','anvil retains its existing forging screen');
-    assert.equal(elements.get('modal').dataset.screen,'shop');
-    assert(g.curShop(),'anvil still accesses its existing blacksmith shop');
-    assert(elements.get('mBody').children.some(row=>row.className==='shophead'),'blacksmith shop banner remains available at the anvil');
+    assert.equal(g.getTab(),'forge','anvil must use a dedicated forging screen');
+    assert.equal(elements.get('modal').dataset.screen,'forge');
+    assert.equal(elements.get('mTitle').textContent,'Anvil · Forging');
+    assert.equal(g.curShop(),null,'anvil must not activate a merchant');
+    const anvilRows=elements.get('mBody').children;
+    assert(!anvilRows.some(row=>row.className==='shophead'),'no merchant banner or coin totals at the anvil');
+    assert(anvilRows.some(row=>row.className==='smith-work'),'anvil keeps the crafting progress and start controls');
+    assert(anvilRows.some(row=>row.className.includes('smith-recipe')),'anvil lists the item recipes');
+    assert(!anvilRows.some(row=>row.className==='shoprow'&&!row.className.includes('smith-recipe')),'anvil cannot present buy and sell rows');
+    assert(!g.SHOPS?.arms?.cats?.Forge,'forging must not be a shop category');
     g.setForgeMat(2);
     g.save.inv.ing_bronze=20;
     g.setSmithQuantity(2);
@@ -87,6 +93,15 @@ const createGame=require('./game-runtime.cjs');
     assert.equal(g.save.inv.ing_bronze,12,'each sword consumes four bars');
     assert.equal(g.save.eq.weapon,equipped,'batch crafting does not change player equipment');
     assert.equal(g.save.xp.forging-forgingBefore,2*g.FORGE.sword*g.SMELT[0].forgeXpPerBar,'forge batch preserves the balanced per-item XP');
+    // Merchant trade still works, but it is a different world station.
+    g.me.x=g.VILLAGE.stations.find(s=>s.kind==='trade').x;
+    g.me.y=g.VILLAGE.stations.find(s=>s.kind==='trade').y;
+    g.openSmithy('trade');
+    assert.equal(g.getTab(),'shop','trade rack still opens the blacksmith merchant');
+    assert(g.curShop(),'blacksmith merchant remains available');
+    assert(elements.get('mBody').children.some(row=>row.className==='shophead'),'merchant retains its coin header');
+    assert(!Object.hasOwn(g.curShop().cats,'Forge'),'the merchant no longer contains an anvil crafting category');
+    g.closeModal();
 
     // Moving away or exhausting supplies cannot continue consuming materials.
     g.me.x=furnace.x;g.me.y=furnace.y;g.openSmithy('furnace');
@@ -108,11 +123,12 @@ const createGame=require('./game-runtime.cjs');
     assert(fs.readFileSync('public/myrren-game.js','utf8').includes("forging:'Smithing'"),'UI calls it Smithing without changing save identifiers');
     const css=fs.readFileSync('public/myrren-ui.css','utf8');
     assert(css.includes('.smith-progress'),'progress bar is styled');
-    assert(css.includes('#modal[data-screen="smelt"] .window-footer { display:none; }'),'furnace hides shop currency and token footer');
-    assert(css.includes('#modal:is([data-screen="shop"],[data-screen="smelt"]) .smith-work'),'smelt-specific controls keep their styling');
+    assert(css.includes('#modal:is([data-screen="smelt"],[data-screen="forge"]) .window-footer { display:none; }'),'both workstations hide merchant currency and token footer');
+    assert(css.includes('#modal:is([data-screen="shop"],[data-screen="smelt"],[data-screen="forge"]) .smith-work'),'both workstations retain compact controls');
     const source=fs.readFileSync('public/myrren-game.js','utf8');
     assert(!source.includes('Smelt:[]'),'blacksmith merchant categories do not sell smelting');
-    assert(source.includes('smelt:rSmelt'),'furnace must render without executing rShop');
+    assert(source.includes('smelt:rSmelt,forge:rForge'),'both workstations must render without executing rShop');
+    assert(!source.includes('Forge:[]'),'forge is no longer a merchant category');
     console.log('PASS: furnace and anvil batches, one-at-a-time intervals, real XP and materials, All, duplicates, cancel, skill gates and saved progress.');
   }finally{Date.now=oldNow;Math.random=oldRandom}
 })().catch(e=>{console.error(e);process.exitCode=1});
