@@ -26,7 +26,7 @@
 | Forest chopping/regrowth and Fishing/Cooking feedback | #65 and #66 merged. | **Gameplay feedback done.** User-requested tree and fishing **art replacement** remains open. |
 | Rare ore south-west route and in-game full-set calculator | #68 and #69 merged. | **Done.** Preserve resource positions/counts unless a measured gameplay issue requires a change. |
 
-## Obsolete or superseded open PRs
+## Obsolete or superseded PRs (closed without merge)
 
 - **[#30](https://github.com/Yotemeal/tales-of-myrren/pull/30), directional idle:** old opt-in preview implementation is superseded by later merged Kez V2 idle PRs #34/#35/#39/#40; do not merge its older renderer diff.
 - **[#31](https://github.com/Yotemeal/tales-of-myrren/pull/31), Kez V3 art study:** documentation-only and its 32×48 out-of-repo concepts are not approved game art; superseded as an active direction by preserving Kez V2.
@@ -76,3 +76,10 @@ Closing a superseded PR is only housekeeping; GitHub branches/commits remain ava
 5. Selectively migrate #24 transparent creature/pet sprites, animations and content only once current renderer and authoritative combat interfaces are clear.
 
 **Release criterion:** a PR is not finished because a unit test passed; it must preserve saved progression, item IDs, current game systems and mobile gameplay quality.
+
+### Audit cleanup actually performed
+
+- **Closed** #30, #31, #33 and #75 as superseded, with explanatory PR comments; no branches or previous art/history deleted and nothing merged to production.
+- Set the still-unfinished Crater #24 back to **draft**; its creature/pet content remains available for selective integration.
+- Kept server-boss #72 **open as draft** and untouched. It is the current isolated multiplayer-authority workstream.
+- Created a separate Bronze transparent-PNG asset review with a source atlas, manifest, viewer and a 144-cell transparency/frame integrity test. The asset is still **visually unapproved**; only legs, boots and gloves show walk-frame variation, with no full hand-authored animated armour/chest/shield/attack release yet.
