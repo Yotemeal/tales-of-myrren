@@ -30,8 +30,8 @@ function draw(options) {
     fillRect(x,y,w,h) {
       assert([x,y,w,h].every(Number.isInteger),'source pixel coordinates must be integer');
       assert(w>0&&h>0,'empty pixel rectangle');
-      assert(x>=-8&&x<=46&&y>=0&&y<=49,
-        'unexpected native sprite offset ('+[x,y,w,h].join(',')+')');
+      assert(x>=-18&&x<=48&&y>=0&&y<=49,
+        'unexpected sprite/weapon-envelope offset ('+[x,y,w,h].join(',')+')');
       rects.push([x,y,w,h,fillStyle]);
       for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)
         pixels.set(xx+','+yy,fillStyle);
