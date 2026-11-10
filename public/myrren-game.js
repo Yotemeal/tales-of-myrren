@@ -196,16 +196,17 @@ const NT={
   maple:{name:'Maple tree',skill:'woodcutting',tool:'axe',req:30,xp:120,item:'maple',base:.2,dep:.7,rt:[18,27],verb:'cut'},
   elder:{name:'Elderwood tree',skill:'woodcutting',tool:'axe',req:60,xp:520,item:'elder',base:.15,dep:.75,rt:[22,34],verb:'cut'},
   myrren:{name:'Myrrenwood tree',skill:'woodcutting',tool:'axe',req:85,xp:1900,item:'myrren',base:.1,dep:.8,rt:[28,42],verb:'cut'},
-  // Common ores recharge sooner so early Smithing has a usable material loop.
-  // Higher-tier ore stays scarce; chances, ore per success and XP are unchanged.
-  copper:{name:'Copper rock',skill:'mining',tool:'pick',req:1,xp:18,item:'copper',base:.32,dep:1,rt:[6,10],verb:'mine'},
-  tin:{name:'Tin rock',skill:'mining',tool:'pick',req:1,xp:18,item:'tin',base:.32,dep:1,rt:[6,10],verb:'mine'},
-  iron:{name:'Iron rock',skill:'mining',tool:'pick',req:10,xp:45,item:'iron',base:.2,dep:1,rt:[9,14],verb:'mine'},
-  coal:{name:'Coal seam',skill:'mining',tool:'pick',req:20,xp:75,item:'coal',base:.2,dep:1,rt:[11,17],verb:'mine'},
-  cobalt:{name:'Black Iron rock',skill:'mining',tool:'pick',req:30,xp:190,item:'cobalt',base:.15,dep:1,rt:[16,24],verb:'mine'},
-  aether:{name:'Myrrenite rock',skill:'mining',tool:'pick',req:55,xp:650,item:'aether',base:.1,dep:1,rt:[22,33],verb:'mine'}
+  // Ore veins hold several successful gathers before depletion. Early Delving
+  // also has a gentler success chance so starter mining is not mostly misses.
+  // Every success still awards exactly one ore and the original XP amount.
+  copper:{name:'Copper rock',skill:'mining',tool:'pick',req:1,xp:18,item:'copper',base:.42,dep:1,vein:6,rt:[6,10],verb:'mine'},
+  tin:{name:'Tin rock',skill:'mining',tool:'pick',req:1,xp:18,item:'tin',base:.42,dep:1,vein:6,rt:[6,10],verb:'mine'},
+  iron:{name:'Iron rock',skill:'mining',tool:'pick',req:10,xp:45,item:'iron',base:.26,dep:1,vein:5,rt:[9,14],verb:'mine'},
+  coal:{name:'Coal seam',skill:'mining',tool:'pick',req:20,xp:75,item:'coal',base:.26,dep:1,vein:5,rt:[11,17],verb:'mine'},
+  cobalt:{name:'Black Iron rock',skill:'mining',tool:'pick',req:30,xp:190,item:'cobalt',base:.15,dep:1,vein:4,rt:[16,24],verb:'mine'},
+  aether:{name:'Myrrenite rock',skill:'mining',tool:'pick',req:55,xp:650,item:'aether',base:.1,dep:1,vein:3,rt:[22,33],verb:'mine'}
 };
-Object.assign(NT,{obsidianite:{name:'Obsidianite rock',skill:'mining',tool:'pick',req:40,xp:300,item:'obsidianite',base:.12,dep:1,rt:[19,29],verb:'mine',msg:'You swing your pickaxe at the rock.'},meteorite:{name:'Meteorite deposit',skill:'mining',tool:'pick',req:70,xp:900,item:'meteorite',base:.08,dep:1,rt:[28,42],verb:'mine',msg:'You swing your pickaxe at the meteorite.'}});
+Object.assign(NT,{obsidianite:{name:'Obsidianite rock',skill:'mining',tool:'pick',req:40,xp:300,item:'obsidianite',base:.12,dep:1,vein:3,rt:[19,29],verb:'mine',msg:'You swing your pickaxe at the rock.'},meteorite:{name:'Meteorite deposit',skill:'mining',tool:'pick',req:70,xp:900,item:'meteorite',base:.08,dep:1,vein:2,rt:[28,42],verb:'mine',msg:'You swing your pickaxe at the meteorite.'}});
 const TREEK=['tree','oak','maple','elder','myrren'];
 const TOOLNAME={axe:'a hatchet',pick:'a pickaxe',net:'a net',rod:'a fishing rod'};
 Object.assign(NT,{
@@ -2010,6 +2011,21 @@ function recordMiningHit(n,now,success){
   n.mineHitAt=now;
   n.mineSucceeded=!!success;
 }
+// Vein durability only decreases on a successful ore gather. Depletion
+// restarts the existing per-tier respawn timer; new veins refill on their
+// first successful gather after the cooldown. Node charges are world-local,
+// not player-save progress and never award extra XP/items themselves.
+function consumeOreVein(n,nt,now){
+  if(nt.skill!=='mining'||!Number.isInteger(nt.vein)||nt.vein<1) return false;
+  if(now<n.back) return false;
+  if(!Number.isInteger(n.oreLeft)||n.oreLeft<1||n.oreLeft>nt.vein)
+    n.oreLeft=nt.vein;
+  n.oreLeft--;
+  if(n.oreLeft>0)return false;
+  n.back=now+rint(nt.rt[0],nt.rt[1])*1000;
+  return true;
+}
+
 function miningDustColors(n){
   const ore=ORE_HIT_PALETTE[n.k]||ORE_HIT_PALETTE.iron;
   return n.mineSucceeded?[ore[0],ore[1],'#ffffff']:['#808b8c','#aab1a8'];
@@ -2359,7 +2375,16 @@ function doAction(dt,now){
         say(fishing?'You catch some '+ITEMS[nt.item].name.toLowerCase().replace('raw ','raw ')+'.':'You get some '+ITEMS[nt.item].name.toLowerCase()+'.');
         if(fishing){me.catchFx={t:now,item:nt.item};startSwing(now)}
         addXp(nt.skill,nt.xp);rollPet(nt.skill);persist();if(tab)renderModal();
-        if(Math.random()<nt.dep){n.back=now+rint(nt.rt[0],nt.rt[1])*1000;if(nt.skill==='woodcutting')n.fellAt=now;act=null}
+        if(nt.skill==='mining'){
+          if(consumeOreVein(n,nt,now)){
+            say('This ore vein is exhausted. It will replenish soon.','warn');
+            act=null;
+          }
+        }else if(Math.random()<nt.dep){
+          n.back=now+rint(nt.rt[0],nt.rt[1])*1000;
+          if(nt.skill==='woodcutting')n.fellAt=now;
+          act=null;
+        }
       }else if(fishing)say('The fish gets away.');
     }
   }else{
