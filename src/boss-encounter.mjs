@@ -115,6 +115,94 @@ export class ServerBossEncounter {
     });
   }
 
+  // Only the trusted Durable Object/store may read or restore these private
+  // fields. Never transmit them as a websocket/public API snapshot.
+  exportDurableState() {
+    return {
+      schema: 1, roomId: this.roomId, bossId: this.bossId,
+      spawnId: this.spawnId, type: this.type, x: this.x, y: this.y,
+      hp: this.hp, ledger: [...this.ledger], lastSwing: [...this.lastSwing],
+      rewardEvent: this.rewardEvent ?
+        JSON.parse(JSON.stringify(this.rewardEvent)) : null
+    };
+  }
+
+  static fromDurableState(state, { resolveVerifiedPlayer, clock, random }) {
+    if (!state || state.schema !== 1 || !Array.isArray(state.ledger) ||
+        !Array.isArray(state.lastSwing))
+      throw new TypeError('Invalid stored boss schema');
+    const boss = new ServerBossEncounter({
+      roomId: state.roomId, bossId: state.bossId, spawnId: state.spawnId,
+      type: state.type, x: state.x, y: state.y,
+      resolveVerifiedPlayer, clock, random
+    });
+    if (!Number.isInteger(state.hp) || state.hp < 0 ||
+        state.hp > boss.definition.hp) throw new RangeError('Invalid stored boss HP');
+    for (const item of state.ledger) {
+      if (!Array.isArray(item) || item.length !== 2 ||
+          !validId(item[0]) || !Number.isInteger(item[1]) ||
+          item[1] <= 0 || boss.ledger.has(item[0]))
+        throw new TypeError('Invalid or duplicate stored damage credit');
+      boss.ledger.set(item[0], item[1]);
+    }
+    const totalDamage = [...boss.ledger.values()].reduce((n, d) => n + d, 0);
+    if (totalDamage !== boss.definition.hp - state.hp)
+      throw new RangeError('Stored boss HP and effective credit disagree');
+    for (const item of state.lastSwing) {
+      if (!Array.isArray(item) || item.length !== 2 ||
+          !validId(item[0]) || !finite(item[1]) || item[1] < 0 ||
+          boss.lastSwing.has(item[0]))
+        throw new TypeError('Invalid or duplicate stored cooldown');
+      boss.lastSwing.set(item[0], item[1]);
+    }
+    boss.hp = state.hp;
+    if (boss.hp > 0) {
+      if (state.rewardEvent != null)
+        throw new TypeError('Living boss cannot have a payout');
+      return boss;
+    }
+    const event = state.rewardEvent;
+    if (!event || event.roomId !== boss.roomId ||
+        event.bossId !== boss.bossId || event.spawnId !== boss.spawnId ||
+        event.type !== boss.type || !Number.isInteger(event.coinPool) ||
+        event.coinPool < boss.definition.coins[0] ||
+        event.coinPool > boss.definition.coins[1] ||
+        !Array.isArray(event.rewards))
+      throw new TypeError('Defeated boss must have valid persisted payout');
+    const expected = allocateBossRewards(boss.definition,
+      [...boss.ledger].map(([id, damage]) => ({ id, damage })),
+      event.coinPool, () => .5);
+    if (event.rewards.length !== expected.length)
+      throw new RangeError('Stored reward count conflicts with verified credit');
+    const rewards = event.rewards.map((entry, i) => {
+      const actual = expected[i];
+      if (!entry || entry.accountId !== actual.id ||
+          entry.key !== JSON.stringify([
+            boss.roomId, boss.bossId, boss.spawnId, actual.id
+          ]) ||
+          entry.coins !== actual.coins ||
+          entry.combatXp !== Math.round(boss.definition.hp * boss.definition.xpm) ||
+          entry.damage !== actual.damage ||
+          entry.damageShare !== actual.share ||
+          entry.rareChance !== actual.dropChance ||
+          typeof entry.rare !== 'boolean' ||
+          !Array.isArray(entry.rareMaterials) ||
+          JSON.stringify(entry.rareMaterials) !== JSON.stringify(
+            entry.rare ? boss.definition.rareMaterials : []
+          ))
+        throw new RangeError('Stored reward does not match verified boss payout');
+      return Object.freeze({
+        ...entry, rareMaterials: Object.freeze([...entry.rareMaterials])
+      });
+    });
+    boss.rewardEvent = Object.freeze({
+      roomId: boss.roomId, bossId: boss.bossId, spawnId: boss.spawnId,
+      type: boss.type, coinPool: event.coinPool,
+      rewards: Object.freeze(rewards)
+    });
+    return boss;
+  }
+
   // A full leash/reset starts the same living spawn from full health;
   // never resurrect a defeated spawn or repeat its generated payouts.
   resetAfterLeash() {
