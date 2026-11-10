@@ -4,8 +4,10 @@ on:
     paths:
       - 'src/boss-encounter.mjs'
       - 'src/boss-room-coordinator.mjs'
+      - 'src/boss-account-ledger.mjs'
       - 'tests/server-boss-encounter.test.cjs'
       - 'tests/boss-room-coordinator.test.cjs'
+      - 'tests/boss-account-ledger.test.cjs'
       - 'tests/game-runtime.cjs'
       - 'public/myrren-game.js'
       - '.github/workflows/server-boss-authority.yml'
@@ -15,8 +17,10 @@ on:
     paths:
       - 'src/boss-encounter.mjs'
       - 'src/boss-room-coordinator.mjs'
+      - 'src/boss-account-ledger.mjs'
       - 'tests/server-boss-encounter.test.cjs'
       - 'tests/boss-room-coordinator.test.cjs'
+      - 'tests/boss-account-ledger.test.cjs'
       - 'tests/game-runtime.cjs'
       - 'public/myrren-game.js'
       - '.github/workflows/server-boss-authority.yml'
@@ -32,8 +36,10 @@ jobs:
         run: |
           node --check src/boss-encounter.mjs
           node --check src/boss-room-coordinator.mjs
+          node --check src/boss-account-ledger.mjs
           node --check tests/server-boss-encounter.test.cjs
           node tests/server-boss-encounter.test.cjs
           node tests/boss-room-coordinator.test.cjs
+          node tests/boss-account-ledger.test.cjs
       - name: Existing boss contribution regression
         run: node tests/boss-contribution-loot.test.cjs
