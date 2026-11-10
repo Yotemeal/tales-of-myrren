@@ -50,9 +50,12 @@ export class MyrrenBossPreviewRoom extends DurableObject {
 
   async fetch(request) {
     const result = await this.handleCommand(request);
-    if (result.ok) {
-      // Only successful, authenticated commands keep the room active. The
-      // alarm stops after 15 seconds of no authenticated requests to avoid
+    // HTTP 200 can also carry an application-level rejection such as
+    // "not-joined" or "out-of-range". Those must not keep billing an idle room.
+    const body = result.ok ? await result.clone().json().catch(() => null) : null;
+    if (body?.ok === true) {
+      // Only genuinely successful and authenticated gameplay commands keep
+      // the room active. Idle alarms stop after 15 seconds to avoid
       // continuously billing empty rooms.
       await this.ctx.storage.put('preview-last-active:v1', Date.now());
       if (await this.ctx.storage.getAlarm() === null)
