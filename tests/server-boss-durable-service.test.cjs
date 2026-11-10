@@ -146,6 +146,10 @@ class FakeDurableStorage {
     command:{type:'updates',afterSequence:0}
   });
   assert.deepEqual(observed.events.map(e=>e.kind),['warning']);
+  now=700;
+  assert.equal((await call('alice',{type:'move',dx:1,dy:0})).ok,true);
+  assert((await call('alice',{type:'snapshot'})).me.hp===12,
+    'Alice dodges from the server-owned warning origin');
 
   // Simulate a failed DB commit after the AI would resolve a strike. The
   // user must not receive phantom damage or replayable server notifications.
