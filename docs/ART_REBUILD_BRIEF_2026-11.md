@@ -68,3 +68,21 @@ Compare in the SAME screenshot: base character, Bronze/Myrrenite armour, ore, tr
 3. After art-scale approval, implement data-driven piece masks/frames and equipment depth sorting for all seven tiers. Then tackle trees, fishing and integrated world QA.
 
 **Do not deploy this branch's art placeholders as replacement production sprites.**
+
+## Working prototype delivered on this branch (2026-11-11)
+
+An independent, *unapproved* 32×48 native-pixel demonstration now exists.
+
+- `public/art-prototype-32x48.js`: original source-grid pixel painting, with separate helmet, body, gloves, legs, boots, shield and sword layers. Two trial materials, Bronze (2) and Myrrenite (6), including mixed-tier composition, four actual facings, four walk-frame phases and distinct sword-strike poses. The character is an **experimental Kez-like redraw**, not an approved copy of the Kez V2 atlas.
+- `public/art-prototype-preview.html` and `art-prototype-preview.js`: a self-contained visual review of front/left/right/back idle, walking, fists and sword; 16-pixel world tile comparison with the current 21×27 sprite; no writes to saves.
+- `docs/art-review/bronze-myrrenite-directions.png`: programmatic contact sheet rendered from the prototype JS. Rows: Bronze, Myrrenite. Columns: front, left, right, back (idle).
+- `docs/art-review/bronze-myrrenite-motion.png`: programmatic contact sheet rendered from the prototype JS. Rows: Bronze, Myrrenite. Columns: front idle, front walk, front fist, front sword impact.
+- `tests/art-prototype-32x48.test.cjs`: checked 128 tier/direction/motion/frame combinations; integer source pixels; source-image isolation; authentic Myrrenite front T-visor vs back plate; no modification of six-slot input; four distinct sword poses. New test and JS syntax checks are connected to `.github/workflows/kez-v2-regressions.yml`.
+
+**Scope is strictly research/art QA.** This prototype does not load in the production `public/index.html`. The live 21×27 Kez V2 character, seven real armour tiers, existing functional paperdoll test pipeline, saves, multiplayer and combat remain intact. 32×48 may prove too large relative to 16-pixel tiles; don't promote it without phone-size review.
+
+**Known limitations:** Front and side motion silhouettes are authored but need a professional art pass against the user's supplied base character; high-level gear detail needs better per-material artistic rendering. Directional sprite walking, shields, sword attacks, death, dyes and remote players still require integrated production tests if this art scale is selected. Only the pixel logic was exercised in a V8 harness; at this point CI browser/device approval is still pending.
+
+## Next Work execution
+
+Compare the existing experimental 21×27 export from `scripts/build-kez-v2-paperdoll.py` against the new 32×48 hand-authored proof. **Neither is automatically approved.** Prefer the smaller solution if it offers comparable readability at actual game zoom; never independently upscale source parts. If the prototype passes the scale/style checkpoint, replace the placeholder anatomy with authored full four-direction frame assets, then implement the independent equipment atlas while keeping the old renderer behind a preview feature flag until QA passes.
