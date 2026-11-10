@@ -2,10 +2,11 @@
 // Mining must give clear visual feedback without changing ore economy or XP.
 // Run: node tests/mining-feedback-respawn.test.cjs
 const assert=require('node:assert/strict');
+const fs=require('node:fs');
 const createGame=require('./game-runtime.cjs');
 
 (async()=>{
- const {game:g,rectCount}=await createGame();
+ const {game:g,rectCount,renderedText}=await createGame();
  const previous={
    copper:[8,14],tin:[8,14],iron:[12,20],coal:[14,22],
    cobalt:[18,28],obsidianite:[22,32],aether:[24,36],meteorite:[30,45]
@@ -55,9 +56,20 @@ const createGame=require('./game-runtime.cjs');
    assert.equal(g.save.xp.mining,xp0+g.NT.copper.xp,'award the original mining XP');
    assert.equal(copper.back,9000,'lowest copper respawn equals six seconds');
    assert.equal(g.getAct(),null,'depleted rock stops ongoing mining');
-   assert.equal(g.miningNodeCaption(copper,3000),'Depleted · 6s');
-   assert.equal(g.miningNodeCaption(copper,8500),'Depleted · 1s');
-   assert.equal(g.miningNodeCaption(copper,9000),'Copper rock (Lv 1)');
+   // Tap-to-inspect remains exactly name + level, even during depletion.
+   const inspect=(node,now,expected)=>{
+     node.tipAt=now-100;
+     const before=renderedText.length;
+     g.nodeTip(node,45,55,now);
+     assert.equal(renderedText.length-before,5,'one outlined tooltip is drawn');
+     assert.deepEqual(renderedText.slice(-5),Array(5).fill(expected),'the tooltip only shows name and level');
+     assert.equal(g.getAct(),null,'inspect never starts gathering');
+   };
+   inspect(copper,3000,'Copper rock (Lv 1)');
+   inspect(copper,8500,'Copper rock (Lv 1)');
+   inspect(copper,9000,'Copper rock (Lv 1)');
+   inspect({k:'tree',back:99999},4000,'Tree (Lv 1)');
+   inspect({k:'spot1',back:99999},4000,'Shallow fishing spot (Lv 1)');
    assert(!JSON.stringify(g.snap()).includes('mineHitAt'),'short-lived mining effects must not enter saves');
    assert(!JSON.stringify(g.snap()).includes('mineSucceeded'),'visual success state must not enter saves');
 
@@ -71,13 +83,14 @@ const createGame=require('./game-runtime.cjs');
    assert(rectCount()>on,'a short glint marks the rock returning');
    assert.deepEqual([copper.x,copper.y,copper.back,g.save.xp.mining,g.save.inv.copper],origin,
      'rendering cannot mutate ore, time, XP or position');
-   const dormant=g.miningNodeCaption({k:'iron',back:9000},9500);
-   assert.equal(dormant,'Iron rock (Lv 10)');
+     inspect({k:'iron',back:9000},9500,'Iron rock (Lv 10)');
  }finally{Math.random=originalRandom}
 
  // Other skill nodes retain their existing respawn timers and labels.
  assert.deepEqual(Array.from(g.NT.tree.rt),[12,20]);
  assert.deepEqual(Array.from(g.NT.spot1.rt),[8,14]);
- assert.equal(g.miningNodeCaption({k:'tree',back:99999},1000),'Tree (Lv 1)');
- console.log('PASS: mining cooldown tuning, exact ore and XP, success/miss response, depleted timer, respawn glint, visual expiry and save compatibility.');
+ const source=fs.readFileSync('public/myrren-game.js','utf8');
+ assert(source.includes('if(best){best.tipAt=now;return}'),'canvas tapping resources must inspect only');
+ assert(!source.includes('tapMineRock'),'tapping never initiates mining');
+ console.log('PASS: mining cooldowns, exact XP/ore, strike pixels, respawn glint, inspect-only taps for all resources and save compatibility.');
 })().catch(e=>{console.error(e);process.exitCode=1});
