@@ -35,6 +35,16 @@ const serve=http.createServer((req,res)=>{
         }));
       });
       await page.goto('http://127.0.0.1:'+serve.address().port,{waitUntil:'domcontentloaded'});
+      // Validate the actual script fetched by Chromium, not just checked-in
+      // source: stale game assets previously left mining at one ore per rock.
+      const build=await page.evaluate(()=>({
+        runtime:window.MyrrenBuild,
+        script:document.querySelector('script[src^="/myrren-game.js"]')
+          ?.getAttribute('src')
+      }));
+      assert.equal(String(build.runtime),
+        new URL(build.script,'http://localhost').searchParams.get('v'),
+        'loaded runtime must match HTML cache-busting version on '+name);
       await page.waitForFunction(()=>!document.querySelector('#go').disabled,{timeout:15000});
       if(name==='portrait')assert.equal(await page.locator('#nick').inputValue(),'Myrren Save QA',
         'existing local player progress must restore before entering the game');
