@@ -17,7 +17,11 @@ const model={v:3,ts:100,name:'Kez',xp:{melee:10000000,mining:10000000,woodcuttin
  t.save.inv.copper=1;t.smelt(t.SMELT[0]);assert.equal(t.save.inv.ing_bronze,1,'last consumed ingredient frees a slot');assert.equal(t.slotsUsed(),36);
  // Cooking can replace the last raw fish, but cannot open a 37th stack.
  t.applySave({...model,inv:{coins:98765,rshrimp:2},bag:Array(35).fill('iron_pick')});
- t.beginAct('cook',{});t.getAct().started=true;t.cookTick(2,1000);assert.equal(t.save.inv.rshrimp,2,'full-bag cooking keeps raw fish');assert.equal(t.getAct(),null);
+ t.me.x=t.CX+176;t.me.y=t.CY-90;
+ assert.equal(t.openCooking('fire'),true,'the fire opens the new cooking station');
+ assert.equal(t.startCooking('rshrimp'),false,'full-bag cooking cannot start');
+ assert.equal(t.save.inv.rshrimp,2,'full-bag cooking keeps raw fish');
+ assert.equal(t.getCookJob(),null,'failed cooking must not start a background job');
  assert(t.canFitInventory({rshrimp:-1,shrimp:1})===false);t.save.inv.rshrimp=1;assert(t.canFitInventory({rshrimp:-1,shrimp:1}));
  // Gathering must stop before spending a tool use or adding an extra stack.
  t.applySave({...model,inv:{coins:98765},bag:Array(36).fill('iron_pick')});
