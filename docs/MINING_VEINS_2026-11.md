@@ -48,6 +48,12 @@ Mining tool upgrades now have a meaningful speed benefit, on top of their existi
 
 ## Testing
 
+The source branch is evaluated with Node runtime mining, save compatibility,
+world generation, progression balance, canonical delivery and mobile/browser
+regressions before a release. Success counts and tool speeds are deliberately
+Myrren-specific; the CoA guide is a reference for feel rather than mechanics.
+
+
 - `tests/mining-feedback-respawn.test.cjs`: complete six-success copper vein, failure preservation, item/XP parity, real faster pickaxe, cooldown/reset, tooltips and visuals.
 - `tests/skilling-loop-audit.test.cjs`: vein-aware single-node supply model and faster tool actions.
 - `tests/xp-progression-balance.test.cjs`: upgraded pickaxe intervals in cross-skill fairness benchmark.
