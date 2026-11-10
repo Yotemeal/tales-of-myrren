@@ -72,8 +72,8 @@ function walkingDistances(world,origin){
   assert.equal(g.nodes.filter(n=>n.k==='coal').length,16,'coal supply unchanged');
   assert.deepEqual(
     [g.NT.meteorite.req,g.NT.meteorite.xp,g.NT.meteorite.base,
-      g.NT.meteorite.dep,Array.from(g.NT.meteorite.rt)],
-    [70,900,.08,1,[28,42]],'meteorite access, XP, rarity and depletion unchanged');
+      g.NT.meteorite.dep,g.NT.meteorite.vein,Array.from(g.NT.meteorite.rt)],
+    [70,900,.08,1,2,[28,42]],'meteorite rarity stays low while deposits contain two ore');
 
   const west=rare.filter(n=>n.x<800),east=rare.filter(n=>n.x>800);
   assert.equal(west.length,1,'exactly one existing meteorite now serves the western route');
