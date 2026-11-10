@@ -1512,6 +1512,84 @@ function rSmelt(){
     b.addEventListener('click',()=>{smithSelected.smelt=r.id;renderModal()});row.append(b);mBody.append(row);
   }
 }
+// Full-set planning is informational. The actual smelting/forging actions,
+// XP and material deductions still use the existing one-recipe queue.
+const ARMOUR_SET_KINDS=['helm','body','gloves','legs','boots','shield'];
+let forgePlanWithSword=false,forgePlanExpanded=false;
+function equipmentSetPlan(mat,includeSword=false){
+  const recipe=SMELT.find(r=>r.mat===mat),material=MATS[mat];
+  if(!recipe||!material)return null;
+  const kinds=includeSword?[...ARMOUR_SET_KINDS,'sword']:ARMOUR_SET_KINDS;
+  const pieces=kinds.map(kind=>{
+    const id=material.k+'_'+kind,def=DEFS[id];
+    if(!def||!FORGE[kind])return null;
+    const owned=save.eq[def.slot]===id||save.bag.includes(id)||(save.bank[id]||0)>0;
+    return {kind,id,owned,bars:FORGE[kind],level:forgeReq(recipe,kind)};
+  });
+  if(pieces.some(p=>!p))return null;
+  const missing=pieces.filter(p=>!p.owned);
+  const totalBars=pieces.reduce((sum,p)=>sum+p.bars,0);
+  const barsNeeded=missing.reduce((sum,p)=>sum+p.bars,0);
+  const barKey='ing_'+recipe.id;
+  const heldBars=save.inv[barKey]||0,bankBars=save.bank[barKey]||0;
+  const barsToSmelt=Math.max(0,barsNeeded-heldBars-bankBars);
+  const ores=Object.entries(recipe.in).map(([id,perBar])=>{
+    const needed=barsToSmelt*perBar;
+    const carried=save.inv[id]||0,banked=save.bank[id]||0,noted=save.notes[id]||0;
+    return {id,perBar,needed,available:carried+banked+noted,
+      missing:Math.max(0,needed-carried-banked-noted)};
+  });
+  return {recipe,material,pieces,missing,totalBars,barsNeeded,heldBars,bankBars,
+    barsToSmelt,ores,levelRequired:Math.max(...pieces.map(p=>p.level)),
+    remainingLevel:missing.length?Math.max(...missing.map(p=>p.level)):0,
+    totalSmeltXp:totalBars*recipe.xp,
+    totalForgeXp:totalBars*recipe.forgeXpPerBar};
+}
+function rForgeSetPlan(){
+  const plan=equipmentSetPlan(forgeMat,forgePlanWithSword);
+  if(!plan)return;
+  const panel=el('details','forge-set-plan');
+  panel.open=forgePlanExpanded;
+  const title=el('summary','forge-set-summary',
+    'Set materials · '+(plan.pieces.length-plan.missing.length)+'/'+plan.pieces.length+
+    ' owned · '+plan.barsNeeded+' ingots needed');
+  panel.append(title);
+  const content=el('div','forge-set-content');
+  const toggles=el('div','chips');
+  for(const [withSword,name] of [[false,'Armour + shield'],[true,'Add sword']]){
+    const btn=el('button','chip',name);btn.type='button';
+    btn.setAttribute('aria-pressed',String(forgePlanWithSword===withSword));
+    btn.addEventListener('click',()=>{forgePlanWithSword=withSword;forgePlanExpanded=true;renderModal()});
+    toggles.append(btn);
+  }
+  content.append(toggles);
+  content.append(el('p','note',
+    'Complete set: '+plan.totalBars+' ingots · Smithing '+plan.levelRequired+
+    ' to forge every piece · '+plan.totalSmeltXp.toLocaleString()+' smelting XP + '+
+    plan.totalForgeXp.toLocaleString()+' forging XP if crafted from scratch.'));
+  if(!plan.missing.length){
+    content.append(el('p','note','You already own this entire set across your equipment, backpack and bank.'));
+  }else{
+    for(const p of plan.pieces){
+      content.append(el('div','forge-set-line',
+        '<span>'+DEFS[p.id].name+'</span><strong class="'+(p.owned?'forge-set-owned':'')+'">'+
+        (p.owned?'Owned':p.bars+' bars · Lv '+p.level)+'</strong>'));
+    }
+    content.append(el('p','note',
+      'Still needed: '+plan.barsNeeded+' ingots for missing pieces · '+
+      (plan.heldBars+plan.bankBars)+' ingots carried/banked · '+
+      plan.barsToSmelt+' more to smelt.'));
+    for(const ore of plan.ores){
+      content.append(el('div','forge-set-line',
+        '<span>'+ITEMS[ore.id].name+'</span><strong>'+
+        ore.missing+' to gather · '+ore.available+' held/stored</strong>'));
+    }
+  }
+  content.append(el('p','note','Banked or noted supplies must be withdrawn before crafting. Each finished piece uses a backpack slot.'));
+  panel.append(content);
+  panel.addEventListener('toggle',()=>{forgePlanExpanded=!!panel.open});
+  mBody.append(panel);
+}
 function rForge(){
   const chips=el('div','chips');
   SMELT.forEach(r=>{const b=el('button','chip',MATS[r.mat].n);b.type='button';b.disabled=!!smithJob;
@@ -1522,6 +1600,7 @@ function rForge(){
   const r=SMELT.find(x=>x.mat===forgeMat),key='ing_'+r.id,lv=lvlFor(save.xp.forging);
   mBody.append(el('p','note','Anvil · '+(save.inv[key]||0)+' '+ITEMS[key].name+' available. Forged gear goes into your pack during batch crafting.'));
   smithingPanel('forge');
+  rForgeSetPlan();
   Object.keys(FORGE).forEach(kind=>{
     const id=MATS[forgeMat].k+'_'+kind,d=DEFS[id];if(!d)return;
     const cost=FORGE[kind],row=el('div','shoprow smith-recipe'),selected=smithSelected.forge===kind;
