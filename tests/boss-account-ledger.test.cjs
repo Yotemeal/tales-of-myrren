@@ -174,5 +174,61 @@ class Storage {
   assert.equal((await stuck.snapshot()).combatXp, 0);
   assert.equal(overflowFull.items.size, 1, 'full claim store must not create receipt');
 
+  // End-to-end (still server-only) reconciliation: account credit can commit
+  // even when room acknowledgement crashes. Retrying must NOT pay twice.
+  const { deliverBossOutbox } = await import('../src/boss-reward-delivery.mjs');
+  const retryRoomStore = new Storage();
+  now = 8000;
+  const retryRoom = new BossRoomCoordinator({
+    storage: retryRoomStore, roomId: 'area', bossId: 'bear',
+    spawnId: 'delivery-retry', type: 'cave', x: 10, y: 10,
+    resolveVerifiedPlayer: session => people.get(session),
+    clock: () => now, random: () => .9
+  });
+  await retryRoom.attack('p1'); await retryRoom.attack('p2');
+  now += 900;
+  await retryRoom.attack('p1'); await retryRoom.attack('p2');
+  const creditStore = new Storage();
+  const creditLedgers = new Map(
+    ['leader','support'].map(accountId => [
+      accountId, new BossAccountRewardLedger({
+        storage: creditStore, accountId, random: () => 0
+      })
+    ])
+  );
+  const normalAck = retryRoom.acknowledgeAward.bind(retryRoom);
+  let failAck = true;
+  retryRoom.acknowledgeAward = async (key, receipt) => {
+    if (failAck) { failAck = false; throw Error('simulated receipt ack crash'); }
+    return normalAck(key, receipt);
+  };
+  const creditResolver = id => creditLedgers.get(id);
+  const delivery1 = await deliverBossOutbox({
+    room: retryRoom, getAccountLedger: creditResolver
+  });
+  assert.equal(delivery1.filter(r => r.status === 'failed').length, 1);
+  assert.equal(delivery1.filter(r => r.status === 'delivered').length, 1);
+  const paidCoins = (await creditLedgers.get('leader').snapshot()).coins +
+    (await creditLedgers.get('support').snapshot()).coins;
+  assert.equal(paidCoins, 66,
+    'both account credits commit despite a missing first room acknowledgement');
+  assert.equal((await retryRoom.pendingAwards()).length, 1);
+  const delivery2 = await deliverBossOutbox({
+    room: retryRoom, getAccountLedger: creditResolver
+  });
+  assert.equal(delivery2.length, 1);
+  assert.equal(delivery2[0].status, 'delivered');
+  assert.equal(delivery2[0].applied, false,
+    'missing receipt retries the already-applied account credit idempotently');
+  assert.equal((await creditLedgers.get('leader').snapshot()).coins +
+    (await creditLedgers.get('support').snapshot()).coins, paidCoins);
+  assert.deepEqual(await retryRoom.pendingAwards(), []);
+  assert.deepEqual(await deliverBossOutbox({
+    room: retryRoom, getAccountLedger: creditResolver
+  }), [], 'empty queue cannot pay anything twice');
+  await assert.rejects(() => deliverBossOutbox({
+    room: retryRoom, getAccountLedger: null
+  }), /Authenticated private/);
+
   console.log('PASS: account award idempotency, failure rollback, coin conservation, XP, duplicate rare gear, full-pack storage, real item IDs and acknowledgement receipts');
 })().catch(e => { console.error(e); process.exitCode = 1; });
