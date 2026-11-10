@@ -51,7 +51,7 @@ export function createBossCommandGateway({ authenticator, createTrustedRoom }) {
       // sessionKey must be valid only for the verified accountId. The
       // room's character resolver MUST load server-managed stats, NEVER
       // Supabase player_saves.save_data (which clients can edit).
-      const context = await createTrustedRoom(authorized.accountId);
+      const context = await createTrustedRoom(authorized.accountId, command.type);
       if (!context || typeof context.sessionKey !== 'string' ||
           !context.sessionKey || typeof context.room !== 'object')
         throw Error('Trusted room unavailable');
