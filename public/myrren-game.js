@@ -629,7 +629,7 @@ document.querySelectorAll('#hudR [data-i]').forEach(e=>{
 let tab='',sel=null,shopCat='weapons',lastTab='gear';
 let outdoorShop=null;
 const curShop=()=>inside?SHOPS[inside.id]:outdoorShop&&Math.hypot(me.x-outdoorShop.x,me.y-outdoorShop.y)<110?SHOPS[outdoorShop.id]:null;
-function onGearChange(){blocked.clear();try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur()}catch(e){}refreshHeld();persist();renderModal();uiHud();refreshActionButtons();sendPresence()}
+function onGearChange(){if(act?.kind==='node')act=null;blocked.clear();try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur()}catch(e){}refreshHeld();persist();renderModal();uiHud();refreshActionButtons();sendPresence()}
 function equipFromBag(idx){
   const id=save.bag[idx],d=DEFS[id];if(!d)return;
   if(!usable(d)){say('You need '+NAMES[d.skill]+' '+d.req+' to use that.','warn');return}
