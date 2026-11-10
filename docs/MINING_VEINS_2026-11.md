@@ -58,3 +58,5 @@ Myrren-specific; the CoA guide is a reference for feel rather than mechanics.
 - `tests/skilling-loop-audit.test.cjs`: vein-aware single-node supply model and faster tool actions.
 - `tests/xp-progression-balance.test.cjs`: upgraded pickaxe intervals in cross-skill fairness benchmark.
 - `tests/rare-resource-routes.test.cjs`: verifies rare meteorite placement and controlled two-yield supply.
+
+Release gate: the self-hosted Linux runner must pass the full Combat balance, Mainline integrity, Kez V2 renderer and Forging regression workflows at the final commit SHA before merging the mining branch.
