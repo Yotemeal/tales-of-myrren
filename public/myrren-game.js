@@ -548,6 +548,10 @@ const usable=d=>lvlFor(save.xp[d.skill])>=d.req;
 const activeDef=slot=>{const d=eqDef(slot);return d&&usable(d)?d:null};
 const sellVal=id=>Math.floor(DEFS[id].price*.25);
 function toolFor(kind){const w=activeDef('weapon');return w&&(w.kind===kind||(kind==='net'&&w.kind==='rod'))?w:null}
+// Mining upgrades are earned through the existing pickaxe equipment tiers.
+// Keep the original 1.8s Bronze pace while rewarding every better pickaxe.
+const PICK_INTERVAL=Object.freeze({2:1.8,3:1.65,4:1.5,5:1.35,6:1.2});
+const miningInterval=pick=>PICK_INTERVAL[pick?.mat]??1.8;
 const atkBonus=()=>SLOTS.reduce((s,k)=>{const d=activeDef(k);return s+(d?d.atk:0)},0);
 const defRed=()=>{const D=defTotal();return Math.min(.45,.5*D/(D+70))};
 const defTotal=()=>SLOTS.reduce((s,k)=>{const d=activeDef(k);return s+(d?d.def:0)},0);
@@ -2336,7 +2340,7 @@ function doAction(dt,now){
     if(now<n.back||!nodeOK(n)){act=null;return}
     const slot=toolFor(nt.tool)?toolFor(nt.tool).kind:nt.tool;
     if(!a.checked){
-      a.checked=true;a.slot=slot;a.iv=fishing?2.4:(nt.skill==='woodcutting'&&save.perks.secateurs?1.44:1.8);if(fishing)a.t=-.2;
+      a.checked=true;a.slot=slot;a.iv=fishing?2.4:nt.skill==='mining'?miningInterval(toolFor(nt.tool)):(nt.skill==='woodcutting'&&save.perks.secateurs?1.44:1.8);if(fishing)a.t=-.2;
       if(L<nt.req){say('You need '+NAMES[nt.skill]+' level '+nt.req+' for this.','warn');blocked.add(n);act=null;return}
       const d0=toolFor(nt.tool);
       if(!d0){
