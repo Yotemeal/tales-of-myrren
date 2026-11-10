@@ -8,10 +8,12 @@ on:
       - 'src/boss-account-ledger.mjs'
       - 'src/boss-reward-delivery.mjs'
       - 'src/server-player-positions.mjs'
+      - 'src/server-boss-behavior.mjs'
       - 'tests/server-boss-encounter.test.cjs'
       - 'tests/boss-room-coordinator.test.cjs'
       - 'tests/boss-account-ledger.test.cjs'
       - 'tests/server-player-positions.test.cjs'
+      - 'tests/server-boss-behavior.test.cjs'
       - 'tests/game-runtime.cjs'
       - 'public/myrren-game.js'
       - '.github/workflows/server-boss-authority.yml'
@@ -37,11 +39,14 @@ jobs:
           node --check src/boss-account-ledger.mjs
           node --check src/boss-reward-delivery.mjs
           node --check src/server-player-positions.mjs
+          node --check src/server-boss-behavior.mjs
           node --check tests/server-player-positions.test.cjs
+          node --check tests/server-boss-behavior.test.cjs
           node --check tests/server-boss-encounter.test.cjs
           node tests/server-boss-encounter.test.cjs
           node tests/boss-room-coordinator.test.cjs
           node tests/boss-account-ledger.test.cjs
           node tests/server-player-positions.test.cjs
+          node tests/server-boss-behavior.test.cjs
       - name: Existing boss contribution regression
         run: node tests/boss-contribution-loot.test.cjs
