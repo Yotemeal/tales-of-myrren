@@ -6,6 +6,7 @@ import { ServerBossEncounter, BOSS_TYPES } from './boss-encounter.mjs';
 import { ServerBossBehavior } from './server-boss-behavior.mjs';
 import { ServerPlayerPositions } from './server-player-positions.mjs';
 import { ServerPlayerHealth } from './server-player-health.mjs';
+import { ServerRoomEventFeed } from './server-room-events.mjs';
 
 const validId = id => typeof id === 'string' && id.length > 0 &&
   id.length <= 96 && id.trim() === id;
@@ -41,9 +42,10 @@ export class ServerBossRoom {
 
   async load(tx) {
     const data = await tx.get(this.stateKey);
-    if (data && (data.schema !== 1 ||
+    if (data && (data.schema !== 2 ||
         !equal(data.config, this.config) ||
-        !data.positions || !data.health || !data.behavior || !data.encounter))
+        !data.positions || !data.health || !data.behavior ||
+        !data.encounter || !data.events))
       throw new TypeError('Incompatible durable boss room state');
     const { roomId, bossId, spawnId, type, x, y } = this.config;
     let positions;
@@ -101,15 +103,19 @@ export class ServerBossRoom {
     if (encounter.x !== behavior.x || encounter.y !== behavior.y ||
         (encounter.hp === 0) !== behavior.dead)
       throw new Error('Boss movement, HP and death state disagree');
-    return { health, positions, behavior, encounter };
+    const events = data ?
+      ServerRoomEventFeed.fromDurableState(data.events, roomId) :
+      new ServerRoomEventFeed(roomId);
+    return { health, positions, behavior, encounter, events };
   }
 
-  durableState({ health, positions, behavior, encounter }) {
-    return { schema: 1, config: copy(this.config),
+  durableState({ health, positions, behavior, encounter, events }) {
+    return { schema: 2, config: copy(this.config),
       health: health.exportDurableState(),
       positions: positions.exportDurableState(),
       behavior: behavior.exportDurableState(),
-      encounter: encounter.exportDurableState() };
+      encounter: encounter.exportDurableState(),
+      events: events.exportDurableState() };
   }
 
   async store(tx, room) {
@@ -132,8 +138,22 @@ export class ServerBossRoom {
             x: ai.warning.x, y: ai.warning.y,
             radius: ai.warning.radius, endsAt: ai.warning.endsAt
           } : null },
-        me: room.health.member(accountId)
+        me: room.health.member(accountId),
+        eventSequence: room.events.sequence
       };
+    });
+  }
+
+  // Pull replayable public combat notifications. A player only receives
+  // their own strike outcome, never another account's HP or reward data.
+  // A client whose cursor is too old must request a new snapshot first.
+  async updates(sessionKey, afterSequence = 0) {
+    return this.storage.transaction(async tx => {
+      const room = await this.load(tx);
+      const accountId = room.positions.identity(sessionKey);
+      if (!accountId || !room.positions.players.has(accountId))
+        return rejected('unauthorized');
+      return room.events.readFor(accountId, afterSequence);
     });
   }
 
@@ -182,6 +202,7 @@ export class ServerBossRoom {
       }
       room.encounter.x = room.behavior.x;
       room.encounter.y = room.behavior.y;
+      for (const event of effects) room.events.record(event);
       await this.store(tx, room);
       return effects;
     });
@@ -198,6 +219,14 @@ export class ServerBossRoom {
       if (!result.ok) return result;
       if (result.defeated) {
         room.behavior.defeat();
+        // The public feed stores no rare-roll, coin or account award details.
+        room.events.record({
+          kind: 'boss-defeated',
+          key: JSON.stringify([
+            room.encounter.roomId, room.encounter.bossId,
+            room.encounter.spawnId, 'defeated'
+          ])
+        });
         for (const reward of room.encounter.defeatEvent.rewards) {
           const key = this.awardPrefix + reward.key;
           const existing = await tx.get(key);
