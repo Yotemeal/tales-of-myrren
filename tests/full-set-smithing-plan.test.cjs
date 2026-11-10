@@ -70,7 +70,7 @@ const createGame=require('./game-runtime.cjs');
    g.save.eq.head='starsteel_helm';
    g.save.bag.push('starsteel_body');
    g.save.bank.starsteel_gloves=1;
-   g.save.bank.starsteel_shield=1;
+   g.save.notes.starsteel_shield=1; // stored as a tradable note; still owned gear
    g.save.inv.ing_starsteel=3;
    g.save.bank.ing_starsteel=2;
    g.save.inv.meteorite=4;
@@ -134,7 +134,7 @@ const createGame=require('./game-runtime.cjs');
    // anvil actions. Material and XP checks are based on actual creations.
    g.closeModal();
    g.save.eq.head=null;g.save.bag.length=0;
-   g.save.bank.starsteel_gloves=0;g.save.bank.starsteel_shield=0;
+   g.save.bank.starsteel_gloves=0;g.save.notes.starsteel_shield=0;
    g.save.inv.ing_starsteel=0;g.save.bank.ing_starsteel=0;
    g.save.inv.meteorite=84;g.save.inv.coal=112;
    g.save.bank.meteorite=0;g.save.bank.coal=0;g.save.notes.meteorite=0;
