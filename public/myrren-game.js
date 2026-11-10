@@ -2376,11 +2376,16 @@ function doAction(dt,now){
       if(success){
         save.inv[nt.item]++;
         if(n.k==='aether'&&save.perks.magnet&&Math.random()<.05){save.inv.aether++;say('The aether magnet doubles your yield!','gold')}
-        say(fishing?'You catch some '+ITEMS[nt.item].name.toLowerCase().replace('raw ','raw ')+'.':'You get some '+ITEMS[nt.item].name.toLowerCase()+'.');
+        // A visible charge count also makes it obvious that the running game
+        // has the multi-ore mining update, rather than an old cached bundle.
+        const veinExhausted=nt.skill==='mining'&&consumeOreVein(n,nt,now);
+        say(fishing?'You catch some '+ITEMS[nt.item].name.toLowerCase().replace('raw ','raw ')+'.':
+          'You get some '+ITEMS[nt.item].name.toLowerCase()+'.'+
+          (nt.skill==='mining'&&!veinExhausted?' ('+n.oreLeft+' ores left in this vein)':''));
         if(fishing){me.catchFx={t:now,item:nt.item};startSwing(now)}
         addXp(nt.skill,nt.xp);rollPet(nt.skill);persist();if(tab)renderModal();
         if(nt.skill==='mining'){
-          if(consumeOreVein(n,nt,now)){
+          if(veinExhausted){
             say('This ore vein is exhausted. It will replenish soon.','warn');
             act=null;
           }
