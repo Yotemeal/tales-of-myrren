@@ -32,6 +32,10 @@ entitlement as coins or equipment already granted.
   entitlement. Duplicates remain possible on subsequent spawns.
 - Every proposed award gets an idempotency key based on room, boss, spawn and
   verified account. The module **does not mutate save data or issue loot**.
+- Versioned server-private export/restore round-trips boss HP, contribution
+  credit, per-account cooldowns and already-rolled entitlements. Restoration
+  rejects mismatched HP/credit, duplicated rows or altered rewards, and never
+  rerolls a defeated spawn. No persistence backend has been wired yet.
 - The regression suite compares actual boss values and payout rules against
   public/myrren-game.js; any future combat/balance divergence should fail CI.
 
@@ -49,8 +53,9 @@ entitlement as coins or equipment already granted.
    **not yet implement boss movement, enemy attacks or player death**.
 3. **Durable shared rooms.** Configure a Cloudflare Durable Object binding and
    persistent room/boss state with serial attack processing and globally
-   unique spawn IDs. In-memory instances alone lose HP and contribution state
-   on Worker restart and cannot safely synchronize devices.
+   unique spawn IDs. The module now provides a validated private state
+   serializer/restore path, but **nothing calls it or durably stores it yet**;
+   in-memory instances alone lose state on Worker restart.
 4. **Atomic persistent rewards.** At boss death, persist an authoritative
    entitlement ledger and apply each reward once in a transaction keyed by its
    stable reward key. The gear roll must select an existing real item from the
