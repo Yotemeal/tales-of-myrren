@@ -43,7 +43,7 @@ Mining tool upgrades now have a meaningful speed benefit, on top of their existi
 
 - Unchanged: tier unlocks, XP per ore, smelting/forging recipes, ore counts on the map, bag capacity, respawn durations, Forestry/Fishing and player-save schema.
 - Vein charges are temporary world-node state and are **not** saved to player progress. Reloading the game resets rock charges. In eventual authenticated multiplayer, each vein must instead be managed by a shared server resource state, not a browser-owned counter.
-- More ore per rock increases material supply and Delving XP/hour. This is intentional for early progression; rare ores still retain low success chances and fewer yields. Measure sustained gathering and ore-to-bar economics before any further boosts.
+- More ore per rock increases material supply and Delving XP/hour. This is intentional for early progression; rare ores still retain low success chances and fewer yields. Ideal stationary Delving XP can briefly be about 2.4–2.45× the slowest gathering skill at level 55/70 unlock gaps; the existing cross-skill balance guard remains 2.2× at all other tested milestones, and actual ore throughput is lower after depletion and banking. Measure sustained gathering and ore-to-bar economics before any further boosts.
 - The live game must not change until tests on the Linux runner pass and the implementation is merged/released.
 
 ## Testing
