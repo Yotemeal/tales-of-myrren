@@ -16,6 +16,7 @@ on:
       - 'tests/mining-feedback-respawn.test.cjs'
       - 'tests/cooking-fishing-workflow.test.cjs'
       - 'tests/forestry-feedback-regrowth.test.cjs'
+      - 'tests/skilling-loop-audit.test.cjs'
       - 'tests/game-runtime.cjs'
       - '.github/workflows/combat-balance.yml'
   push:
@@ -34,6 +35,7 @@ on:
       - 'tests/mining-feedback-respawn.test.cjs'
       - 'tests/cooking-fishing-workflow.test.cjs'
       - 'tests/forestry-feedback-regrowth.test.cjs'
+      - 'tests/skilling-loop-audit.test.cjs'
       - '.github/workflows/combat-balance.yml'
 jobs:
   combat-audit:
@@ -44,7 +46,7 @@ jobs:
         with:
           node-version: '22'
       - name: JavaScript syntax
-        run: node --check public/myrren-game.js && node --check tests/combat-balance-audit.test.cjs && node --check tests/combat-input.test.cjs && node --check tests/combat-feedback.test.cjs && node --check tests/combat-overlay-layout.test.cjs && node --check tests/combat-telegraph.test.cjs && node --check tests/skill-xp-drops.test.cjs && node --check tests/smithing-batch.test.cjs && node --check tests/xp-progression-balance.test.cjs && node --check tests/mining-feedback-respawn.test.cjs && node --check tests/cooking-fishing-workflow.test.cjs && node --check tests/forestry-feedback-regrowth.test.cjs
+        run: node --check public/myrren-game.js && node --check tests/combat-balance-audit.test.cjs && node --check tests/combat-input.test.cjs && node --check tests/combat-feedback.test.cjs && node --check tests/combat-overlay-layout.test.cjs && node --check tests/combat-telegraph.test.cjs && node --check tests/skill-xp-drops.test.cjs && node --check tests/smithing-batch.test.cjs && node --check tests/xp-progression-balance.test.cjs && node --check tests/mining-feedback-respawn.test.cjs && node --check tests/cooking-fishing-workflow.test.cjs && node --check tests/forestry-feedback-regrowth.test.cjs && node --check tests/skilling-loop-audit.test.cjs
       - name: Combat parity and balance baseline
         run: node tests/combat-balance-audit.test.cjs
       - name: Target locking and attack input behaviour
@@ -67,3 +69,5 @@ jobs:
         run: node tests/cooking-fishing-workflow.test.cjs
       - name: Forestry chopping effects, regrowth and inspect-only taps
         run: node tests/forestry-feedback-regrowth.test.cjs
+      - name: Skill supply limits and resource selection audit
+        run: node tests/skilling-loop-audit.test.cjs
