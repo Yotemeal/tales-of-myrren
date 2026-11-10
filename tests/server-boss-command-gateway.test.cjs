@@ -5,8 +5,8 @@ const assert = require('node:assert/strict');
   const { createBossCommandGateway, createBossHttpCommandHandler } =
     await import('../src/server-boss-command-gateway.mjs');
   const verified = new Map([
-    ['Bearer alice-access-token', 'alice'],
-    ['Bearer bob-access-token', 'bob']
+    ['Bearer alice-access-token', '11111111-2222-4333-8444-555555555555'],
+    ['Bearer bob-access-token', '66666666-7777-4888-8999-aaaaaaaaaaaa']
   ]);
   const auth = {
     async verifyBearer(value) {
@@ -65,9 +65,9 @@ const assert = require('node:assert/strict');
   assert.equal(factories.length, 0,
     'no private room allocated before authentication');
   assert.deepEqual(await dispatch('Bearer alice-access-token', { type: 'join' }),
-    { ok: true, accountId: 'alice', x: 200, y: 200 });
+    { ok: true, accountId: '11111111-2222-4333-8444-555555555555', x: 200, y: 200 });
   assert.deepEqual(await dispatch('Bearer bob-access-token', { type: 'join' }),
-    { ok: true, accountId: 'bob', x: 200, y: 200 });
+    { ok: true, accountId: '66666666-7777-4888-8999-aaaaaaaaaaaa', x: 200, y: 200 });
   assert.equal((await dispatch('Bearer alice-access-token',
     { type: 'attack' })).damage, 4);
   assert.equal((await dispatch('Bearer alice-access-token',
@@ -77,19 +77,19 @@ const assert = require('node:assert/strict');
   assert.equal((await dispatch('Bearer alice-access-token',
     { type: 'updates', afterSequence: 1 })).latestSequence, 2);
   assert.deepEqual(actions, [
-    { type: 'join', id: 'alice' },
-    { type: 'join', id: 'bob' },
-    { type: 'attack', id: 'alice' },
-    { type: 'snapshot', id: 'alice' },
-    { type: 'move', id: 'alice', intent: { dx: 1, dy: 0 } },
-    { type: 'updates', id: 'alice', afterSequence: 1 }
+    { type: 'join', id: '11111111-2222-4333-8444-555555555555' },
+    { type: 'join', id: '66666666-7777-4888-8999-aaaaaaaaaaaa' },
+    { type: 'attack', id: '11111111-2222-4333-8444-555555555555' },
+    { type: 'snapshot', id: '11111111-2222-4333-8444-555555555555' },
+    { type: 'move', id: '11111111-2222-4333-8444-555555555555', intent: { dx: 1, dy: 0 } },
+    { type: 'updates', id: '11111111-2222-4333-8444-555555555555', afterSequence: 1 }
   ]);
 
   // No client-chosen level, equipment, time, coordinates, damage,
   // boss identity, arbitrary death/reward or privileged tick commands.
   const invalid = [
     { type: 'attack', damage: 1e9 },
-    { type: 'attack', accountId: 'bob' },
+    { type: 'attack', accountId: '66666666-7777-4888-8999-aaaaaaaaaaaa' },
     { type: 'join', roomId: 'different-room' },
     { type: 'join', level: 100 },
     { type: 'join', defenseTotal: 1e9 },
@@ -168,6 +168,18 @@ const assert = require('node:assert/strict');
   const unavailable = await badContext(request({ type: 'join' }));
   assert.equal(unavailable.status, 503);
   assert.equal(JSON.stringify(await unavailable.json()).includes('PRIVATE'), false);
+  const brokenAuth = createBossCommandGateway({
+    authenticator: { verifyBearer: async () => {
+      throw new Error('private identity provider exception');
+    } },
+    createTrustedRoom: roomFactory
+  });
+  const beforeBroken = factories.length;
+  assert.deepEqual(await brokenAuth({
+    authorization: 'Bearer alice-access-token', command: { type: 'join' }
+  }), { ok: false, reason: 'unauthorized' });
+  assert.equal(factories.length, beforeBroken,
+    'authentication transport failures must not allocate private room state');
   assert.throws(() => createBossCommandGateway({
     authenticator: null, createTrustedRoom: roomFactory
   }), /Verified login/);
