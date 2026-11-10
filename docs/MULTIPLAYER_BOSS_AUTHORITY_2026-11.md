@@ -169,6 +169,35 @@ player HP, movement and event outbox atomically. Spawns and respawns must
 also be coordinated with persisted life IDs. The live solo monster AI and
 combat UI are unchanged.
 
+## Private authenticated combat event recovery
+
+The isolated `src/server-room-events.mjs` feed is now owned by
+`ServerBossRoom` and persisted **inside the same room transaction** as
+boss AI, player HP and fatal-hit reward entitlements. Each committed warning,
+strike, leash reset and boss defeat gets a monotonic room event sequence.
+Reconnects can query `updates(sessionKey, afterSequence)` to replay missed
+events without repeating already-acknowledged events; the read-only
+`snapshot(sessionKey)` includes the current sequence for initial sync.
+
+- The server verifies the session and that its account has joined the room
+  *before* disclosing any updates.
+- Strike notifications show each recipient **only their own** damage and
+  remaining HP. Other accounts' IDs, health, session keys and private
+  reward rolls are never included in the public response.
+- History is bounded to 96 events and paged 40 at a time. A cursor older than
+  the retained history returns `resyncRequired`; clients must fetch a new
+  authoritative snapshot, not silently assume a complete history.
+- A failed atomic tick leaves **both** the player health and public event feed
+  unchanged. This is checked using a simulated commit failure before lethal
+  damage. The room state uses schema 2; there is no production schema-1 data
+  migration because these modules have never been deployed.
+
+**Still private and not deployed:** A future authenticated WebSocket/SSE
+handler must poll/subscribe to the feed, preserve each client's cursor,
+reconcile snapshots after network gaps, and enforce actual Cloudflare room
+transactions and per-account storage. No new live game UI or network route
+has been changed.
+
 ## Required before production multiplayer
 
 1. **Authentication and character authority.** Replace the optional presence
@@ -179,8 +208,8 @@ combat UI are unchanged.
 2. **Movement/collision and world authority.** A trusted room simulation must
    own player coordinates, movement speed, obstacles, monster position,
    attack telegraphs, target selection, aggression, leash and respawn timers.
-   The current foundation fixes one spawn position for reach checks; it does
-   **not yet implement boss movement, enemy attacks or player death**.
+   The current isolated room prototype models boss movement, enemy attacks
+   and player death, but **has not been wired to live authenticated multiplayer**.
 3. **Durable shared rooms.** Configure a Cloudflare Durable Object binding and
    persistent room/boss state with serial attack processing and globally
    unique spawn IDs. The module now provides a validated private state
