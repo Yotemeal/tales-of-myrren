@@ -94,7 +94,6 @@ export class ServerPlayerHealth {
   applyVerifiedStrike(strike) {
     if (!strike || strike.kind !== 'strike' ||
         !validId(strike.type) || !BOSS_STRIKE_DAMAGE[strike.type] ||
-        !validId(strike.key) && typeof strike.key !== 'string' ||
         typeof strike.key !== 'string' || strike.key.length > 1024 ||
         !Number.isSafeInteger(strike.sequence) || strike.sequence < 1 ||
         !finite(strike.x) || !finite(strike.y) ||
@@ -129,14 +128,15 @@ export class ServerPlayerHealth {
           Math.hypot(strike.x - position.x, strike.y - position.y) > strike.radius ||
           !this.members.has(accountId))
         throw new TypeError('Unverified strike target position');
-      return { accountId, position };
+      return { accountId, position,
+        stats: this.members.get(accountId).hp > 0 ?
+          this.verifiedStats(accountId) : null };
     });
     const def = BOSS_STRIKE_DAMAGE[strike.type];
     const hits = [];
-    for (const { accountId } of targets) {
+    for (const { accountId, stats } of targets) {
       const member = this.members.get(accountId);
       if (member.hp === 0) continue;
-      const stats = this.verifiedStats(accountId);
       const hitChance = clamp(.75 + (def.level - stats.level) * .008 -
         stats.defenseTotal * .0012, .35, .9);
       const hit = randomUnit(this.random) < hitChance;
