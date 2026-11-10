@@ -71,6 +71,8 @@ jobs:
           node tests/server-player-health.test.cjs
           node tests/server-boss-room.test.cjs
           node tests/server-room-events.test.cjs
+      - name: Supabase identity and anti-spoof command security
+        run: |
           node tests/server-supabase-auth.test.cjs
           node tests/server-boss-command-gateway.test.cjs
       - name: Existing boss contribution regression
