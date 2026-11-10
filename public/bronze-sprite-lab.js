@@ -6,7 +6,6 @@
  const slots=['shield','helmet','body','legs','boots','gloves'];
  const bronze=new Image(),bodySource=new Image();
  let ready=false,bodyReady=false,geometry=[],frame=0,playing=false,lastTick=0;
- const label=(x,y,t)=>{x.fillStyle='#e7ddc7';x.font='600 12px system-ui';x.textAlign='center';x.fillText(t,y,16)};
  const status=$('status');
  function detectGeometry(){
   const c=document.createElement('canvas');c.width=W;c.height=H;
@@ -74,7 +73,7 @@
   c.fillStyle='#2b3d36';c.fillRect(0,0,canvas.width,canvas.height);
   const zoom=Number($('zoom').value),now=frame*130,moving=$('motion').value==='walk';
   for(let i=0;i<4;i++){
-   const dir=directions[i],x=20+i*216,y=40,footX=x+105,footY=y+27*zoom+24;
+   const dir=directions[i],x=20+i*216,y=40,footX=x+105,footY=184;
    c.fillStyle='#334b3d';c.fillRect(x,y,210,canvas.height-58);
    c.save();c.translate(footX,footY);c.scale(zoom,zoom);c.imageSmoothingEnabled=false;
    person(c,0,0,dir,mode==='equipped',moving?now:frame*440,moving);c.restore();
