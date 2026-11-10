@@ -1635,7 +1635,28 @@ function nodeOK(n){
   if(d>(NT[n.k].reach?30:22))return false;
   return d<6||(tx*me.fx+ty*me.fy)/d>=.5;
 }
-function facingNode(now){let best=null,bd=1e9;for(const n of nodes){if(now<n.back||!nodeOK(n))continue;const d=Math.hypot(n.x-me.x,n.y-me.y);if(d<bd){bd=d;best=n}}return best}
+// A crowded resource area can put an unusable ore, tree or fishing spot
+// closer than a node the player can actually gather. Prefer a currently
+// harvestable target; keep the nearest unusable node as a fallback so the
+// existing level/tool/bait/full-pack explanations are still shown.
+function readyToGather(n){
+  const nt=NT[n.k],tool=toolFor(nt.tool);
+  if(!tool||lvlFor(save.xp[nt.skill])<nt.req)return false;
+  if(nt.skill==='fishing'&&tool.kind==='rod'&&!(save.inv.bait>0))return false;
+  const changes={[nt.item]:1};
+  if(nt.skill==='fishing'&&tool.kind==='rod')changes.bait=-1;
+  return canFitInventory(changes);
+}
+function facingNode(now){
+  let nearest=null,nearestDist=Infinity,ready=null,readyDist=Infinity;
+  for(const n of nodes){
+    if(now<n.back||!nodeOK(n))continue;
+    const d=Math.hypot(n.x-me.x,n.y-me.y);
+    if(d<nearestDist){nearestDist=d;nearest=n}
+    if(d<readyDist&&readyToGather(n)){readyDist=d;ready=n}
+  }
+  return ready||nearest;
+}
 function nodeNear(now){for(const n of nodes){if(now>=n.back&&Math.hypot(n.x-me.x,n.y-me.y)<=(NT[n.k].reach?34:26))return n}return null}
 
 function nearSmithy(x=me.x,y=me.y,reach=33){
