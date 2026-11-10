@@ -195,7 +195,9 @@
     const {px}=p,B=BODY,g=o.gear;
     const mat=PALETTES[g[5]],fighting=o.motion==='sword'||o.motion==='fist';
     if(!mat)return;
-    px(6,36,6,5,mat.ink);px(7,37,4,3,mat.base);px(7,37,3,1,mat.light);
+    // Vambrace bridges the shoulder to the glove; no bare forearm gap in full armour.
+    px(6,32,6,9,mat.ink);px(7,33,4,7,mat.base);px(7,33,3,2,mat.light);
+    px(6,39,6,2,mat.dark);
     if(fighting){
       if(o.dir==='left'||o.dir==='back'){
         px(0,27,6,5,mat.ink);px(1,28,4,3,mat.base);px(2,28,3,1,mat.light);
@@ -204,13 +206,13 @@
       }
     }else{
       const off=o.motion==='walk'?[0,-1,0,1][o.frame]:0;
-      px(22,36+off,6,5,mat.ink);px(23,37+off,4,3,mat.base);
-      px(23,37+off,3,1,mat.light);
+      px(22,32+off,6,9,mat.ink);px(23,33+off,4,7,mat.base);
+      px(23,33+off,3,2,mat.light);px(22,39+off,6,2,mat.dark);
     }
     if(g[5]===6){
-      px(8,37,2,1,mat.accent);
+      px(8,34,2,1,mat.accent);
       if(fighting)px(o.dir==='left'||o.dir==='back'?2:29,28,2,1,mat.accent);
-      else px(24,37,2,1,mat.accent);
+      else px(24,34,2,1,mat.accent);
     }
   }
   function helmet(p,o) {
