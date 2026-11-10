@@ -159,7 +159,12 @@ const SMELT=[
   {id:'starsteel',mat:8,req:70,xp:240,forgeXpPerBar:1500,in:{meteorite:3,coal:4}}];
 const FORGE={axe:3,pick:3,sword:4,shield:5,helm:4,gloves:4,boots:4,legs:5,body:6};
 const FORGE_UNLOCK={pick:0,axe:1,helm:2,boots:3,gloves:3,sword:4,shield:5,legs:7,body:8};
-const forgeReq=(r,kind)=>r.req+FORGE_UNLOCK[kind];
+// The XP curve steepens sharply beyond 40/55/70. Compress only the extra
+// recipe-unlock spacing at those tiers: getting from Starsteel bars (70) to a
+// full set (formerly 78) cost over 7m XP. Ingredient counts, item equip
+// requirements, XP rewards and existing player levels are unchanged.
+const forgeUnlockCap=r=>r.req>=70?3:r.req>=55?4:r.req>=40?6:8;
+const forgeReq=(r,kind)=>r.req+Math.min(FORGE_UNLOCK[kind],forgeUnlockCap(r));
 const forgeXp=(r,cost)=>cost*r.forgeXpPerBar;
 /* economy: shop price of forgeable gear = 2x its ingot value, so smelting+forging always beats buying and coins are a sink */
 for(const id in DEFS){const d=DEFS[id];if(FORGE[d.kind]&&d.mat>=2){const ik='ing_'+MATS[d.mat].k;if(SELL[ik])d.price=Math.round(2*FORGE[d.kind]*SELL[ik])}}
