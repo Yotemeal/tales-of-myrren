@@ -31,6 +31,8 @@ for path in \
   src/server-boss-command-gateway.mjs \
   src/server-trusted-characters.mjs \
   src/server-boss-durable-service.mjs \
+  src/server-global-account.mjs \
+  src/server-account-preview-object.mjs \
   src/multiplayer-preview-worker.mjs \
   tests/server-boss-encounter.test.cjs \
   tests/boss-room-coordinator.test.cjs \
@@ -43,6 +45,7 @@ for path in \
   tests/server-supabase-auth.test.cjs \
   tests/server-boss-command-gateway.test.cjs \
   tests/server-boss-durable-service.test.cjs \
+  tests/server-global-account.test.cjs \
   tests/server-boss-preview-contract.test.cjs
 do
   node --check "$path"
