@@ -27,6 +27,8 @@ for path in \
   src/server-player-health.mjs \
   src/server-boss-room.mjs \
   src/server-room-events.mjs \
+  src/server-supabase-auth.mjs \
+  src/server-boss-command-gateway.mjs \
   tests/server-boss-encounter.test.cjs \
   tests/boss-room-coordinator.test.cjs \
   tests/boss-account-ledger.test.cjs \
@@ -34,7 +36,9 @@ for path in \
   tests/server-boss-behavior.test.cjs \
   tests/server-player-health.test.cjs \
   tests/server-boss-room.test.cjs \
-  tests/server-room-events.test.cjs
+  tests/server-room-events.test.cjs \
+  tests/server-supabase-auth.test.cjs \
+  tests/server-boss-command-gateway.test.cjs
 do
   node --check "$path"
 done
@@ -49,7 +53,9 @@ for path in \
   tests/server-boss-behavior.test.cjs \
   tests/server-player-health.test.cjs \
   tests/server-boss-room.test.cjs \
-  tests/server-room-events.test.cjs
+  tests/server-room-events.test.cjs \
+  tests/server-supabase-auth.test.cjs \
+  tests/server-boss-command-gateway.test.cjs
 do
   echo "[Myrren] Running $path"
   node "$path"
