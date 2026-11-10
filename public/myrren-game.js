@@ -226,8 +226,8 @@ const MT={
   wolf:{name:'Dire wolf',lv:12,hp:20,def:10,max:4,iv:2.4,sp:34,ag:50,xpm:2.2,coins:[10,24],bread:.2,drop:{p:.08,mats:[2,3]}},
   boar:{name:'Wild boar',lv:8,hp:14,def:6,max:3,iv:2.4,sp:30,ag:36,xpm:1.6,coins:[8,18],bread:.3,drop:{p:.07,mats:[1,2]}},
   bear:{name:'Brown bear',lv:22,hp:42,def:18,max:6,iv:2.6,sp:30,ag:44,xpm:4,coins:[24,52],bread:.1,drop:{p:.1,mats:[3,4]}},
-  cave:{name:'Cave bear',lv:40,hp:150,def:38,max:14,iv:2.4,sp:32,ag:50,xpm:7,coins:[30,70],bread:0,telegraph:{ms:700,radius:16},drop:{p:.12,mats:[4,5]}},
-  abear:{name:'Aether bear',lv:70,hp:520,def:68,max:28,iv:2.2,sp:34,ag:56,xpm:6,coins:[120,260],bread:0,telegraph:{ms:850,radius:18},drop:{p:.14,mats:[5,6]}}
+  cave:{name:'Cave bear',boss:true,lv:40,hp:150,def:38,max:14,iv:2.4,sp:32,ag:50,xpm:7,coins:[30,70],bread:0,telegraph:{ms:700,radius:16},drop:{p:.12,mats:[4,5]}},
+  abear:{name:'Aether bear',boss:true,lv:70,hp:520,def:68,max:28,iv:2.2,sp:34,ag:56,xpm:6,coins:[120,260],bread:0,telegraph:{ms:850,radius:18},drop:{p:.14,mats:[5,6]}}
 };
 
 // Attack warnings are opt-in. Future bosses default to a readable dodge
@@ -1726,6 +1726,7 @@ function resolveSwing(now){
     m.prov=true;if(m.state==='idle'||m.state==='return')m.state='chase';
     const hit=Math.random()<clamp(.55+(L-mt.def)*.03+atk*.01,.25,.95);
     const dmg=hit?rint(1,2+Math.floor(L/4)+atk):0;
+    recordBossContribution(m,'local',dmg);
     m.hp-=dmg;splat(m.x,m.y-16,dmg);sfx(dmg>0?'hit':'miss');
     if(dmg>0)recordCombatHit(m,now,strike.x,strike.y,w?.kind==='sword');
     burst(m.x,m.y-8,dmg>0?['#d83a2a','#ffffff','#ffd24a']:['#ffffff','#b5c8d8'],dmg>0?7:3,20);
@@ -2229,6 +2230,56 @@ function respawnPlayer(){
   me.dv='d';me.face=1;me.moving=false;regen=0;snapCam=true;exitCD=performance.now()+700;
   uiHud();petsTeleport();sendPresence();
 }
+// The current multiplayer room shares presence only, not authoritative monster
+// health. Live clients record ONLY their own effective damage. A future shared
+// boss service must send a verified ledger to this pure reward resolver.
+function recordBossContribution(m,id,damage){
+  const mt=MT[m.t];
+  if(!mt?.boss||typeof id!=='string'||!id.trim()||!Number.isFinite(damage)||damage<=0)return 0;
+  const effective=Math.min(Math.max(0,m.hp),damage);
+  if(effective<=0)return 0;
+  if(!m.bossDamage)m.bossDamage=new Map();
+  m.bossDamage.set(id,(m.bossDamage.get(id)||0)+effective);
+  return effective;
+}
+// All eligible players share ONE guaranteed coin pool. Their independent
+// rare-gear rolls together retain the original expected item yield per boss:
+// sum(individual chances) == mt.drop.p. Higher real damage means a greater
+// roll chance, but a participant cannot claim the entire pool by last-hitting.
+// Inputs MUST be server-verified; never trust peer presence or self-reporting.
+function resolveBossRewards(mt,entries,coinPool,random=Math.random){
+  if(!mt?.boss)return [];
+  const credit=new Map();
+  for(const row of entries||[]){
+    const id=row?.id,damage=row?.damage;
+    if(typeof id!=='string'||!id.trim()||id.length>96||
+       !Number.isFinite(damage)||damage<=0)continue;
+    credit.set(id,(credit.get(id)||0)+damage);
+  }
+  const all=[...credit].map(([id,damage])=>({id,damage}))
+    .sort((a,b)=>b.damage-a.damage||a.id.localeCompare(b.id));
+  const minimum=Math.max(1,Math.ceil(mt.hp*.05));
+  const eligible=all.length===1?all:all.filter(r=>r.damage>=minimum);
+  if(!eligible.length)return [];
+  const pool=Math.max(0,Math.floor(Number.isFinite(coinPool)?coinPool:0));
+  const damageSum=eligible.reduce((n,r)=>n+r.damage,0);
+  const weights=eligible.map(r=>Math.sqrt(r.damage));
+  const weightSum=weights.reduce((a,b)=>a+b,0);
+  const baseCoins=pool>=eligible.length?1:0;
+  const remaining=pool-baseCoins*eligible.length;
+  const payouts=eligible.map((r,i)=>{
+    const exactCoins=remaining*r.damage/damageSum;
+    return {...r,share:r.damage/damageSum,
+      dropChance:clamp((mt.drop?.p||0)*weights[i]/weightSum,0,1),
+      coins:baseCoins+Math.floor(exactCoins),fraction:exactCoins-Math.floor(exactCoins)};
+  });
+  let unpaid=pool-payouts.reduce((n,r)=>n+r.coins,0);
+  const order=payouts.map((r,i)=>i).sort((a,b)=>
+    payouts[b].fraction-payouts[a].fraction||payouts[b].damage-payouts[a].damage||
+    payouts[a].id.localeCompare(payouts[b].id));
+  for(let i=0;i<unpaid;i++)payouts[order[i]].coins++;
+  return payouts.map(({fraction,...r})=>({...r,rare:random()<r.dropChance}));
+}
 // One fixed reward per defeated creature. This is one quarter of the old
 // full-health damage reward, and never includes overkill or regenerated health.
 function combatKillXp(mt){return Math.max(1,Math.round(mt.hp*mt.xpm))}
@@ -2236,16 +2287,24 @@ function killMon(m,now){
   if(m.state==='dead')return;
   const mt=MT[m.t];m.state='dead';m.warn=null;m.back=now+12000;m.dieAt=now;
   decals.push({x:m.x,y:m.y,t:now,c:m.t==='slime'?'#e86a86':'#a82418'});
-  say('You have defeated the '+mt.name.toLowerCase()+'.','gold');
-  addXp('melee',combatKillXp(mt));
-  const c=rint(mt.coins[0],mt.coins[1]);save.inv.coins+=c;say('You find '+c+' coins.');
-  {
+  const c=rint(mt.coins[0],mt.coins[1]);
+  const group=mt.boss?resolveBossRewards(mt,
+    m.bossDamage?.size?[...m.bossDamage].map(([id,damage])=>({id,damage})):
+      [{id:'local',damage:mt.hp}],c):null;
+  const mine=!mt.boss||group.find(r=>r.id==='local');
+  if(mine){
+    say('You have defeated the '+mt.name.toLowerCase()+'.','gold');
+    addXp('melee',combatKillXp(mt));
+    const coins=mt.boss?mine.coins:c;
+    save.inv.coins+=coins;say('You find '+coins+' coins.');
+  }
+  if(mine){
     let hit=false;
     for(const j of save.jobs)for(const o of j.objs)if(o.type==='slay'&&o.mon===m.t&&o.have<o.need){o.have++;hit=true}
     if(hit)for(const j of save.jobs){const was=j.done;j.done=jobDone(j);if(j.done&&!was){say('Odd job complete! Claim it in your Jobs tab.','gold');toast('ODD JOB DONE\nOpen your Jobs tab')}}
   }
-  if(Math.random()<mt.bread){if(canFitInventory({bread:1})){save.inv.bread++;say('It dropped some bread.')}else say('It dropped bread, but your pack is full.','warn')}
-  if(Math.random()<mt.drop.p){
+  if(mine&&Math.random()<mt.bread){if(canFitInventory({bread:1})){save.inv.bread++;say('It dropped some bread.')}else say('It dropped bread, but your pack is full.','warn')}
+  if(mine&&(mt.boss?mine.rare:Math.random()<mt.drop.p)){
     const mat=Math.max(2,mt.drop.mats[rint(0,mt.drop.mats.length-1)]);
     const kinds=Object.keys(KINDS).filter(k=>KINDS[k].mats.includes(mat));
     giveGear(MATS[mat].k+'_'+kinds[rint(0,kinds.length-1)]);
@@ -2318,6 +2377,7 @@ function doAction(dt,now){
           const atk=atkBonus();
       const hit=Math.random()<clamp(.55+(L-mt.def)*.03+atk*.01,.25,.95);
       const dmg=hit?rint(1,2+Math.floor(L/4)+atk):0;
+      recordBossContribution(m,'local',dmg);
       m.hp-=dmg;splat(m.x,m.y-16,dmg);sfx(dmg>0?'hit':'miss');
       if(dmg>0)recordCombatHit(m,now,me.x,me.y,w?.kind==='sword');
       burst(m.x,m.y-8,dmg>0?['#d83a2a','#ffffff','#ffd24a']:['#ffffff','#b5c8d8'],dmg>0?7:3,20);
@@ -2425,7 +2485,7 @@ function update(dt,now){
   if(!inside)critUpdate(dt,now);
   if(!inside)for(const m of mons){
     const mt=MT[m.t];
-    if(m.state==='dead'){m.warn=null;if(now>=m.back){m.state='idle';m.prov=false;m.hp=mt.hp;m.x=m.hx;m.y=m.hy;m.cd=0}continue}
+    if(m.state==='dead'){m.warn=null;if(now>=m.back){m.state='idle';m.prov=false;m.hp=mt.hp;m.bossDamage=null;m.x=m.hx;m.y=m.hy;m.cd=0}continue}
     const dxp=me.x-m.x,dyp=me.y-m.y,dp=Math.hypot(dxp,dyp);
     if(m.state==='chase'){
       if(!m.prov&&lvlFor(save.xp.melee)>=2*mt.lv){m.state='return';m.warn=null}else
@@ -2443,7 +2503,7 @@ function update(dt,now){
     }else if(m.state==='return'){
       m.warn=null;
       const dx=m.hx-m.x,dy=m.hy-m.y,d=Math.hypot(dx,dy);
-      if(d<3){m.state='idle';m.hp=mt.hp;m.prov=false}else{m.x+=dx/d*mt.sp*dt;m.y+=dy/d*mt.sp*dt}
+      if(d<3){m.state='idle';m.hp=mt.hp;m.bossDamage=null;m.prov=false}else{m.x+=dx/d*mt.sp*dt;m.y+=dy/d*mt.sp*dt}
     }else if(started&&dp<(mt.ag||40)&&lvlFor(save.xp.melee)<2*mt.lv){m.state='chase';m.cd=mt.iv*.5}else{
       m.w-=dt;if(m.w<=0){m.w=2+Math.random()*5;m.wx=m.hx+rint(-18,18);m.wy=m.hy+rint(-18,18)}
       const dx=m.wx-m.x,dy=m.wy-m.y,d=Math.hypot(dx,dy);
