@@ -1,0 +1,35 @@
+{
+  "schema": "myrren.native-equipment-atlas.v1",
+  "status": "unapproved-preview-only",
+  "material": "Bronze",
+  "materialId": 2,
+  "image": "/assets/armour/bronze_layers_21x27.png",
+  "atlasWidth": 84,
+  "atlasHeight": 972,
+  "frameWidth": 21,
+  "frameHeight": 27,
+  "frameColumns": 4,
+  "slotBlockRows": 6,
+  "slotOrder": [
+    "shield",
+    "helmet",
+    "body",
+    "legs",
+    "boots",
+    "gloves"
+  ],
+  "frameRows": [
+    "idle",
+    "front",
+    "back",
+    "left",
+    "right",
+    "side-attack"
+  ],
+  "notes": [
+    "Each slot occupies 6 source rows, each with 4 frames of 21x27.",
+    "This is not a live renderer or an approved complete equipment set.",
+    "Side/back idle overlays need hand-authored pose alignment before production.",
+    "Source character and gameplay equipment IDs remain unchanged."
+  ]
+}
