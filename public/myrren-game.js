@@ -2270,7 +2270,8 @@ function resolveBossRewards(mt,entries,coinPool,random=Math.random){
   const payouts=eligible.map((r,i)=>{
     const exactCoins=remaining*r.damage/damageSum;
     return {...r,share:r.damage/damageSum,
-      dropChance:clamp((mt.drop?.p||0)*weights[i]/weightSum,0,1),
+      dropChance:eligible.length===1?clamp(mt.drop?.p||0,0,1):
+        clamp((mt.drop?.p||0)*weights[i]/weightSum,0,1),
       coins:baseCoins+Math.floor(exactCoins),fraction:exactCoins-Math.floor(exactCoins)};
   });
   let unpaid=pool-payouts.reduce((n,r)=>n+r.coins,0);
