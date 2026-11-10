@@ -2045,7 +2045,7 @@ function doAction(dt,now){
       if(fishing){a.casted=false;a.t=-.9}
       const success=Math.random()<clamp(nt.base+(L-nt.req)*.025+Math.max(0,d.mat-2)*.06,.05,.92);
       if(nt.skill==='mining')recordMiningHit(n,now,success);
-      burst(n.x,n.y-10,nt.tool==='axe'?['#9a6a38','#5a3a1f','#7ab648']:fishing?['#8cc0f4','#ffffff','#3f7fcc']:nt.skill==='mining'?miningDustColors(n):['#ffe14a','#ffffff','#c8d2d6'],success?6:3,22);
+      burst(n.x,n.y-10,nt.tool==='axe'?['#9a6a38','#5a3a1f','#7ab648']:fishing?['#8cc0f4','#ffffff','#3f7fcc']:nt.skill==='mining'?miningDustColors(n):['#ffe14a','#ffffff','#c8d2d6'],nt.skill==='mining'&&!success?3:6,22);
       if(success){
         save.inv[nt.item]++;
         if(n.k==='aether'&&save.perks.magnet&&Math.random()<.05){save.inv.aether++;say('The aether magnet doubles your yield!','gold')}
@@ -2364,11 +2364,17 @@ function treeTile(px,py,v){
   if(v%5===0)R(px+11,py+2,2,2,'#d6b240');
 }
 function drawBush(x,y,gold){MyrrenEnvironment.fern(ctx,x,y,gold?2:0)}
+function miningNodeCaption(n,now){
+  const nt=NT[n.k];
+  return nt.skill==='mining'&&now<n.back
+    ?'Depleted · '+Math.ceil((n.back-now)/1000)+'s'
+    :nt.name+' (Lv '+nt.req+')';
+}
 function nodeTip(n,x,y,now){
   if(!n.tipAt)return;const age=now-n.tipAt;if(age>2600){n.tipAt=0;return}
   const nt=NT[n.k];ctx.globalAlpha=age<1800?1:1-(age-1800)/800;
   const exhausted=nt.skill==='mining'&&now<n.back;
-  const caption=exhausted?'Depleted · '+Math.ceil((n.back-now)/1000)+'s':nt.name+' (Lv '+nt.req+')';
+  const caption=miningNodeCaption(n,now);
   label(caption,x,y-(TREEK.includes(n.k)?(n.k==='tree'?42:52):n.k.startsWith('spot')?12:20),exhausted?'#b4c0b7':'#ffffff');
   ctx.globalAlpha=1;
 }
