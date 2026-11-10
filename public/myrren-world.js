@@ -35,6 +35,9 @@ function inWater(x,y){return waterDistance(x,y)<0||craterWall(x,y)}
 function inVillage(x,y){return Math.hypot((x-CX)/305,(y-CY)/235)<.895}
 const paths=buildings.map(b=>[[800,830],[b.x,b.y+7]]);
 paths.push([[800,830],[800,1180]],[[800,1180],[800,1450]]);
+// A narrow fork off the existing southern Camp route leads towards the outer
+// western mines. Terrain-only: no new collision, fast travel or bank access.
+paths.push([[800,1350],[620,1430]],[[620,1430],[520,1470]]);
 function bridgeApproach(x,y){return false}
 function dryFootprint(x,y,halfWidth,top,bottom=3,margin=8){
  for(let yy=y-top;yy<=y+bottom;yy+=6)for(let xx=x-halfWidth;xx<=x+halfWidth;xx+=6)if(waterDistance(xx,yy)<margin)return false;

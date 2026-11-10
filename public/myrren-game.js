@@ -285,6 +285,26 @@ addMons('slime',16,110);addMons('goblin',12,260);addMons('boar',10,190);addMons(
 addNodes('tin',20,120);addNodes('maple',22,300);addNodes('coal',16,260);addNodes('cobalt',12,430);addNodes('elder',12,480);addNodes('aether',7,600);addNodes('myrren',6,640);
 addMons('cave',6,620);addMons('abear',4,720);
 addNodes('obsidianite',8,530);addNodes('meteorite',4,700);
+// Keep the *same four* rare deposits, but redistribute the most remote
+// northern meteorite to a reachable southwest mining trail. That area already
+// has coal and high-tier timber; no new ore, XP or depletion supply is created.
+// Validate the site against the same world constraints used by random spawns.
+function establishOuterOreTrail(){
+  const rare=nodes.filter(n=>n.k==='meteorite');
+  if(rare.length!==4)return false;
+  const moved=rare.reduce((a,b)=>a.y<b.y?a:b);
+  const old=placed.find(p=>p[0]===moved.x&&p[1]===moved.y);
+  const x=520,y=1470;
+  if(!old||x<BOX[0]||x>BOX[2]||y<BOX[1]||y>BOX[3]||
+     Math.hypot(x-CX,y-CY)<700||VILLAGE.inWater(x,y)||
+     VILLAGE.waterDistance(x,y)<80||
+     placed.some(p=>p!==old&&Math.abs(p[0]-x)<24&&Math.abs(p[1]-y)<24)||
+     mons.some(m=>Math.hypot(m.x-x,m.y-y)<70))return false;
+  old[0]=x;old[1]=y;
+  moved.x=x;moved.y=y;
+  return true;
+}
+establishOuterOreTrail();
 
 
 /* ---------- save ---------- */
