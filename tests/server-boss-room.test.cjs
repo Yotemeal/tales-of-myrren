@@ -251,6 +251,13 @@ class TransactionalMemory {
   deathNow = 500;
   assert.equal((await deathRoom.tick())[0].kind, 'warning');
   deathNow = 1200;
+  deathStore.failNextCommit = true;
+  await assert.rejects(() => deathRoom.tick(), /simulated atomic/,
+    'HP mutation, AI state and notification feed must roll back together');
+  assert.equal((await deathRoom.snapshot('a')).me.hp, 1,
+    'failed tick cannot ghost-kill an account');
+  assert.equal((await deathRoom.updates('a')).latestSequence, 1,
+    'failed tick cannot publish a phantom strike');
   const lethalStrike = await deathRoom.tick();
   assert.equal(lethalStrike[0].kind, 'strike');
   assert.equal(lethalStrike[0].hits[0].damage, 1);
