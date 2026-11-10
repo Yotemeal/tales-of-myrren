@@ -10,9 +10,11 @@ const worldSource=fs.readFileSync('public/myrren-world.js','utf8'),envSource=fs.
  }
  const document={getElementById(id){if(!elements.has(id))elements.set(id,element(id));return elements.get(id)},createElement:()=>element(),querySelectorAll:()=>[],addEventListener(){},hidden:false,activeElement:null};
  const memory=new Map(Object.entries(localSaves)),localStorage={getItem:k=>memory.get(k)||null,setItem:(k,v)=>memory.set(k,v)};
- const window={addEventListener(){},MyrrenKezV2Atlas:{ready:true,failed:false}};new Function('window',worldSource)(window);new Function('window','document',envSource)(window,document);
- new Function('window','document',fs.readFileSync('public/v31-character.js','utf8'))(window,document);
+ const window={addEventListener(){},MyrrenKezV2Atlas:{ready:true,failed:false}};
  class Image{constructor(){this.naturalWidth=128;this.naturalHeight=320}set src(v){this.onload?.()}}
+ new Function('window',worldSource)(window);
+ new Function('window','document','Image',envSource)(window,document,Image);
+ new Function('window','document',fs.readFileSync('public/v31-character.js','utf8'))(window,document);
  const timers=[];
  let request=null;
  const source=gameSource.slice(0,gameSource.lastIndexOf('})();'))+'window.__test={me,save,die,respawnPlayer,beginSwing,hpMax,CX,CY,BLD,SOLID,keys,VILLAGE,SMELT,FORGE,forgeXp,forgeReq,PRODUCTION_MS,smithMaximum,smithMaterials,smithStation,startSmithing,smithingTick,stopSmithing,smelt,forge,DEFS,xpTable,start,update,frame,drawOutdoor,smelt,forge,snap,applySave,adoptSave,nearSmithy,openSmithy,curShop,closeModal,enterBuilding,relocateSavedPosition,inventoryEntries,inventorySlots,reconcileSlots,moveInventorySlot,depositItem,withdrawItem,sellItemQuantity,availableItem,canSellEntry,bankAccess,SPOTS,TRADER,openModal,canFitInventory,stackKinds,slotsUsed,killMon,combatKillXp,resolveSwing,doAction,cookTick,beginAct,persist,buyItem,buyFood,unequip,equipFromBag,finalizeSave,parseSavedProgress,ITEMS,NT,COOK,MT,mons,nodes,blocked,recordMiningHit,miningDustColors,drawRock,nodeTip,activeDef,sellVal,xpPopups,queueXpDrop,addXp,meleeDistance,meleeReach,meleeTarget,faceMeleeTarget,combatImpacts,recordCombatHit,drawCombatImpacts,monsterWarningConfig,beginMonsterWarning,completeMonsterWarning,damagePlayerFromMonster,drawMonsterWarning,splats,splat,layoutMonsterOverlays,drawMonsterOverlays,layoutDamagePopups,drawDamagePopups,combatRectOverlaps,defeatCollapse,drawDefeatDust,drawMon,getPendingStrike:()=>pendingStrike,getAct:()=>act,getInside:()=>inside,getTab:()=>tab,getCat:()=>shopCat,setForgeMat:v=>forgeMat=v,setSmithQuantity:v=>smithQuantity=v,getSmithJob:()=>smithJob,getProductionReadyAt:()=>productionReadyAt};'+gameSource.slice(gameSource.lastIndexOf('})();'));
