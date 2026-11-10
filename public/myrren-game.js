@@ -1,4 +1,6 @@
 (()=>{
+// Keep this build number in sync with the public/index.html script URL.
+window.MyrrenBuild=84;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
