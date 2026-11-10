@@ -102,6 +102,50 @@ A future trusted delivery worker must source entitlements directly from the
 private room outbox, call the authenticated account ledger, then acknowledge
 the room receipt. It must not accept reward records sent by players.
 
+## Trusted movement foundation (isolated)
+
+The server-only `src/server-player-positions.mjs` now maintains authoritative
+per-account positions for a room. A trusted session resolver supplies the
+account ID, and a trusted character resolver supplies combat attributes.
+Players can send **direction only**, never coordinates, equipment, level,
+speed, damage or client timestamps. Server elapsed time caps movement at
+90 pixels/second and 100 milliseconds per input; small collision steps avoid
+jumping through thin obstacles. A reconnect retains the server position.
+
+The module has versioned private export/restore and can provide the
+`resolveVerifiedPlayer(sessionKey)` callback needed by
+`ServerBossEncounter`. Its regression test covers spoof rejection,
+collision, diagonal normalization, capped idle catch-up, disconnected session
+identity, dead/indoor movement, restart integrity and actual boss attack reach.
+
+**Important:** This is an isolated building block and does not yet use
+production world colliders, authenticated accounts, Durable Object storage,
+network messages or server NPC movement. The browser's current movement
+controls remain unchanged; no gameplay deployment has occurred.
+
+## Free Linux local testing / future runner setup
+
+From the repository root on a Linux PC with Node.js 22 or later:
+
+    bash scripts/test-boss-offline.sh
+
+This executes JavaScript syntax checks and the boss, account, room and
+movement regressions locally, without consuming GitHub-hosted Actions minutes.
+The script is committed as source but has not yet been run on the user's Linux
+machine. The new movement module has passed an isolated in-process smoke
+test; its full Node regression suite awaits local or self-hosted execution.
+
+When the Linux self-hosted runner is connected, we can change the workflow
+runner labels to target it and configure it as a system service. **Until
+then, GitHub Actions still uses hosted Ubuntu for regular non-skipped commits.**
+For this development branch, work-in-progress commits use `[skip ci]` to
+avoid further hosted minutes. Never ship by skipping release checks;
+a final unskipped commit must pass mandatory tests before merge/deploy.
+
+A runner automatically executes queued jobs; it does **not** independently
+write or push new code. Production Cloudflare deployment should stay gated
+behind a reviewed, tested main-branch release.
+
 ## Required before production multiplayer
 
 1. **Authentication and character authority.** Replace the optional presence
