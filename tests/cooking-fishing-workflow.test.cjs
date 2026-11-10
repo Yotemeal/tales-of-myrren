@@ -120,9 +120,13 @@ const createGame=require('./game-runtime.cjs');
     assert.equal(spot.fishSucceeded,false);
     assert.equal(g.save.xp.fishing,beforeMiss,'an escaped fish awards no XP');
     assert.equal(g.save.inv.rtrout,1,'escaped fish creates no inventory reward');
+    const baseStart=rectCount();
+    g.drawSpot({k:'spot2',x:spot.x,y:spot.y,back:spot.back},45,50,8900);
+    const baselinePixels=rectCount()-baseStart;
     const afterMiss=rectCount();
     g.drawSpot(spot,45,50,8900);
-    assert.equal(rectCount(),afterMiss,'fishing splash pixels expire after 440ms');
+    assert.equal(rectCount()-afterMiss,baselinePixels,
+      'expired splash draws no extra pixels beyond the normal animated fishing spot');
 
     // Tapping a fishing spot (including a depleted one) only draws its name
     // and level; it never triggers a cast.
