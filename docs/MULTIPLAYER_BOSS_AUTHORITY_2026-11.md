@@ -39,6 +39,38 @@ entitlement as coins or equipment already granted.
 - The regression suite compares actual boss values and payout rules against
   public/myrren-game.js; any future combat/balance divergence should fail CI.
 
+## Durable room transactions and reward outbox (prototype only)
+
+The isolated `src/boss-room-coordinator.mjs` adapter now uses a transaction-capable
+store compatible with Cloudflare Durable Object storage KV `transaction()`.
+Each successful hit loads the last committed boss state, applies verified
+attack logic and persists a new private snapshot. The killing hit commits both
+the terminal boss state **and a pending reward outbox** in one atomic
+transaction. If commit fails, neither death nor award entries are persisted.
+
+- Two concurrent attacks from the same verified account are serialized in
+  the backing transaction and cannot bypass the 900 ms account cooldown.
+- A new coordinator instance reads the same HP, cooldown and contributions.
+- Pending reward entries remain available after restart or failed settlement.
+  An internal payment worker may acknowledge each key with an external
+  account receipt; replaying the same receipt is a no-op, and changing the
+  receipt is rejected.
+- No pending entry directly gives anyone a coin, item or XP. Cross-object
+  account credit is a **separate authenticated idempotent transaction**.
+  Crash-after-credit-before-ack requires the account ledger to reject the
+  duplicate reward key, not merely the room to remember its acknowledgement.
+- The coordinator intentionally will not replace the stored spawn ID.
+  Respawns, state retirement, reset/AI loop and verified account service must
+  be added and tested before a live integration.
+- The committed fake storage tests verify transaction semantics, restart
+  continuity, fatal-hit failure rollback and acknowledgement conflicts. They
+  do **not** prove Cloudflare runtime, network latency or browser behaviour.
+
+Cloudflare currently recommends SQLite-backed Durable Objects, with declarative
+`exports` and a namespace binding in Wrangler. **No binding, class export,
+storage namespace, new public API or deployment configuration was added**.
+The live `src/worker.js` and `wrangler.jsonc` stay untouched.
+
 ## Required before production multiplayer
 
 1. **Authentication and character authority.** Replace the optional presence
@@ -78,6 +110,7 @@ entitlement as coins or equipment already granted.
 From the repository root:
 
     node tests/server-boss-encounter.test.cjs
+    node tests/boss-room-coordinator.test.cjs
     node tests/boss-contribution-loot.test.cjs
 
 The new test uses the existing headless game harness for parity, plus
