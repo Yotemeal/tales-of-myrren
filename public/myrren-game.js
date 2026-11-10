@@ -180,11 +180,13 @@ const CODE_KIND=['','axe','pick','sword','fist','net','rod'];
 // comparable training band at milestone levels; rare resources still differ
 // in success chance and value, and XP is awarded only on successful gathers.
 const NT={
-  tree:{name:'Tree',skill:'woodcutting',tool:'axe',req:1,xp:25,item:'logs',base:.34,dep:.5,rt:[12,20],verb:'cut'},
-  oak:{name:'Oak tree',skill:'woodcutting',tool:'axe',req:10,xp:55,item:'oak',base:.22,dep:.65,rt:[16,26],verb:'cut'},
-  maple:{name:'Maple tree',skill:'woodcutting',tool:'axe',req:30,xp:120,item:'maple',base:.2,dep:.7,rt:[20,30],verb:'cut'},
-  elder:{name:'Elderwood tree',skill:'woodcutting',tool:'axe',req:60,xp:520,item:'elder',base:.15,dep:.75,rt:[24,36],verb:'cut'},
-  myrren:{name:'Myrrenwood tree',skill:'woodcutting',tool:'axe',req:85,xp:1900,item:'myrren',base:.1,dep:.8,rt:[30,45],verb:'cut'},
+  // Small cuts to tree regrowth downtime; rarity, logs per gather, XP and
+  // depletion odds remain unchanged. Mature and rare trees stay slower.
+  tree:{name:'Tree',skill:'woodcutting',tool:'axe',req:1,xp:25,item:'logs',base:.34,dep:.5,rt:[10,16],verb:'cut'},
+  oak:{name:'Oak tree',skill:'woodcutting',tool:'axe',req:10,xp:55,item:'oak',base:.22,dep:.65,rt:[14,22],verb:'cut'},
+  maple:{name:'Maple tree',skill:'woodcutting',tool:'axe',req:30,xp:120,item:'maple',base:.2,dep:.7,rt:[18,27],verb:'cut'},
+  elder:{name:'Elderwood tree',skill:'woodcutting',tool:'axe',req:60,xp:520,item:'elder',base:.15,dep:.75,rt:[22,34],verb:'cut'},
+  myrren:{name:'Myrrenwood tree',skill:'woodcutting',tool:'axe',req:85,xp:1900,item:'myrren',base:.1,dep:.8,rt:[28,42],verb:'cut'},
   // Common ores recharge sooner so early Smithing has a usable material loop.
   // Higher-tier ore stays scarce; chances, ore per success and XP are unchanged.
   copper:{name:'Copper rock',skill:'mining',tool:'pick',req:1,xp:18,item:'copper',base:.32,dep:1,rt:[6,10],verb:'mine'},
@@ -1859,6 +1861,21 @@ const ORE_HIT_PALETTE={
   cobalt:['#5d77a8','#bad7ed'],obsidianite:['#9e5d80','#ff8d98'],
   aether:['#936dc2','#ddbdff'],meteorite:['#7eb4d6','#d2f9ff']
 };
+// Transient visual feedback is stored only on a resource node, never saved.
+// A failed chop gets bark chips; successful logs shed a few canopy leaves.
+// When a tree falls, the leaves continue briefly over the visible stump.
+function recordForestryHit(n,now,success){
+  n.chopHitAt=now;
+  n.chopSucceeded=!!success;
+}
+const FORESTRY_PALETTES={
+  tree:{bark:['#8e6d51','#d5a17c'],leaf:['#8ba75b','#c9d88c']},
+  oak:{bark:['#735841','#ac8960'],leaf:['#9da95c','#d5cd78']},
+  maple:{bark:['#795247','#ce9060'],leaf:['#b97843','#e5b46e']},
+  elder:{bark:['#4c6261','#89a79d'],leaf:['#7d9b54','#abc7a0']},
+  myrren:{bark:['#655a74','#ac8cb1'],leaf:['#83b9c2','#b2e0dc']}
+};
+function forestryHitPalette(n){return FORESTRY_PALETTES[n.k]||FORESTRY_PALETTES.tree}
 function recordMiningHit(n,now,success){
   n.mineHitAt=now;
   n.mineSucceeded=!!success;
@@ -2144,15 +2161,16 @@ function doAction(dt,now){
       if(fishing){a.casted=false;a.t=-.9}
       const success=Math.random()<clamp(nt.base+(L-nt.req)*.025+Math.max(0,d.mat-2)*.06,.05,.92);
       if(nt.skill==='mining')recordMiningHit(n,now,success);
+      if(nt.skill==='woodcutting')recordForestryHit(n,now,success);
       if(fishing){n.fishHitAt=now;n.fishSucceeded=success;}
-      burst(n.x,n.y-10,nt.tool==='axe'?['#9a6a38','#5a3a1f','#7ab648']:fishing?['#8cc0f4','#ffffff','#3f7fcc']:nt.skill==='mining'?miningDustColors(n):['#ffe14a','#ffffff','#c8d2d6'],nt.skill==='mining'&&!success?3:6,22);
+      burst(n.x,n.y-10,nt.tool==='axe'?[...forestryHitPalette(n).bark,forestryHitPalette(n).leaf[0]]:fishing?['#8cc0f4','#ffffff','#3f7fcc']:nt.skill==='mining'?miningDustColors(n):['#ffe14a','#ffffff','#c8d2d6'],!success&&(nt.skill==='mining'||nt.skill==='woodcutting')?3:6,22);
       if(success){
         save.inv[nt.item]++;
         if(n.k==='aether'&&save.perks.magnet&&Math.random()<.05){save.inv.aether++;say('The aether magnet doubles your yield!','gold')}
         say(fishing?'You catch some '+ITEMS[nt.item].name.toLowerCase().replace('raw ','raw ')+'.':'You get some '+ITEMS[nt.item].name.toLowerCase()+'.');
         if(fishing){me.catchFx={t:now,item:nt.item};startSwing(now)}
         addXp(nt.skill,nt.xp);rollPet(nt.skill);persist();if(tab)renderModal();
-        if(Math.random()<nt.dep){n.back=now+rint(nt.rt[0],nt.rt[1])*1000;act=null}
+        if(Math.random()<nt.dep){n.back=now+rint(nt.rt[0],nt.rt[1])*1000;if(nt.skill==='woodcutting')n.fellAt=now;act=null}
       }else if(fishing)say('The fish gets away.');
     }
   }else{
@@ -2474,7 +2492,48 @@ function nodeTip(n,x,y,now){
 // Monumental, non-harvestable ancient rainforest trees. Native-pixel art, not scaled resource trees.
 // Cathedral-canopy strangler figs: distinct scenic art, not harvestable trees.
 function drawAncientTree(n,x,y,now){MyrrenEnvironment.tree(ctx,n,x,y,now,true)}
-function drawTree(n,x,y,now){ctx.save();if(Math.abs(me.x-n.x)<31&&me.y<n.y&&me.y>n.y-90)ctx.globalAlpha=.48;MyrrenEnvironment.tree(ctx,n,x,y,now);ctx.restore()}
+// The tree silhouette stays anchored on its existing tile. Contact nudges the
+// entire sprite by only 1px (no slicing/clipping), and a bounded handful of
+// trunk chips / leaves plays over the stump when a depleted tree falls.
+function drawForestryImpact(n,x,y,now){
+  const age=now-(n.chopHitAt??-99999),fellAge=now-(n.fellAt??-99999);
+  const impact=age>=0&&age<380,leaves=n.chopSucceeded&&age>=0&&age<780;
+  const felled=fellAge>=0&&fellAge<960;
+  const colors=forestryHitPalette(n);
+  if(impact){
+    const p=age/380;
+    for(let i=0;i<(n.chopSucceeded?4:2);i++){
+      const side=i%2?1:-1;
+      const dx=side*(3+i*2+Math.round(6*p));
+      const dy=-13-(i%2)*3-Math.round(Math.sin(Math.PI*p)*(4+i%3));
+      R(x+dx,y+dy,p<.5?2:1,2,colors.bark[i%2]);
+    }
+  }
+  if(leaves||felled){
+    const t=felled?fellAge/960:age/780;
+    const count=felled?9:5;
+    for(let i=0;i<count;i++){
+      // Deterministic trajectories: smooth despite frame-rate variation.
+      const dx=(i*13%53)-26+Math.round((5+i%4*3)*t);
+      const dy=-43-(i*11%40)+Math.round((35+i%3*9)*t);
+      R(x+dx,y+dy,t<.65?2:1,t<.85?2:1,colors.leaf[i%2]);
+    }
+  }
+  if(n.back>0&&now>=n.back&&now-n.back<600){
+    const p=(now-n.back)/600;
+    R(x-5,y-16-Math.round(p*7),2,2,colors.leaf[1]);
+    R(x+6,y-20-Math.round(p*5),2,1,colors.leaf[0]);
+  }
+}
+function drawTree(n,x,y,now){
+  ctx.save();
+  if(Math.abs(me.x-n.x)<31&&me.y<n.y&&me.y>n.y-90)ctx.globalAlpha=.48;
+  const age=now-(n.chopHitAt??-99999);
+  const recoil=now>=n.back&&age>=0&&age<145?(Math.floor(age/40)%2===0?-1:1):0;
+  MyrrenEnvironment.tree(ctx,n,x+recoil,y,now);
+  drawForestryImpact(n,x,y,now);
+  ctx.restore();
+}
 // Ore nodes sit below character height; preserve their ground anchor and mining reach.
 // Short 1px recoil and tiny fragments make contact feel tangible, with no hitbox,
 // mining timer, reward or saved-position changes.
