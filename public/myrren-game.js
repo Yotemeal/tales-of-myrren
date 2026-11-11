@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=90;
+window.MyrrenBuild=91;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -3088,7 +3088,9 @@ function drawKezV2(x,y,o,now){
   const poseTime=dead?deathAt:now;
   const state={...o,now:poseTime,moving:!dead&&o.moving,
     swingAt:dead?undefined:o.swingAt,
-    equipmentPunch:o.tool==='fist'&&o.g?.every(mat=>!mat||gear?.supportsPunch?.(mat))};
+    equipmentPunch:o.tool==='fist'&&o.g?.every(mat=>!mat||gear?.supportsPunch?.(mat)),
+    equipmentSword:o.tool==='sword'&&gear?.supportsSword?.(o.mat)&&
+      (!o.g||o.g.every(mat=>!mat||gear.supportsSword(mat)))};
   const age=now-(o.swingAt??-99999),attacking=!dead&&age>=0&&age<320;
   const hurtAge=now-(o.isMe?(me.hurtAt??-99999):(o.hurtAt??-99999));
   const holding=o.tool&&o.tool!=='fist'&&(attacking||now<o.hold);

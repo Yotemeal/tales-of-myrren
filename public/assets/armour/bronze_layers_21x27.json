@@ -1,10 +1,10 @@
 {
   "materialId": 2,
-  "image": "/assets/armour/bronze_layers_21x27.png?v=4",
+  "image": "/assets/armour/bronze_layers_21x27.png?v=5",
   "frameWidth": 21,
   "frameHeight": 27,
   "frameColumns": 4,
-  "slotBlockRows": 10,
+  "slotBlockRows": 14,
   "slotOrder": [
     "shield",
     "helmet",
@@ -15,5 +15,6 @@
   ],
   "originX": 0,
   "originY": 0,
-  "punchStartRow": 6
+  "punchStartRow": 6,
+  "swordStartRow": 10
 }

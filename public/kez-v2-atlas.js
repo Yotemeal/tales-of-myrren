@@ -4,18 +4,24 @@
 'use strict';
 const atlas=new Image();
 let ready=false,failed=false;
-let punchSheet=null;
+let punchSheet=null,swordSheet=null;
 if(window.location&&new URLSearchParams(window.location.search).has('bronze-proof')){
   const punch=new Image();
   punch.onload=()=>{
     if(punch.naturalWidth===63&&punch.naturalHeight===108)punchSheet=punch;
   };
   punch.src='/assets/kez-v2/kez_v2_punch_proof.png?v=1';
+  const sword=new Image();
+  sword.onload=()=>{
+    if(sword.naturalWidth===63&&sword.naturalHeight===108)swordSheet=sword;
+  };
+  sword.src='/assets/kez-v2/kez_v2_sword_proof.png?v=1';
 }
 atlas.onerror=()=>{ready=false;failed=true;console.error('Kez V2 sprite atlas failed to load');window.dispatchEvent?.(new Event('myrren-kez-v2-error'))};
 const rows={idle:0,front:1,back:2,left:3,right:4,attack:5};
 const frameBounds=[];
 // Dominant-hand hilt sockets in the original 21×27 source cells.
+const swordSockets=[[[16,18],[13,18]],[[3,15],[7,15]],[[14,17],[9,17]],[[6,17],[12,17]]];
 const weaponSockets=[
   [[14,20],[15,20],[14,20],[13,20]],
   [[15,20],[15,19],[14,20],[13,19]],
@@ -108,6 +114,8 @@ function pose(o, now){
   // one forged sword, anchored at the glove, owns the entire strike.
   // Hold a grounded pose while swinging to avoid the hands marching in place.
   const swordHit=attacking&&o.tool==='sword';
+  const nativeSword=!!swordSheet&&swordHit&&o.equipmentSword;
+  const swordFrame=age<40||age>=295?0:age<145?1:2;
   // The authored idle row is front-facing. Play it for stationary front-facing
   // characters as well as portraits; never turn side/back players toward camera.
   // Combat holds the directional pose so a sword swing cannot snap to idle.
@@ -122,15 +130,16 @@ function pose(o, now){
   const sw=bounds.right-bounds.left+1,sh=bounds.bottom-bounds.top+1;
   const shift=Math.round((bounds.left+bounds.right)/2-10.5);
   const dx=Math.round(-sw/2+shift)-bounds.left,dy=1-sh-bounds.top;
-  const [handX,handY]=weaponSockets[row][frame];
+  const [handX,handY]=nativeSword&&swordFrame?swordSockets[row-1][swordFrame-1]:weaponSockets[row][frame];
   return {direction,row,frame,bounds,sw,sh,dx,dy,
-    gripX:dx+handX,gripY:dy+handY,nativePunch,punchFrame,
+    gripX:dx+handX,gripY:dy+handY,nativePunch,punchFrame,nativeSword,swordFrame,
     idleSheet:directionalIdle?idleArt[direction]:null,idlePose};
 }
 window.MyrrenKezV2Atlas={
  get ready(){return ready},
  get failed(){return failed},
  get punchReady(){return !!punchSheet},
+ get swordReady(){return !!swordSheet},
  get dimensions(){return {cellWidth:21,cellHeight:27,frames:4,rows:6,scale:1}},
  pose,
  draw(ctx,x,y,o,now,selected=pose(o,now)){
@@ -138,8 +147,10 @@ window.MyrrenKezV2Atlas={
   const {bounds,sw,sh,idleSheet,idlePose,row,frame,dx,dy}=selected;
   ctx.save();
   ctx.imageSmoothingEnabled=false;
-  if(selected.nativePunch){
-    ctx.drawImage(punchSheet,selected.punchFrame*21,(row-1)*27,21,27,
+  if(selected.nativePunch||selected.nativeSword){
+    const art=selected.nativeSword?swordSheet:punchSheet;
+    const col=selected.nativeSword?selected.swordFrame:selected.punchFrame;
+    ctx.drawImage(art,col*21,(row-1)*27,21,27,
       Math.round(x)+dx,Math.round(y)+dy,21,27);
   }else ctx.drawImage(idleSheet||atlas,(idleSheet?idlePose:frame)*21+bounds.left,
     (idleSheet?0:row*27)+bounds.top,sw,sh,

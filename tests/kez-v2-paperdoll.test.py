@@ -37,13 +37,13 @@ print('PASS: all 1008 frame slices are nonempty, alpha is hard, tier IDs and Myr
 public = Path(__file__).resolve().parents[1] / 'public'
 bronze = Image.open(public / 'assets/armour/bronze_layers_21x27.png').convert('RGBA')
 kez = Image.open(public / 'assets/kez-v2/kez_v2_atlas.png').convert('RGBA')
-assert bronze.size == (84, 1620)
+assert bronze.size == (84, 2268)
 assert set(bronze.getchannel('A').tobytes()) == {0, 255}
 for row in range(5):
     for frame in range(4):
         x, y = frame * 21, row * 27
         character = kez.crop((x, y, x + 21, y + 27))
-        boots_y = y + 4 * 270
+        boots_y = y + 4 * 378
         boots = bronze.crop((x, boots_y, x + 21, boots_y + 27))
         assert boots.getbbox()[3] == character.getbbox()[3], (row, frame)
 print('PASS: Bronze atlas uses hard alpha and all 20 idle/walk boot cells share the body baseline.')
@@ -72,3 +72,20 @@ for slot, name in enumerate(manifest['slotOrder']):
         if name == 'shield':
             assert len({frame.tobytes() for frame in gear_frames}) == 1, direction
 print('PASS: every Bronze punch layer is populated, the glove moves and the shield holds position.')
+
+sword = Image.open(public / 'assets/kez-v2/kez_v2_sword_proof.png').convert('RGBA')
+assert sword.size == (63, 108)
+for direction in range(4):
+    y = direction * 27
+    standing = kez.crop((0, y + 27, 21, y + 54))
+    strike = [sword.crop((col * 21, y, (col + 1) * 21, y + 27)) for col in range(3)]
+    assert strike[0].tobytes() == standing.tobytes()
+    assert len({frame.tobytes() for frame in strike}) == 3
+    for frame in strike:
+        for band in ((0, 0, 21, 13), (0, 22, 21, 27)):
+            assert frame.crop(band).tobytes() == standing.crop(band).tobytes()
+    for slot in range(6):
+        gear_y = (slot * manifest['slotBlockRows'] + manifest['swordStartRow'] + direction) * 27
+        assert all(bronze.crop((col * 21, gear_y, (col + 1) * 21, gear_y + 27)).getbbox()
+                   for col in range(3)), (slot, direction)
+print('PASS: four directional sword sequences preserve the original head and feet and have matching gear cells.')

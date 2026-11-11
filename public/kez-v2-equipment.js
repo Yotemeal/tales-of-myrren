@@ -9,13 +9,13 @@
  const DRAW_ORDER=['legs','boots','body','helmet','gloves','shield'];
  const atlases=new Map();
  function loadAtlas(manifest){
-  const {materialId,image,frameWidth,frameHeight,frameColumns,slotBlockRows,slotOrder,originX,originY,punchStartRow}=manifest;
+  const {materialId,image,frameWidth,frameHeight,frameColumns,slotBlockRows,slotOrder,originX,originY,punchStartRow,swordStartRow}=manifest;
   if(!Number.isInteger(materialId)||typeof image!=='string'||
     ![frameWidth,frameHeight,frameColumns,slotBlockRows].every(n=>Number.isInteger(n)&&n>0)||
     ![originX,originY].every(Number.isInteger)||frameColumns!==4||slotBlockRows<5||
     !Array.isArray(slotOrder)||!slotOrder.length||new Set(slotOrder).size!==slotOrder.length||
     !slotOrder.every(slot=>LIVE_SLOTS.includes(slot))||
-    (punchStartRow!=null&&(!Number.isInteger(punchStartRow)||punchStartRow<5||punchStartRow+4>slotBlockRows)))throw new Error('Invalid Kez equipment manifest');
+    [punchStartRow,swordStartRow].some(row=>row!=null&&(!Number.isInteger(row)||row<5||row+4>slotBlockRows)))throw new Error('Invalid Kez equipment manifest');
   const sprite=new Image();
   sprite.onload=()=>{
    if(sprite.naturalWidth!==frameWidth*frameColumns||
@@ -23,7 +23,7 @@
     console.error('Invalid Kez equipment atlas dimensions',image);
     return;
    }
-   atlases.set(materialId,{sprite,frameWidth,frameHeight,slotBlockRows,slotOrder,originX,originY,punchStartRow});
+   atlases.set(materialId,{sprite,frameWidth,frameHeight,slotBlockRows,slotOrder,originX,originY,punchStartRow,swordStartRow});
    window.dispatchEvent(new Event('myrren-kez-equipment-ready'));
   };
   sprite.onerror=()=>console.error('Could not load Kez equipment atlas',image);
@@ -48,10 +48,11 @@
    legacy[index]=0;
    const side=pose.direction==='left'||pose.direction==='right';
    if(phase!==(slot==='shield'&&side?'under':'over'))continue;
-   const {sprite,frameWidth:w,frameHeight:h,slotBlockRows,originX,originY,punchStartRow}=atlas;
+   const {sprite,frameWidth:w,frameHeight:h,slotBlockRows,originX,originY,punchStartRow,swordStartRow}=atlas;
    const punch=pose.nativePunch&&punchStartRow!=null;
-   const row=punch?punchStartRow+pose.row-1:pose.row;
-   const frame=punch?pose.punchFrame:pose.frame;
+   const sword=pose.nativeSword&&swordStartRow!=null;
+   const row=sword?swordStartRow+pose.row-1:punch?punchStartRow+pose.row-1:pose.row;
+   const frame=sword?pose.swordFrame:punch?pose.punchFrame:pose.frame;
    ctx.drawImage(sprite,frame*w,(block*slotBlockRows+row)*h,w,h,
     Math.round(x)+pose.dx-originX,Math.round(y)+pose.dy-originY,w,h);
   }
@@ -310,5 +311,6 @@
   shield(false);
  }
  window.MyrrenKezV2Equipment={draw,clean,palette:METALS,colorsFor,order:ORDER,hasAtlas:material=>atlases.has(material),
-  supportsPunch:material=>atlases.get(material)?.punchStartRow!=null};
+  supportsPunch:material=>atlases.get(material)?.punchStartRow!=null,
+  supportsSword:material=>atlases.get(material)?.swordStartRow!=null};
 })();
