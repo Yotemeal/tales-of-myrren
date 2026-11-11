@@ -1,0 +1,173 @@
+{
+  "schema": "tales-of-myrren/world-scale-study/v1",
+  "status": "review-only-not-production-approved",
+  "basis": "Myrren main (2026-11-11); visual proportions from Curse of Aros public gameplay screenshots (not original sprite files)",
+  "uncertainty": "Curse of Aros native asset dimensions and internal map tile size could not be independently verified. Targets are original Myrren proposals, not asserted CoA sprite measurements.",
+  "units": "game-world pixels, before canvas/device zoom",
+  "tileSize": 16,
+  "world": {
+    "width": 1600,
+    "height": 1600,
+    "tilesWide": 100,
+    "tilesHigh": 100,
+    "change": false
+  },
+  "character": {
+    "image": "/assets/kez-v2/kez_v2_atlas.png",
+    "sourceAtlas": [
+      84,
+      162
+    ],
+    "frame": [
+      21,
+      27
+    ],
+    "display": [
+      21,
+      27
+    ],
+    "change": false
+  },
+  "resources": {
+    "ores": {
+      "originalSourceDimensions": {
+        "copper": [
+          167,
+          134
+        ],
+        "tin": [
+          153,
+          133
+        ],
+        "iron": [
+          162,
+          136
+        ],
+        "coal": [
+          164,
+          138
+        ],
+        "black_iron": [
+          203,
+          147
+        ],
+        "obsidianite": [
+          161,
+          135
+        ],
+        "myrrenite": [
+          161,
+          184
+        ],
+        "meteorite": [
+          162,
+          134
+        ]
+      },
+      "currentWidth": 24,
+      "previewWidths": {
+        "copper": 22,
+        "tin": 22,
+        "iron": 22,
+        "coal": 22,
+        "black_iron": 26,
+        "obsidianite": 26,
+        "myrrenite": 26,
+        "meteorite": 26
+      },
+      "finalArtBudget": "Author new native 20–28px-wide ore sprites; no automatic downsampling of 153–203px illustrations into gameplay pixels.",
+      "physicalFootprintChange": false
+    },
+    "trees": {
+      "originalSourceSize": [
+        96,
+        96
+      ],
+      "currentDisplay": [
+        144,
+        144
+      ],
+      "species": {
+        "bramblewood": {
+          "previewWidth": 72,
+          "targetAuthoredSize": [
+            72,
+            84
+          ],
+          "note": "starter conifer; tall layered crown"
+        },
+        "alder": {
+          "previewWidth": 80,
+          "targetAuthoredSize": [
+            80,
+            92
+          ],
+          "note": "broadleaf canopy"
+        },
+        "ironbark": {
+          "previewWidth": 84,
+          "targetAuthoredSize": [
+            84,
+            104
+          ],
+          "note": "mature tall trunk"
+        },
+        "elderthorn": {
+          "previewWidth": 118,
+          "targetAuthoredSize": [
+            118,
+            140
+          ],
+          "note": "exceptional ancient silhouette; deep crown"
+        },
+        "starroot": {
+          "previewWidth": 100,
+          "targetAuthoredSize": [
+            100,
+            122
+          ],
+          "note": "rare Myrrenwood identity"
+        },
+        "duskwillow": {
+          "previewWidth": 88,
+          "targetAuthoredSize": [
+            88,
+            102
+          ],
+          "note": "ornamental willow"
+        },
+        "redleaf": {
+          "previewWidth": 80,
+          "targetAuthoredSize": [
+            80,
+            92
+          ],
+          "note": "ornamental autumn tree"
+        }
+      },
+      "animationNote": "Never animate full tree by 24 horizontal source-image slices; stable trunk, independent canopy/leaf frames at native pixel resolution.",
+      "physicalFootprintChange": false
+    }
+  },
+  "buildings": {
+    "currentFootprintWidths": {
+      "axe": 56,
+      "pick": 56,
+      "arms": 88,
+      "food": 56,
+      "fish": 54
+    },
+    "recommendation": "Keep footprints/doors/collision fixed during scale study; re-evaluate 70–100px displayed facades after trees shrink.",
+    "change": false
+  },
+  "paths": {
+    "currentTotalWidthApprox": 26,
+    "proposedMainVisualWidth": 38,
+    "notes": "Drawing only; do not widen pathKind/collision without level-layout QA.",
+    "change": false
+  },
+  "fishing": {
+    "recommendation": "Keep node positions, approximate 24–36px effect envelope with understated ripples/fish; future art pass.",
+    "change": false
+  }
+}
