@@ -24,9 +24,34 @@ async function checkBronzeGameplay(browser,base){
   const armour=['helm','body','legs','boots','shield','gloves'];
   const items=[...armour,'sword'].map(kind=>'bronze_'+kind);
   const directions=[['front','d',1],['back','u',1],['left','s',-1],['right','s',1]];
+  const clients=new Map();
+  const presence=new Map();
+  async function connectRoom(page,device){
+    clients.set(device,page);
+    await page.exposeBinding('relayBronzePresence',async(_,payload)=>{
+      presence.set(device,payload);
+      for(const [recipient,target] of clients){
+        if(recipient===device||target.isClosed())continue;
+        const peers=[...presence].map(([peer,data])=>({
+          peer,kind:'viewer',isMe:peer===recipient,presence:data
+        }));
+        await target.evaluate(peers=>window.receiveBronzePeers?.({peers}),peers);
+      }
+    });
+    await page.addInitScript(()=>{
+      const room={
+        onPeers(callback){window.receiveBronzePeers=callback},
+        onConnection(){},
+        connected(){return true},
+        presence(data){return window.relayBronzePresence(data)}
+      };
+      window.claude={use:async service=>service==='room'?room:null};
+    });
+  }
   for(const [device,viewport] of [['desktop',{width:1200,height:800}],['mobile',{width:390,height:844}]]){
     const mobile=device==='mobile';
     const page=await browser.newPage({viewport,isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1});
+    await connectRoom(page,device);
     const errors=[];
     page.on('pageerror',error=>errors.push(error.message));
     // Expose production inventory actions and set deterministic render inputs in this browser only.
@@ -46,6 +71,9 @@ async function checkBronzeGameplay(browser,base){
           },
           equipped(){return Object.values(save.eq).filter(Boolean).sort()},
           closeModal,
+          die,
+          respawnPlayer,
+          hurt(){me.hurtAt=performance.now();sendPresence()},
           state:null,
           pose(now){
             if(!this.state)return;
@@ -55,6 +83,15 @@ async function checkBronzeGameplay(browser,base){
             if(action==='hurt')me.hurtAt=now-75;
             if(action==='death')me.deathAt=now-420;
           }
+        };
+        const originalDrawKez=drawKezV2;
+        drawKezV2=function(x,y,avatar,now){
+          const drawn=originalDrawKez(x,y,avatar,now);
+          if(drawn&&!avatar.isMe)window.bronzeQA.lastPeerDraw={
+            name:avatar.name,gear:avatar.g,tool:avatar.tool,
+            hurt:now-avatar.hurtAt<220,dead:avatar.deathAt!=null
+          };
+          return drawn;
         };
       `;
       const end=script.lastIndexOf('})();');
@@ -107,6 +144,35 @@ async function checkBronzeGameplay(browser,base){
     await enter();
     assert.deepEqual(await page.evaluate(()=>window.bronzeQA.equipped()),[...items].sort());
     assert.deepEqual(errors,[]);
+    if(!mobile)continue;
+    const desktop=clients.get('desktop');
+    await desktop.evaluate(()=>{window.bronzeQA.state=null});
+    await desktop.locator('#intro').waitFor({state:'hidden'});
+    const peerShows=async expected=>page.waitForFunction(expected=>{
+      const draw=window.bronzeQA.lastPeerDraw;
+      return draw?.name==='Bronze QA'&&Object.entries(expected).every(
+        ([key,value])=>JSON.stringify(draw[key])===JSON.stringify(value));
+    },expected);
+    await desktop.evaluate(()=>window.bronzeQA.set(['bronze_shield','bronze_sword']));
+    await peerShows({gear:[0,0,0,0,2,0],tool:'sword'});
+    await page.screenshot({path:path.join(output,'mobile-remote-sword-shield.png')});
+    // Install the observer before emitting the short hurt flash.
+    await page.evaluate(()=>{
+      window.sawBronzePeerHurt=false;
+      const inspect=()=>{
+        if(window.bronzeQA.lastPeerDraw?.hurt)window.sawBronzePeerHurt=true;
+        else requestAnimationFrame(inspect);
+      };
+      requestAnimationFrame(inspect);
+    });
+    await desktop.evaluate(()=>window.bronzeQA.hurt());
+    await page.waitForFunction(()=>window.sawBronzePeerHurt);
+    await desktop.evaluate(()=>window.bronzeQA.die());
+    await peerShows({dead:true});
+    await page.screenshot({path:path.join(output,'mobile-remote-collapse.png')});
+    await desktop.evaluate(()=>window.bronzeQA.respawnPlayer());
+    await peerShows({dead:false,gear:[0,0,0,0,2,0],tool:'sword'});
+    await desktop.close();
     await page.close();
   }
   console.log('PASS: Bronze gameplay captures, production equip/unequip, equipment UI and reload');
