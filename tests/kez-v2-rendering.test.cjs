@@ -281,22 +281,22 @@ console.log('PASS: Kez V2 native dimensions, four directional idle/run poses, at
   };
   const atlas={
     ready:true,
-    pose(state,time){calls.push(['pose',state.moving,state.swingAt,time]);return {}},
+    pose(state,time){calls.push(['pose',state.moving,state.swingAt,time]);return {gripX:-4,gripY:-6}},
     draw(){calls.push('body')}
   };
-  const gear={draw(context,x,y,state,pass){calls.push(pass)}};
+  const gear={hasAtlas:material=>material===2,draw(context,x,y,state,pass){calls.push(pass)}};
   const run=vm.runInNewContext(drawKez+'\ndrawKezV2', {
     window:{MyrrenKezV2Atlas:atlas,MyrrenKezV2Equipment:gear},
-    me:{deathAt:1000},ctx,shadowE(){},drawTool(kind){calls.push(kind)},
+    me:{deathAt:1000},ctx,shadowE(){},drawTool(kind,material,x,y){calls.push([kind,x,y])},
     R(){},label(){calls.push('label')}
   });
-  const state={isMe:true,dv:'u',f:1,moving:true,swingAt:1200,tool:'sword',hold:1e12};
+  const state={isMe:true,dv:'u',f:1,moving:true,swingAt:1200,tool:'sword',mat:2,hold:1e12};
   assert(run(30,40,state,1300));
-  assert.deepEqual(calls,['save',['rotate',1.35],'sword',
-    ['pose',false,undefined,1000],'under','body','over','restore']);
+  assert.deepEqual(calls,[['pose',false,undefined,1000],'save',['rotate',1.35],
+    ['sword',26,34],'under','body','over','restore']);
   calls.length=0;
   assert(run(30,40,{...state,tool:'pick'},1350));
-  assert(!calls.includes('pick'),'gathering tools should not be drawn during collapse');
+  assert(!calls.some(call=>Array.isArray(call)&&call[0]==='pick'),'gathering tools should not be drawn during collapse');
 }
 
 // Exercise the actual peer ingestion path with current and legacy payloads.

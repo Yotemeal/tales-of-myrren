@@ -3095,9 +3095,11 @@ function drawKezV2(x,y,o,now){
   const facing=o.f<0?-1:1;
   // Weapon in the dominant hand; shield stays on the opposite side.
   // Rear-facing weapons belong behind the base sprite, not across the torso.
-  const hx=Math.round(x+(direction==='back'?-8:direction==='side'?facing*6:5));
+  const pose=atlas.pose(state,poseTime);
+  const fittedGrip=o.tool==='sword'&&gear?.hasAtlas?.(o.mat)&&pose;
+  const hx=Math.round(x)+(fittedGrip?pose.gripX:(direction==='back'?-8:direction==='side'?facing*6:5));
   // Dominant-hand socket matches gloves at y=-8..-4, below the face.
-  const hy=Math.round(y-7);
+  const hy=Math.round(y)+(fittedGrip?pose.gripY:-7);
   const glove=o.g?.[5];
   const handColor=glove&&gear?.colorsFor?.(glove,o.dye)?.[2]||'#edbc94';
   const heldAngle=attacking
@@ -3123,7 +3125,6 @@ function drawKezV2(x,y,o,now){
   }
   if(hurtAge>=0&&hurtAge<220)ctx.globalAlpha*=.65;
   if(direction==='back'){paintHeld();paintPunch()}
-  const pose=atlas.pose(state,poseTime);
   gear?.draw(ctx,x,y,state,'under',pose);
   atlas.draw(ctx,x,y,state,now,pose);
   gear?.draw(ctx,x,y,state,'over',pose);

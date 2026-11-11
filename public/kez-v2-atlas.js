@@ -7,6 +7,14 @@ let ready=false,failed=false;
 atlas.onerror=()=>{ready=false;failed=true;console.error('Kez V2 sprite atlas failed to load');window.dispatchEvent?.(new Event('myrren-kez-v2-error'))};
 const rows={idle:0,front:1,back:2,left:3,right:4,attack:5};
 const frameBounds=[];
+// Dominant-hand hilt sockets in the original 21×27 source cells.
+const weaponSockets=[
+  [[14,20],[15,20],[14,20],[13,20]],
+  [[15,20],[15,19],[14,20],[13,19]],
+  [[6,16],[6,16],[5,15],[4,16]],
+  [[13,18],[9,17],[12,18],[12,18]],
+  [[8,18],[8,17],[9,17],[8,17]]
+];
 // Four bespoke idle poses per direction, synthesized from the approved
 // stationary pixels. Unlike walking frames, feet and equipment anchors stay
 // fixed. A one-pixel shoulder/torso expansion gives subtle breathing.
@@ -103,9 +111,11 @@ function pose(o, now){
   const bounds=directionalIdle&&idleBounds[direction]?idleBounds[direction]:frameBounds[row][frame];
   const sw=bounds.right-bounds.left+1,sh=bounds.bottom-bounds.top+1;
   const shift=Math.round((bounds.left+bounds.right)/2-10.5);
-  return {direction,row,frame,bounds,sw,sh,
-    idleSheet:directionalIdle?idleArt[direction]:null,idlePose,
-    dx:Math.round(-sw/2+shift)-bounds.left,dy:1-sh-bounds.top};
+  const dx=Math.round(-sw/2+shift)-bounds.left,dy=1-sh-bounds.top;
+  const [handX,handY]=weaponSockets[row][frame];
+  return {direction,row,frame,bounds,sw,sh,dx,dy,
+    gripX:dx+handX,gripY:dy+handY,
+    idleSheet:directionalIdle?idleArt[direction]:null,idlePose};
 }
 window.MyrrenKezV2Atlas={
  get ready(){return ready},

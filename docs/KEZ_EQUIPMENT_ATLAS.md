@@ -27,3 +27,5 @@ The proof PNG now positions the existing helmet art relative to each direction's
 The shield art is repositioned per idle and walk cell and retains its narrow side profile. Gloves are placed on the visible knuckles in the body cells. Side cells carry a single near-hand glove. These are idle and walk adjustments. The combat grip still uses the current weapon renderer.
 
 Presence now carries cosmetic facing, hurt and death state. A receiver timestamps a new hit or collapse on its own clock. Repeated packets keep the original animation start, and respawn clears collapse. Older payloads still use movement-inferred facing. These fields affect only peer appearance.
+
+Kez's pose also exposes native weapon-hand sockets. In Bronze proof mode the sword uses the selected cell's hand socket plus the same origin as the body and gloves, including during walking and collapse. Sword strikes still use the established sword motion and grounded directional body cell.
