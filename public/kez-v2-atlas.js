@@ -4,7 +4,7 @@
 'use strict';
 const atlas=new Image();
 let ready=false,failed=false;
-let punchSheet=null,swordSheet=null;
+let punchSheet=null,swordSheet=null,collapseSheet=null;
 if(window.location&&new URLSearchParams(window.location.search).has('bronze-proof')){
   const punch=new Image();
   punch.onload=()=>{
@@ -16,6 +16,11 @@ if(window.location&&new URLSearchParams(window.location.search).has('bronze-proo
     if(sword.naturalWidth===63&&sword.naturalHeight===108)swordSheet=sword;
   };
   sword.src='/assets/kez-v2/kez_v2_sword_proof.png?v=1';
+  const collapse=new Image();
+  collapse.onload=()=>{
+    if(collapse.naturalWidth===72&&collapse.naturalHeight===896)collapseSheet=collapse;
+  };
+  collapse.src='/assets/kez-v2/kez_v2_collapse_proof.png?v=1';
 }
 atlas.onerror=()=>{ready=false;failed=true;console.error('Kez V2 sprite atlas failed to load');window.dispatchEvent?.(new Event('myrren-kez-v2-error'))};
 const rows={idle:0,front:1,back:2,left:3,right:4,attack:5};
@@ -119,10 +124,10 @@ function pose(o, now){
   // The authored idle row is front-facing. Play it for stationary front-facing
   // characters as well as portraits; never turn side/back players toward camera.
   // Combat holds the directional pose so a sword swing cannot snap to idle.
-  const frontIdle=!nativePunch&&!swordHit&&!o.moving&&direction==='front';
+  const frontIdle=!o.collapsePose&&!nativePunch&&!swordHit&&!o.moving&&direction==='front';
   const useIdle=o.animateIdle||frontIdle;
   const row=useIdle?rows.idle:rows[direction];
-  const directionalIdle=!nativePunch&&!swordHit&&!o.moving&&!useIdle;
+  const directionalIdle=!o.collapsePose&&!nativePunch&&!swordHit&&!o.moving&&!useIdle;
   const idlePose=Math.floor(now/650)%4;
   const frame=useIdle?Math.floor(now/440)%4:(swordHit||nativePunch)?0:
     directionalIdle?0:o.moving?Math.floor(now/130)%4:0;
@@ -140,6 +145,12 @@ window.MyrrenKezV2Atlas={
  get failed(){return failed},
  get punchReady(){return !!punchSheet},
  get swordReady(){return !!swordSheet},
+ get collapseReady(){return !!collapseSheet},
+ drawCollapseLayer(ctx,x,y,direction,frame,layer){
+  ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(collapseSheet,frame*36,(layer*4+direction)*32,36,32,
+    Math.round(x)-10,Math.round(y)-16,36,32);
+ },
  get dimensions(){return {cellWidth:21,cellHeight:27,frames:4,rows:6,scale:1}},
  pose,
  draw(ctx,x,y,o,now,selected=pose(o,now)){

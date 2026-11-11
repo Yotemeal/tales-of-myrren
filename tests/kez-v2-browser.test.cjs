@@ -101,7 +101,7 @@ async function checkBronzeGameplay(browser,base){
     const url=base+'/?bronze-proof';
     const enter=async()=>{
       await page.waitForFunction(()=>window.MyrrenKezV2Equipment?.hasAtlas(2)&&
-        window.MyrrenKezV2Atlas?.ready&&window.MyrrenKezV2Atlas.punchReady&&window.MyrrenKezV2Atlas.swordReady&&
+        window.MyrrenKezV2Atlas?.ready&&window.MyrrenKezV2Atlas.punchReady&&window.MyrrenKezV2Atlas.swordReady&&window.MyrrenKezV2Atlas.collapseReady&&
         !document.querySelector('#go').disabled);
       await page.locator('#nick').fill('Bronze QA');
       await page.locator('#go').click();

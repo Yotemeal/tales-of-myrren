@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=91;
+window.MyrrenBuild=92;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -3087,7 +3087,7 @@ function drawKezV2(x,y,o,now){
   const dead=deathAge>=0;
   const poseTime=dead?deathAt:now;
   const state={...o,now:poseTime,moving:!dead&&o.moving,
-    swingAt:dead?undefined:o.swingAt,
+    swingAt:dead?undefined:o.swingAt,collapsePose:dead&&atlas.collapseReady&&gear?.hasAtlas?.(2),
     equipmentPunch:o.tool==='fist'&&o.g?.every(mat=>!mat||gear?.supportsPunch?.(mat)),
     equipmentSword:o.tool==='sword'&&gear?.supportsSword?.(o.mat)&&
       (!o.g||o.g.every(mat=>!mat||gear.supportsSword(mat)))};
@@ -3119,6 +3119,28 @@ function drawKezV2(x,y,o,now){
     const px=direction==='back'?x-4:direction==='side'?x+facing*6:x+4;
     R(Math.round(px)-1,Math.round(y-11),2,2,handColor);
   };
+  const collapse=dead&&deathAge>=75&&atlas.collapseReady&&gear?.hasAtlas?.(2)&&
+    (!o.g||o.g.every(mat=>!mat||mat===2))&&(o.tool!=='sword'||o.mat===2);
+  if(collapse){
+    const frame=deathAge<200?0:1;
+    const fallAngle=frame===0?.70:Math.PI/2;
+    const fallSword=()=>{
+      ctx.save();
+      ctx.translate(Math.round(x),Math.round(y));ctx.rotate(fallAngle);
+      ctx.translate(-Math.round(x),-Math.round(y));
+      paintHeld();
+      ctx.restore();
+    };
+    shadowE(x+9,y+1,12,2,.22);
+    ctx.save();
+    if(direction==='back')fallSword();
+    gear.drawCollapse(ctx,x,y,state,pose,frame,'under');
+    atlas.drawCollapseLayer(ctx,x,y,pose.row-1,frame,0);
+    gear.drawCollapse(ctx,x,y,state,pose,frame,'over');
+    if(direction!=='back')fallSword();
+    ctx.restore();
+    return true;
+  }
   shadowE(x,y+1,5,2,.28);
   ctx.save();
   if(dead){

@@ -89,3 +89,16 @@ for direction in range(4):
         assert all(bronze.crop((col * 21, gear_y, (col + 1) * 21, gear_y + 27)).getbbox()
                    for col in range(3)), (slot, direction)
 print('PASS: four directional sword sequences preserve the original head and feet and have matching gear cells.')
+
+collapse = Image.open(public / 'assets/kez-v2/kez_v2_collapse_proof.png').convert('RGBA')
+assert collapse.size == (72, 896)
+for row in range(28):
+    y = row * 32
+    falling = collapse.crop((0, y, 36, y + 32))
+    resting = collapse.crop((36, y, 72, y + 32))
+    assert falling.getbbox() and resting.getbbox(), row
+    assert falling.tobytes() != resting.tobytes(), row
+    if row < 4:
+        left, top, right, bottom = resting.getbbox()
+        assert right - left > bottom - top, row
+print('PASS: all four Bronze fall directions have populated body and equipment cells, with horizontal rest poses.')

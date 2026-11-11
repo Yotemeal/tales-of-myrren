@@ -36,6 +36,16 @@
    return response.json();
   }).then(loadAtlas).catch(error=>console.error(error));
  }
+ function drawCollapse(ctx,x,y,o,pose,frame,phase){
+  const order=atlases.get(2).slotOrder;
+  const gear=clean(o.g);
+  const side=pose.row>=3;
+  for(const slot of DRAW_ORDER){
+   if(!gear[LIVE_SLOTS.indexOf(slot)]||
+      phase!==(slot==='shield'&&side?'under':'over'))continue;
+   window.MyrrenKezV2Atlas.drawCollapseLayer(ctx,x,y,pose.row-1,frame,order.indexOf(slot)+1);
+  }
+ }
  function drawAtlas(ctx,x,y,gear,pose,phase){
   if(!pose||!atlases.size)return gear;
   const legacy=gear.slice();
@@ -310,7 +320,7 @@
   }
   shield(false);
  }
- window.MyrrenKezV2Equipment={draw,clean,palette:METALS,colorsFor,order:ORDER,hasAtlas:material=>atlases.has(material),
+ window.MyrrenKezV2Equipment={draw,drawCollapse,clean,palette:METALS,colorsFor,order:ORDER,hasAtlas:material=>atlases.has(material),
   supportsPunch:material=>atlases.get(material)?.punchStartRow!=null,
   supportsSword:material=>atlases.get(material)?.swordStartRow!=null};
 })();
