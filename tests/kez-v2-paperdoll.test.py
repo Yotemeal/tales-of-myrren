@@ -37,13 +37,13 @@ print('PASS: all 1008 frame slices are nonempty, alpha is hard, tier IDs and Myr
 public = Path(__file__).resolve().parents[1] / 'public'
 bronze = Image.open(public / 'assets/armour/bronze_layers_21x27.png').convert('RGBA')
 kez = Image.open(public / 'assets/kez-v2/kez_v2_atlas.png').convert('RGBA')
-assert bronze.size == (84, 972)
+assert bronze.size == (84, 1620)
 assert set(bronze.getchannel('A').tobytes()) == {0, 255}
 for row in range(5):
     for frame in range(4):
         x, y = frame * 21, row * 27
         character = kez.crop((x, y, x + 21, y + 27))
-        boots_y = y + 4 * 162
+        boots_y = y + 4 * 270
         boots = bronze.crop((x, boots_y, x + 21, boots_y + 27))
         assert boots.getbbox()[3] == character.getbbox()[3], (row, frame)
 print('PASS: Bronze atlas uses hard alpha and all 20 idle/walk boot cells share the body baseline.')

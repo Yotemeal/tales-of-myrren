@@ -132,6 +132,8 @@ async function checkBronzeGameplay(browser,base){
       await capture('sword-attack','s',1,false,'attack');
       await equip([]);
       for(const [direction,dv,face] of directions)await capture('punch-'+direction,dv,face,false,'attack');
+      await equip(items.filter(id=>id!=='bronze_sword'));
+      for(const [direction,dv,face] of directions)await capture('bronze-punch-'+direction,dv,face,false,'attack');
       await equip(items);
       await capture('walk','s',-1,true);
       await capture('hurt','d',1,false,'hurt');

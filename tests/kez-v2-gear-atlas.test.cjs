@@ -36,10 +36,14 @@ const manifest=require('../public/assets/armour/bronze_layers_21x27.json');
    api.draw(ctx,50.3,80.7,state,'under',pose);
    assert.equal(cells.length,slots[i]==='shield'&&row>=3?1:0);
    api.draw(ctx,50.3,80.7,state,'over',pose);
-   assert.deepEqual(cells,[[63,(manifest.slotOrder.indexOf(slots[i])*6+row)*27,
+   assert.deepEqual(cells,[[63,(manifest.slotOrder.indexOf(slots[i])*manifest.slotBlockRows+row)*27,
      21,27,39,57,21,27]]);
   }
  }
+ cells.length=0;
+ api.draw(ctx,50,80,{g:[0,0,0,0,0,2]},'over',
+  {direction:'right',row:4,frame:0,nativePunch:true,punchFrame:2,dx:-11,dy:-24});
+ assert.deepEqual(cells,[[42,(5*manifest.slotBlockRows+9)*27,21,27,39,56,21,27]]);
  assert.equal(legacy.length,0,'Bronze PNG replaces legacy drawing for covered slots');
  cells.length=0;
  api.draw(ctx,50,80,{g:[2,3,0,0,0,0]},'over',{direction:'front',row:1,frame:0,dx:-11,dy:-24});

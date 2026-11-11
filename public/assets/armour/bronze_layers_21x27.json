@@ -1,11 +1,19 @@
 {
   "materialId": 2,
-  "image": "/assets/armour/bronze_layers_21x27.png?v=3",
+  "image": "/assets/armour/bronze_layers_21x27.png?v=4",
   "frameWidth": 21,
   "frameHeight": 27,
   "frameColumns": 4,
-  "slotBlockRows": 6,
-  "slotOrder": ["shield", "helmet", "body", "legs", "boots", "gloves"],
+  "slotBlockRows": 10,
+  "slotOrder": [
+    "shield",
+    "helmet",
+    "body",
+    "legs",
+    "boots",
+    "gloves"
+  ],
   "originX": 0,
-  "originY": 0
+  "originY": 0,
+  "punchStartRow": 6
 }

@@ -3087,7 +3087,8 @@ function drawKezV2(x,y,o,now){
   const dead=deathAge>=0;
   const poseTime=dead?deathAt:now;
   const state={...o,now:poseTime,moving:!dead&&o.moving,
-    swingAt:dead?undefined:o.swingAt};
+    swingAt:dead?undefined:o.swingAt,
+    equipmentPunch:o.tool==='fist'&&o.g?.every(mat=>!mat||gear?.supportsPunch?.(mat))};
   const age=now-(o.swingAt??-99999),attacking=!dead&&age>=0&&age<320;
   const hurtAge=now-(o.isMe?(me.hurtAt??-99999):(o.hurtAt??-99999));
   const holding=o.tool&&o.tool!=='fist'&&(attacking||now<o.hold);

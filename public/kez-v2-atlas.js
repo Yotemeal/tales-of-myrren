@@ -100,7 +100,7 @@ function pose(o, now){
   if(!ready)return null;
   const age=now-(o.swingAt??-99999),attacking=age>=0&&age<320;
   const direction=o.dv==='u'?'back':o.dv==='s'?(o.f<0?'left':'right'):'front';
-  const nativePunch=punchSheet&&attacking&&o.tool==='fist'&&!o.g?.some(Boolean);
+  const nativePunch=punchSheet&&attacking&&o.tool==='fist'&&(!o.g?.some(Boolean)||o.equipmentPunch);
   const punchFrame=age<40?0:age<105?1:age<205?2:age<270?1:0;
   // The legacy attack row has a white slash baked into the body frames.
   // Drawing it together with the separately rotated equipped sword produces
