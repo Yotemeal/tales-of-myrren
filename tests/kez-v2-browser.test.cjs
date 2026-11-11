@@ -17,12 +17,108 @@ const server=http.createServer((request,response)=>{
     fs.createReadStream(filename).pipe(response);
   }catch(_){response.writeHead(404);response.end('Not found')}
 });
+const bronzeProof=process.argv.includes('--bronze-proof');
+async function checkBronzeGameplay(browser,base){
+  const output='/tmp/myrren-bronze-gameplay';
+  fs.mkdirSync(output,{recursive:true});
+  const armour=['helm','body','legs','boots','shield','gloves'];
+  const items=[...armour,'sword'].map(kind=>'bronze_'+kind);
+  const directions=[['front','d',1],['back','u',1],['left','s',-1],['right','s',1]];
+  for(const [device,viewport] of [['desktop',{width:1200,height:800}],['mobile',{width:390,height:844}]]){
+    const mobile=device==='mobile';
+    const page=await browser.newPage({viewport,isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1});
+    const errors=[];
+    page.on('pageerror',error=>errors.push(error.message));
+    // Expose production inventory actions and set deterministic render inputs in this browser only.
+    await page.route('**/myrren-game.js?*',async route=>{
+      const response=await route.fetch();
+      let script=await response.text();
+      assert(script.includes('  update(dt,now);'));
+      script=script.replace('  update(dt,now);','  update(dt,now);\n  window.bronzeQA?.pose(now);');
+      const hook=`
+        window.bronzeQA={
+          fill(ids){save.bag=[...new Set([...save.bag,...ids])]},
+          set(ids){
+            for(const slot of SLOTS)unequip(slot);
+            for(const id of ids)equipFromBag(save.bag.indexOf(id));
+            persist(true);
+            return Object.values(save.eq).filter(Boolean).sort();
+          },
+          equipped(){return Object.values(save.eq).filter(Boolean).sort()},
+          closeModal,
+          state:null,
+          pose(now){
+            if(!this.state)return;
+            const {dv,face,moving,action}=this.state;
+            Object.assign(me,{dv,face,moving});
+            if(action==='attack')me.swing=now-145;
+            if(action==='hurt')me.hurtAt=now-75;
+            if(action==='death')me.deathAt=now-420;
+          }
+        };
+      `;
+      const end=script.lastIndexOf('})();');
+      assert(end>=0);
+      await route.fulfill({response,body:script.slice(0,end)+hook+script.slice(end)});
+    });
+    const url=base+'/?bronze-proof';
+    const enter=async()=>{
+      await page.waitForFunction(()=>window.MyrrenKezV2Equipment?.hasAtlas(2)&&
+        window.MyrrenKezV2Atlas?.ready&&!document.querySelector('#go').disabled);
+      await page.locator('#nick').fill('Bronze QA');
+      await page.locator('#go').click();
+      await page.waitForFunction(()=>document.querySelector('#intro').hidden);
+    };
+    await page.goto(url);
+    await enter();
+    await page.evaluate(ids=>window.bronzeQA.fill(ids),items);
+    const equip=async ids=>assert.deepEqual(await page.evaluate(ids=>window.bronzeQA.set(ids),ids),[...ids].sort());
+    const capture=async(name,dv,face,moving=false,action=null)=>{
+      await page.evaluate(async state=>{
+        window.bronzeQA.state=state;
+        await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      },{dv,face,moving,action});
+      await page.screenshot({path:path.join(output,device+'-'+name+'.png')});
+    };
+    for(const [name,ids] of [['bare',[]],['bronze',items]]){
+      await equip(ids);
+      for(const [direction,dv,face] of directions)await capture(name+'-'+direction,dv,face);
+    }
+    if(!mobile){
+      for(const kind of [...armour,'sword']){
+        await equip(['bronze_'+kind]);
+        await capture(kind+'-only','d',1);
+      }
+      await equip(['bronze_sword','bronze_shield']);
+      await capture('sword-and-shield','s',1);
+      await capture('sword-attack','s',1,false,'attack');
+      await equip([]);
+      await capture('punch','d',1,false,'attack');
+      await equip(items);
+      await capture('walk','s',-1,true);
+      await capture('hurt','d',1,false,'hurt');
+      await page.locator('[data-ui-open="gear"]').click();
+      await page.locator('.character-portrait canvas').waitFor();
+      await page.screenshot({path:path.join(output,'desktop-equipment-panel.png')});
+      await page.evaluate(()=>window.bronzeQA.closeModal());
+      await capture('death','d',1,false,'death');
+    }
+    await page.reload();
+    await enter();
+    assert.deepEqual(await page.evaluate(()=>window.bronzeQA.equipped()),[...items].sort());
+    assert.deepEqual(errors,[]);
+    await page.close();
+  }
+  console.log('PASS: Bronze gameplay captures, production equip/unequip, equipment UI and reload');
+}
+
 (async()=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const base='http://127.0.0.1:'+server.address().port;
   let browser;
   try{
     browser=await chromium.launch({headless:true});
+    if(bronzeProof){await checkBronzeGameplay(browser,base);return;}
     const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
     const errors=[];
     page.on('pageerror',e=>errors.push(e.message));
