@@ -64,7 +64,6 @@
           134
         ]
       },
-      "currentWidth": 24,
       "previewWidths": {
         "copper": 22,
         "tin": 22,
@@ -75,8 +74,12 @@
         "myrrenite": 26,
         "meteorite": 26
       },
-      "finalArtBudget": "Author new native 20–28px-wide ore sprites; no automatic downsampling of 153–203px illustrations into gameplay pixels.",
-      "physicalFootprintChange": false
+      "finalArtBudget": "Native 22px common / 26px rare ore clusters, with single-stage integer/nearest-neighbour draw. Existing large reference PNGs remain untouched for approved art direction.",
+      "physicalFootprintChange": false,
+      "currentSourceDrawWidth": 24,
+      "outerDrawScale": 0.72,
+      "currentEffectiveDisplayWidth": 17.28,
+      "note": "Current rock wrapper drawRock() applies ctx.scale(0.72,0.72) OUTSIDE MyrrenEnvironment.rock() which draws 24px resource images; the effective width is 17.28 game px. Procedural 42px fallback becomes 30.24px wide and visibly changes size when the PNG loads."
     },
     "trees": {
       "originalSourceSize": [
