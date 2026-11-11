@@ -60,3 +60,15 @@ for direction in range(4):
         assert frame.crop((0, 0, 21, 13)).tobytes() == standing.crop((0, 0, 21, 13)).tobytes()
         assert frame.crop((0, 22, 21, 27)).tobytes() == standing.crop((0, 22, 21, 27)).tobytes()
 print('PASS: all four punch directions have three distinct poses, with original head and feet pixels.')
+
+manifest = json.loads((public / 'assets/armour/bronze_layers_21x27.json').read_text())
+for slot, name in enumerate(manifest['slotOrder']):
+    for direction in range(4):
+        y = (slot * manifest['slotBlockRows'] + manifest['punchStartRow'] + direction) * 27
+        gear_frames = [bronze.crop((col * 21, y, (col + 1) * 21, y + 27)) for col in range(3)]
+        assert all(frame.getbbox() for frame in gear_frames), (name, direction)
+        if name == 'gloves':
+            assert gear_frames[0].tobytes() != gear_frames[2].tobytes(), direction
+        if name == 'shield':
+            assert len({frame.tobytes() for frame in gear_frames}) == 1, direction
+print('PASS: every Bronze punch layer is populated, the glove moves and the shield holds position.')
