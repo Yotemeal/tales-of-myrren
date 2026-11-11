@@ -29,3 +29,5 @@ The shield art is repositioned per idle and walk cell and retains its narrow sid
 Presence now carries cosmetic facing, hurt and death state. A receiver timestamps a new hit or collapse on its own clock. Repeated packets keep the original animation start, and respawn clears collapse. Older payloads still use movement-inferred facing. These fields affect only peer appearance.
 
 Kez's pose also exposes native weapon-hand sockets. In Bronze proof mode the sword uses the selected cell's hand socket plus the same origin as the body and gloves, including during walking and collapse. Sword strikes still use the established sword motion and grounded directional body cell.
+
+The bare-character punch proof uses a separate 63×108 PNG with four directional rows and three native cells per row. The sequence is ready, wind-up, extension, wind-up, ready over the existing visual swing interval. Original head and feet pixels are preserved and the legacy slash row is excluded. This is enabled by `?bronze-proof` for unequipped fists. Equipped punch poses still require their own layers.

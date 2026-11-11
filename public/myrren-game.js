@@ -3112,7 +3112,7 @@ function drawKezV2(x,y,o,now){
     if(direction!=='back')R(hx-1,hy-1,2,2,handColor);
   };
   const paintPunch=()=>{
-    if(o.tool!=='fist'||!attacking||deathAge>=0)return;
+    if(o.tool!=='fist'||!attacking||dead||pose?.nativePunch)return;
     const px=direction==='back'?x-4:direction==='side'?x+facing*6:x+4;
     R(Math.round(px)-1,Math.round(y-11),2,2,handColor);
   };

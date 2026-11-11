@@ -101,7 +101,8 @@ async function checkBronzeGameplay(browser,base){
     const url=base+'/?bronze-proof';
     const enter=async()=>{
       await page.waitForFunction(()=>window.MyrrenKezV2Equipment?.hasAtlas(2)&&
-        window.MyrrenKezV2Atlas?.ready&&!document.querySelector('#go').disabled);
+        window.MyrrenKezV2Atlas?.ready&&window.MyrrenKezV2Atlas.punchReady&&
+        !document.querySelector('#go').disabled);
       await page.locator('#nick').fill('Bronze QA');
       await page.locator('#go').click();
       await page.waitForFunction(()=>document.querySelector('#intro').hidden);
@@ -130,7 +131,7 @@ async function checkBronzeGameplay(browser,base){
       await capture('sword-and-shield','s',1);
       await capture('sword-attack','s',1,false,'attack');
       await equip([]);
-      await capture('punch','d',1,false,'attack');
+      for(const [direction,dv,face] of directions)await capture('punch-'+direction,dv,face,false,'attack');
       await equip(items);
       await capture('walk','s',-1,true);
       await capture('hurt','d',1,false,'hurt');

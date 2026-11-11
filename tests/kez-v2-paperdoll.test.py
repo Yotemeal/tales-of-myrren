@@ -47,3 +47,16 @@ for row in range(5):
         boots = bronze.crop((x, boots_y, x + 21, boots_y + 27))
         assert boots.getbbox()[3] == character.getbbox()[3], (row, frame)
 print('PASS: Bronze atlas uses hard alpha and all 20 idle/walk boot cells share the body baseline.')
+
+punch = Image.open(public / 'assets/kez-v2/kez_v2_punch_proof.png').convert('RGBA')
+assert punch.size == (63, 108)
+for direction in range(4):
+    y = direction * 27
+    standing = kez.crop((0, y + 27, 21, y + 54))
+    frames = [punch.crop((col * 21, y, (col + 1) * 21, y + 27)) for col in range(3)]
+    assert frames[0].tobytes() == standing.tobytes()
+    assert len({frame.tobytes() for frame in frames}) == 3
+    for frame in frames:
+        assert frame.crop((0, 0, 21, 13)).tobytes() == standing.crop((0, 0, 21, 13)).tobytes()
+        assert frame.crop((0, 22, 21, 27)).tobytes() == standing.crop((0, 22, 21, 27)).tobytes()
+print('PASS: all four punch directions have three distinct poses, with original head and feet pixels.')

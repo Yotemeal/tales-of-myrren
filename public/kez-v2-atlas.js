@@ -4,6 +4,14 @@
 'use strict';
 const atlas=new Image();
 let ready=false,failed=false;
+let punchSheet=null;
+if(window.location&&new URLSearchParams(window.location.search).has('bronze-proof')){
+  const punch=new Image();
+  punch.onload=()=>{
+    if(punch.naturalWidth===63&&punch.naturalHeight===108)punchSheet=punch;
+  };
+  punch.src='/assets/kez-v2/kez_v2_punch_proof.png?v=1';
+}
 atlas.onerror=()=>{ready=false;failed=true;console.error('Kez V2 sprite atlas failed to load');window.dispatchEvent?.(new Event('myrren-kez-v2-error'))};
 const rows={idle:0,front:1,back:2,left:3,right:4,attack:5};
 const frameBounds=[];
@@ -92,6 +100,8 @@ function pose(o, now){
   if(!ready)return null;
   const age=now-(o.swingAt??-99999),attacking=age>=0&&age<320;
   const direction=o.dv==='u'?'back':o.dv==='s'?(o.f<0?'left':'right'):'front';
+  const nativePunch=punchSheet&&attacking&&o.tool==='fist'&&!o.g?.some(Boolean);
+  const punchFrame=age<40?0:age<105?1:age<205?2:age<270?1:0;
   // The legacy attack row has a white slash baked into the body frames.
   // Drawing it together with the separately rotated equipped sword produces
   // two independent blades. Keep the directional body pose during sword hits;
@@ -101,12 +111,12 @@ function pose(o, now){
   // The authored idle row is front-facing. Play it for stationary front-facing
   // characters as well as portraits; never turn side/back players toward camera.
   // Combat holds the directional pose so a sword swing cannot snap to idle.
-  const frontIdle=!swordHit&&!o.moving&&direction==='front';
+  const frontIdle=!nativePunch&&!swordHit&&!o.moving&&direction==='front';
   const useIdle=o.animateIdle||frontIdle;
   const row=useIdle?rows.idle:rows[direction];
-  const directionalIdle=!swordHit&&!o.moving&&!useIdle;
+  const directionalIdle=!nativePunch&&!swordHit&&!o.moving&&!useIdle;
   const idlePose=Math.floor(now/650)%4;
-  const frame=useIdle?Math.floor(now/440)%4:swordHit?0:
+  const frame=useIdle?Math.floor(now/440)%4:(swordHit||nativePunch)?0:
     directionalIdle?0:o.moving?Math.floor(now/130)%4:0;
   const bounds=directionalIdle&&idleBounds[direction]?idleBounds[direction]:frameBounds[row][frame];
   const sw=bounds.right-bounds.left+1,sh=bounds.bottom-bounds.top+1;
@@ -114,12 +124,13 @@ function pose(o, now){
   const dx=Math.round(-sw/2+shift)-bounds.left,dy=1-sh-bounds.top;
   const [handX,handY]=weaponSockets[row][frame];
   return {direction,row,frame,bounds,sw,sh,dx,dy,
-    gripX:dx+handX,gripY:dy+handY,
+    gripX:dx+handX,gripY:dy+handY,nativePunch,punchFrame,
     idleSheet:directionalIdle?idleArt[direction]:null,idlePose};
 }
 window.MyrrenKezV2Atlas={
  get ready(){return ready},
  get failed(){return failed},
+ get punchReady(){return !!punchSheet},
  get dimensions(){return {cellWidth:21,cellHeight:27,frames:4,rows:6,scale:1}},
  pose,
  draw(ctx,x,y,o,now,selected=pose(o,now)){
@@ -127,7 +138,10 @@ window.MyrrenKezV2Atlas={
   const {bounds,sw,sh,idleSheet,idlePose,row,frame,dx,dy}=selected;
   ctx.save();
   ctx.imageSmoothingEnabled=false;
-  ctx.drawImage(idleSheet||atlas,(idleSheet?idlePose:frame)*21+bounds.left,
+  if(selected.nativePunch){
+    ctx.drawImage(punchSheet,selected.punchFrame*21,(row-1)*27,21,27,
+      Math.round(x)+dx,Math.round(y)+dy,21,27);
+  }else ctx.drawImage(idleSheet||atlas,(idleSheet?idlePose:frame)*21+bounds.left,
     (idleSheet?0:row*27)+bounds.top,sw,sh,
     Math.round(x)+dx+bounds.left,Math.round(y)+dy+bounds.top,sw,sh);
   ctx.restore();
