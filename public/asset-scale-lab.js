@@ -38,10 +38,6 @@
    c.fillStyle='#29545c';c.fillRect(243,52,97,H-52);
    c.fillStyle='#3d7272';c.fillRect(242,52,3,H-52);
    for(let y=60;y<H;y+=24){c.fillStyle='#7b9b92';c.fillRect(274,y,11,1);c.fillRect(300,y+7,7,1);}
-  }else{
-   const size=mode==='forest'?12:mode==='camp'?13:13;
-   const width=$('view').value==='target'?0:size; // explicit width passed below
-   void width;
   }
  }
  function path(c,mode,isTarget){
