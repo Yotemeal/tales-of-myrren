@@ -24,7 +24,7 @@ table{border-collapse:collapse;width:100%;font-size:13px}td,th{padding:7px;borde
 </style></head><body><main>
 <div class="eyebrow">Tales of Myrren · Concept scale QA only</div>
 <h1>Character-to-world proportions</h1>
-<p>Both panels reuse the real deployed Kez V2 character, actual tree and ore PNGs, and the current building drawing code. Only the proposed tree and ore display widths and visible pathway change on the right. This is a representative comparison stage, <strong>not a map screenshot</strong>.</p>
+<p>Both panels reuse the real deployed Kez V2 character, actual tree and ore PNGs, and the current building drawing code. Only the proposed tree and ore display widths and visible pathway change on the right. Trees in the right panel still use the existing square art as a sizing proxy; the final trees will be drawn as new, taller native sprites. This is a representative comparison stage, <strong>not a map screenshot</strong>.</p>
 <section class="panel">
 <div class="controls">
 <label>Comparison area
@@ -46,10 +46,11 @@ table{border-collapse:collapse;width:100%;font-size:13px}td,th{padding:7px;borde
 <tr><td>Character</td><td>21 × 27</td><td>21 × 27 — keep for now</td></tr>
 <tr><td>Ordinary ore node</td><td>~17px effective (24 × 0.72)</td><td>About 22px wide, authored at native size</td></tr>
 <tr><td>Rare ore node</td><td>~17px effective (24 × 0.72)</td><td>About 26px wide, authored at native size</td></tr>
-<tr><td>Common trees</td><td>144 × 144</td><td>~72–84px wide; ~84–104px authored height</td></tr>
-<tr><td>Ancient / rare tree</td><td>144 × 144</td><td>~100–118px wide; ~122–140px authored height</td></tr>
-<tr><td>Shop footprints</td><td>54–88px wide</td><td>Keep until art/layout review</td></tr>
-<tr><td>Major paths</td><td>~26px wide</td><td>Preview 38px wide; no path collision change</td></tr>
+<tr><td>Common trees</td><td>144 × 144</td><td>~58–68px wide; ~76–90px authored height</td></tr>
+<tr><td>Ancient / rare tree</td><td>144 × 144</td><td>~82–102px wide; ~106–124px authored height</td></tr>
+<tr><td>Shop footprints</td><td>54–88px wide</td><td>Keep collisions; redesign façades around ~70–100px wide</td></tr>
+<tr><td>Monsters</td><td>Small pixel-drawn silhouettes; many bosses use a normal bear-sized base</td><td>Clear species silhouettes; bosses ~1.4–2 player heights</td></tr>
+<tr><td>Major paths</td><td>~26px wide</td><td>Preview 34px wide; no path collision change</td></tr>
 <tr><td>World / tiles</td><td>1600×1600 / 16×16</td><td>Keep game world and saved coordinates</td></tr>
 </tbody></table>
 </section>
