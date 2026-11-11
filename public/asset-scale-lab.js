@@ -56,7 +56,7 @@
  }
  function ore(c,name,x,y,isTarget){
   const img=ensureAsset('ore_'+name),o=spec.resources.ores;
-  const w=isTarget?Math.round(o.previewWidths[name]*Number($('oreFactor').value)/100):o.currentWidth;
+  const w=isTarget?Math.round(o.previewWidths[name]*Number($('oreFactor').value)/100):o.currentEffectiveDisplayWidth;
   drawImage(c,img,x,y,w);
  }
  function hero(c,x,y) {
