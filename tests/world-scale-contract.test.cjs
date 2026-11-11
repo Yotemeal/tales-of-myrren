@@ -60,8 +60,8 @@ assert(b.pets[3]<spec.character.frame[1],
  'Pet must be visually smaller than player');
 assert(spec.buildings.currentFootprintWidths.arms===88);
 assert(spec.paths.proposedMainVisualWidth>spec.paths.currentTotalWidthApprox);
-for(const s of ['myrren-game.js','myrren-environment.js'])assert(!labHTML.includes('/'+s),
- 'Lab must not bootstrap live simulation');
+assert(!labHTML.includes('/myrren-game.js'),
+ 'Lab must not bootstrap the live game simulation');
 assert(labHTML.includes('/myrren-world.js'));
 assert(labHTML.includes('/kez-v2-atlas.js'));
 assert(labHTML.includes('/myrren-environment.js'));
