@@ -1856,6 +1856,13 @@ function ingest(change){
     if(!o){o={x,y,tx:x,ty:y,n:'',tl:3,h:200,e:null,until:0,face:1,tool:'',mat:2,hold:0,swingAt:-9999,s:null,g:[0,0,0,0,0]};peers.set(p.peer,o)}
     if(x!==o.tx)o.face=x>o.tx?1:-1;
     o.tx=x;o.ty=y;
+    o.renderDirection=['d','u','s'].includes(pr.dir)?pr.dir:null;
+    if(pr.face===-1||pr.face===1)o.face=pr.face;
+    o.deathAt=pr.dead===true?(o.deathAt??now):null;
+    if(Number.isFinite(pr.hit)&&pr.hit>=0&&pr.hit!==o.lastHit){
+      o.lastHit=pr.hit;
+      o.hurtAt=now;
+    }
     o.n=String(pr.n||'Wanderer').replace(/[^\w .-]/g,'').slice(0,14)||'Wanderer';
     o.tl=clamp(pr.tl|0,1,100);o.dye=(Number.isInteger(pr.dy)&&pr.dy>=0&&pr.dy<4)?pr.dy:null;
     o.h=((+pr.h||0)%360+360)%360;
@@ -1879,7 +1886,8 @@ function ingest(change){
 function sendPresence(){
   if(!room||!started)return;
   const now=performance.now(),holding=now<me.hold&&me.tool;
-  const p={x:Math.round(inside?me.ox:me.x),y:Math.round(inside?me.oy:me.y),n:save.name,tl:lvlFor(save.xp.melee),h:me.hue,e:waveN,s:me.swings,a:holding?CODE_KIND.indexOf(me.tool):0,tt:me.mat,g:gearArr(),dy:save.dye};
+  const p={x:Math.round(inside?me.ox:me.x),y:Math.round(inside?me.oy:me.y),n:save.name,tl:lvlFor(save.xp.melee),h:me.hue,e:waveN,s:me.swings,a:holding?CODE_KIND.indexOf(me.tool):0,tt:me.mat,g:gearArr(),dy:save.dye,
+    dir:me.dv,face:me.face,dead:me.deathAt!=null,hit:now-me.hurtAt<220?me.hurtAt:null};
   const s=JSON.stringify(p);if(s===lastSent)return;lastSent=s;
   room.presence(p).catch(()=>{});
 }
@@ -2244,7 +2252,7 @@ function die(){
   stopSmithing('',false);stopCooking('',false);
   me.deathAt=performance.now();me.hp=0;me.moving=false;me.pend=0;pendingStrike=null;me.swing=-99999;
   act=null;marker=null;wantSwing=false;closeModal();
-  say('Oh dear, you are dead!','red');toast('YOU DIED');uiHud();
+  say('Oh dear, you are dead!','red');toast('YOU DIED');uiHud();sendPresence();
   for(const m of mons){if(m.state==='chase')m.state='return';m.warn=null}
 }
 function respawnPlayer(){
@@ -2440,6 +2448,7 @@ function damagePlayerFromMonster(m,mt,now){
   me.hp-=dmg;if(dmg>0)me.hurtAt=performance.now();splat(me.x,me.y-18,dmg);uiHud();
   if(dmg>0&&me.hp>0&&me.hp<=hpMax()*.25&&foodCount()>0)say('You are low on health. Tap the food button to eat.','warn');
   if(me.hp<=0)die();
+  else if(dmg>0)sendPresence();
 }
 function completeMonsterWarning(m,mt,now){
   const warn=m.warn;
@@ -3802,7 +3811,7 @@ function drawOutdoor(cx,cy,now){
     for(let k=0;k<6;k++){const a2=k/6*6.283;R(fx2+Math.round(Math.cos(a2)*6)-2,fy+Math.round(Math.sin(a2)*3)-1,4,3,'#68675b')}
     R(fx2-4,fy-6-fl,8,7+fl,'#df733a');R(fx2-2,fy-9-fl,4,7+fl,'#ffd15d');
   }});
-  peers.forEach(o=>{if(vis(o.x,o.y))list.push({y:o.y,f:()=>drawPerson(Math.round(o.x-cx),Math.round(o.y-cy),{dv:(()=>{const dx=o.tx-o.x,dy=o.ty-o.y;if(Math.hypot(dx,dy)>1)o.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s';return o.dv||'d'})(),f:o.face,moving:Math.hypot(o.tx-o.x,o.ty-o.y)>1,hue:o.h,name:o.n,col:'#ffffff',tool:o.tool,mat:o.mat,hold:o.hold,swingAt:o.swingAt,waving:now<o.until,g:o.g,dye:o.dye},now)})});
+  peers.forEach(o=>{if(vis(o.x,o.y))list.push({y:o.y,f:()=>drawPerson(Math.round(o.x-cx),Math.round(o.y-cy),{dv:o.renderDirection||(()=>{const dx=o.tx-o.x,dy=o.ty-o.y;if(Math.hypot(dx,dy)>1)o.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s';return o.dv||'d'})(),f:o.face,moving:Math.hypot(o.tx-o.x,o.ty-o.y)>1,hue:o.h,name:o.n,col:'#ffffff',tool:o.tool,mat:o.mat,hold:o.hold,swingAt:o.swingAt,waving:now<o.until,g:o.g,dye:o.dye,deathAt:o.deathAt,hurtAt:o.hurtAt},now)})});
   for(const pt of pets)list.push({y:pt.y,f:()=>drawPet(pt,Math.round(pt.x-cx),Math.round(pt.y-cy),now)});
   if(started)list.push({y:me.y,f:()=>{
     const sx=Math.round(me.x-cx),sy=Math.round(me.y-cy);

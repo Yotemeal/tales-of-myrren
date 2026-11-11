@@ -298,3 +298,36 @@ console.log('PASS: Kez V2 native dimensions, four directional idle/run poses, at
   assert(run(30,40,{...state,tool:'pick'},1350));
   assert(!calls.includes('pick'),'gathering tools should not be drawn during collapse');
 }
+
+// Exercise the actual peer ingestion path with current and legacy payloads.
+{
+  const peers=new Map();
+  let time=100;
+  const start=game.indexOf('function ingest(change)');
+  const end=game.indexOf('\n(async()=>{',start);
+  const ingest=vm.runInNewContext(game.slice(start,end)+'\ningest',{
+    peers,performance:{now:()=>time},WW:1600,WH:1600,
+    clamp:(n,lo,hi)=>Math.max(lo,Math.min(hi,n)),
+    CODE_KIND:['','sword']
+  });
+  const receive=presence=>ingest({peers:[{peer:'other',kind:'viewer',presence:{x:20,y:20,...presence}}]});
+  receive({dir:'s',face:-1,hit:88,dead:true,a:1,tt:2,g:[2,3,0,2,2,2]});
+  const peer=peers.get('other');
+  assert.equal(peer.renderDirection,'s');
+  assert.equal(peer.face,-1);
+  assert.equal(peer.deathAt,100);
+  assert.equal(peer.hurtAt,100);
+  assert.equal(peer.tool,'sword');
+  assert.equal(peer.g.join(','),'2,3,0,2,2,2');
+  time=180;
+  receive({hit:88,dead:true});
+  assert.equal(peer.deathAt,100,'repeated presence should not restart collapse');
+  assert.equal(peer.hurtAt,100,'repeated presence should not restart hurt flash');
+  receive({dir:'d',face:1,dead:false});
+  assert.equal(peer.deathAt,null);
+  assert.equal(peer.renderDirection,'d');
+  receive({dir:'invalid',face:900,hit:null,dead:'true'});
+  assert.equal(peer.deathAt,null);
+  assert.equal(peer.renderDirection,null);
+  assert.equal(peer.hurtAt,100);
+}

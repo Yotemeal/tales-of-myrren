@@ -25,3 +25,5 @@ Bronze art remains provisional. PR #76's helmet, chest and shield repeat within 
 The proof PNG now positions the existing helmet art relative to each direction's head, follows the last column's lateral torso shift, and aligns each boot cell to its body frame's bottom opaque row. The body PNG is unchanged. Its torso, belt and lower-leg pixels differ from the supplied bare-chested concept reference, so this fit targets the live atlas.
 
 The shield art is repositioned per idle and walk cell and retains its narrow side profile. Gloves are placed on the visible knuckles in the body cells. Side cells carry a single near-hand glove. These are idle and walk adjustments. The combat grip still uses the current weapon renderer.
+
+Presence now carries cosmetic facing, hurt and death state. A receiver timestamps a new hit or collapse on its own clock. Repeated packets keep the original animation start, and respawn clears collapse. Older payloads still use movement-inferred facing. These fields affect only peer appearance.
