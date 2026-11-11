@@ -4,6 +4,56 @@
  * Gear order: helmet, body, legs, boots, shield, gloves. No save-data changes.
  */
 (()=>{'use strict';
+ const LIVE_SLOTS=['helmet','body','legs','boots','shield','gloves'];
+ // The PNG's physical slot order differs from gearArr() and peer payloads.
+ const DRAW_ORDER=['legs','boots','body','helmet','gloves','shield'];
+ const atlases=new Map();
+ function loadAtlas(manifest){
+  const {materialId,image,frameWidth,frameHeight,frameColumns,slotBlockRows,slotOrder,originX,originY}=manifest;
+  if(!Number.isInteger(materialId)||typeof image!=='string'||
+    ![frameWidth,frameHeight,frameColumns,slotBlockRows].every(n=>Number.isInteger(n)&&n>0)||
+    ![originX,originY].every(Number.isInteger)||frameColumns!==4||slotBlockRows<5||
+    !Array.isArray(slotOrder)||!slotOrder.length||new Set(slotOrder).size!==slotOrder.length||
+    !slotOrder.every(slot=>LIVE_SLOTS.includes(slot)))throw new Error('Invalid Kez equipment manifest');
+  const sprite=new Image();
+  sprite.onload=()=>{
+   if(sprite.naturalWidth!==frameWidth*frameColumns||
+      sprite.naturalHeight!==frameHeight*slotBlockRows*slotOrder.length){
+    console.error('Invalid Kez equipment atlas dimensions',image);
+    return;
+   }
+   atlases.set(materialId,{sprite,frameWidth,frameHeight,slotBlockRows,slotOrder,originX,originY});
+   window.dispatchEvent(new Event('myrren-kez-equipment-ready'));
+  };
+  sprite.onerror=()=>console.error('Could not load Kez equipment atlas',image);
+  sprite.src=image;
+ }
+ // The Bronze artwork is still under visual review.
+ if(window.location&&new URLSearchParams(window.location.search).has('bronze-proof')){
+  fetch('/assets/armour/bronze_layers_21x27.json').then(response=>{
+   if(!response.ok)throw new Error('Could not load Bronze equipment manifest');
+   return response.json();
+  }).then(loadAtlas).catch(error=>console.error(error));
+ }
+ function drawAtlas(ctx,x,y,gear,pose,phase){
+  if(!pose||!atlases.size)return gear;
+  const legacy=gear.slice();
+  ctx.save();
+  ctx.imageSmoothingEnabled=false;
+  for(const slot of DRAW_ORDER){
+   const index=LIVE_SLOTS.indexOf(slot),atlas=atlases.get(gear[index]);
+   const block=atlas?.slotOrder.indexOf(slot)??-1;
+   if(block<0)continue;
+   legacy[index]=0;
+   const side=pose.direction==='left'||pose.direction==='right';
+   if(phase!==(slot==='shield'&&side?'under':'over'))continue;
+   const {sprite,frameWidth:w,frameHeight:h,slotBlockRows,originX,originY}=atlas;
+   ctx.drawImage(sprite,pose.frame*w,(block*slotBlockRows+pose.row)*h,w,h,
+    Math.round(x)+pose.dx-originX,Math.round(y)+pose.dy-originY,w,h);
+  }
+  ctx.restore();
+  return legacy;
+ }
  const ORDER=[2,3,4,5,7,6,8];
  // Outline, material, shine, decorative accent; sampled against the approved
  // smithing_armour_front_atlas.png (Obsidianite violet, Myrrenite teal/gold,
@@ -136,8 +186,8 @@
    return Number.isInteger(n)&&Object.prototype.hasOwnProperty.call(METALS,n)?n:0;
   });
  }
- function draw(ctx,x,y,o,phase='over'){
-  const gear=clean(o.g);
+ function draw(ctx,x,y,o,phase='over',pose=window.MyrrenKezV2Atlas?.pose(o,o.now??0)){
+  const gear=drawAtlas(ctx,x,y,clean(o.g),pose,phase);
   if(!gear.some(Boolean))return;
   const face=o.dv==='u'?'back':o.dv==='s'?'side':'front';
   const walk=!!o.moving,step=walk?Math.floor((o.now||0)/130)%4:0;
@@ -255,5 +305,5 @@
   }
   shield(false);
  }
- window.MyrrenKezV2Equipment={draw,clean,palette:METALS,colorsFor,order:ORDER};
+ window.MyrrenKezV2Equipment={draw,clean,palette:METALS,colorsFor,order:ORDER,hasAtlas:material=>atlases.has(material)};
 })();

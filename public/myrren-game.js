@@ -3062,6 +3062,7 @@ window.addEventListener('myrren-armour-ready',()=>{if(tab)renderModal()});
 window.addEventListener('myrren-weapons-ready',()=>{if(tab)renderModal()});
 window.addEventListener('myrren-sword-actions-ready',()=>{if(tab)renderModal()});
 window.addEventListener('myrren-kez-v2-ready',()=>{if(tab==='gear')renderModal()});
+window.addEventListener('myrren-kez-equipment-ready',()=>{if(tab==='gear')renderModal()});
 // Kez V2 is the authoritative player and remote-player render path.
 // Legacy renderers remain isolated for historical QA, never for live players.
 let missingKezLogged=false;
@@ -3109,9 +3110,10 @@ function drawKezV2(x,y,o,now){
   }
   if(hurtAge>=0&&hurtAge<220)ctx.globalAlpha*=.65;
   if(direction==='back'){paintHeld();paintPunch()}
-  gear?.draw(ctx,x,y,state,'under');
-  atlas.draw(ctx,x,y,state,now);
-  gear?.draw(ctx,x,y,state,'over');
+  const pose=atlas.pose(state,now);
+  gear?.draw(ctx,x,y,state,'under',pose);
+  atlas.draw(ctx,x,y,state,now,pose);
+  gear?.draw(ctx,x,y,state,'over',pose);
   if(direction!=='back'){paintHeld();paintPunch()}
   ctx.restore();
   if(deathAge>=0)return true;

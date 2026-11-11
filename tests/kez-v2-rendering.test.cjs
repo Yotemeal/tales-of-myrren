@@ -246,10 +246,10 @@ assert(game.includes('g:gearArr(),dye:save.dye,now'),'equipment portrait must pr
 
 const drawKez=game.slice(game.indexOf('function drawKezV2('),game.indexOf('function drawPerson('));
 assert(drawKez.indexOf("if(direction==='back'){paintHeld();paintPunch()}")<
-       drawKez.indexOf('atlas.draw(ctx,x,y,state,now)'),
+       drawKez.indexOf('atlas.draw(ctx,x,y,state,now,pose)'),
        'rear-facing sword must be painted before the body');
 assert(drawKez.includes("direction==='back'?-8"),'rear sword must clear torso');
-assert(drawKez.indexOf('atlas.draw(ctx,x,y,state,now)')<
+assert(drawKez.indexOf('atlas.draw(ctx,x,y,state,now,pose)')<
        drawKez.indexOf("if(direction!=='back'){paintHeld();paintPunch()}"),
        'front and side swords must be held over the body');
 assert(drawKez.includes("const handColor=glove&&gear?.colorsFor?.(glove,o.dye)?.[2]"),

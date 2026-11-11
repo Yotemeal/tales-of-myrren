@@ -80,12 +80,8 @@ atlas.onload=()=>{
   else{failed=true;console.error('Invalid Kez V2 atlas dimensions:',atlas.naturalWidth,atlas.naturalHeight);window.dispatchEvent?.(new Event('myrren-kez-v2-error'))}
 };
 atlas.src='/assets/kez-v2/kez_v2_atlas.png?v=1';
-window.MyrrenKezV2Atlas={
- get ready(){return ready},
- get failed(){return failed},
- get dimensions(){return {cellWidth:21,cellHeight:27,frames:4,rows:6,scale:1}},
- draw(ctx,x,y,o,now){
-  if(!ready)return false;
+function pose(o, now){
+  if(!ready)return null;
   const age=now-(o.swingAt??-99999),attacking=age>=0&&age<320;
   const direction=o.dv==='u'?'back':o.dv==='s'?(o.f<0?'left':'right'):'front';
   // The legacy attack row has a white slash baked into the body frames.
@@ -105,25 +101,25 @@ window.MyrrenKezV2Atlas={
   const frame=useIdle?Math.floor(now/440)%4:swordHit?0:
     directionalIdle?0:o.moving?Math.floor(now/130)%4:0;
   const bounds=directionalIdle&&idleBounds[direction]?idleBounds[direction]:frameBounds[row][frame];
-  const scale=1,sw=bounds.right-bounds.left+1,sh=bounds.bottom-bounds.top+1;
-  const dw=Math.round(sw*scale),dh=Math.round(sh*scale);
-  const flip=false;
-  ctx.save();ctx.imageSmoothingEnabled=false;
-  ctx.translate(Math.round(x),Math.round(y));
-  if(flip)ctx.scale(-1,1);
-  // Centre on the body's shared centreline; bottom of every visible
-  // frame touches the same ground pixel, eliminating directional jumps.
-  const center=10.5;
-  const offset=Math.round(((bounds.left+bounds.right)/2-center)*scale);
-  if(directionalIdle&&idleArt[direction]){
-    // Union crop keeps every breathing pixel visible while preserving the
-    // same centreline and ground anchor for all four poses.
-    ctx.drawImage(idleArt[direction],idlePose*21+bounds.left,bounds.top,sw,sh,
-      Math.round(-dw/2+offset),1-dh,dw,dh);
-  }else{
-    ctx.drawImage(atlas,frame*21+bounds.left,row*27+bounds.top,sw,sh,
-      Math.round(-dw/2+offset),1-dh,dw,dh);
-  }
+  const sw=bounds.right-bounds.left+1,sh=bounds.bottom-bounds.top+1;
+  const shift=Math.round((bounds.left+bounds.right)/2-10.5);
+  return {direction,row,frame,bounds,sw,sh,
+    idleSheet:directionalIdle?idleArt[direction]:null,idlePose,
+    dx:Math.round(-sw/2+shift)-bounds.left,dy:1-sh-bounds.top};
+}
+window.MyrrenKezV2Atlas={
+ get ready(){return ready},
+ get failed(){return failed},
+ get dimensions(){return {cellWidth:21,cellHeight:27,frames:4,rows:6,scale:1}},
+ pose,
+ draw(ctx,x,y,o,now,selected=pose(o,now)){
+  if(!selected)return false;
+  const {bounds,sw,sh,idleSheet,idlePose,row,frame,dx,dy}=selected;
+  ctx.save();
+  ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(idleSheet||atlas,(idleSheet?idlePose:frame)*21+bounds.left,
+    (idleSheet?0:row*27)+bounds.top,sw,sh,
+    Math.round(x)+dx+bounds.left,Math.round(y)+dy+bounds.top,sw,sh);
   ctx.restore();
   return true;
  }

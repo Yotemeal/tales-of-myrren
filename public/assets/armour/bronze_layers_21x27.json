@@ -1,0 +1,11 @@
+{
+  "materialId": 2,
+  "image": "/assets/armour/bronze_layers_21x27.png",
+  "frameWidth": 21,
+  "frameHeight": 27,
+  "frameColumns": 4,
+  "slotBlockRows": 6,
+  "slotOrder": ["shield", "helmet", "body", "legs", "boots", "gloves"],
+  "originX": 0,
+  "originY": 0
+}
