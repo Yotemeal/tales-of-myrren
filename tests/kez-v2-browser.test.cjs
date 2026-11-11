@@ -20,6 +20,7 @@ const server=http.createServer((request,response)=>{
 const bronzeProof=process.argv.includes('--bronze-proof');
 async function checkBronzeGameplay(browser,base){
   const output='/tmp/myrren-bronze-gameplay';
+  fs.rmSync(output,{recursive:true,force:true});
   fs.mkdirSync(output,{recursive:true});
   const armour=['helm','body','legs','boots','shield','gloves'];
   const items=[...armour,'sword'].map(kind=>'bronze_'+kind);
@@ -33,7 +34,9 @@ async function checkBronzeGameplay(browser,base){
       for(const [recipient,target] of clients){
         if(recipient===device||target.isClosed())continue;
         const peers=[...presence].map(([peer,data])=>({
-          peer,kind:'viewer',isMe:peer===recipient,presence:data
+          peer,kind:'viewer',isMe:peer===recipient,
+          // Keep the observed avatar clear of the mobile client's spawn position.
+          presence:peer==='desktop'&&recipient==='mobile'?{...data,x:data.x+56}:data
         }));
         await target.evaluate(peers=>window.receiveBronzePeers?.({peers}),peers);
       }
@@ -71,6 +74,7 @@ async function checkBronzeGameplay(browser,base){
           },
           equipped(){return Object.values(save.eq).filter(Boolean).sort()},
           closeModal,
+          faceRight(){me.dv='s';me.face=1},
           die,
           respawnPlayer,
           hurt(){me.hurtAt=performance.now();sendPresence()},
@@ -89,7 +93,8 @@ async function checkBronzeGameplay(browser,base){
           const drawn=originalDrawKez(x,y,avatar,now);
           if(drawn&&!avatar.isMe)window.bronzeQA.lastPeerDraw={
             name:avatar.name,gear:avatar.g,tool:avatar.tool,
-            hurt:now-avatar.hurtAt<220,dead:avatar.deathAt!=null
+            hurt:now-avatar.hurtAt<220,dead:avatar.deathAt!=null,
+            resting:avatar.deathAt!=null&&now-avatar.deathAt>=200
           };
           return drawn;
         };
@@ -156,7 +161,10 @@ async function checkBronzeGameplay(browser,base){
       return draw?.name==='Bronze QA'&&Object.entries(expected).every(
         ([key,value])=>JSON.stringify(draw[key])===JSON.stringify(value));
     },expected);
-    await desktop.evaluate(()=>window.bronzeQA.set(['bronze_shield','bronze_sword']));
+    await desktop.evaluate(()=>{
+      window.bronzeQA.faceRight();
+      window.bronzeQA.set(['bronze_shield','bronze_sword']);
+    });
     await peerShows({gear:[0,0,0,0,2,0],tool:'sword'});
     await page.screenshot({path:path.join(output,'mobile-remote-sword-shield.png')});
     // Install the observer before emitting the short hurt flash.
@@ -171,7 +179,7 @@ async function checkBronzeGameplay(browser,base){
     await desktop.evaluate(()=>window.bronzeQA.hurt());
     await page.waitForFunction(()=>window.sawBronzePeerHurt);
     await desktop.evaluate(()=>window.bronzeQA.die());
-    await peerShows({dead:true});
+    await peerShows({dead:true,resting:true});
     await page.screenshot({path:path.join(output,'mobile-remote-collapse.png')});
     await desktop.evaluate(()=>window.bronzeQA.respawnPlayer());
     await peerShows({dead:false,gear:[0,0,0,0,2,0],tool:'sword'});
