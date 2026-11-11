@@ -19,3 +19,7 @@ The manifest lists physical PNG blocks by name. Each block contains `slotBlockRo
 Side shields draw under the body. Over-body PNG layers draw in this order: leggings, boots, chest, helmet, gloves, shield. Items without a loaded atlas still use their established overlay path. Saves and peer payloads retain the existing slot order and IDs.
 
 Bronze art remains provisional. PR #76's helmet, chest and shield repeat within each directional walking row. Its experimental attack cells have no compatible body pose, and the existing sword and fist sockets still need authored attack frames. Review those assets before enabling the proof by default.
+
+## Idle and walk fitting
+
+The proof PNG now positions the existing helmet art relative to each direction's head, follows the last column's lateral torso shift, and aligns each boot cell to its body frame's bottom opaque row. The body PNG is unchanged. Its torso, belt and lower-leg pixels differ from the supplied bare-chested concept reference, so this fit targets the live atlas.

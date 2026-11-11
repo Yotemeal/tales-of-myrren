@@ -10,7 +10,7 @@ const manifest=require('../public/assets/armour/bronze_layers_21x27.json');
  const window={location:{search:'?bronze-proof'},dispatchEvent(){}};
  class Image {
   set src(url){
-   const png=fs.readFileSync(path.join(publicDir,url));
+   const png=fs.readFileSync(path.join(publicDir,new URL(url,"http://localhost").pathname));
    assert.equal(png.toString('hex',0,8),'89504e470d0a1a0a');
    this.naturalWidth=png.readUInt32BE(16);
    this.naturalHeight=png.readUInt32BE(20);
@@ -18,7 +18,7 @@ const manifest=require('../public/assets/armour/bronze_layers_21x27.json');
   }
  }
  vm.runInNewContext(fs.readFileSync(path.join(publicDir,'kez-v2-equipment.js'),'utf8'),{
-  window,Image,URLSearchParams,Event,console,
+  window,Image,URL,URLSearchParams,Event,console,
   fetch:async()=>({ok:true,json:async()=>manifest})
  });
  await new Promise(setImmediate);
