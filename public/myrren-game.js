@@ -3073,9 +3073,13 @@ function drawKezV2(x,y,o,now){
     return false;
   }
   const gear=window.MyrrenKezV2Equipment;
-  const state={...o,now},deathAt=o.isMe?me.deathAt:o.deathAt;
+  const deathAt=o.isMe?me.deathAt:o.deathAt;
   const deathAge=deathAt==null?-1:now-deathAt;
-  const age=now-(o.swingAt??-99999),attacking=age>=0&&age<320;
+  const dead=deathAge>=0;
+  const poseTime=dead?deathAt:now;
+  const state={...o,now:poseTime,moving:!dead&&o.moving,
+    swingAt:dead?undefined:o.swingAt};
+  const age=now-(o.swingAt??-99999),attacking=!dead&&age>=0&&age<320;
   const hurtAge=now-(o.isMe?(me.hurtAt??-99999):(o.hurtAt??-99999));
   const holding=o.tool&&o.tool!=='fist'&&(attacking||now<o.hold);
   const direction=o.dv==='u'?'back':o.dv==='s'?'side':'front';
@@ -3091,7 +3095,7 @@ function drawKezV2(x,y,o,now){
     ?(o.tool==='sword'?window.MyrrenKezV2SwordMotion.angle(age):swingAng(age))
     :-.35;
   const paintHeld=()=>{
-    if(!holding||deathAge>=0)return;
+    if(!holding||(dead&&o.tool!=='sword'))return;
     drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6);
     // Two-pixel fingers cover the sword grip without showing a floating hilt.
     if(direction!=='back')R(hx-1,hy-1,2,2,handColor);
@@ -3103,20 +3107,20 @@ function drawKezV2(x,y,o,now){
   };
   shadowE(x,y+1,5,2,.28);
   ctx.save();
-  if(deathAge>=0){
+  if(dead){
     // Collapse around the planted feet without moving the game entity.
     const k=Math.min(1,Math.max(0,deathAge/260));
     ctx.translate(Math.round(x),Math.round(y));ctx.rotate(k*1.35);ctx.translate(-Math.round(x),-Math.round(y));
   }
   if(hurtAge>=0&&hurtAge<220)ctx.globalAlpha*=.65;
   if(direction==='back'){paintHeld();paintPunch()}
-  const pose=atlas.pose(state,now);
+  const pose=atlas.pose(state,poseTime);
   gear?.draw(ctx,x,y,state,'under',pose);
   atlas.draw(ctx,x,y,state,now,pose);
   gear?.draw(ctx,x,y,state,'over',pose);
   if(direction!=='back'){paintHeld();paintPunch()}
   ctx.restore();
-  if(deathAge>=0)return true;
+  if(dead)return true;
   label(o.name,x,y-32,o.col||'#ffffff');
   if(o.waving)label('*waves*',x,y-43,'#ffffff');
   return true;

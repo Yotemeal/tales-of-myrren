@@ -271,3 +271,30 @@ assert(scripts.findIndex(s=>s.includes('kez-v2-atlas'))<scripts.findIndex(s=>s.i
 assert(scripts.findIndex(s=>s.includes('kez-v2-equipment'))<scripts.findIndex(s=>s.includes('myrren-game')));
 assert(scripts.findIndex(s=>s.includes('kez-v2-sword-motion'))<scripts.findIndex(s=>s.includes('myrren-game')));
 console.log('PASS: Kez V2 native dimensions, four directional idle/run poses, attacks, seven-metal six-slot overlays, preview cleanup, and script registration.');
+
+// Exercise the production compositor with the current death transform.
+{
+  const calls=[];
+  const ctx={
+    save(){calls.push('save')},restore(){calls.push('restore')},
+    translate(){},rotate(angle){calls.push(['rotate',angle])}
+  };
+  const atlas={
+    ready:true,
+    pose(state,time){calls.push(['pose',state.moving,state.swingAt,time]);return {}},
+    draw(){calls.push('body')}
+  };
+  const gear={draw(context,x,y,state,pass){calls.push(pass)}};
+  const run=vm.runInNewContext(drawKez+'\ndrawKezV2', {
+    window:{MyrrenKezV2Atlas:atlas,MyrrenKezV2Equipment:gear},
+    me:{deathAt:1000},ctx,shadowE(){},drawTool(kind){calls.push(kind)},
+    R(){},label(){calls.push('label')}
+  });
+  const state={isMe:true,dv:'u',f:1,moving:true,swingAt:1200,tool:'sword',hold:1e12};
+  assert(run(30,40,state,1300));
+  assert.deepEqual(calls,['save',['rotate',1.35],'sword',
+    ['pose',false,undefined,1000],'under','body','over','restore']);
+  calls.length=0;
+  assert(run(30,40,{...state,tool:'pick'},1350));
+  assert(!calls.includes('pick'),'gathering tools should not be drawn during collapse');
+}
