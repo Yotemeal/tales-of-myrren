@@ -25,14 +25,14 @@ const server=http.createServer((req,res)=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const host='http://127.0.0.1:'+server.address().port;
   let browser;
-  const report=[];
+  const report=[],proofFirePositions={};
   try{
     browser=await chromium.launch({headless:true});
     for(const device of [
       {name:'desktop',width:1100,height:700,mobile:false,dpr:1},
       {name:'mobile',width:390,height:844,mobile:true,dpr:2}
     ]){
-      for(const mode of ['fallback','proof','missing-png']){
+      for(const mode of ['fallback','proof','layout-proof','missing-png']){
         const context=await browser.newContext({
           viewport:{width:device.width,height:device.height},
           deviceScaleFactor:device.dpr,isMobile:device.mobile,hasTouch:device.mobile
@@ -50,12 +50,14 @@ const server=http.createServer((req,res)=>{
         });
         if(mode==='missing-png')
           await page.route('**/assets/camp/camp_props_v1.png*',route=>route.abort());
-        const url=host+(mode==='fallback'?'/':'/?camp-props-proof');
+        const usingArt=mode==='proof'||mode==='layout-proof';
+        const url=host+(mode==='fallback'?'/':'/?camp-props-proof'+
+          (mode==='layout-proof'?'&campfire-layout-proof':''));
         await page.goto(url,{waitUntil:'domcontentloaded'});
         await page.waitForFunction(()=>!document.getElementById('go')?.disabled &&
           !!window.MyrrenCampProps,null,{timeout:20000});
         assert.equal(await page.evaluate(()=>window.MyrrenCampProps.enabled),mode!=='fallback');
-        if(mode==='proof'){
+        if(usingArt){
           await page.waitForFunction(()=>window.MyrrenCampProps.ready(),null,{timeout:10000});
           const atlas=await page.evaluate(()=>{
             const keys=['bank_chest','jobs_board','blacksmith_anvil',
@@ -84,9 +86,23 @@ const server=http.createServer((req,res)=>{
           null,{timeout:8000});
         await page.waitForTimeout(350);
         const drawCount=await page.evaluate(()=>window.__campProductionDraws.length);
-        if(mode==='proof')assert(drawCount>6,
+        if(usingArt)assert(drawCount>6,
           'real gameplay must draw the actual new camp atlas');
         else assert.equal(drawCount,0,'fallback must not use the missing or opt-out PNG');
+        if(usingArt){
+          const fireDraws=await page.evaluate(()=>
+            window.__campProductionDraws.filter(args=>args[1]===256&&args[2]===64));
+          assert(fireDraws.length>0,'native campfire must draw in actual outdoor world');
+          const last=fireDraws.at(-1);
+          const dest={x:last[4],y:last[5]};
+          assert(Number.isFinite(dest.x)&&Number.isFinite(dest.y));
+          if(mode==='layout-proof'){
+            const previous=proofFirePositions[device.name];
+            assert(previous,'regular sprite proof must precede layout study');
+            assert(Math.hypot(dest.x-previous.x,dest.y-previous.y)>80,
+              'layout preview must visibly separate the campfire from the furnace');
+          }else proofFirePositions[device.name]=dest;
+        }
         const shot=path.join(out,device.name+'-'+mode+'.png');
         await page.screenshot({path:shot});
         assert.deepEqual(errors,[],'browser errors in '+device.name+' '+mode);
@@ -97,6 +113,7 @@ const server=http.createServer((req,res)=>{
     fs.writeFileSync(path.join(out,'qa-report.json'),JSON.stringify({
       status:'preview-only-no-production-main-change',
       urlFlag:'?camp-props-proof',
+      independentPlacementFlag:'?camp-props-proof&campfire-layout-proof',
       art:'NOT APPROVED; anvil specifically flagged for redesign',
       report
     },null,2)+'\n');
