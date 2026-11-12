@@ -27,7 +27,7 @@ All tiles are fully opaque native pixels. To keep the game asset small, the PNG 
 | 3–4 | 24–39 | All 16 grass-to-dirt path connector masks |
 | 5–6 | 40–55 | All 16 water and grass bank connector masks |
 
-Bit-mask mapping: **N=1, E=2, S=4, W=8**, each corresponding to a neighbouring tile using the same category. `0` is isolated, `15` is fully surrounded/interior. A mask 15 tile **must never leave small green checkerboard holes** in road or water interiors. At four cardinal tile exits, the 8-pixel centre footprint connects exactly to the matching opposite exit.
+Bit-mask mapping: **N=1, E=2, S=4, W=8**, each corresponding to a neighbouring tile using the same category. `0` is isolated, `15` is fully surrounded/interior. A mask 15 tile **must never leave small green checkerboard holes** in road or water interiors. Connected exits keep a full-width central road/water connection, while disconnected sides receive only a subtle 1–3px grassy fringe. This avoids narrowing existing game paths and prevents the checkerboard holes observed in the first art draft.
 
 Grid metadata maps `tileId` to pixel source origin by `sx=(index % 8)*16`, `sy=Math.floor(index / 8)*16`.
 
