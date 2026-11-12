@@ -35,3 +35,9 @@ The bare-character punch proof uses a separate 63×108 PNG with four directional
 The Bronze sword proof uses a separate 63×108 body PNG and four additional directional rows per equipment block at `swordStartRow`. Ready, wind-up and follow-through cells supply matching glove art and hilt coordinates. The existing forged sword asset rotates around that hilt, and shield depth remains direction-dependent. Mixed tiers keep their existing sword animation until they have matching layers.
 
 Bronze proof collapse uses two pre-rendered nearest-neighbour poses from the existing directional body and gear pixels, at 0.70 and 1.57 radians. The separate 72×896 PNG has 36×32 cells with ground pivot (10,16), body first, then equipment in manifest slot order. Each layer has four directional rows. The sword uses the same pivot and angle as the selected cell. The initial tip retains the existing short rotation and unsupported equipment combinations use the original collapse.
+
+## Registering a replacement atlas
+
+In proof mode, `public/assets/armour/equipment-atlases.json` lists the manifest URLs to load. To replace Bronze art, point its manifest at the new transparent PNG and update the cell size, slot order and origin if needed. Keep the existing material ID. To register a different existing material, add its manifest URL to the list. The base character atlas and inventory code are independent of this list. Use one manifest per material. A failed image load leaves the existing overlay available.
+
+The collapse proof still uses dedicated Bronze layers. An idle/walk or attack PNG replacement does not regenerate those layers. Sword artwork and body-hand sockets are separate from the armour atlas.

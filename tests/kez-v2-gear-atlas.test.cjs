@@ -19,11 +19,14 @@ const manifest=require('../public/assets/armour/bronze_layers_21x27.json');
  }
  vm.runInNewContext(fs.readFileSync(path.join(publicDir,'kez-v2-equipment.js'),'utf8'),{
   window,Image,URL,URLSearchParams,Event,console,
-  fetch:async()=>({ok:true,json:async()=>manifest})
+  fetch:async url=>({ok:true,json:async()=>url.endsWith('equipment-atlases.json')
+   ? ['/bronze.json','/replacement.json']
+   : url==='/bronze.json'?manifest:{...manifest,materialId:3,image:manifest.image+'&fixture=1',originX:1}})
  });
  await new Promise(setImmediate);
  const api=window.MyrrenKezV2Equipment;
  assert(api.hasAtlas(2));
+ assert(api.hasAtlas(3));
  const slots=['helmet','body','legs','boots','shield','gloves'];
  const cells=[],legacy=[];
  const ctx={save(){},restore(){},drawImage(image,...args){cells.push(args)},
@@ -47,7 +50,10 @@ const manifest=require('../public/assets/armour/bronze_layers_21x27.json');
  assert.equal(legacy.length,0,'Bronze PNG replaces legacy drawing for covered slots');
  cells.length=0;
  api.draw(ctx,50,80,{g:[2,3,0,0,0,0]},'over',{direction:'front',row:1,frame:0,dx:-11,dy:-24});
- assert.equal(cells.length,1);
+ assert.equal(cells.length,2);
+ assert.equal(cells[0][4],38,'replacement manifest supplies its own body origin');
+ assert.equal(legacy.length,0);
+ api.draw(ctx,50,80,{g:[2,4,0,0,0,0]},'over',{direction:'front',row:1,frame:0,dx:-11,dy:-24});
  assert(legacy.length>0,'uncovered tiers retain existing overlays');
- console.log('PASS: Bronze PNG slots, source frames, feet anchor, shield pass and mixed material fallback');
+ console.log('PASS: Registered replacement and Bronze PNG slots, source frames, feet anchor, shield pass and mixed material fallback');
 })().catch(error=>{console.error(error);process.exitCode=1});

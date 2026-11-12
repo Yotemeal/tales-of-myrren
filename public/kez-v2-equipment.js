@@ -31,10 +31,14 @@
  }
  // The Bronze artwork is still under visual review.
  if(window.location&&new URLSearchParams(window.location.search).has('bronze-proof')){
-  fetch('/assets/armour/bronze_layers_21x27.json').then(response=>{
-   if(!response.ok)throw new Error('Could not load Bronze equipment manifest');
+  async function readJSON(url){
+   const response=await fetch(url);
+   if(!response.ok)throw new Error('Could not load equipment data: '+url);
    return response.json();
-  }).then(loadAtlas).catch(error=>console.error(error));
+  }
+  readJSON('/assets/armour/equipment-atlases.json').then(manifests=>{
+   for(const url of manifests)readJSON(url).then(loadAtlas).catch(error=>console.error(error));
+  }).catch(error=>console.error(error));
  }
  function drawCollapse(ctx,x,y,o,pose,frame,phase){
   const order=atlases.get(2).slotOrder;
