@@ -7,6 +7,7 @@ on:
       - 'public/assets/camp/camp_props_v1.png'
       - 'public/assets/camp/camp_props_v1.json'
       - 'tests/native-camp-props-v1.test.py'
+      - 'tests/native-camp-props-v1-browser.test.cjs'
       - 'scripts/preview-native-camp-props-v1.py'
       - '.github/workflows/native-camp-props-v1.yml'
 
@@ -41,4 +42,27 @@ jobs:
             public/assets/camp/camp_props_v1.png
             public/assets/camp/camp_props_v1.json
             /tmp/myrren-camp-props-qa/
+          if-no-files-found: warn
+
+  real-game-preview:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser QA
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install chromium
+      - name: Capture existing vs PNG game sprites in desktop and mobile
+        run: node tests/native-camp-props-v1-browser.test.cjs
+      - name: Upload 20 actual gameplay screenshots, review only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crater-camp-props-20-gameplay-qa-screenshots-not-integrated
+          path: /tmp/myrren-camp-props-gameplay-proof/
           if-no-files-found: warn
