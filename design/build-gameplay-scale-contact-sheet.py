@@ -12,6 +12,7 @@ CROP_LOGICAL_W, CROP_LOGICAL_H = 260, 230
 GROUPS = {
     "trees": {"Bramblewood", "Alder", "Ironbark", "Elderthorn", "Starroot"},
     "ores": {"Copper", "Tin", "Iron", "Coal", "Black Iron", "Obsidianite", "Myrrenite", "Meteorite"},
+    "fishing": {"Shallow fishing", "Deep fishing", "Far fishing", "Tuna shoal", "Aether eel"},
 }
 
 def load_font(size):
@@ -74,14 +75,19 @@ def build(records, device, group, folder):
         y=HEADER+row*H
         d.rounded_rectangle((x,y,x+W-24,y+H-13),radius=13,outline=(129,121,98),width=2)
         d.text((x+13,y+13),r["resource"],font=title,fill=(249,231,190))
-        d.text((x+13,y+45),str(r["drawWidthGamePixels"])+" rendered world px  |  source "+
-               str(r["sourceSize"]["width"])+"×"+str(r["sourceSize"]["height"]),
-               font=small,fill=(208,214,196))
+        if group=="fishing":
+            detail="Current renderer: code-drawn shoal and water ripples (no PNG)"
+        else:
+            detail=(str(r["drawWidthGamePixels"])+" rendered world px  |  source "+
+                    str(r["sourceSize"]["width"])+"×"+str(r["sourceSize"]["height"]))
+        d.text((x+13,y+45),detail,font=small,fill=(208,214,196))
         crop=crop_scene(r,folder)
         sheet.paste(crop,(x+3,y+74))
-        d.text((x+14,y+547),
-               "Kez: 21×27 native  |  Resource: "+str(r["widthVsKez"])+"× Kez width",
-               font=small,fill=(196,218,210))
+        if group=="fishing":
+            footer="Kez 21×27  |  Fishing cue: procedural, PNG needed"
+        else:
+            footer="Kez: 21×27 native  |  Resource: "+str(r["widthVsKez"])+"× Kez width"
+        d.text((x+14,y+547),footer,font=small,fill=(196,218,210))
     target=folder/("world-scale-"+device+"-"+group+"-contact.png")
     sheet.save(target,optimize=True)
     print("WROTE",target.name,width,"x",height)
@@ -96,7 +102,7 @@ def main():
     rows=info["rows"]
     outputs=[]
     for dev in ("desktop","mobile"):
-        for group in ("trees","ores"):
+        for group in ("trees","ores","fishing"):
             outputs.append(build(rows,dev,group,args.out))
     listing=["# Actual game scale — reviewer contact sheets",
              "",
@@ -107,9 +113,10 @@ def main():
     listing += ["- "+name for name in outputs]
     listing += ["","The 21×27 Kez sprite remains the fixed scale reference.",
                 "Trees are currently much larger than Kez; ore draw width is 17.28 game pixels.",
+                "All five fishing cues are still code-rendered shoals/ripples, without native PNG artwork.",
                 "This is not approval to change world geometry or native character size.",""]
     (args.out/"CONTACT_SHEETS_README.md").write_text("\n".join(listing))
-    print("PASS: four labelled contact sheets from real gameplay captures")
+    print("PASS: six labelled contact sheets from real gameplay captures")
 
 if __name__=="__main__":
     main()
