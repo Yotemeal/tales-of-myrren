@@ -1,0 +1,51 @@
+{
+  "schema": "myrren.fishing.native-sprite-atlas.v1",
+  "status": "visual-review-only",
+  "image": "/assets/fishing/fishing_spots_v1.png",
+  "frameWidth": 32,
+  "frameHeight": 24,
+  "columns": 4,
+  "rows": 5,
+  "frameDurationMs": 220,
+  "sourceNativePixels": true,
+  "anchor": {
+    "x": 16,
+    "y": 12
+  },
+  "mapping": {
+    "spot1": {
+      "row": 0,
+      "level": 1,
+      "style": "shallow minnows"
+    },
+    "spot2": {
+      "row": 1,
+      "level": 12,
+      "style": "deep trout shoal"
+    },
+    "spot3": {
+      "row": 2,
+      "level": 25,
+      "style": "far salmon"
+    },
+    "spot4": {
+      "row": 3,
+      "level": 40,
+      "style": "tuna shoal"
+    },
+    "spot5": {
+      "row": 4,
+      "level": 70,
+      "style": "aether eel"
+    }
+  },
+  "rules": [
+    "No current in-game references; not integrated.",
+    "Preserve 21x27 Kez and existing 16x16 world tiles.",
+    "Draw one source cell in a 32x24 integer destination rectangle at native world scale.",
+    "Use integer positions and imageSmoothingEnabled=false.",
+    "The PNG is the visual source; canvas code must not reconstruct sprites.",
+    "Preserve existing XP, catches, bait, equipment, interactions, depletion, and save behavior.",
+    "Obtain visual sign-off before loading this atlas by default."
+  ]
+}
