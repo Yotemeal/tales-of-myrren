@@ -7,6 +7,7 @@ on:
       - 'design/starter-region-v1.json'
       - 'design/validate-starter-region.cjs'
       - 'design/audit-resource-sources.py'
+      - 'design/capture-world-scale-gameplay.cjs'
       - 'docs/STARTER_REGION_ASSET_HANDOFF_2026-11-12.md'
       - '.github/workflows/starter-region-design.yml'
 
@@ -41,4 +42,27 @@ jobs:
         with:
           name: myrren-environment-source-audit-not-game-art
           path: /tmp/myrren-resource-source-audit/
+          if-no-files-found: warn
+
+  browser-scale:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium QA only
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install chromium
+      - name: Capture actual gameplay-scale trees and ores beside Kez
+        run: node design/capture-world-scale-gameplay.cjs
+      - name: Preserve real gameplay screenshots and draw measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: myrren-game-world-scale-real-chromium-not-approved
+          path: /tmp/myrren-world-scale-qa/
           if-no-files-found: warn
