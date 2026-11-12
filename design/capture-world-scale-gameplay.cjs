@@ -23,6 +23,10 @@ const resources=[
  ['Myrrenite','aether','ore_myrrenite.png'],
  ['Meteorite','meteorite','ore_meteorite.png']
 ];
+const fishSpots=[
+ ['Shallow fishing','spot1'],['Deep fishing','spot2'],['Far fishing','spot3'],
+ ['Tuna shoal','spot4'],['Aether eel','spot5']
+];
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8',
  '.css':'text/css; charset=utf-8','.png':'image/png','.json':'application/json'};
 const server=http.createServer((req,res)=>{
@@ -161,6 +165,29 @@ const dimensions=file=>{
      resourcePosition:placed.resource,canvas:observed.canvas,
      canvasCss:observed.css,devicePixelRatio:observed.ratio});
    }
+   // Fishing spots use procedural shoals/ripples in current production,
+   // not PNG resource sprites. Capture the actual water-edge cues for art review.
+   for(const [label,kind] of fishSpots){
+    const placed=await page.evaluate(k=>window.__myrrenScaleQA.select(k),kind);
+    await page.waitForTimeout(240);
+    const screenshot=device.name+'-fishing-'+kind+'.png';
+    await page.locator('#cv').screenshot({path:path.join(out,screenshot)});
+    assert(placed.distance<80,'fishing spot was not positioned beside the player: '+kind);
+    rows.push({device:device.name,resource:label,kind,file:null,screenshot,
+     sourceSize:null,drawWidthGamePixels:null,drawTransform:null,widthVsKez:null,
+     renderMethod:'procedural-MyrrenEnvironment.fishing',
+     playerDistance:+placed.distance.toFixed(2),player:placed.player,
+     resourcePosition:placed.resource,
+     canvas:await page.evaluate(()=>({
+      width:document.getElementById('cv').width,
+      height:document.getElementById('cv').height
+     })),
+     canvasCss:await page.evaluate(()=>({
+      width:document.getElementById('cv').clientWidth,
+      height:document.getElementById('cv').clientHeight
+     })),
+     devicePixelRatio:device.dpr});
+   }
    assert.deepEqual(errors,[],'uncaught browser error in '+device.name);
    await context.close();
   }
@@ -170,6 +197,7 @@ const dimensions=file=>{
     'Temporary browser-only hook moves character beside existing seeded node.',
     'Hostile monsters suppressed for stable reference images, not live gameplay.',
     'Resource widths are measured from real drawImage and its canvas transform.',
+    'Fishing areas are code-rendered shoals and ripples, not imported pixel PNGs.',
     'These screenshots are not new game assets or user-approved size changes.'],rows},null,2)+'\n');
   const table=rows.filter(r=>r.device==='desktop');
   let md='# Myrren actual-game scale audit\n\n';
@@ -180,7 +208,7 @@ const dimensions=file=>{
    r.sourceSize.height+' | '+r.drawWidthGamePixels+' | '+r.widthVsKez+'× |\n';
   md+='\nMeasured draw sizes include fractional context transforms. Source resolution and game draw sizes are not equivalent. Visual approval required before edits.\n';
   fs.writeFileSync(path.join(out,'world-scale-current-state.md'),md);
-  console.log('PASS: '+rows.length+' actual-game resource screenshots, desktop/mobile, 13 kinds.');
+  console.log('PASS: '+rows.length+' real gameplay scene captures, desktop/mobile, 13 image resources and 5 fishing areas.');
   console.log('Desktop widths: '+table.map(r=>r.resource+'='+r.drawWidthGamePixels).join(', '));
  }finally{
   await browser?.close();
