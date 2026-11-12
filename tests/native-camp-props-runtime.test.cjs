@@ -60,6 +60,7 @@ const server=http.createServer((req,res)=>{
             const hook=`
               window.__campLayoutQa={
                 position:()=>({...CAMPFIRE}),
+                player:()=>({x:me.x,y:me.y}),
                 put(x,y){me.x=x;me.y=y;me.ox=x;me.oy=y;me.tx=x;me.ty=y;},
                 nearFire:()=>nearFire(),
                 openCooking:()=>{openCooking('fire');return tab},
@@ -109,12 +110,14 @@ const server=http.createServer((req,res)=>{
             const qa=window.__campLayoutQa;
             if(!qa)throw Error('Missing test-only cooking probe');
             const position=qa.position();
+            const player=qa.player();
             qa.put(976,710);
             const oldSpotActive=qa.nearFire();
             qa.put(position.x,position.y);
             const newSpotActive=qa.nearFire();
             const menu=qa.openCooking();
             qa.close();
+            qa.put(player.x,player.y);
             return {position,oldSpotActive,newSpotActive,menu};
           });
           assert.deepEqual(cooking,{
