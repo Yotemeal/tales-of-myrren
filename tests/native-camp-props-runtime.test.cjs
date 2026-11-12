@@ -1,6 +1,7 @@
 'use strict';
 // Opt-in production PNG compositor smoke test. Uses real public/index.html,
-// real game draw paths, and the real sprite atlas; no browser source injection.
+// real game draw paths, and the real sprite atlas. A test-only layout hook verifies
+// the cooking hotspot against the painted fire; it is never committed to the app.
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const http=require('node:http');
@@ -50,6 +51,24 @@ const server=http.createServer((req,res)=>{
         });
         if(mode==='missing-png')
           await page.route('**/assets/camp/camp_props_v1.png*',route=>route.abort());
+        if(mode==='layout-proof'){
+          await page.route('**/myrren-game.js?*',async route=>{
+            const response=await route.fetch();
+            const source=await response.text(),end=source.lastIndexOf('})();');
+            assert(end>0&&source.includes('function nearFire()'),
+              'live cooking reach implementation changed');
+            const hook=`
+              window.__campLayoutQa={
+                position:()=>({...CAMPFIRE}),
+                put(x,y){me.x=x;me.y=y;me.ox=x;me.oy=y;me.tx=x;me.ty=y;},
+                nearFire:()=>nearFire(),
+                openCooking:()=>{openCooking('fire');return tab},
+                close:()=>closeModal()
+              };
+            `;
+            await route.fulfill({response,body:source.slice(0,end)+hook+source.slice(end)});
+          });
+        }
         const usingArt=mode==='proof'||mode==='layout-proof';
         const url=host+(mode==='fallback'?'/':'/?camp-props-proof'+
           (mode==='layout-proof'?'&campfire-layout-proof':''));
@@ -85,6 +104,24 @@ const server=http.createServer((req,res)=>{
         await page.waitForFunction(()=>document.getElementById('intro')?.hidden,
           null,{timeout:8000});
         await page.waitForTimeout(350);
+        if(mode==='layout-proof'){
+          const cooking=await page.evaluate(()=>{
+            const qa=window.__campLayoutQa;
+            if(!qa)throw Error('Missing test-only cooking probe');
+            const position=qa.position();
+            qa.put(976,710);
+            const oldSpotActive=qa.nearFire();
+            qa.put(position.x,position.y);
+            const newSpotActive=qa.nearFire();
+            const menu=qa.openCooking();
+            qa.close();
+            return {position,oldSpotActive,newSpotActive,menu};
+          });
+          assert.deepEqual(cooking,{
+            position:{x:864,y:850},oldSpotActive:false,
+            newSpotActive:true,menu:'cook'
+          },'moved cooking hotspot must open the existing cooking UI only at its new position');
+        }
         const drawCount=await page.evaluate(()=>window.__campProductionDraws.length);
         if(usingArt)assert(drawCount>6,
           'real gameplay must draw the actual new camp atlas');
