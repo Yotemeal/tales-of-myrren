@@ -1,5 +1,5 @@
 'use strict';
-// Opt-in production PNG compositor smoke test. Uses real public/index.html,
+// Default-on production PNG compositor smoke test. Uses real public/index.html,
 // real game draw paths, and the real sprite atlas. A test-only layout hook verifies
 // the cooking hotspot against the painted fire; it is never committed to the app.
 const assert=require('node:assert/strict');
@@ -71,8 +71,8 @@ const server=http.createServer((req,res)=>{
           });
         }
         const usingArt=mode==='proof'||mode==='layout-proof';
-        const url=host+(mode==='fallback'?'/':'/?camp-props-proof'+
-          (mode==='layout-proof'?'&campfire-layout-proof':''));
+        const url=host+(mode==='fallback'?'/?legacy-camp-props':
+          mode==='proof'?'/?original-campfire-layout-proof':'/');
         await page.goto(url,{waitUntil:'domcontentloaded'});
         await page.waitForFunction(()=>!document.getElementById('go')?.disabled &&
           !!window.MyrrenCampProps,null,{timeout:20000});
@@ -151,13 +151,14 @@ const server=http.createServer((req,res)=>{
       }
     }
     fs.writeFileSync(path.join(out,'qa-report.json'),JSON.stringify({
-      status:'preview-only-no-production-main-change',
-      urlFlag:'?camp-props-proof',
-      independentPlacementFlag:'?camp-props-proof&campfire-layout-proof',
-      art:'NOT APPROVED; anvil specifically flagged for redesign',
+      status:'unmerged-release-candidate',
+      urlFlag:'/',
+      legacyRollbackFlag:'?legacy-camp-props',
+      originalFireComparisonFlag:'?original-campfire-layout-proof',
+      art:'user provisionally accepted current camp; V2 anvil specifically approved',
       report
     },null,2)+'\n');
-    console.log('PASS: six real game screenshots, six native atlas rows, opt-out and missing PNG fallback.');
+    console.log('PASS: eight real game screenshots, six native atlas rows, default art, legacy rollback, cooking move and missing PNG fallback.');
   }finally{
     await browser?.close();
     await new Promise(resolve=>server.close(resolve));
