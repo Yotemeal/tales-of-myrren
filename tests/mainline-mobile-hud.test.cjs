@@ -31,7 +31,10 @@ const serve=http.createServer((req,res)=>{
         localStorage.setItem('ember-reach-v2',JSON.stringify({
           v:3,ts:Date.now()-1000,name:'Myrren Save QA',
           xp:{melee:500,woodcutting:200,mining:100,forging:0},
-          inv:{coins:777,logs:4},eq:{},bag:[],x:100,y:100
+          // Keep the save-restoration and UI test in the protected camp.
+          // (100,100) is outside the camp and can trigger combat/death,
+          // making openModal() correctly refuse to show equipment.
+          inv:{coins:777,logs:4},eq:{},bag:[],x:800,y:840
         }));
       });
       await page.goto('http://127.0.0.1:'+serve.address().port,{waitUntil:'domcontentloaded'});
@@ -103,7 +106,41 @@ const serve=http.createServer((req,res)=>{
       }
       await page.screenshot({path:`/tmp/myrren-${name}-hud.png`});
       await page.locator('[data-ui-open="gear"]').click();
-      await page.waitForFunction(()=>!document.getElementById('modal').hidden,{timeout:5000});
+      try {
+        // The third argument is the Playwright options object; passing it
+        // second accidentally used the default 30s timeout.
+        await page.waitForFunction(
+          ()=>!document.getElementById('modal').hidden,
+          null,{timeout:5000});
+      } catch(error) {
+        // On failure, do not conceal a game regression with a retry or DOM
+        // mutation. Capture actual browser state for root-cause diagnosis.
+        const debug=await page.evaluate(()=>{
+          const modal=document.getElementById('modal');
+          const gear=document.querySelector('[data-ui-open="gear"]');
+          const box=gear?.getBoundingClientRect();
+          const target=box?document.elementFromPoint(
+            box.left+box.width/2,box.top+box.height/2):null;
+          return {
+            modalHidden:modal?.hidden,
+            modalScreen:modal?.dataset.screen,
+            introHidden:document.getElementById('intro')?.hidden,
+            hudHidden:document.getElementById('hud')?.hidden,
+            gearDisabled:gear?.disabled,
+            gearPressed:gear?.getAttribute('aria-pressed'),
+            centerHitElement:target?.tagName,
+            centerHitId:target?.id,
+            centerHitClass:target?.className,
+            toast:document.getElementById('toast')?.textContent,
+            viewport:{width:innerWidth,height:innerHeight}
+          };
+        });
+        console.error('Equipment UI did not open on '+name+': '+JSON.stringify(debug));
+        await page.screenshot({
+          path:`/tmp/myrren-${name}-equipment-open-failure.png`
+        });
+        throw error;
+      }
       const rect=await page.locator('.win').boundingBox();
       assert(rect&&rect.x>=-1&&rect.x+rect.width<=width+1,'equipment window must fit viewport');
       await page.screenshot({path:`/tmp/myrren-${name}-equipment.png`});
