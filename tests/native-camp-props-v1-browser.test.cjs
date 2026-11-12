@@ -145,7 +145,7 @@ const worldHook=[
         source=source.slice(0,close)+worldHook+'\n'+source.slice(close);
         await route.fulfill({response,body:source});
       });
-      await page.goto('http://127.0.0.1:'+server.address().port,{waitUntil:'domcontentloaded'});
+      await page.goto('http://127.0.0.1:'+server.address().port+'/?legacy-camp-props',{waitUntil:'domcontentloaded'});
       await page.waitForFunction(()=>window.MyrrenKezV2Atlas?.ready&&
         window.__campQaPlace&&!document.querySelector('#go')?.disabled,null,{timeout:20000});
       await page.waitForFunction(()=>window.__campQaAtlas?.naturalWidth===256,null,{timeout:12000});
