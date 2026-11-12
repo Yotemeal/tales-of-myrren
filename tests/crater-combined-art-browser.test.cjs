@@ -94,9 +94,13 @@ const server=http.createServer((req,res)=>{
           await page.evaluate(()=>{
             const original=window.MyrrenSwords.draw;
             window.__combinedQa.swordDraws=0;
+            window.__combinedQa.swordScale=null;
             window.MyrrenSwords.draw=function(...args){
               const rendered=original(...args);
-              if(rendered&&args[1]===2)window.__combinedQa.swordDraws++;
+              if(rendered&&args[1]===2){
+                window.__combinedQa.swordDraws++;
+                window.__combinedQa.swordScale=args[6];
+              }
               return rendered;
             };
           });
@@ -123,6 +127,7 @@ const server=http.createServer((req,res)=>{
           props:window.__combinedQa.props,
           bronze:window.__combinedQa.bronze,
           bronzeSwordDraws:window.__combinedQa.swordDraws||0,
+          bronzeSwordScale:window.__combinedQa.swordScale,
           bronzeCells:window.__combinedQa.bronzeSource.size,
           terrainCells:window.__combinedQa.terrainSource.size,
           propCells:window.__combinedQa.propSource.size,
@@ -141,6 +146,8 @@ const server=http.createServer((req,res)=>{
             'multiple native Bronze equipment cells must render alongside terrain/props');
           assert(counts.bronzeSwordDraws>0,
             'equipped Bronze sword must use the existing forged-sword renderer');
+          assert.equal(counts.bronzeSwordScale,0.85,
+            'native fitted Bronze blade must be legible without scaling legacy swords');
         }
         const name=device.name+'-'+mode+'.png';
         await page.locator('#cv').screenshot({path:path.join(output,name)});
