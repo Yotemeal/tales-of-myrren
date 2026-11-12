@@ -48,7 +48,8 @@ for group,count in (("grass",8),("dirt",4),("ruin_stone",4),("water",4),
                     ("corrupted_grass",2),("gravel",2)):
     assert sum(name.startswith(group+"_") for name in tiles)==count+(
         16 if group=="water" else 0)
-# No accidental live art activation.
+# Runtime uses the validated PNG at its native tile size.
 game=(ROOT/"public"/"myrren-environment.js").read_text()
-assert "starter_terrain_v1.png" not in game
-print("PASS: 56 intact 16x16 native pixel tiles, no transparent holes; original game unaffected")
+assert "starter_terrain_v1.png" in game
+assert "terrainAtlas.naturalWidth===128&&terrainAtlas.naturalHeight===112" in game
+print("PASS: 56 intact 16x16 native pixel tiles, no transparent holes; production atlas dimensions match")
