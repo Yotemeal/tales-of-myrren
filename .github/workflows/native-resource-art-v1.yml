@@ -1,0 +1,66 @@
+name: Native starter resource art QA
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'public/assets/resources/native-v1/**'
+      - 'docs/NATIVE_STARTER_RESOURCES_V1_WORK_HANDOFF.md'
+      - 'scripts/preview-native-resources-v1.py'
+      - 'tests/native-resource-v1-gameplay.test.cjs'
+      - '.github/workflows/native-resource-art-v1.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-art:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create isolated Pillow art QA
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/myrren-native-art-v1"
+          "${RUNNER_TEMP}/myrren-native-art-v1/bin/python" -m pip install 'Pillow>=11,<13'
+      - name: Check native PNG bounds, state frames, alpha and anchored roots
+        run: "${RUNNER_TEMP}/myrren-native-art-v1/bin/python public/assets/resources/native-v1/validate-v1.py"
+      - name: Generate review images directly from source PNGs
+        run: "${RUNNER_TEMP}/myrren-native-art-v1/bin/python scripts/preview-native-resources-v1.py --out /tmp/myrren-native-resources-v1-art"
+      - name: Upload original art and preview pack
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-native-resource-art-v1-not-integrated
+          path: |
+            public/assets/resources/native-v1/
+            /tmp/myrren-native-resources-v1-art/
+          if-no-files-found: warn
+
+  browser-proof:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser QA only
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install chromium
+      - name: Capture current versus PNG art in the real game
+        run: node tests/native-resource-v1-gameplay.test.cjs
+      - name: Publish actual gameplay screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-resource-v1-real-game-browser-comparison
+          path: /tmp/myrren-native-resources-browser-qa/
+          if-no-files-found: warn
