@@ -56,7 +56,7 @@ const gamePatch={
     ' return;',
     '}'
   ].join('\n'),
-  'function drawBoard(x,y){':[
+  'function drawBoard(x,y,now){':[
     'if(window.__campQaDraw?.(ctx,"jobs_board",x,y,performance.now())){',
     ' if(Math.hypot(me.x-BOARD.x,me.y-BOARD.y)<65)',
     '   label("Community Board",x,y-49,"#e4dfc3");',
