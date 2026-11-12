@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=88;
+window.MyrrenBuild=95;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -1864,6 +1864,13 @@ function ingest(change){
     if(!o){o={x,y,tx:x,ty:y,n:'',tl:3,h:200,e:null,until:0,face:1,tool:'',mat:2,hold:0,swingAt:-9999,s:null,g:[0,0,0,0,0]};peers.set(p.peer,o)}
     if(x!==o.tx)o.face=x>o.tx?1:-1;
     o.tx=x;o.ty=y;
+    o.renderDirection=['d','u','s'].includes(pr.dir)?pr.dir:null;
+    if(pr.face===-1||pr.face===1)o.face=pr.face;
+    o.deathAt=pr.dead===true?(o.deathAt??now):null;
+    if(Number.isFinite(pr.hit)&&pr.hit>=0&&pr.hit!==o.lastHit){
+      o.lastHit=pr.hit;
+      o.hurtAt=now;
+    }
     o.n=String(pr.n||'Wanderer').replace(/[^\w .-]/g,'').slice(0,14)||'Wanderer';
     o.tl=clamp(pr.tl|0,1,100);o.dye=(Number.isInteger(pr.dy)&&pr.dy>=0&&pr.dy<4)?pr.dy:null;
     o.h=((+pr.h||0)%360+360)%360;
@@ -1887,7 +1894,8 @@ function ingest(change){
 function sendPresence(){
   if(!room||!started)return;
   const now=performance.now(),holding=now<me.hold&&me.tool;
-  const p={x:Math.round(inside?me.ox:me.x),y:Math.round(inside?me.oy:me.y),n:save.name,tl:lvlFor(save.xp.melee),h:me.hue,e:waveN,s:me.swings,a:holding?CODE_KIND.indexOf(me.tool):0,tt:me.mat,g:gearArr(),dy:save.dye};
+  const p={x:Math.round(inside?me.ox:me.x),y:Math.round(inside?me.oy:me.y),n:save.name,tl:lvlFor(save.xp.melee),h:me.hue,e:waveN,s:me.swings,a:holding?CODE_KIND.indexOf(me.tool):0,tt:me.mat,g:gearArr(),dy:save.dye,
+    dir:me.dv,face:me.face,dead:me.deathAt!=null,hit:now-me.hurtAt<220?me.hurtAt:null};
   const s=JSON.stringify(p);if(s===lastSent)return;lastSent=s;
   room.presence(p).catch(()=>{});
 }
@@ -2252,7 +2260,7 @@ function die(){
   stopSmithing('',false);stopCooking('',false);
   me.deathAt=performance.now();me.hp=0;me.moving=false;me.pend=0;pendingStrike=null;me.swing=-99999;
   act=null;marker=null;wantSwing=false;closeModal();
-  say('Oh dear, you are dead!','red');toast('YOU DIED');uiHud();
+  say('Oh dear, you are dead!','red');toast('YOU DIED');uiHud();sendPresence();
   for(const m of mons){if(m.state==='chase')m.state='return';m.warn=null}
 }
 function respawnPlayer(){
@@ -2448,6 +2456,7 @@ function damagePlayerFromMonster(m,mt,now){
   me.hp-=dmg;if(dmg>0)me.hurtAt=performance.now();splat(me.x,me.y-18,dmg);uiHud();
   if(dmg>0&&me.hp>0&&me.hp<=hpMax()*.25&&foodCount()>0)say('You are low on health. Tap the food button to eat.','warn');
   if(me.hp<=0)die();
+  else if(dmg>0)sendPresence();
 }
 function completeMonsterWarning(m,mt,now){
   const warn=m.warn;
@@ -3070,6 +3079,7 @@ window.addEventListener('myrren-armour-ready',()=>{if(tab)renderModal()});
 window.addEventListener('myrren-weapons-ready',()=>{if(tab)renderModal()});
 window.addEventListener('myrren-sword-actions-ready',()=>{if(tab)renderModal()});
 window.addEventListener('myrren-kez-v2-ready',()=>{if(tab==='gear')renderModal()});
+window.addEventListener('myrren-kez-equipment-ready',()=>{if(tab==='gear')renderModal()});
 // Kez V2 is the authoritative player and remote-player render path.
 // Legacy renderers remain isolated for historical QA, never for live players.
 let missingKezLogged=false;
@@ -3080,49 +3090,81 @@ function drawKezV2(x,y,o,now){
     return false;
   }
   const gear=window.MyrrenKezV2Equipment;
-  const state={...o,now},deathAt=o.isMe?me.deathAt:o.deathAt;
+  const deathAt=o.isMe?me.deathAt:o.deathAt;
   const deathAge=deathAt==null?-1:now-deathAt;
-  const age=now-(o.swingAt??-99999),attacking=age>=0&&age<320;
+  const dead=deathAge>=0;
+  const poseTime=dead?deathAt:now;
+  const collapseReady=dead&&atlas.collapseReady&&gear?.supportsCollapse?.(o.g)&&
+    (o.tool!=='sword'||gear.hasAtlas(o.mat));
+  const state={...o,now:poseTime,moving:!dead&&o.moving,
+    swingAt:dead?undefined:o.swingAt,collapsePose:collapseReady,
+    equipmentPunch:o.tool==='fist'&&gear?.supportsAttack?.(o.g,'punch'),
+    equipmentSword:o.tool==='sword'&&gear?.supportsSword?.(o.mat)&&
+      gear.supportsAttack?.(o.g,'sword')};
+  const age=now-(o.swingAt??-99999),attacking=!dead&&age>=0&&age<320;
   const hurtAge=now-(o.isMe?(me.hurtAt??-99999):(o.hurtAt??-99999));
   const holding=o.tool&&o.tool!=='fist'&&(attacking||now<o.hold);
   const direction=o.dv==='u'?'back':o.dv==='s'?'side':'front';
   const facing=o.f<0?-1:1;
   // Weapon in the dominant hand; shield stays on the opposite side.
   // Rear-facing weapons belong behind the base sprite, not across the torso.
-  const hx=Math.round(x+(direction==='back'?-8:direction==='side'?facing*6:5));
+  const pose=atlas.pose(state,poseTime);
+  const fittedGrip=o.tool==='sword'&&gear?.hasAtlas?.(o.mat)&&pose;
+  const hx=Math.round(x)+(fittedGrip?pose.gripX:(direction==='back'?-8:direction==='side'?facing*6:5));
   // Dominant-hand socket matches gloves at y=-8..-4, below the face.
-  const hy=Math.round(y-7);
+  const hy=Math.round(y)+(fittedGrip?pose.gripY:-7);
   const glove=o.g?.[5];
   const handColor=glove&&gear?.colorsFor?.(glove,o.dye)?.[2]||'#edbc94';
   const heldAngle=attacking
     ?(o.tool==='sword'?window.MyrrenKezV2SwordMotion.angle(age):swingAng(age))
     :-.35;
   const paintHeld=()=>{
-    if(!holding||deathAge>=0)return;
+    if(!holding||(dead&&o.tool!=='sword'))return;
     drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6);
     // Two-pixel fingers cover the sword grip without showing a floating hilt.
     if(direction!=='back')R(hx-1,hy-1,2,2,handColor);
   };
   const paintPunch=()=>{
-    if(o.tool!=='fist'||!attacking||deathAge>=0)return;
+    if(o.tool!=='fist'||!attacking||dead||pose?.nativePunch)return;
     const px=direction==='back'?x-4:direction==='side'?x+facing*6:x+4;
     R(Math.round(px)-1,Math.round(y-11),2,2,handColor);
   };
+  const collapse=collapseReady&&deathAge>=75;
+  if(collapse){
+    const frame=deathAge<200?0:1;
+    const fallAngle=frame===0?.70:Math.PI/2;
+    const fallSword=()=>{
+      ctx.save();
+      ctx.translate(Math.round(x),Math.round(y));ctx.rotate(fallAngle);
+      ctx.translate(-Math.round(x),-Math.round(y));
+      paintHeld();
+      ctx.restore();
+    };
+    shadowE(x+9,y+1,12,2,.22);
+    ctx.save();
+    if(direction==='back')fallSword();
+    gear.drawCollapse(ctx,x,y,state,pose,frame,'under');
+    atlas.drawCollapseLayer(ctx,x,y,pose.row-1,frame,0);
+    gear.drawCollapse(ctx,x,y,state,pose,frame,'over');
+    if(direction!=='back')fallSword();
+    ctx.restore();
+    return true;
+  }
   shadowE(x,y+1,5,2,.28);
   ctx.save();
-  if(deathAge>=0){
+  if(dead){
     // Collapse around the planted feet without moving the game entity.
     const k=Math.min(1,Math.max(0,deathAge/260));
     ctx.translate(Math.round(x),Math.round(y));ctx.rotate(k*1.35);ctx.translate(-Math.round(x),-Math.round(y));
   }
   if(hurtAge>=0&&hurtAge<220)ctx.globalAlpha*=.65;
   if(direction==='back'){paintHeld();paintPunch()}
-  gear?.draw(ctx,x,y,state,'under');
-  atlas.draw(ctx,x,y,state,now);
-  gear?.draw(ctx,x,y,state,'over');
+  gear?.draw(ctx,x,y,state,'under',pose);
+  atlas.draw(ctx,x,y,state,now,pose);
+  gear?.draw(ctx,x,y,state,'over',pose);
   if(direction!=='back'){paintHeld();paintPunch()}
   ctx.restore();
-  if(deathAge>=0)return true;
+  if(dead)return true;
   label(o.name,x,y-32,o.col||'#ffffff');
   if(o.waving)label('*waves*',x,y-43,'#ffffff');
   return true;
@@ -3822,7 +3864,7 @@ function drawOutdoor(cx,cy,now){
       R(fx2-4,fy-6-fl,8,7+fl,'#df733a');R(fx2-2,fy-9-fl,4,7+fl,'#ffd15d');
     }
   }});
-  peers.forEach(o=>{if(vis(o.x,o.y))list.push({y:o.y,f:()=>drawPerson(Math.round(o.x-cx),Math.round(o.y-cy),{dv:(()=>{const dx=o.tx-o.x,dy=o.ty-o.y;if(Math.hypot(dx,dy)>1)o.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s';return o.dv||'d'})(),f:o.face,moving:Math.hypot(o.tx-o.x,o.ty-o.y)>1,hue:o.h,name:o.n,col:'#ffffff',tool:o.tool,mat:o.mat,hold:o.hold,swingAt:o.swingAt,waving:now<o.until,g:o.g,dye:o.dye},now)})});
+  peers.forEach(o=>{if(vis(o.x,o.y))list.push({y:o.y,f:()=>drawPerson(Math.round(o.x-cx),Math.round(o.y-cy),{dv:o.renderDirection||(()=>{const dx=o.tx-o.x,dy=o.ty-o.y;if(Math.hypot(dx,dy)>1)o.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s';return o.dv||'d'})(),f:o.face,moving:Math.hypot(o.tx-o.x,o.ty-o.y)>1,hue:o.h,name:o.n,col:'#ffffff',tool:o.tool,mat:o.mat,hold:o.hold,swingAt:o.swingAt,waving:now<o.until,g:o.g,dye:o.dye,deathAt:o.deathAt,hurtAt:o.hurtAt},now)})});
   for(const pt of pets)list.push({y:pt.y,f:()=>drawPet(pt,Math.round(pt.x-cx),Math.round(pt.y-cy),now)});
   if(started)list.push({y:me.y,f:()=>{
     const sx=Math.round(me.x-cx),sy=Math.round(me.y-cy);
