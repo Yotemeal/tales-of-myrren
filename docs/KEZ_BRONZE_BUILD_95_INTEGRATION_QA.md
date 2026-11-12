@@ -15,7 +15,7 @@ This branch starts from the real merged Crater Camp release on `main` (commit `4
 
 Open the game with `?bronze-proof` on this branch to load authored native Bronze layers and proof attack/collapse sprite sheets from PR #78. In normal mode, all existing equipment rendering remains as before, on the new camp background.
 
-The new game integration is build **95**. `public/myrren-game.js` receives the character pose, sword grip, death, animation and network fields from #78 without overwriting its build 88 terrain or campfire changes. `public/index.html` retains the environment v13 and camp module v2 while loading Kez atlas v18 and equipment v8.
+The latest sword-readability integration is build **96** (build 95 was the original compatibility port). `public/myrren-game.js` receives the character pose, sword grip, death, animation and network fields from #78 without overwriting its build 88 terrain or campfire changes. `public/index.html` retains the environment v13 and camp module v2 while loading Kez atlas v18 and equipment v8.
 
 ## Release gate
 - Run the original Kez paperdoll, sprite, browser, equipment-atlas, and gameplay integrity tests **on this combined branch**.
