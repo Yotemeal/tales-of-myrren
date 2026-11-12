@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=84;
+window.MyrrenBuild=85;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -3588,11 +3588,16 @@ function drawOutdoor(cx,cy,now){
     const boundary=tx<EDGE/T||ty<EDGE/T||tx>=WW/T-EDGE/T||ty>=WH/T-EDGE/T;
     const d=VILLAGE.waterDistance(wx+8,wy+8),kind=boundary?'boundary':pathAt(tx,ty);
     const edge=kind==='path'||kind==='plaza'?(pathAt(tx,ty-1)==='grass'?1:0)|(pathAt(tx,ty+1)==='grass'?2:0)|(pathAt(tx-1,ty)==='grass'?4:0)|(pathAt(tx+1,ty)==='grass'?8:0):0;
-    MyrrenEnvironment.terrain(ctx,tx,ty,x,y,d<-18?'water':kind,now,edge);
+
     // Cleared, lived-in crater floor: compacted earth, ash, and recovering growth.
     // Townsfolk maintain the basin; no uninterrupted dark-green lawn.
     const basin=Math.hypot((wx+8-CX)/305,(wy+8-CY)/235);
-    if(basin<.84&&kind==='grass'){
+    const grit=H2(tx+731,ty-391)%17;
+    const ground=kind==='grass'&&d>25
+      ?(basin>.83&&basin<1.18&&grit<12?(grit<5?'stone':'gravel'):basin<.84?'dirt':kind)
+      :kind;
+    const native=MyrrenEnvironment.terrain(ctx,tx,ty,x,y,d<-18?'water':kind,now,edge,ground);
+    if(!native&&basin<.84&&kind==='grass'){
       const grain=H2(tx+93,ty-71)%13;
       R(x,y,16,16,grain<3?'#74634c':grain<7?'#796b53':grain<10?'#807158':'#6c614e');
       if(grain%3===0){R(x+2,y+5,5,2,'#948369');R(x+10,y+12,4,2,'#5d5647')}
@@ -3603,9 +3608,8 @@ function drawOutdoor(cx,cy,now){
     }
     // The Camp lies inside the overgrown impact crater of the lost trading city.
     // Subtle rocky terraces, not a solid wall: all existing routes stay open.
-    const craterR=Math.hypot((wx+8-CX)/305,(wy+8-CY)/235);
-    if(d>25&&kind==='grass'&&craterR>.70&&craterR<1.35){
-      const grit=H2(tx+731,ty-391)%17;
+    const craterR=basin;
+    if(!native&&d>25&&kind==='grass'&&craterR>.70&&craterR<1.35){
       // Two softly staggered rock shelves form the crater's visible inner wall.
       const shelf=craterR>.83&&craterR<1.18;
       if(shelf&&grit<12){

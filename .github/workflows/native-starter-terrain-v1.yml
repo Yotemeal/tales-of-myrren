@@ -1,0 +1,57 @@
+name: Native starter terrain art QA
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'public/assets/terrain/starter_terrain_v1.*'
+      - 'public/myrren-environment.js'
+      - 'public/myrren-game.js'
+      - 'tests/starter-terrain-v1.test.py'
+      - 'tests/starter-terrain-v1-browser.test.cjs'
+      - 'docs/STARTER_TERRAIN_V1_ART_HANDOFF.md'
+      - '.github/workflows/native-starter-terrain-v1.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  png-atlas:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create Pillow validation environment
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/myrren-terrain-v1"
+          "${RUNNER_TEMP}/myrren-terrain-v1/bin/python" -m pip install 'Pillow>=11,<13'
+      - name: Verify real native-pixel PNG and 56 tile metadata entries
+        run: "${RUNNER_TEMP}/myrren-terrain-v1/bin/python tests/starter-terrain-v1.test.py"
+
+  real-game:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser QA tooling
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install chromium
+      - name: Compare live world and native PNG tiles in desktop/mobile Chromium
+        run: node tests/starter-terrain-v1-browser.test.cjs
+      - name: Upload actual-game screenshots (not new live map)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-terrain-v1-real-game-visual-review-only
+          path: /tmp/myrren-starter-terrain-gameplay-qa/
+          if-no-files-found: warn
