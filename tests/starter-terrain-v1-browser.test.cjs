@@ -32,7 +32,7 @@ const terrainProof=[
  '     (connected(0,1)?4:0)|(connected(-1,0)?8:0);',
  '   idx=24+mask;',
  ' }',
- ' else if(kind==="plaza")idx=12+(n%4);',
+ ' else if(kind==="plaza")idx=(n%7===0?22+(n%2):8+(n%4));',
  ' else if(kind==="water"){',
  '   const connected=(dx,dy)=>window.MyrrenWorld.waterDistance(',
  '      (tx+dx)*16+8,(ty+dy)*16+8)<-18;',
