@@ -1,10 +1,11 @@
-/* Tales of Myrren — opt-in native Crater Camp sprite proof.
- * Original atlas from draft art PR #85. No save/world/collision modifications.
- * The live game retains its existing procedural fallback when this proof is off
- * or the image fails to load; never use canvas-generated art as replacement.
+/* Tales of Myrren — native Crater Camp props in the release candidate.
+ * The user provisionally accepted this artwork as the current working version.
+ * ?legacy-camp-props restores the old procedural sprites and cooking fire spot.
+ * Broken/missing PNG files fall back per object without breaking interactions.
+ * No save, multiplayer, world collision or inventory mutations.
  */
 (()=>{'use strict';
-  const enabled=new URLSearchParams(window.location.search).has('camp-props-proof');
+  const enabled=!new URLSearchParams(window.location.search).has('legacy-camp-props');
   const CELL=64,WIDTH=256,HEIGHT=384,ANCHOR_X=32,ANCHOR_Y=56;
   const props=Object.freeze({
     bank_chest:{row:0,frames:1,ms:0},
@@ -19,7 +20,7 @@
     atlas=new Image();
     atlas.decoding='async';
     atlas.onerror=()=>console.warn('Crater Camp native art unavailable; using existing fallback');
-    atlas.src='/assets/camp/camp_props_v1.png?v=1';
+    atlas.src='/assets/camp/camp_props_v1.png?v=2';
   }
   function ready(){return !!atlas&&atlas.complete&&atlas.naturalWidth===WIDTH&&atlas.naturalHeight===HEIGHT}
   function draw(ctx,kind,x,y,now=0){
