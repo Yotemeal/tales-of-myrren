@@ -181,7 +181,9 @@
         :kind==='plaza'||ground==='dirt'?8+variant%4
         :ground==='gravel'?22+variant%2
         :ground==='stone'?12+variant%4
-        :tx>71&&ty>72?20+variant%2:variant;
+        // Corrupted tiles are biome data, not a hard coordinate cutoff.
+        // A cutoff creates a rectangular purple patch beside the lake.
+        :ground==='corrupted'?20+variant%2:variant;
       drawTerrainTile(ctx,index,x,y);
       return true;
     }
