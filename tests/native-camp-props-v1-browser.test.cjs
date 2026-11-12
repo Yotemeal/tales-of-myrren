@@ -24,6 +24,7 @@ const server=http.createServer((req,res)=>{
 });
 const drawInitializer=()=>{
   window.__campQaEnabled=false;
+  window.__campQaSelectedKind=null;
   window.__campQaAtlas=new Image();
   window.__campQaAtlas.src='/assets/camp/camp_props_v1.png';
   window.__campQaCounters={};
@@ -33,7 +34,8 @@ const drawInitializer=()=>{
     const frames={bank_chest:1,jobs_board:4,blacksmith_anvil:1,open_furnace:4,
       campfire:4,lantern:4};
     const ms={jobs_board:350,open_furnace:240,campfire:240,lantern:280};
-    if(!window.__campQaEnabled||window.__campQaAtlas.naturalWidth!==256)return false;
+    if(!window.__campQaEnabled||window.__campQaSelectedKind!==name||
+      window.__campQaAtlas.naturalWidth!==256)return false;
     const row=rows[name];
     if(row===undefined)throw Error('Unknown artwork '+name);
     const frame=Math.floor(now/(ms[name]||1000))%frames[name];
@@ -62,7 +64,13 @@ const gamePatch={
     '}'
   ].join('\n'),
   'function drawLamp(x,y,now){':[
-    'if(window.__campQaDraw?.(ctx,"lantern",x,y,now))return;'
+    'if(window.__campQaDraw?.(ctx,"lantern",x,y,now)){',
+    '  const flicker=Math.sin(now/180+x);',
+    '  ctx.save();ctx.globalAlpha=.13+flicker*.025;',
+    '  ctx.fillStyle="#ffd181";',
+    '  ctx.beginPath();ctx.arc(x,y-16,19,0,Math.PI*2);ctx.fill();',
+    '  ctx.restore();return;',
+    '}'
   ].join('\n')
 };
 const worldHook=[
@@ -146,7 +154,10 @@ const worldHook=[
       await page.waitForFunction(()=>document.querySelector('#intro').hidden,
         null,{timeout:8000});
       for(const kind of ['bank_chest','jobs_board','blacksmith_anvil','open_furnace','lantern']){
-        const position=await page.evaluate(key=>window.__campQaPlace(key),kind);
+        const position=await page.evaluate(key=>{
+          window.__campQaSelectedKind=key;
+          return window.__campQaPlace(key);
+        },kind);
         await page.evaluate(()=>{window.__campQaEnabled=false});
         await page.waitForTimeout(240);
         const before=device.name+'-'+kind+'-current.png';
@@ -157,8 +168,12 @@ const worldHook=[
         await page.waitForTimeout(240);
         const after=device.name+'-'+kind+'-native.png';
         await page.locator('#cv').screenshot({path:path.join(out,after)});
+        const counts=await page.evaluate(()=>({...window.__campQaCounters}));
+        assert.deepEqual(Object.keys(counts).sort(),[kind],
+          'QA preview accidentally replaced unselected camp props');
         scenes.push({device:device.name,kind,before,after,position,
-          variant:'native PNG injected by QA browser interception only'});
+          replacementCount:counts[kind],
+          variant:'selected PNG only; nearby camp props remain their current game art'});
       }
       assert.deepEqual(errors,[],'runtime errors in '+device.name);
       await context.close();
@@ -169,10 +184,12 @@ const worldHook=[
       notes:[
         'Campfire has no verified current placement and is not shown in live-scene comparisons.',
         'No production app source edits, game state changes, or approved art merging.',
-        'Before and after screenshots use the same player position and real game renderer.'
+        'Before and after screenshots use the same player position and real game renderer.',
+        'Only the selected prop is changed in each screenshot; other existing props are unchanged.',
+        'Lantern PNG preview retains the original subtle ambient light halo.'
       ],scenes
     },null,2)+'\n');
-    console.log('PASS: 20 actual game screenshots, 5 props before/after, desktop/mobile, no errors.');
+    console.log('PASS: 20 actual game screenshots; only selected prop changed; lantern glow preserved.');
   }finally{
     await browser?.close();
     await new Promise(resolve=>server.close(resolve));
