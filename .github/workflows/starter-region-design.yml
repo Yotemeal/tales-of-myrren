@@ -8,6 +8,7 @@ on:
       - 'design/validate-starter-region.cjs'
       - 'design/audit-resource-sources.py'
       - 'design/capture-world-scale-gameplay.cjs'
+      - 'design/build-gameplay-scale-contact-sheet.py'
       - 'docs/STARTER_REGION_ASSET_HANDOFF_2026-11-12.md'
       - '.github/workflows/starter-region-design.yml'
 
@@ -59,6 +60,12 @@ jobs:
           npx playwright install chromium
       - name: Capture actual gameplay-scale trees and ores beside Kez
         run: node design/capture-world-scale-gameplay.cjs
+      - name: Create isolated Pillow environment for browser screenshots
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/myrren-scale-contact"
+          "${RUNNER_TEMP}/myrren-scale-contact/bin/python" -m pip install 'Pillow>=11,<13'
+      - name: Build reviewer contact sheets from real gameplay screenshots
+        run: "${RUNNER_TEMP}/myrren-scale-contact/bin/python design/build-gameplay-scale-contact-sheet.py --out /tmp/myrren-world-scale-qa"
       - name: Preserve real gameplay screenshots and draw measurements
         if: always()
         uses: actions/upload-artifact@v4
