@@ -31,7 +31,9 @@ const serve=http.createServer((req,res)=>{
         localStorage.setItem('ember-reach-v2',JSON.stringify({
           v:3,ts:Date.now()-1000,name:'Myrren Save QA',
           xp:{melee:500,woodcutting:200,mining:100,forging:0},
-          inv:{coins:777,logs:4},eq:{},bag:[],x:100,y:100
+          // Camp respawn point; distant wilderness coordinates place the
+          // test character next to hostile monsters and make UI QA flaky.
+          inv:{coins:777,logs:4},eq:{},bag:[],x:800,y:840
         }));
       });
       await page.goto('http://127.0.0.1:'+serve.address().port,{waitUntil:'domcontentloaded'});
