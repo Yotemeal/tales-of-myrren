@@ -50,8 +50,8 @@ const server=http.createServer((req,res)=>{
             return original.call(this,image,...args);
           };
         });
-        const flags=mode==='terrain-only'?'':mode==='combined'?'?camp-props-proof':
-          '?camp-props-proof&campfire-layout-proof';
+        const flags=mode==='terrain-only'?'?legacy-camp-props':
+          mode==='combined'?'?original-campfire-layout-proof':'';
         await page.goto(base+'/'+flags,{waitUntil:'domcontentloaded'});
         await page.waitForFunction(()=>window.MyrrenEnvironment?.nativeTerrainReady() &&
           !document.getElementById('go')?.disabled,{timeout:20000});
@@ -73,7 +73,7 @@ const server=http.createServer((req,res)=>{
           propCells:window.__combinedQa.propSource.size,
           build:window.MyrrenBuild
         }));
-        assert.equal(counts.build,87,'integrated game cache/version mismatch');
+        assert.equal(counts.build,88,'integrated game cache/version mismatch');
         assert(counts.terrainCells>=4,'expected multiple real terrain source cells');
         assert.equal(counts.props>0,mode!=='terrain-only',
           'camp atlas must be opt-in while native terrain stays enabled');
@@ -91,7 +91,7 @@ const server=http.createServer((req,res)=>{
       mainlineChanged:false,terrainProvenance:'PR #84',
       propProvenance:'PR #85 + #86',campfireLayoutApproval:false,scenes:report
     },null,2)+'\n');
-    console.log('PASS: 6 real desktop/mobile scenes: terrain-only, combined props, separated fire; native art and fallback coexist.');
+    console.log('PASS: 6 real desktop/mobile scenes: terrain + legacy art, native props at original fire position, and default courtyard; native fallback preserved.');
   }finally{
     await browser?.close();
     await new Promise(resolve=>server.close(resolve));
