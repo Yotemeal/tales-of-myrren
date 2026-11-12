@@ -7,6 +7,7 @@ on:
       - 'public/assets/fishing/fishing_spots_v1.png'
       - 'public/assets/fishing/fishing_spots_v1.json'
       - 'tests/fishing-sprites-v1.test.py'
+      - 'tests/fishing-v1-browser-visual.test.cjs'
       - 'scripts/preview-fishing-spots-v1.py'
       - '.github/workflows/native-fishing-art-qa.yml'
 
@@ -41,4 +42,27 @@ jobs:
             public/assets/fishing/fishing_spots_v1.png
             public/assets/fishing/fishing_spots_v1.json
             /tmp/myrren-fishing-art-review/
+          if-no-files-found: warn
+
+  browser-review:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test dependencies
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install chromium
+      - name: Capture actual game fishing spots before and after PNG proof
+        run: node tests/fishing-v1-browser-visual.test.cjs
+      - name: Upload actual game visual proof, not integrated
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fishing-real-game-before-after-review-only
+          path: /tmp/myrren-native-fishing-browser-qa/
           if-no-files-found: warn
