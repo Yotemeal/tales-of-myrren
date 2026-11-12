@@ -55,6 +55,24 @@ async function checkBronzeGameplay(browser,base){
     const mobile=device==='mobile';
     const page=await browser.newPage({viewport,isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1});
     await connectRoom(page,device);
+    // Serve the same proof pixels from different URLs to test manifest-driven replacement.
+    await page.route('**/assets/armour/bronze_layers_21x27.json',async route=>{
+      const response=await route.fetch();
+      const manifest=await response.json();
+      manifest.image+='&equipment-replacement=1';
+      manifest.collapse.image+='&equipment-replacement=1';
+      await route.fulfill({response,json:manifest});
+    });
+    await page.addInitScript(()=>{
+      const drawImage=CanvasRenderingContext2D.prototype.drawImage;
+      window.bronzeReplacementDraws=[];
+      CanvasRenderingContext2D.prototype.drawImage=function(image,...args){
+        if(image?.src?.includes('equipment-replacement=1')){
+          window.bronzeReplacementDraws.push(image.src.includes('collapse')?'collapse':'armour');
+        }
+        return drawImage.call(this,image,...args);
+      };
+    });
     const errors=[];
     page.on('pageerror',error=>errors.push(error.message));
     // Expose production inventory actions and set deterministic render inputs in this browser only.
@@ -90,7 +108,9 @@ async function checkBronzeGameplay(browser,base){
         };
         const originalDrawKez=drawKezV2;
         drawKezV2=function(x,y,avatar,now){
+          if(avatar.isMe)window.bronzeReplacementDraws.length=0;
           const drawn=originalDrawKez(x,y,avatar,now);
+          if(avatar.isMe)window.bronzeQA.lastReplacementDraws=[...window.bronzeReplacementDraws];
           if(drawn&&!avatar.isMe)window.bronzeQA.lastPeerDraw={
             name:avatar.name,gear:avatar.g,tool:avatar.tool,
             hurt:now-avatar.hurtAt<220,dead:avatar.deathAt!=null,
@@ -116,16 +136,18 @@ async function checkBronzeGameplay(browser,base){
     await enter();
     await page.evaluate(ids=>window.bronzeQA.fill(ids),items);
     const equip=async ids=>assert.deepEqual(await page.evaluate(ids=>window.bronzeQA.set(ids),ids),[...ids].sort());
-    const capture=async(name,dv,face,moving=false,action=null,attackAge=145)=>{
+    const capture=async(name,dv,face,moving=false,action=null,attackAge=145,expectedAtlas=null)=>{
       await page.evaluate(async state=>{
         window.bronzeQA.state=state;
         await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
       },{dv,face,moving,action,attackAge});
+      if(expectedAtlas)await page.waitForFunction(
+        atlas=>window.bronzeQA.lastReplacementDraws?.includes(atlas),expectedAtlas);
       await page.screenshot({path:path.join(output,device+'-'+name+'.png')});
     };
     for(const [name,ids] of [['bare',[]],['bronze',items]]){
       await equip(ids);
-      for(const [direction,dv,face] of directions)await capture(name+'-'+direction,dv,face);
+      for(const [direction,dv,face] of directions)await capture(name+'-'+direction,dv,face,false,null,145,ids.length?'armour':null);
     }
     if(!mobile){
       for(const kind of [...armour,'sword']){
@@ -153,9 +175,12 @@ async function checkBronzeGameplay(browser,base){
       await page.evaluate(()=>window.bronzeQA.closeModal());
       await capture('death','d',1,false,'death');
     }
+    await capture('replacement-attack','s',1,false,'attack',145,'armour');
+    await capture('replacement-collapse','s',1,false,'death',145,'collapse');
     await page.reload();
     await enter();
     assert.deepEqual(await page.evaluate(()=>window.bronzeQA.equipped()),[...items].sort());
+    await capture('replacement-reload','d',1,false,null,145,'armour');
     assert.deepEqual(errors,[]);
     if(!mobile)continue;
     const desktop=clients.get('desktop');
