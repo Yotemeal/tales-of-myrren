@@ -1,0 +1,100 @@
+{
+  "schema": "myrren.native-environment-art.v1",
+  "status": "visual-review-only",
+  "requiresVisualApproval": true,
+  "characterReference": {
+    "width": 21,
+    "height": 27,
+    "path": "public/assets/kez-v2/kez_v2_atlas.png"
+  },
+  "tileNativeSize": 16,
+  "art": {
+    "bramblewood": {
+      "kind": "tree",
+      "path": "tree_bramblewood_v1.png",
+      "depletedPath": "tree_bramblewood_stump_v1.png",
+      "frameWidth": 72,
+      "frameHeight": 88,
+      "columns": 4,
+      "rows": 1,
+      "anchor": {
+        "x": 36,
+        "y": 85
+      },
+      "animationMs": [
+        750,
+        180,
+        180,
+        180
+      ],
+      "sourceResourceKey": "tree",
+      "visualFamily": "layered green conifer"
+    },
+    "alder": {
+      "kind": "tree",
+      "path": "tree_alder_v1.png",
+      "depletedPath": "tree_alder_stump_v1.png",
+      "frameWidth": 72,
+      "frameHeight": 88,
+      "columns": 4,
+      "rows": 1,
+      "anchor": {
+        "x": 36,
+        "y": 85
+      },
+      "animationMs": [
+        750,
+        180,
+        180,
+        180
+      ],
+      "sourceResourceKey": "oak",
+      "visualFamily": "rounded yellow-green broadleaf brown trunk"
+    },
+    "copper": {
+      "kind": "ore",
+      "path": "ore_copper_v1.png",
+      "frameWidth": 24,
+      "frameHeight": 22,
+      "columns": 2,
+      "rows": 1,
+      "anchor": {
+        "x": 12,
+        "y": 20
+      },
+      "states": [
+        "live",
+        "depleted"
+      ],
+      "sourceResourceKey": "copper"
+    },
+    "tin": {
+      "kind": "ore",
+      "path": "ore_tin_v1.png",
+      "frameWidth": 24,
+      "frameHeight": 22,
+      "columns": 2,
+      "rows": 1,
+      "anchor": {
+        "x": 12,
+        "y": 20
+      },
+      "states": [
+        "live",
+        "depleted"
+      ],
+      "sourceResourceKey": "tin"
+    }
+  },
+  "invariants": [
+    "No live game change in this branch",
+    "No changes to gather node coordinates, harvesting, mining yield, XP, rewards, depletion or saves",
+    "Native RGBA PNG artwork only",
+    "Original Bramblewood conifer and Alder broadleaf silhouettes",
+    "Kez V2 remains 21x27 and world tiles 16x16",
+    "Tree frame animation anchors remain fixed across four poses",
+    "Each tree has a separate native PNG felled-state frame",
+    "Ores have separate native available and depleted PNG states",
+    "Normal runtime sprite integration requires visual approval"
+  ]
+}
