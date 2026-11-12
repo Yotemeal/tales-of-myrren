@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
-W, H = 550, 530
+W, H = 550, 590
 PAD = 12
 HEADER = 112
 CROP_LOGICAL_W, CROP_LOGICAL_H = 260, 230
@@ -79,7 +79,7 @@ def build(records, device, group, folder):
                font=small,fill=(208,214,196))
         crop=crop_scene(r,folder)
         sheet.paste(crop,(x+3,y+74))
-        d.text((x+14,y+W-4),
+        d.text((x+14,y+547),
                "Kez: 21×27 native  |  Resource: "+str(r["widthVsKez"])+"× Kez width",
                font=small,fill=(196,218,210))
     target=folder/("world-scale-"+device+"-"+group+"-contact.png")
