@@ -8,6 +8,7 @@ on:
       - 'public/assets/camp/camp_props_v1.json'
       - 'tests/native-camp-props-v1.test.py'
       - 'tests/native-camp-props-v1-browser.test.cjs'
+      - 'scripts/review-native-camp-gameplay-captures.py'
       - 'scripts/preview-native-camp-props-v1.py'
       - '.github/workflows/native-camp-props-v1.yml'
 
@@ -59,6 +60,12 @@ jobs:
           npx playwright install chromium
       - name: Capture existing vs PNG game sprites in desktop and mobile
         run: node tests/native-camp-props-v1-browser.test.cjs
+      - name: Prepare screenshot review contact sheets
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/myrren-camp-gameplay-contact"
+          "${RUNNER_TEMP}/myrren-camp-gameplay-contact/bin/python" -m pip install 'Pillow>=11,<13'
+      - name: Build desktop and mobile selected-prop comparison sheets
+        run: "${RUNNER_TEMP}/myrren-camp-gameplay-contact/bin/python scripts/review-native-camp-gameplay-captures.py --out /tmp/myrren-camp-props-gameplay-proof"
       - name: Upload 20 actual gameplay screenshots, review only
         if: always()
         uses: actions/upload-artifact@v4
