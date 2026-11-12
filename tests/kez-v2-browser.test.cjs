@@ -81,9 +81,9 @@ async function checkBronzeGameplay(browser,base){
           state:null,
           pose(now){
             if(!this.state)return;
-            const {dv,face,moving,action}=this.state;
+            const {dv,face,moving,action,attackAge}=this.state;
             Object.assign(me,{dv,face,moving});
-            if(action==='attack')me.swing=now-145;
+            if(action==='attack')me.swing=now-(attackAge??145);
             if(action==='hurt')me.hurtAt=now-75;
             if(action==='death')me.deathAt=now-420;
           }
@@ -116,11 +116,11 @@ async function checkBronzeGameplay(browser,base){
     await enter();
     await page.evaluate(ids=>window.bronzeQA.fill(ids),items);
     const equip=async ids=>assert.deepEqual(await page.evaluate(ids=>window.bronzeQA.set(ids),ids),[...ids].sort());
-    const capture=async(name,dv,face,moving=false,action=null)=>{
+    const capture=async(name,dv,face,moving=false,action=null,attackAge=145)=>{
       await page.evaluate(async state=>{
         window.bronzeQA.state=state;
         await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-      },{dv,face,moving,action});
+      },{dv,face,moving,action,attackAge});
       await page.screenshot({path:path.join(output,device+'-'+name+'.png')});
     };
     for(const [name,ids] of [['bare',[]],['bronze',items]]){
@@ -135,6 +135,11 @@ async function checkBronzeGameplay(browser,base){
       await equip(['bronze_sword','bronze_shield']);
       await capture('sword-and-shield','s',1);
       for(const [direction,dv,face] of directions)await capture('sword-attack-'+direction,dv,face,false,'attack');
+      for(const [direction,dv,face] of directions){
+        for(const age of [40,90,210,275,310]){
+          await capture('sword-swing-'+direction+'-'+age,dv,face,false,'attack',age);
+        }
+      }
       await equip([]);
       for(const [direction,dv,face] of directions)await capture('punch-'+direction,dv,face,false,'attack');
       await equip(items.filter(id=>id!=='bronze_sword'));
