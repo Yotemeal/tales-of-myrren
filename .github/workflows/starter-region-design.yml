@@ -6,6 +6,7 @@ on:
     paths:
       - 'design/starter-region-v1.json'
       - 'design/validate-starter-region.cjs'
+      - 'design/audit-resource-sources.py'
       - 'docs/STARTER_REGION_ASSET_HANDOFF_2026-11-12.md'
       - '.github/workflows/starter-region-design.yml'
 
@@ -28,3 +29,16 @@ jobs:
           node-version: '22'
       - name: Check approved story, resources and player scale
         run: node design/validate-starter-region.cjs
+      - name: Create isolated image-audit Python environment
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/myrren-environment-qa"
+          "${RUNNER_TEMP}/myrren-environment-qa/bin/python" -m pip install 'Pillow>=11,<13'
+      - name: Audit transparency, source bounds, and crop warnings
+        run: "${RUNNER_TEMP}/myrren-environment-qa/bin/python design/audit-resource-sources.py --out /tmp/myrren-resource-source-audit"
+      - name: Publish existing-source reference contact sheet
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: myrren-environment-source-audit-not-game-art
+          path: /tmp/myrren-resource-source-audit/
+          if-no-files-found: warn
