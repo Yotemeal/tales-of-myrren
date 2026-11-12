@@ -199,13 +199,16 @@ const dimensions=file=>{
     'Resource widths are measured from real drawImage and its canvas transform.',
     'Fishing areas are code-rendered shoals and ripples, not imported pixel PNGs.',
     'These screenshots are not new game assets or user-approved size changes.'],rows},null,2)+'\n');
-  const table=rows.filter(r=>r.device==='desktop');
+  const table=rows.filter(r=>r.device==='desktop'&&r.sourceSize);
   let md='# Myrren actual-game scale audit\n\n';
   md+='Actual Chromium renders of public/index.html, no game scripts modified.\n\n';
   md+='| Resource | Original PNG | Draw width (game px) | Width / 21px Kez |\n';
   md+='|---|---:|---:|---:|\n';
   for(const r of table)md+='| '+r.resource+' | '+r.sourceSize.width+'×'+
    r.sourceSize.height+' | '+r.drawWidthGamePixels+' | '+r.widthVsKez+'× |\n';
+  md+='\nCurrent fishing areas (all drawn procedurally; no PNG artwork):\n\n';
+  for(const r of rows.filter(x=>x.device==='desktop'&&x.kind.startsWith('spot')))
+   md+='- '+r.resource+' ('+r.kind+'): '+r.screenshot+'; Kez distance '+r.playerDistance+' game px\n';
   md+='\nMeasured draw sizes include fractional context transforms. Source resolution and game draw sizes are not equivalent. Visual approval required before edits.\n';
   fs.writeFileSync(path.join(out,'world-scale-current-state.md'),md);
   console.log('PASS: '+rows.length+' real gameplay scene captures, desktop/mobile, 13 image resources and 5 fishing areas.');
