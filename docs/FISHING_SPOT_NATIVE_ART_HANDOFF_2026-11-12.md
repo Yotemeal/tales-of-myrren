@@ -1,6 +1,14 @@
 # Tales of Myrren — fishing spot visual rebuild brief
 
-**Status: design / native-art proposal, NOT APPROVED OR INTEGRATED.** No production code, fishing economy, node positions, collisions or sprites are changed by this document.
+**Status: image-based rendering direction CONFIRMED by user; specific PNG appearance, dimensions and animations still awaiting visual approval. No production code, fishing economy, node positions, collisions or sprites are changed by this document.**
+
+## Confirmed rendering decision — no procedural art once PNG is accepted
+
+- When the authored PNG atlas is approved and available, **all normal in-game fishing visuals must come from image frames**. Do not recreate fish, water rings or animated shoals by drawing rectangles or circles with canvas commands.
+- The renderer may use code for sprite loading, lookup by `spot1`–`spot5`, frame timing, transforms restricted to integer destination placement, interaction prompts and timing only.
+- Existing procedural fishing graphics may remain in the live build **until the replacement PNG is reviewed**. Once image mode ships, do not silently alternate back to procedural visual style. If the image fails to load, keep the spot interactable, log an asset-load diagnostic and use a minimal neutral fallback only for the failure case; fix missing assets rather than relying on fallback as final art.
+- Keep animated splash/feedback image-based as well if the PNG sheet includes it. Game logic, fishing rewards and interactions must not change.
+
 
 ## Why fishing needs a separate asset pass
 
@@ -43,7 +51,7 @@ The visible splash should be **a few pixels**, while the full 32×24 cell retain
 ## Integration requirements — AFTER visual approval
 
 1. Use the current `spot1`–`spot5` keys and position/visibility rules. Existing nodes are generated deterministically, and respawning a depleted spot must continue to work.
-2. Preload the atlas in `MyrrenEnvironment` with a `load` and `error` fallback. Use the current procedural cue if the PNG is unavailable; do not make the resource disappear.
+2. Preload the atlas in `MyrrenEnvironment` with load/error reporting. Once the approved image mode ships, the normal draw path must use PNG frames exclusively; a missing/corrupt image can trigger an explicitly logged emergency fallback so the resource remains interactable, but procedural fishing art is not an acceptable long-term alternative.
 3. Draw the selected cell using integer destination coordinates and `imageSmoothingEnabled=false`. Frame advance only changes `sourceX`; water surface anchor remains stable.
 4. Reuse the existing cast/hit feedback; do not layer an unrelated huge glowing UI marker above the water. Keep the existing tap/hover level label.
 5. Preserve net vs rod requirements, bait checks, fishing level requirements, inventory capacity, XP, catch chances, depleted timer and save compatibility.
