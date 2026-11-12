@@ -81,4 +81,6 @@ jobs:
             /tmp/myrren-portrait-equipment.png
             /tmp/myrren-landscape-hud.png
             /tmp/myrren-landscape-equipment.png
+            /tmp/myrren-portrait-equipment-open-failure.png
+            /tmp/myrren-landscape-equipment-open-failure.png
           if-no-files-found: warn
