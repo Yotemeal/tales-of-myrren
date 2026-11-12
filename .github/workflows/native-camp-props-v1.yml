@@ -1,0 +1,75 @@
+name: Native Crater Camp prop art QA
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'public/assets/camp/camp_props_v1.png'
+      - 'public/assets/camp/camp_props_v1.json'
+      - 'tests/native-camp-props-v1.test.py'
+      - 'tests/native-camp-props-v1-browser.test.cjs'
+      - 'scripts/review-native-camp-gameplay-captures.py'
+      - 'scripts/preview-native-camp-props-v1.py'
+      - '.github/workflows/native-camp-props-v1.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pixel-art:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up isolated image QA
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/myrren-camp-art"
+          "${RUNNER_TEMP}/myrren-camp-art/bin/python" -m pip install 'Pillow>=11,<13'
+      - name: Validate original sprite cells, alpha and static anchors
+        run: "${RUNNER_TEMP}/myrren-camp-art/bin/python tests/native-camp-props-v1.test.py"
+      - name: Build original-pixel contact sheet and animation
+        run: "${RUNNER_TEMP}/myrren-camp-art/bin/python scripts/preview-native-camp-props-v1.py --out /tmp/myrren-camp-props-qa"
+      - name: Upload review-only native art pack
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crater-camp-props-native-png-review-not-installed
+          path: |
+            public/assets/camp/camp_props_v1.png
+            public/assets/camp/camp_props_v1.json
+            /tmp/myrren-camp-props-qa/
+          if-no-files-found: warn
+
+  real-game-preview:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser QA
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install chromium
+      - name: Capture existing vs PNG game sprites in desktop and mobile
+        run: node tests/native-camp-props-v1-browser.test.cjs
+      - name: Prepare screenshot review contact sheets
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/myrren-camp-gameplay-contact"
+          "${RUNNER_TEMP}/myrren-camp-gameplay-contact/bin/python" -m pip install 'Pillow>=11,<13'
+      - name: Build desktop and mobile selected-prop comparison sheets
+        run: "${RUNNER_TEMP}/myrren-camp-gameplay-contact/bin/python scripts/review-native-camp-gameplay-captures.py --out /tmp/myrren-camp-props-gameplay-proof"
+      - name: Upload 20 actual gameplay screenshots, review only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crater-camp-props-20-gameplay-qa-screenshots-not-integrated
+          path: /tmp/myrren-camp-props-gameplay-proof/
+          if-no-files-found: warn
