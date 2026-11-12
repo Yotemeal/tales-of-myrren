@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=87;
+window.MyrrenBuild=88;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -250,12 +250,14 @@ const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=90,EDGE=100;
 const VILLAGE=MyrrenWorld;
 const BLD=VILLAGE.buildings.map(b=>({...b}));
 const LAMPS=[[CX-116,CY+12],[CX+116,CY+12],[CX-82,CY+108],[CX+82,CY+108]];
-// Additional opt-in layout study only; normal gameplay keeps the original fire.
-// Keep this as the single source of truth for both rendering and cooking reach.
-// The study anchor is dry ground and clear of the blacksmith and lamp sprites.
-const CAMPFIRE=Object.freeze(window.MyrrenCampProps?.enabled&&
-  new URLSearchParams(window.location.search).has('campfire-layout-proof')
-  ?{x:CX+64,y:CY+50}:{x:CX+176,y:CY-90});
+// Release candidate: courtyard fire is the provisional working layout.
+// All draw, depth and Cooking reach logic use this shared coordinate.
+// ?legacy-camp-props restores the old sprites/spot; an independent
+// ?original-campfire-layout-proof draws native art at the old placement for QA.
+const legacyFire=!window.MyrrenCampProps?.enabled||
+  new URLSearchParams(window.location.search).has('original-campfire-layout-proof');
+const CAMPFIRE=Object.freeze(legacyFire
+  ?{x:CX+176,y:CY-90}:{x:CX+64,y:CY+50});
 // A maintained camp: keep only essential community fixtures.
 const DECOR=[['board',CX-8,CY-72],['provisions',CX-185,CY-111],['provisions',CX+175,CY-112]];
 const SOLID=DECOR.filter(d=>d[0]==='fence').map(d=>d[4]==='v'?{x0:d[1]-3,x1:d[1]+3,y0:d[2]-d[3]-2,y1:d[2]+1}:{x0:d[1]-2,x1:d[1]+d[3]+2,y0:d[2]-3,y1:d[2]+2});
