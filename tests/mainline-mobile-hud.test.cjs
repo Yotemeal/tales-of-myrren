@@ -103,7 +103,26 @@ const serve=http.createServer((req,res)=>{
       }
       await page.screenshot({path:`/tmp/myrren-${name}-hud.png`});
       await page.locator('[data-ui-open="gear"]').click();
-      await page.waitForFunction(()=>!document.getElementById('modal').hidden,{timeout:5000});
+      try {
+        await page.waitForFunction(()=>document.getElementById('modal')?.hidden===false,null,{timeout:5000});
+      } catch (error) {
+        // Distinguish a broken UI from a transient test timeout. The real
+        // browser state is logged and saved without hiding the failure.
+        const diagnostic=await page.evaluate(()=>({
+          modalHidden:document.getElementById('modal')?.hidden,
+          modalScreen:document.getElementById('modal')?.dataset.screen,
+          introHidden:document.getElementById('intro')?.hidden,
+          toast:document.getElementById('toast')?.textContent,
+          gearButtons:[...document.querySelectorAll('[data-ui-open="gear"]')].map(button=>({
+            disabled:button.disabled,hidden:button.hidden,
+            visible:!!button.getClientRects().length,
+            pressed:button.getAttribute('aria-pressed')
+          }))
+        }));
+        console.error('Equipment modal failed to open on '+name+': '+JSON.stringify({diagnostic,errors}));
+        await page.screenshot({path:`/tmp/myrren-${name}-gear-failure.png`});
+        throw error;
+      }
       const rect=await page.locator('.win').boundingBox();
       assert(rect&&rect.x>=-1&&rect.x+rect.width<=width+1,'equipment window must fit viewport');
       await page.screenshot({path:`/tmp/myrren-${name}-equipment.png`});
