@@ -264,8 +264,9 @@ assert(drawKez.includes(":swingAng(age)"),
        'non-sword gathering tools must keep their existing attack animation');
 assert(drawKez.includes('window.MyrrenKezV2SwordMotion.angle(age)'),
        'sword-only visual swing must be bound to the real Kez V2 renderer');
-assert(drawKez.includes('drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6)'),
-       'weapons must retain the small Kez V2 grip scale');
+assert(drawKez.includes('const swordDrawScale=fittedGrip?0.85:0.6;')&&
+       drawKez.includes('drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,swordDrawScale)'),
+       'legacy weapons must stay at 0.6 while opt-in fitted Bronze uses 0.85');
 const scripts=[...page.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
 assert(scripts.findIndex(s=>s.includes('kez-v2-atlas'))<scripts.findIndex(s=>s.includes('kez-v2-equipment')));
 assert(scripts.findIndex(s=>s.includes('kez-v2-equipment'))<scripts.findIndex(s=>s.includes('myrren-game')));
