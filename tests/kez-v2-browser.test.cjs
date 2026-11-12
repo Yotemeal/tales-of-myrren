@@ -17,12 +17,215 @@ const server=http.createServer((request,response)=>{
     fs.createReadStream(filename).pipe(response);
   }catch(_){response.writeHead(404);response.end('Not found')}
 });
+const bronzeProof=process.argv.includes('--bronze-proof');
+async function checkBronzeGameplay(browser,base){
+  const output='/tmp/myrren-bronze-gameplay';
+  fs.rmSync(output,{recursive:true,force:true});
+  fs.mkdirSync(output,{recursive:true});
+  const armour=['helm','body','legs','boots','shield','gloves'];
+  const items=[...armour,'sword'].map(kind=>'bronze_'+kind);
+  const directions=[['front','d',1],['back','u',1],['left','s',-1],['right','s',1]];
+  const clients=new Map();
+  const presence=new Map();
+  async function connectRoom(page,device){
+    clients.set(device,page);
+    await page.exposeBinding('relayBronzePresence',async(_,payload)=>{
+      presence.set(device,payload);
+      for(const [recipient,target] of clients){
+        if(recipient===device||target.isClosed())continue;
+        const peers=[...presence].map(([peer,data])=>({
+          peer,kind:'viewer',isMe:peer===recipient,
+          // Keep the observed avatar clear of the mobile client's spawn position.
+          presence:peer==='desktop'&&recipient==='mobile'?{...data,x:data.x+56}:data
+        }));
+        await target.evaluate(peers=>window.receiveBronzePeers?.({peers}),peers);
+      }
+    });
+    await page.addInitScript(()=>{
+      const room={
+        onPeers(callback){window.receiveBronzePeers=callback},
+        onConnection(){},
+        connected(){return true},
+        presence(data){return window.relayBronzePresence(data)}
+      };
+      window.claude={use:async service=>service==='room'?room:null};
+    });
+  }
+  for(const [device,viewport] of [['desktop',{width:1200,height:800}],['mobile',{width:390,height:844}]]){
+    const mobile=device==='mobile';
+    const page=await browser.newPage({viewport,isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1});
+    await connectRoom(page,device);
+    // Serve the same proof pixels from different URLs to test manifest-driven replacement.
+    await page.route('**/assets/armour/bronze_layers_21x27.json',async route=>{
+      const response=await route.fetch();
+      const manifest=await response.json();
+      manifest.image+='&equipment-replacement=1';
+      manifest.collapse.image+='&equipment-replacement=1';
+      await route.fulfill({response,json:manifest});
+    });
+    await page.addInitScript(()=>{
+      const drawImage=CanvasRenderingContext2D.prototype.drawImage;
+      window.bronzeReplacementDraws=[];
+      CanvasRenderingContext2D.prototype.drawImage=function(image,...args){
+        if(image?.src?.includes('equipment-replacement=1')){
+          window.bronzeReplacementDraws.push(image.src.includes('collapse')?'collapse':'armour');
+        }
+        return drawImage.call(this,image,...args);
+      };
+    });
+    const errors=[];
+    page.on('pageerror',error=>errors.push(error.message));
+    // Expose production inventory actions and set deterministic render inputs in this browser only.
+    await page.route('**/myrren-game.js?*',async route=>{
+      const response=await route.fetch();
+      let script=await response.text();
+      assert(script.includes('  update(dt,now);'));
+      script=script.replace('  update(dt,now);','  update(dt,now);\n  window.bronzeQA?.pose(now);');
+      const hook=`
+        window.bronzeQA={
+          fill(ids){save.bag=[...new Set([...save.bag,...ids])]},
+          set(ids){
+            for(const slot of SLOTS)unequip(slot);
+            for(const id of ids)equipFromBag(save.bag.indexOf(id));
+            persist(true);
+            return Object.values(save.eq).filter(Boolean).sort();
+          },
+          equipped(){return Object.values(save.eq).filter(Boolean).sort()},
+          closeModal,
+          faceRight(){me.dv='s';me.face=1},
+          die,
+          respawnPlayer,
+          hurt(){me.hurtAt=performance.now();sendPresence()},
+          state:null,
+          pose(now){
+            if(!this.state)return;
+            const {dv,face,moving,action,attackAge}=this.state;
+            Object.assign(me,{dv,face,moving});
+            if(action==='attack')me.swing=now-(attackAge??145);
+            if(action==='hurt')me.hurtAt=now-75;
+            if(action==='death')me.deathAt=now-420;
+          }
+        };
+        const originalDrawKez=drawKezV2;
+        drawKezV2=function(x,y,avatar,now){
+          if(avatar.isMe)window.bronzeReplacementDraws.length=0;
+          const drawn=originalDrawKez(x,y,avatar,now);
+          if(avatar.isMe)window.bronzeQA.lastReplacementDraws=[...window.bronzeReplacementDraws];
+          if(drawn&&!avatar.isMe)window.bronzeQA.lastPeerDraw={
+            name:avatar.name,gear:avatar.g,tool:avatar.tool,
+            hurt:now-avatar.hurtAt<220,dead:avatar.deathAt!=null,
+            resting:avatar.deathAt!=null&&now-avatar.deathAt>=200
+          };
+          return drawn;
+        };
+      `;
+      const end=script.lastIndexOf('})();');
+      assert(end>=0);
+      await route.fulfill({response,body:script.slice(0,end)+hook+script.slice(end)});
+    });
+    const url=base+'/?bronze-proof';
+    const enter=async()=>{
+      await page.waitForFunction(()=>window.MyrrenKezV2Equipment?.hasAtlas(2)&&
+        window.MyrrenKezV2Atlas?.ready&&window.MyrrenKezV2Atlas.punchReady&&window.MyrrenKezV2Atlas.swordReady&&window.MyrrenKezV2Atlas.collapseReady&&
+        !document.querySelector('#go').disabled);
+      await page.locator('#nick').fill('Bronze QA');
+      await page.locator('#go').click();
+      await page.waitForFunction(()=>document.querySelector('#intro').hidden);
+    };
+    await page.goto(url);
+    await enter();
+    await page.evaluate(ids=>window.bronzeQA.fill(ids),items);
+    const equip=async ids=>assert.deepEqual(await page.evaluate(ids=>window.bronzeQA.set(ids),ids),[...ids].sort());
+    const capture=async(name,dv,face,moving=false,action=null,attackAge=145,expectedAtlas=null)=>{
+      await page.evaluate(async state=>{
+        window.bronzeQA.state=state;
+        await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      },{dv,face,moving,action,attackAge});
+      if(expectedAtlas)await page.waitForFunction(
+        atlas=>window.bronzeQA.lastReplacementDraws?.includes(atlas),expectedAtlas);
+      await page.screenshot({path:path.join(output,device+'-'+name+'.png')});
+    };
+    for(const [name,ids] of [['bare',[]],['bronze',items]]){
+      await equip(ids);
+      for(const [direction,dv,face] of directions)await capture(name+'-'+direction,dv,face,false,null,145,ids.length?'armour':null);
+    }
+    if(!mobile){
+      for(const kind of [...armour,'sword']){
+        await equip(['bronze_'+kind]);
+        await capture(kind+'-only','d',1);
+      }
+      await equip(['bronze_sword','bronze_shield']);
+      await capture('sword-and-shield','s',1);
+      for(const [direction,dv,face] of directions)await capture('sword-attack-'+direction,dv,face,false,'attack');
+      for(const [direction,dv,face] of directions){
+        for(const age of [40,90,210,275,310]){
+          await capture('sword-swing-'+direction+'-'+age,dv,face,false,'attack',age);
+        }
+      }
+      await equip([]);
+      for(const [direction,dv,face] of directions)await capture('punch-'+direction,dv,face,false,'attack');
+      await equip(items.filter(id=>id!=='bronze_sword'));
+      for(const [direction,dv,face] of directions)await capture('bronze-punch-'+direction,dv,face,false,'attack');
+      await equip(items);
+      await capture('walk','s',-1,true);
+      await capture('hurt','d',1,false,'hurt');
+      await page.locator('[data-ui-open="gear"]').click();
+      await page.locator('.character-portrait canvas').waitFor();
+      await page.screenshot({path:path.join(output,'desktop-equipment-panel.png')});
+      await page.evaluate(()=>window.bronzeQA.closeModal());
+      await capture('death','d',1,false,'death');
+    }
+    await capture('replacement-attack','s',1,false,'attack',145,'armour');
+    await capture('replacement-collapse','s',1,false,'death',145,'collapse');
+    await page.reload();
+    await enter();
+    assert.deepEqual(await page.evaluate(()=>window.bronzeQA.equipped()),[...items].sort());
+    await capture('replacement-reload','d',1,false,null,145,'armour');
+    assert.deepEqual(errors,[]);
+    if(!mobile)continue;
+    const desktop=clients.get('desktop');
+    await desktop.evaluate(()=>{window.bronzeQA.state=null});
+    await desktop.locator('#intro').waitFor({state:'hidden'});
+    const peerShows=async expected=>page.waitForFunction(expected=>{
+      const draw=window.bronzeQA.lastPeerDraw;
+      return draw?.name==='Bronze QA'&&Object.entries(expected).every(
+        ([key,value])=>JSON.stringify(draw[key])===JSON.stringify(value));
+    },expected);
+    await desktop.evaluate(()=>{
+      window.bronzeQA.faceRight();
+      window.bronzeQA.set(['bronze_shield','bronze_sword']);
+    });
+    await peerShows({gear:[0,0,0,0,2,0],tool:'sword'});
+    await page.screenshot({path:path.join(output,'mobile-remote-sword-shield.png')});
+    // Install the observer before emitting the short hurt flash.
+    await page.evaluate(()=>{
+      window.sawBronzePeerHurt=false;
+      const inspect=()=>{
+        if(window.bronzeQA.lastPeerDraw?.hurt)window.sawBronzePeerHurt=true;
+        else requestAnimationFrame(inspect);
+      };
+      requestAnimationFrame(inspect);
+    });
+    await desktop.evaluate(()=>window.bronzeQA.hurt());
+    await page.waitForFunction(()=>window.sawBronzePeerHurt);
+    await desktop.evaluate(()=>window.bronzeQA.die());
+    await peerShows({dead:true,resting:true});
+    await page.screenshot({path:path.join(output,'mobile-remote-collapse.png')});
+    await desktop.evaluate(()=>window.bronzeQA.respawnPlayer());
+    await peerShows({dead:false,gear:[0,0,0,0,2,0],tool:'sword'});
+    await desktop.close();
+    await page.close();
+  }
+  console.log('PASS: Bronze gameplay captures, production equip/unequip, equipment UI and reload');
+}
+
 (async()=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const base='http://127.0.0.1:'+server.address().port;
   let browser;
   try{
     browser=await chromium.launch({headless:true});
+    if(bronzeProof){await checkBronzeGameplay(browser,base);return;}
     const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
     const errors=[];
     page.on('pageerror',e=>errors.push(e.message));

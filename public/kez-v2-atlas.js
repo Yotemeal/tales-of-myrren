@@ -4,9 +4,36 @@
 'use strict';
 const atlas=new Image();
 let ready=false,failed=false;
+let punchSheet=null,swordSheet=null,collapseSheet=null;
+if(window.location&&new URLSearchParams(window.location.search).has('bronze-proof')){
+  const punch=new Image();
+  punch.onload=()=>{
+    if(punch.naturalWidth===63&&punch.naturalHeight===108)punchSheet=punch;
+  };
+  punch.src='/assets/kez-v2/kez_v2_punch_proof.png?v=1';
+  const sword=new Image();
+  sword.onload=()=>{
+    if(sword.naturalWidth===63&&sword.naturalHeight===108)swordSheet=sword;
+  };
+  sword.src='/assets/kez-v2/kez_v2_sword_proof.png?v=1';
+  const collapse=new Image();
+  collapse.onload=()=>{
+    if(collapse.naturalWidth===72&&collapse.naturalHeight===896)collapseSheet=collapse;
+  };
+  collapse.src='/assets/kez-v2/kez_v2_collapse_proof.png?v=1';
+}
 atlas.onerror=()=>{ready=false;failed=true;console.error('Kez V2 sprite atlas failed to load');window.dispatchEvent?.(new Event('myrren-kez-v2-error'))};
 const rows={idle:0,front:1,back:2,left:3,right:4,attack:5};
 const frameBounds=[];
+// Dominant-hand hilt sockets in the original 21×27 source cells.
+const swordSockets=[[[16,18],[13,18]],[[3,15],[7,15]],[[14,17],[9,17]],[[6,17],[12,17]]];
+const weaponSockets=[
+  [[14,20],[15,20],[14,20],[13,20]],
+  [[15,20],[15,19],[14,20],[13,19]],
+  [[6,16],[6,16],[5,15],[4,16]],
+  [[13,18],[9,17],[12,18],[12,18]],
+  [[8,18],[8,17],[9,17],[8,17]]
+];
 // Four bespoke idle poses per direction, synthesized from the approved
 // stationary pixels. Unlike walking frames, feet and equipment anchors stay
 // fixed. A one-pixel shoulder/torso expansion gives subtle breathing.
@@ -80,50 +107,65 @@ atlas.onload=()=>{
   else{failed=true;console.error('Invalid Kez V2 atlas dimensions:',atlas.naturalWidth,atlas.naturalHeight);window.dispatchEvent?.(new Event('myrren-kez-v2-error'))}
 };
 atlas.src='/assets/kez-v2/kez_v2_atlas.png?v=1';
-window.MyrrenKezV2Atlas={
- get ready(){return ready},
- get failed(){return failed},
- get dimensions(){return {cellWidth:21,cellHeight:27,frames:4,rows:6,scale:1}},
- draw(ctx,x,y,o,now){
-  if(!ready)return false;
+function pose(o, now){
+  if(!ready)return null;
   const age=now-(o.swingAt??-99999),attacking=age>=0&&age<320;
   const direction=o.dv==='u'?'back':o.dv==='s'?(o.f<0?'left':'right'):'front';
+  const nativePunch=punchSheet&&attacking&&o.tool==='fist'&&(!o.g?.some(Boolean)||o.equipmentPunch);
+  const punchFrame=age<40?0:age<105?1:age<205?2:age<270?1:0;
   // The legacy attack row has a white slash baked into the body frames.
   // Drawing it together with the separately rotated equipped sword produces
   // two independent blades. Keep the directional body pose during sword hits;
   // one forged sword, anchored at the glove, owns the entire strike.
   // Hold a grounded pose while swinging to avoid the hands marching in place.
   const swordHit=attacking&&o.tool==='sword';
+  const nativeSword=!!swordSheet&&swordHit&&o.equipmentSword;
+  const swordFrame=age<40||age>=295?0:age<145?1:2;
   // The authored idle row is front-facing. Play it for stationary front-facing
   // characters as well as portraits; never turn side/back players toward camera.
   // Combat holds the directional pose so a sword swing cannot snap to idle.
-  const frontIdle=!swordHit&&!o.moving&&direction==='front';
+  const frontIdle=!o.collapsePose&&!nativePunch&&!swordHit&&!o.moving&&direction==='front';
   const useIdle=o.animateIdle||frontIdle;
   const row=useIdle?rows.idle:rows[direction];
-  const directionalIdle=!swordHit&&!o.moving&&!useIdle;
+  const directionalIdle=!o.collapsePose&&!nativePunch&&!swordHit&&!o.moving&&!useIdle;
   const idlePose=Math.floor(now/650)%4;
-  const frame=useIdle?Math.floor(now/440)%4:swordHit?0:
+  const frame=useIdle?Math.floor(now/440)%4:(swordHit||nativePunch)?0:
     directionalIdle?0:o.moving?Math.floor(now/130)%4:0;
   const bounds=directionalIdle&&idleBounds[direction]?idleBounds[direction]:frameBounds[row][frame];
-  const scale=1,sw=bounds.right-bounds.left+1,sh=bounds.bottom-bounds.top+1;
-  const dw=Math.round(sw*scale),dh=Math.round(sh*scale);
-  const flip=false;
-  ctx.save();ctx.imageSmoothingEnabled=false;
-  ctx.translate(Math.round(x),Math.round(y));
-  if(flip)ctx.scale(-1,1);
-  // Centre on the body's shared centreline; bottom of every visible
-  // frame touches the same ground pixel, eliminating directional jumps.
-  const center=10.5;
-  const offset=Math.round(((bounds.left+bounds.right)/2-center)*scale);
-  if(directionalIdle&&idleArt[direction]){
-    // Union crop keeps every breathing pixel visible while preserving the
-    // same centreline and ground anchor for all four poses.
-    ctx.drawImage(idleArt[direction],idlePose*21+bounds.left,bounds.top,sw,sh,
-      Math.round(-dw/2+offset),1-dh,dw,dh);
-  }else{
-    ctx.drawImage(atlas,frame*21+bounds.left,row*27+bounds.top,sw,sh,
-      Math.round(-dw/2+offset),1-dh,dw,dh);
-  }
+  const sw=bounds.right-bounds.left+1,sh=bounds.bottom-bounds.top+1;
+  const shift=Math.round((bounds.left+bounds.right)/2-10.5);
+  const dx=Math.round(-sw/2+shift)-bounds.left,dy=1-sh-bounds.top;
+  const [handX,handY]=nativeSword&&swordFrame?swordSockets[row-1][swordFrame-1]:weaponSockets[row][frame];
+  return {direction,row,frame,bounds,sw,sh,dx,dy,
+    gripX:dx+handX,gripY:dy+handY,nativePunch,punchFrame,nativeSword,swordFrame,
+    idleSheet:directionalIdle?idleArt[direction]:null,idlePose};
+}
+window.MyrrenKezV2Atlas={
+ get ready(){return ready},
+ get failed(){return failed},
+ get punchReady(){return !!punchSheet},
+ get swordReady(){return !!swordSheet},
+ get collapseReady(){return !!collapseSheet},
+ drawCollapseLayer(ctx,x,y,direction,frame,layer){
+  ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(collapseSheet,frame*36,(layer*4+direction)*32,36,32,
+    Math.round(x)-10,Math.round(y)-16,36,32);
+ },
+ get dimensions(){return {cellWidth:21,cellHeight:27,frames:4,rows:6,scale:1}},
+ pose,
+ draw(ctx,x,y,o,now,selected=pose(o,now)){
+  if(!selected)return false;
+  const {bounds,sw,sh,idleSheet,idlePose,row,frame,dx,dy}=selected;
+  ctx.save();
+  ctx.imageSmoothingEnabled=false;
+  if(selected.nativePunch||selected.nativeSword){
+    const art=selected.nativeSword?swordSheet:punchSheet;
+    const col=selected.nativeSword?selected.swordFrame:selected.punchFrame;
+    ctx.drawImage(art,col*21,(row-1)*27,21,27,
+      Math.round(x)+dx,Math.round(y)+dy,21,27);
+  }else ctx.drawImage(idleSheet||atlas,(idleSheet?idlePose:frame)*21+bounds.left,
+    (idleSheet?0:row*27)+bounds.top,sw,sh,
+    Math.round(x)+dx+bounds.left,Math.round(y)+dy+bounds.top,sw,sh);
   ctx.restore();
   return true;
  }

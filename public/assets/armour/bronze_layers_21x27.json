@@ -1,0 +1,26 @@
+{
+  "materialId": 2,
+  "image": "/assets/armour/bronze_layers_21x27.png?v=5",
+  "frameWidth": 21,
+  "frameHeight": 27,
+  "frameColumns": 4,
+  "slotBlockRows": 14,
+  "slotOrder": [
+    "shield",
+    "helmet",
+    "body",
+    "legs",
+    "boots",
+    "gloves"
+  ],
+  "originX": 0,
+  "originY": 0,
+  "punchStartRow": 6,
+  "swordStartRow": 10,
+  "collapse": {
+    "image": "/assets/kez-v2/kez_v2_collapse_proof.png?v=1",
+    "firstBlock": 1,
+    "originX": 10,
+    "originY": 16
+  }
+}
