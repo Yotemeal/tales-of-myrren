@@ -2,6 +2,7 @@
 """Validate the original Crater Camp PNG atlas; never changes gameplay."""
 import json
 from pathlib import Path
+from hashlib import sha256
 from PIL import Image
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -19,8 +20,28 @@ png.load()
 assert png.size==(256,384)
 im=png.convert("RGBA")
 assert im.getpixel((0,0))[3]==0
+# These five review sprites have not been redesigned. Keep their decoded
+# native pixels exactly as they were before the approved anvil replacement.
+unchanged_rows={
+    "bank_chest":"85511b5a2a630411b11acc5c48e1c5bfe38eb343244e745badc63783e65e8126",
+    "jobs_board":"e2387a4239e47584a0f9c8fb2c221545e454e7fb2721cd59cf7d545e3245c735",
+    "open_furnace":"41b4511e4a503c8b0b6420faf6f7a6a18ab901ce8f3ac9014573f4146e7b06f7",
+    "campfire":"5dac41be61ceb604339c85ac7777ca306c9bf40170fcf3d9192449b9c240d2c7",
+    "lantern":"80517802494aaf5f8b6681c72123eac9f8c00b2d8aec3fcacf41cc48b90803a1"
+}
 count=0
 for row,name in enumerate(names):
+    strip=im.crop((0,row*64,256,(row+1)*64))
+    if name in unchanged_rows:
+        assert sha256(strip.tobytes()).hexdigest()==unchanged_rows[name], (
+            name,"approved non-anvil sprite pixels changed"
+        )
+    if name=="blacksmith_anvil":
+        # Revised face, horn, waist and stump stay within the original
+        # 64×64 native cell without disturbing the shared foot anchor.
+        assert strip.crop((0,0,64,64)).getchannel("A").getbbox()==(12,27,55,60), (
+            "revised anvil silhouette or source alignment changed"
+        )
     p=m["props"][name]
     assert p["row"]==row
     assert p["sourceRect"]=={"x":0,"y":row*64,"width":64,"height":64}
