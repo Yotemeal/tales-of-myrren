@@ -68,6 +68,12 @@ const serve=http.createServer((req,res)=>{
       assert.equal(state.clamp,'2','long messages must be clamped');
       assert(state.activeCamera>0,'game canvas must be initialized');
       assert.deepEqual(errors,[],'browser must not have uncaught script errors');
+      await page.screenshot({path:`/tmp/myrren-${name}-hud.png`});
+      await page.locator('[data-ui-open="gear"]').click();
+      await page.waitForFunction(()=>!document.getElementById('modal').hidden,{timeout:5000});
+      const rect=await page.locator('.win').boundingBox();
+      assert(rect&&rect.x>=-1&&rect.x+rect.width<=width+1,'equipment window must fit viewport');
+      await page.screenshot({path:`/tmp/myrren-${name}-equipment.png`});
       if(name==='portrait'){
         // Save a real running character, then verify persisted inventory and
         // name before another tab attempts to supersede that snapshot.
@@ -101,12 +107,6 @@ const serve=http.createServer((req,res)=>{
           'save conflict warning must remain visible');
         await second.close();
       }
-      await page.screenshot({path:`/tmp/myrren-${name}-hud.png`});
-      await page.locator('[data-ui-open="gear"]').click();
-      await page.waitForFunction(()=>!document.getElementById('modal').hidden,{timeout:5000});
-      const rect=await page.locator('.win').boundingBox();
-      assert(rect&&rect.x>=-1&&rect.x+rect.width<=width+1,'equipment window must fit viewport');
-      await page.screenshot({path:`/tmp/myrren-${name}-equipment.png`});
       await context.close();
     }
     console.log('PASS: canonical game, local save restoration, mobile portrait + landscape HUD and equipment.');
