@@ -15,7 +15,7 @@
     const poly=(pts,col)=>{const lo=Math.min(...pts.map(p=>p[1])),hi=Math.max(...pts.map(p=>p[1]));for(let y=lo;y<hi;y++){const xs=[];for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];if((a[1]<=y&&b[1]>y)||(b[1]<=y&&a[1]>y))xs.push(a[0]+(y-a[1])*(b[0]-a[0])/(b[1]-a[1]))}xs.sort((a,b)=>a-b);for(let i=0;i<xs.length;i+=2)r(Math.ceil(xs[i]),y,Math.floor(xs[i+1])-Math.ceil(xs[i])+1,1,col)}};
     const crown=(x,y,w,h,col)=>{const hh=Math.max(2,Math.round(h*.9)),top=Math.round(y-h*.61);for(let j=0;j<hh;j++){const t=(j+.5)/hh*2-1;let half=Math.round(Math.sqrt(Math.max(0,1-t*t))*w/4)*2;const notch=(Math.floor(j/4)%4===1?1:0);r(x-half+notch,top+j,Math.max(1,half*2-notch),1,col)}};
     const shadow=(x,y,w)=>{r(x-w/2,y-1,w,3,'#203631');r(x-w*.35,y+2,w*.7,1,'#263c34')};
-    return {r,poly,crown,shadow};
+    return {r,poly,crown,shadow,c};
   }
   /* Optional approved resource sprites. Missing images safely retain procedural art. */
   const resourceImages=new Map();
@@ -163,8 +163,30 @@
     const peak=hall?y-101:forge?y-87:y-81,tx=x+hw-9;
     for(let i=0;i<3;i++){const t=(now/2200+i/3)%1;ctx.globalAlpha=(1-t)*.24;ctx.fillStyle='#adb9ac';ctx.fillRect(Math.round(tx+Math.sin(t*5+i)*3),Math.round(peak-4-t*23),3+i,3+i)}ctx.globalAlpha=1;
   }
-  function terrain(ctx,tx,ty,x,y,kind,now,edge=0){
+  const terrainAtlas=new Image();
+  terrainAtlas.src='/assets/terrain/starter_terrain_v1.png?v=2';
+  const nativeTerrainReady=()=>terrainAtlas.complete&&terrainAtlas.naturalWidth===128&&terrainAtlas.naturalHeight===112;
+  function drawTerrainTile(ctx,index,x,y){
+    ctx.drawImage(terrainAtlas,(index%8)*16,Math.floor(index/8)*16,16,16,
+      Math.round(x),Math.round(y),16,16);
+  }
+  function terrain(ctx,tx,ty,x,y,kind,now,edge=0,ground=kind){
     const {r}=kit(ctx),h=hash(tx,ty),v=h%97;
+    if(nativeTerrainReady()&&kind!=='boundary'){
+      // Existing edges are N/S/W/E. Atlas connections are N/E/S/W.
+      const connected=15^((edge&1)|((edge&2)<<1)|((edge&4)<<1)|((edge&8)>>2));
+      const variant=(h>>>8)%8;
+      const index=kind==='water'?16+variant%4
+        :kind==='path'?24+connected
+        :kind==='plaza'||ground==='dirt'?8+variant%4
+        :ground==='gravel'?22+variant%2
+        :ground==='stone'?12+variant%4
+        // Corrupted tiles are biome data, not a hard coordinate cutoff.
+        // A cutoff creates a rectangular purple patch beside the lake.
+        :ground==='corrupted'?20+variant%2:variant;
+      drawTerrainTile(ctx,index,x,y);
+      return true;
+    }
     if(kind==='grass'||kind==='boundary'){
       // Large contiguous colour fields, no per-tile colour checkerboard.
       const tainted=tx>71&&ty>72;
@@ -320,12 +342,28 @@
     for(const side of [-1,1]){const yy=y+side*14;r(x-L-3,yy,L*2+6,3,P.woodD);r(x-L-3,yy,L*2+6,1,P.woodL);for(let i=0;i<7;i++){const xx=x-L+i*19;r(xx-1,yy-7,4,11,P.ink);r(xx,yy-6,2,9,P.woodL)}}
   }
   function waterTile(ctx,tx,ty,x,y,now,W){
-    sprite(ctx,'bank:'+tx+':'+ty,16,16,0,0,x,y,({r})=>{
+    const native=nativeTerrainReady();
+    sprite(ctx,(native?'native-bank:':'bank:')+tx+':'+ty,16,16,0,0,x,y,({r,c})=>{
+      if(native){
+        c.save();
+        c.beginPath();
+        for(let yy=0;yy<16;yy++){
+          let start=-1;
+          for(let xx=0;xx<=16;xx++){
+            const wet=xx<16&&W.waterDistance(tx*16+xx+.5,ty*16+yy+.5)<-3;
+            if(wet&&start<0)start=xx;
+            if(!wet&&start>=0){c.rect(start,yy,xx-start,1);start=-1}
+          }
+        }
+        c.clip();
+        drawTerrainTile(c,16+(hash(tx,ty)>>>8)%4,0,0);
+        c.restore();
+      }
       for(let yy=0;yy<16;yy++){
         let start=0,prev=null;
         for(let xx=0;xx<=16;xx++){
           const d=xx<16?W.waterDistance(tx*16+xx+.5,ty*16+yy+.5):100;
-          const col=xx===16?null:d<-13?'#315d61':d<-3?'#3d6e6a':d<0?'#6b9380':d<2?'#52684b':null;
+          const col=xx===16?null:d<-3&&native?null:d<-13?'#315d61':d<-3?'#3d6e6a':d<0?'#6b9380':d<2?'#52684b':null;
           if(col!==prev){if(prev)r(start,yy,xx-start,1,prev);prev=col;start=xx}
         }
       }
@@ -350,5 +388,5 @@
     if(Math.sin(phase*1.4)>.88){r(x+2,y-7,3,2,'#c8d7b7');r(x+3,y-8,1,1,'#e0e6c4');r(x-4,y-5,2,1,'#c0d4bd')}
   }
 
-  window.MyrrenEnvironment=Object.freeze({tree,rock,fern,building,terrain,prop,square,brook,bridge,smithyFloor,smithyPart,waterTile,fishing,cacheSize:()=>cache.size});
+  window.MyrrenEnvironment=Object.freeze({tree,rock,fern,building,terrain,nativeTerrainReady,prop,square,brook,bridge,smithyFloor,smithyPart,waterTile,fishing,cacheSize:()=>cache.size});
 })();
