@@ -7,6 +7,7 @@ on:
       - 'public/assets/resources/native-v1/**'
       - 'docs/NATIVE_STARTER_RESOURCES_V1_WORK_HANDOFF.md'
       - 'scripts/preview-native-resources-v1.py'
+      - 'scripts/review-native-resource-captures.py'
       - 'tests/native-resource-v1-gameplay.test.cjs'
       - '.github/workflows/native-resource-art-v1.yml'
 
@@ -57,6 +58,12 @@ jobs:
           npx playwright install chromium
       - name: Capture current versus PNG art in the real game
         run: node tests/native-resource-v1-gameplay.test.cjs
+      - name: Prepare isolated screenshot proof environment
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/myrren-resource-contact"
+          "${RUNNER_TEMP}/myrren-resource-contact/bin/python" -m pip install 'Pillow>=11,<13'
+      - name: Build natural and QA-isolated comparison sheets
+        run: "${RUNNER_TEMP}/myrren-resource-contact/bin/python scripts/review-native-resource-captures.py --out /tmp/myrren-native-resources-browser-qa"
       - name: Publish actual gameplay screenshots
         if: always()
         uses: actions/upload-artifact@v4
