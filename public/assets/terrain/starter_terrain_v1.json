@@ -1,0 +1,343 @@
+{
+  "schema": "myrren.terrain.native-atlas.v1",
+  "status": "art-review-only",
+  "source": "starter_terrain_v1.png",
+  "tileWidth": 16,
+  "tileHeight": 16,
+  "columns": 8,
+  "rows": 7,
+  "nativeDimensions": {
+    "width": 128,
+    "height": 112
+  },
+  "opaqueTerrain": true,
+  "encoding": "lossless indexed PNG (identical on RGBA decode)",
+  "maskBits": {
+    "N": 1,
+    "E": 2,
+    "S": 4,
+    "W": 8
+  },
+  "tiles": {
+    "grass_0": {
+      "index": 0,
+      "column": 0,
+      "row": 0
+    },
+    "grass_1": {
+      "index": 1,
+      "column": 1,
+      "row": 0
+    },
+    "grass_2": {
+      "index": 2,
+      "column": 2,
+      "row": 0
+    },
+    "grass_3": {
+      "index": 3,
+      "column": 3,
+      "row": 0
+    },
+    "grass_4": {
+      "index": 4,
+      "column": 4,
+      "row": 0
+    },
+    "grass_5": {
+      "index": 5,
+      "column": 5,
+      "row": 0
+    },
+    "grass_6": {
+      "index": 6,
+      "column": 6,
+      "row": 0
+    },
+    "grass_7": {
+      "index": 7,
+      "column": 7,
+      "row": 0
+    },
+    "dirt_0": {
+      "index": 8,
+      "column": 0,
+      "row": 1
+    },
+    "dirt_1": {
+      "index": 9,
+      "column": 1,
+      "row": 1
+    },
+    "dirt_2": {
+      "index": 10,
+      "column": 2,
+      "row": 1
+    },
+    "dirt_3": {
+      "index": 11,
+      "column": 3,
+      "row": 1
+    },
+    "ruin_stone_0": {
+      "index": 12,
+      "column": 4,
+      "row": 1
+    },
+    "ruin_stone_1": {
+      "index": 13,
+      "column": 5,
+      "row": 1
+    },
+    "ruin_stone_2": {
+      "index": 14,
+      "column": 6,
+      "row": 1
+    },
+    "ruin_stone_3": {
+      "index": 15,
+      "column": 7,
+      "row": 1
+    },
+    "water_0": {
+      "index": 16,
+      "column": 0,
+      "row": 2
+    },
+    "water_1": {
+      "index": 17,
+      "column": 1,
+      "row": 2
+    },
+    "water_2": {
+      "index": 18,
+      "column": 2,
+      "row": 2
+    },
+    "water_3": {
+      "index": 19,
+      "column": 3,
+      "row": 2
+    },
+    "corrupted_grass_0": {
+      "index": 20,
+      "column": 4,
+      "row": 2
+    },
+    "corrupted_grass_1": {
+      "index": 21,
+      "column": 5,
+      "row": 2
+    },
+    "gravel_0": {
+      "index": 22,
+      "column": 6,
+      "row": 2
+    },
+    "gravel_1": {
+      "index": 23,
+      "column": 7,
+      "row": 2
+    },
+    "path_mask_00": {
+      "index": 24,
+      "column": 0,
+      "row": 3,
+      "mask": 0
+    },
+    "path_mask_01": {
+      "index": 25,
+      "column": 1,
+      "row": 3,
+      "mask": 1
+    },
+    "path_mask_02": {
+      "index": 26,
+      "column": 2,
+      "row": 3,
+      "mask": 2
+    },
+    "path_mask_03": {
+      "index": 27,
+      "column": 3,
+      "row": 3,
+      "mask": 3
+    },
+    "path_mask_04": {
+      "index": 28,
+      "column": 4,
+      "row": 3,
+      "mask": 4
+    },
+    "path_mask_05": {
+      "index": 29,
+      "column": 5,
+      "row": 3,
+      "mask": 5
+    },
+    "path_mask_06": {
+      "index": 30,
+      "column": 6,
+      "row": 3,
+      "mask": 6
+    },
+    "path_mask_07": {
+      "index": 31,
+      "column": 7,
+      "row": 3,
+      "mask": 7
+    },
+    "path_mask_08": {
+      "index": 32,
+      "column": 0,
+      "row": 4,
+      "mask": 8
+    },
+    "path_mask_09": {
+      "index": 33,
+      "column": 1,
+      "row": 4,
+      "mask": 9
+    },
+    "path_mask_10": {
+      "index": 34,
+      "column": 2,
+      "row": 4,
+      "mask": 10
+    },
+    "path_mask_11": {
+      "index": 35,
+      "column": 3,
+      "row": 4,
+      "mask": 11
+    },
+    "path_mask_12": {
+      "index": 36,
+      "column": 4,
+      "row": 4,
+      "mask": 12
+    },
+    "path_mask_13": {
+      "index": 37,
+      "column": 5,
+      "row": 4,
+      "mask": 13
+    },
+    "path_mask_14": {
+      "index": 38,
+      "column": 6,
+      "row": 4,
+      "mask": 14
+    },
+    "path_mask_15": {
+      "index": 39,
+      "column": 7,
+      "row": 4,
+      "mask": 15
+    },
+    "water_mask_00": {
+      "index": 40,
+      "column": 0,
+      "row": 5,
+      "mask": 0
+    },
+    "water_mask_01": {
+      "index": 41,
+      "column": 1,
+      "row": 5,
+      "mask": 1
+    },
+    "water_mask_02": {
+      "index": 42,
+      "column": 2,
+      "row": 5,
+      "mask": 2
+    },
+    "water_mask_03": {
+      "index": 43,
+      "column": 3,
+      "row": 5,
+      "mask": 3
+    },
+    "water_mask_04": {
+      "index": 44,
+      "column": 4,
+      "row": 5,
+      "mask": 4
+    },
+    "water_mask_05": {
+      "index": 45,
+      "column": 5,
+      "row": 5,
+      "mask": 5
+    },
+    "water_mask_06": {
+      "index": 46,
+      "column": 6,
+      "row": 5,
+      "mask": 6
+    },
+    "water_mask_07": {
+      "index": 47,
+      "column": 7,
+      "row": 5,
+      "mask": 7
+    },
+    "water_mask_08": {
+      "index": 48,
+      "column": 0,
+      "row": 6,
+      "mask": 8
+    },
+    "water_mask_09": {
+      "index": 49,
+      "column": 1,
+      "row": 6,
+      "mask": 9
+    },
+    "water_mask_10": {
+      "index": 50,
+      "column": 2,
+      "row": 6,
+      "mask": 10
+    },
+    "water_mask_11": {
+      "index": 51,
+      "column": 3,
+      "row": 6,
+      "mask": 11
+    },
+    "water_mask_12": {
+      "index": 52,
+      "column": 4,
+      "row": 6,
+      "mask": 12
+    },
+    "water_mask_13": {
+      "index": 53,
+      "column": 5,
+      "row": 6,
+      "mask": 13
+    },
+    "water_mask_14": {
+      "index": 54,
+      "column": 6,
+      "row": 6,
+      "mask": 14
+    },
+    "water_mask_15": {
+      "index": 55,
+      "column": 7,
+      "row": 6,
+      "mask": 15
+    }
+  },
+  "gameplayCompatibility": [
+    "review only; public game does not load this asset",
+    "keep MyrrenWorld geometry, collision, save and respawn unchanged",
+    "no Kez or equipment changes",
+    "water has no new water collision",
+    "pixel art uses integer-destination nearest-neighbour drawing only"
+  ],
+  "reference": "Original Kez V2 native 21x27 and world grid 16x16"
+}

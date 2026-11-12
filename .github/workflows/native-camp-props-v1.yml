@@ -9,6 +9,7 @@ on:
       - 'tests/native-camp-props-v1.test.py'
       - 'tests/native-camp-props-v1-browser.test.cjs'
       - 'tests/native-camp-props-runtime.test.cjs'
+      - 'tests/crater-combined-art-browser.test.cjs'
       - 'public/myrren-camp-props.js'
       - 'public/myrren-game.js'
       - 'public/index.html'
@@ -66,6 +67,8 @@ jobs:
         run: node tests/native-camp-props-v1-browser.test.cjs
       - name: Validate production opt-in prop sprite paths and fallback
         run: node tests/native-camp-props-runtime.test.cjs
+      - name: Test native terrain and camp props together in the live game
+        run: node tests/crater-combined-art-browser.test.cjs
       - name: Prepare screenshot review contact sheets
         run: |
           python3 -m venv "${RUNNER_TEMP}/myrren-camp-gameplay-contact"
@@ -80,4 +83,5 @@ jobs:
           path: |
             /tmp/myrren-camp-props-gameplay-proof/
             /tmp/myrren-camp-runtime-proof/
+            /tmp/myrren-combined-world-art-qa/
           if-no-files-found: warn
