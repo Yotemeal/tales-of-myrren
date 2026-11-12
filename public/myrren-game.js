@@ -3110,6 +3110,9 @@ function drawKezV2(x,y,o,now){
   // Rear-facing weapons belong behind the base sprite, not across the torso.
   const pose=atlas.pose(state,poseTime);
   const fittedGrip=o.tool==='sword'&&gear?.hasAtlas?.(o.mat)&&pose;
+  // Preserve the existing weapon proportions for live legacy tiers. Native
+  // fitted-grip Bronze needs a legible blade without changing the sword atlas.
+  const swordDrawScale=fittedGrip?0.85:0.6;
   const hx=Math.round(x)+(fittedGrip?pose.gripX:(direction==='back'?-8:direction==='side'?facing*6:5));
   // Dominant-hand socket matches gloves at y=-8..-4, below the face.
   const hy=Math.round(y)+(fittedGrip?pose.gripY:-7);
@@ -3120,7 +3123,7 @@ function drawKezV2(x,y,o,now){
     :-.35;
   const paintHeld=()=>{
     if(!holding||(dead&&o.tool!=='sword'))return;
-    drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6);
+    drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,swordDrawScale);
     // Two-pixel fingers cover the sword grip without showing a floating hilt.
     if(direction!=='back')R(hx-1,hy-1,2,2,handColor);
   };
