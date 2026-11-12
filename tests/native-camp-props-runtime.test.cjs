@@ -45,7 +45,7 @@ const server=http.createServer((req,res)=>{
           const original=CanvasRenderingContext2D.prototype.drawImage;
           CanvasRenderingContext2D.prototype.drawImage=function(image,...args){
             if(image?.src?.includes('/assets/camp/camp_props_v1.png'))
-              window.__campProductionDraws.push(args.slice(0,4));
+              window.__campProductionDraws.push(args.slice(0,8));
             return original.call(this,image,...args);
           };
         });
