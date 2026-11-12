@@ -21,12 +21,14 @@ const manifest=require('../public/assets/armour/bronze_layers_21x27.json');
   window,Image,URL,URLSearchParams,Event,console,
   fetch:async url=>({ok:true,json:async()=>url.endsWith('equipment-atlases.json')
    ? ['/bronze.json','/replacement.json']
-   : url==='/bronze.json'?manifest:{...manifest,materialId:3,image:manifest.image+'&fixture=1',originX:1}})
+   : url==='/bronze.json'?manifest:{...manifest,materialId:3,image:manifest.image+'&fixture=1',originX:1,collapse:{...manifest.collapse,originX:11}}})
  });
  await new Promise(setImmediate);
  const api=window.MyrrenKezV2Equipment;
  assert(api.hasAtlas(2));
  assert(api.hasAtlas(3));
+ assert(api.supportsCollapse([2,3,0,0,0,0]));
+ assert(!api.supportsCollapse([4,0,0,0,0,0]));
  const slots=['helmet','body','legs','boots','shield','gloves'];
  const cells=[],legacy=[];
  const ctx={save(){},restore(){},drawImage(image,...args){cells.push(args)},
@@ -55,5 +57,10 @@ const manifest=require('../public/assets/armour/bronze_layers_21x27.json');
  assert.equal(legacy.length,0);
  api.draw(ctx,50,80,{g:[2,4,0,0,0,0]},'over',{direction:'front',row:1,frame:0,dx:-11,dy:-24});
  assert(legacy.length>0,'uncovered tiers retain existing overlays');
+ cells.length=0;
+ api.drawCollapse(ctx,50,80,{g:[2,3,0,0,2,0]},{row:4},1,'under');
+ assert.deepEqual(cells,[[36,224,36,32,40,64,36,32]]);
+ api.drawCollapse(ctx,50,80,{g:[2,3,0,0,2,0]},{row:4},1,'over');
+ assert.deepEqual(cells.slice(1),[[36,480,36,32,39,64,36,32],[36,352,36,32,40,64,36,32]]);
  console.log('PASS: Registered replacement and Bronze PNG slots, source frames, feet anchor, shield pass and mixed material fallback');
 })().catch(error=>{console.error(error);process.exitCode=1});

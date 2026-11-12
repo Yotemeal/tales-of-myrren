@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=92;
+window.MyrrenBuild=93;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -3086,8 +3086,10 @@ function drawKezV2(x,y,o,now){
   const deathAge=deathAt==null?-1:now-deathAt;
   const dead=deathAge>=0;
   const poseTime=dead?deathAt:now;
+  const collapseReady=dead&&atlas.collapseReady&&gear?.supportsCollapse?.(o.g)&&
+    (o.tool!=='sword'||gear.hasAtlas(o.mat));
   const state={...o,now:poseTime,moving:!dead&&o.moving,
-    swingAt:dead?undefined:o.swingAt,collapsePose:dead&&atlas.collapseReady&&gear?.hasAtlas?.(2),
+    swingAt:dead?undefined:o.swingAt,collapsePose:collapseReady,
     equipmentPunch:o.tool==='fist'&&o.g?.every(mat=>!mat||gear?.supportsPunch?.(mat)),
     equipmentSword:o.tool==='sword'&&gear?.supportsSword?.(o.mat)&&
       (!o.g||o.g.every(mat=>!mat||gear.supportsSword(mat)))};
@@ -3119,8 +3121,7 @@ function drawKezV2(x,y,o,now){
     const px=direction==='back'?x-4:direction==='side'?x+facing*6:x+4;
     R(Math.round(px)-1,Math.round(y-11),2,2,handColor);
   };
-  const collapse=dead&&deathAge>=75&&atlas.collapseReady&&gear?.hasAtlas?.(2)&&
-    (!o.g||o.g.every(mat=>!mat||mat===2))&&(o.tool!=='sword'||o.mat===2);
+  const collapse=collapseReady&&deathAge>=75;
   if(collapse){
     const frame=deathAge<200?0:1;
     const fallAngle=frame===0?.70:Math.PI/2;
