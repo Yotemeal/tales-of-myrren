@@ -246,10 +246,10 @@ assert(game.includes('g:gearArr(),dye:save.dye,now'),'equipment portrait must pr
 
 const drawKez=game.slice(game.indexOf('function drawKezV2('),game.indexOf('function drawPerson('));
 assert(drawKez.indexOf("if(direction==='back'){paintHeld();paintPunch()}")<
-       drawKez.indexOf('atlas.draw(ctx,x,y,state,now)'),
+       drawKez.indexOf('atlas.draw(ctx,x,y,state,now,pose)'),
        'rear-facing sword must be painted before the body');
 assert(drawKez.includes("direction==='back'?-8"),'rear sword must clear torso');
-assert(drawKez.indexOf('atlas.draw(ctx,x,y,state,now)')<
+assert(drawKez.indexOf('atlas.draw(ctx,x,y,state,now,pose)')<
        drawKez.indexOf("if(direction!=='back'){paintHeld();paintPunch()}"),
        'front and side swords must be held over the body');
 assert(drawKez.includes("const handColor=glove&&gear?.colorsFor?.(glove,o.dye)?.[2]"),
@@ -264,10 +264,71 @@ assert(drawKez.includes(":swingAng(age)"),
        'non-sword gathering tools must keep their existing attack animation');
 assert(drawKez.includes('window.MyrrenKezV2SwordMotion.angle(age)'),
        'sword-only visual swing must be bound to the real Kez V2 renderer');
-assert(drawKez.includes('drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6)'),
-       'weapons must retain the small Kez V2 grip scale');
+assert(drawKez.includes('const swordDrawScale=fittedGrip?0.85:0.6;')&&
+       drawKez.includes('drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,swordDrawScale)'),
+       'legacy weapons must stay at 0.6 while opt-in fitted Bronze uses 0.85');
 const scripts=[...page.matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]);
 assert(scripts.findIndex(s=>s.includes('kez-v2-atlas'))<scripts.findIndex(s=>s.includes('kez-v2-equipment')));
 assert(scripts.findIndex(s=>s.includes('kez-v2-equipment'))<scripts.findIndex(s=>s.includes('myrren-game')));
 assert(scripts.findIndex(s=>s.includes('kez-v2-sword-motion'))<scripts.findIndex(s=>s.includes('myrren-game')));
 console.log('PASS: Kez V2 native dimensions, four directional idle/run poses, attacks, seven-metal six-slot overlays, preview cleanup, and script registration.');
+
+// Exercise the production compositor with the current death transform.
+{
+  const calls=[];
+  const ctx={
+    save(){calls.push('save')},restore(){calls.push('restore')},
+    translate(){},rotate(angle){calls.push(['rotate',angle])}
+  };
+  const atlas={
+    ready:true,
+    pose(state,time){calls.push(['pose',state.moving,state.swingAt,time]);return {gripX:-4,gripY:-6}},
+    draw(){calls.push('body')}
+  };
+  const gear={hasAtlas:material=>material===2,draw(context,x,y,state,pass){calls.push(pass)}};
+  const run=vm.runInNewContext(drawKez+'\ndrawKezV2', {
+    window:{MyrrenKezV2Atlas:atlas,MyrrenKezV2Equipment:gear},
+    me:{deathAt:1000},ctx,shadowE(){},drawTool(kind,material,x,y){calls.push([kind,x,y])},
+    R(){},label(){calls.push('label')}
+  });
+  const state={isMe:true,dv:'u',f:1,moving:true,swingAt:1200,tool:'sword',mat:2,hold:1e12};
+  assert(run(30,40,state,1300));
+  assert.deepEqual(calls,[['pose',false,undefined,1000],'save',['rotate',1.35],
+    ['sword',26,34],'under','body','over','restore']);
+  calls.length=0;
+  assert(run(30,40,{...state,tool:'pick'},1350));
+  assert(!calls.some(call=>Array.isArray(call)&&call[0]==='pick'),'gathering tools should not be drawn during collapse');
+}
+
+// Exercise the actual peer ingestion path with current and legacy payloads.
+{
+  const peers=new Map();
+  let time=100;
+  const start=game.indexOf('function ingest(change)');
+  const end=game.indexOf('\n(async()=>{',start);
+  const ingest=vm.runInNewContext(game.slice(start,end)+'\ningest',{
+    peers,performance:{now:()=>time},WW:1600,WH:1600,
+    clamp:(n,lo,hi)=>Math.max(lo,Math.min(hi,n)),
+    CODE_KIND:['','sword']
+  });
+  const receive=presence=>ingest({peers:[{peer:'other',kind:'viewer',presence:{x:20,y:20,...presence}}]});
+  receive({dir:'s',face:-1,hit:88,dead:true,a:1,tt:2,g:[2,3,0,2,2,2]});
+  const peer=peers.get('other');
+  assert.equal(peer.renderDirection,'s');
+  assert.equal(peer.face,-1);
+  assert.equal(peer.deathAt,100);
+  assert.equal(peer.hurtAt,100);
+  assert.equal(peer.tool,'sword');
+  assert.equal(peer.g.join(','),'2,3,0,2,2,2');
+  time=180;
+  receive({hit:88,dead:true});
+  assert.equal(peer.deathAt,100,'repeated presence should not restart collapse');
+  assert.equal(peer.hurtAt,100,'repeated presence should not restart hurt flash');
+  receive({dir:'d',face:1,dead:false});
+  assert.equal(peer.deathAt,null);
+  assert.equal(peer.renderDirection,'d');
+  receive({dir:'invalid',face:900,hit:null,dead:'true'});
+  assert.equal(peer.deathAt,null);
+  assert.equal(peer.renderDirection,null);
+  assert.equal(peer.hurtAt,100);
+}
