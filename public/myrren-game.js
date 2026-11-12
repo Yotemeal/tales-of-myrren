@@ -250,6 +250,12 @@ const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=90,EDGE=100;
 const VILLAGE=MyrrenWorld;
 const BLD=VILLAGE.buildings.map(b=>({...b}));
 const LAMPS=[[CX-116,CY+12],[CX+116,CY+12],[CX-82,CY+108],[CX+82,CY+108]];
+// Additional opt-in layout study only; normal gameplay keeps the original fire.
+// Keep this as the single source of truth for both rendering and cooking reach.
+// The study anchor is dry ground and clear of the blacksmith and lamp sprites.
+const CAMPFIRE=Object.freeze(window.MyrrenCampProps?.enabled&&
+  new URLSearchParams(window.location.search).has('campfire-layout-proof')
+  ?{x:CX+64,y:CY+50}:{x:CX+176,y:CY-90});
 // A maintained camp: keep only essential community fixtures.
 const DECOR=[['board',CX-8,CY-72],['provisions',CX-185,CY-111],['provisions',CX+175,CY-112]];
 const SOLID=DECOR.filter(d=>d[0]==='fence').map(d=>d[4]==='v'?{x0:d[1]-3,x1:d[1]+3,y0:d[2]-d[3]-2,y1:d[2]+1}:{x0:d[1]-2,x1:d[1]+d[3]+2,y0:d[2]-3,y1:d[2]+2});
@@ -1742,7 +1748,7 @@ function resolveSwing(now){
     if(m.hp<=0)killMon(m,now);
   }
 }
-function nearFire(){return Math.hypot(me.x-(CX+176),me.y-(CY-90))<36}
+function nearFire(){return Math.hypot(me.x-CAMPFIRE.x,me.y-CAMPFIRE.y)<36}
 function nearestDoor(r){let best=null,bd=r;for(const b of BLD){if(!b.open)continue;const d=Math.hypot(b.x-me.x,b.y-me.y);if(d<bd){bd=d;best=b}}return best}
 const SPOTS={bank:{x:CX-150,y:CY+114},board:{x:BOARD.x,y:BOARD.y}};
 function nearSpot(){let best=null,bd=36;for(const k in SPOTS){const d=Math.hypot(me.x-SPOTS[k].x,me.y-SPOTS[k].y);if(d<bd){bd=d;best=k}}return best}
@@ -3802,8 +3808,8 @@ function drawOutdoor(cx,cy,now){
   for(const [lx,ly] of LAMPS)if(vis(lx,ly))list.push({y:ly,f:()=>drawLamp(Math.round(lx-cx),Math.round(ly-cy),now)});
   for(const [kind,dx,dy,a,b2] of DECOR)if(vis(dx,dy)&&VILLAGE.dryFootprint(dx+(kind==='fence'&&b2!=='v'?a/2:0),dy,kind==='fence'?(b2==='v'?4:a/2+3):kind==='stall'?23:19,kind==='fence'&&b2==='v'?a+16:kind==='fence'?17:53,5,10))list.push({y:dy,f:()=>drawDecor(kind,Math.round(dx-cx),Math.round(dy-cy),a,b2,now)});
   // Small cooking fire kept with the provisions, not in the central circle.
-  list.push({y:CY-90,f:()=>{
-    const fx2=Math.round(CX+176-cx),fy=Math.round(CY-90-cy),fl=Math.floor(now/120)%3;
+  list.push({y:CAMPFIRE.y,f:()=>{
+    const fx2=Math.round(CAMPFIRE.x-cx),fy=Math.round(CAMPFIRE.y-cy),fl=Math.floor(now/120)%3;
     if(!window.MyrrenCampProps?.draw(ctx,'campfire',fx2,fy,now)){
       shadowE(fx2+2,fy+1,7,2,.2);
       for(let k=0;k<6;k++){const a2=k/6*6.283;R(fx2+Math.round(Math.cos(a2)*6)-2,fy+Math.round(Math.sin(a2)*3)-1,4,3,'#68675b')}
