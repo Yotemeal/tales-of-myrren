@@ -164,7 +164,7 @@
     for(let i=0;i<3;i++){const t=(now/2200+i/3)%1;ctx.globalAlpha=(1-t)*.24;ctx.fillStyle='#adb9ac';ctx.fillRect(Math.round(tx+Math.sin(t*5+i)*3),Math.round(peak-4-t*23),3+i,3+i)}ctx.globalAlpha=1;
   }
   const terrainAtlas=new Image();
-  terrainAtlas.src='/assets/terrain/starter_terrain_v1.png?v=1';
+  terrainAtlas.src='/assets/terrain/starter_terrain_v1.png?v=2';
   const nativeTerrainReady=()=>terrainAtlas.complete&&terrainAtlas.naturalWidth===128&&terrainAtlas.naturalHeight===112;
   function drawTerrainTile(ctx,index,x,y){
     ctx.drawImage(terrainAtlas,(index%8)*16,Math.floor(index/8)*16,16,16,
