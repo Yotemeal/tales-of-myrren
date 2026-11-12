@@ -43,10 +43,14 @@ const qaHook=[
    const page=await context.newPage(),errors=[];
    page.on('pageerror',e=>errors.push(e.message));
    await page.addInitScript(()=>{
-    window.__terrainQaEnabled=false;window.__terrainQaDrawCount=0;
+    window.__terrainQaEnabled=false;window.__terrainQaDrawCount=0;window.__terrainQaCorruptedCount=0;
     const draw=CanvasRenderingContext2D.prototype.drawImage;
     CanvasRenderingContext2D.prototype.drawImage=function(image,...args){
-     if(image?.src?.includes('starter_terrain_v1.png'))window.__terrainQaDrawCount++;
+     if(image?.src?.includes('starter_terrain_v1.png')){
+      window.__terrainQaDrawCount++;
+      // Atlas cells 20/21 are corrupted. They must not leak into the starter lake.
+      if((args[0]===64||args[0]===80)&&args[1]===32)window.__terrainQaCorruptedCount++;
+     }
      return draw.call(this,image,...args);
     };
    });
@@ -83,9 +87,13 @@ const qaHook=[
     await page.waitForTimeout(250);
     const oldShot=device.name+'-'+name+'-current.png';
     await page.locator('#cv').screenshot({path:path.join(OUT,oldShot)});
-    await page.evaluate(()=>{window.__terrainQaEnabled=true;window.__terrainQaDrawCount=0});
+    await page.evaluate(()=>{window.__terrainQaEnabled=true;window.__terrainQaDrawCount=0;window.__terrainQaCorruptedCount=0});
     await page.waitForFunction(()=>window.__terrainQaDrawCount>100,null,{timeout:7000});
     await page.waitForTimeout(180);
+    if(name==='lake-edge'){
+     const corruptedDraws=await page.evaluate(()=>window.__terrainQaCorruptedCount);
+     assert.equal(corruptedDraws,0,'Starter lake must not acquire an abrupt corrupted-grass rectangle');
+    }
     const newShot=device.name+'-'+name+'-native-png.png';
     await page.locator('#cv').screenshot({path:path.join(OUT,newShot)});
     report.push({device:device.name,scene:name,playerPosition:position,
