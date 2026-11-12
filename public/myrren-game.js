@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=84;
+window.MyrrenBuild=88;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -250,6 +250,14 @@ const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=90,EDGE=100;
 const VILLAGE=MyrrenWorld;
 const BLD=VILLAGE.buildings.map(b=>({...b}));
 const LAMPS=[[CX-116,CY+12],[CX+116,CY+12],[CX-82,CY+108],[CX+82,CY+108]];
+// Release candidate: courtyard fire is the provisional working layout.
+// All draw, depth and Cooking reach logic use this shared coordinate.
+// ?legacy-camp-props restores the old sprites/spot; an independent
+// ?original-campfire-layout-proof draws native art at the old placement for QA.
+const legacyFire=!window.MyrrenCampProps?.enabled||
+  new URLSearchParams(window.location.search).has('original-campfire-layout-proof');
+const CAMPFIRE=Object.freeze(legacyFire
+  ?{x:CX+176,y:CY-90}:{x:CX+64,y:CY+50});
 // A maintained camp: keep only essential community fixtures.
 const DECOR=[['board',CX-8,CY-72],['provisions',CX-185,CY-111],['provisions',CX+175,CY-112]];
 const SOLID=DECOR.filter(d=>d[0]==='fence').map(d=>d[4]==='v'?{x0:d[1]-3,x1:d[1]+3,y0:d[2]-d[3]-2,y1:d[2]+1}:{x0:d[1]-2,x1:d[1]+d[3]+2,y0:d[2]-3,y1:d[2]+2});
@@ -1742,7 +1750,7 @@ function resolveSwing(now){
     if(m.hp<=0)killMon(m,now);
   }
 }
-function nearFire(){return Math.hypot(me.x-(CX+176),me.y-(CY-90))<36}
+function nearFire(){return Math.hypot(me.x-CAMPFIRE.x,me.y-CAMPFIRE.y)<36}
 function nearestDoor(r){let best=null,bd=r;for(const b of BLD){if(!b.open)continue;const d=Math.hypot(b.x-me.x,b.y-me.y);if(d<bd){bd=d;best=b}}return best}
 const SPOTS={bank:{x:CX-150,y:CY+114},board:{x:BOARD.x,y:BOARD.y}};
 function nearSpot(){let best=null,bd=36;for(const k in SPOTS){const d=Math.hypot(me.x-SPOTS[k].x,me.y-SPOTS[k].y);if(d<bd){bd=d;best=k}}return best}
@@ -3351,13 +3359,18 @@ function drawPet(p,x,y,now){
   else drawMole(p,x,y,now);
 }
 function drawLamp(x,y,now){
-  MyrrenEnvironment.prop(ctx,'lamp',x,y,null,null,now);
+  const native=window.MyrrenCampProps?.draw(ctx,'lantern',x,y,now);
+  if(!native)MyrrenEnvironment.prop(ctx,'lamp',x,y,null,null,now);
   const sway=Math.round(Math.sin(now/900+x*.13)*2),flicker=Math.sin(now/180+x);
   ctx.save();ctx.globalAlpha=.13+flicker*.025;ctx.fillStyle='#ffd181';
   ctx.beginPath();ctx.arc(x+sway,y-16,19,0,Math.PI*2);ctx.fill();ctx.restore();
-  R(x+sway-3,y-19,7,8,'#e6ad56');R(x+sway-1,y-17,3,5,'#ffe6a0');
+  if(!native){R(x+sway-3,y-19,7,8,'#e6ad56');R(x+sway-1,y-17,3,5,'#ffe6a0')}
 }
 function drawBankChest(x,y){
+  if(window.MyrrenCampProps?.draw(ctx,'bank_chest',x,y)){
+    if(Math.hypot(me.x-SPOTS.bank.x,me.y-SPOTS.bank.y)<70)label('Storage Chest',x,y-40,'#e8d9ae');
+    return;
+  }
   // Hand-worn survivor's trunk: layered oak lid, riveted iron bands and brass lock.
   // Preserve the existing bank interaction and proximity label.
   R(x-20,y-3,40,5,'#252522');
@@ -3380,7 +3393,12 @@ function drawSupply(x,y){
   R(x-5,y-26,10,5,OUT);R(x-4,y-25,8,3,'#d8c890');R(x-2,y-24,4,1,'#6a5a3a');
   if(Math.hypot(me.x-SPOTS.crate.x,me.y-SPOTS.crate.y)<64)label('Supply Crate',x,y-30,'#ffffff');
 }
-function drawBoard(x,y){
+function drawBoard(x,y,now){
+  if(window.MyrrenCampProps?.draw(ctx,'jobs_board',x,y,now)){
+    if(save.jobs.some(j=>j.done))R(x+19,y-26,3,4,'#f3d477');
+    if(Math.hypot(me.x-BOARD.x,me.y-BOARD.y)<65)label('Community Board',x,y-58,'#e4dfc3');
+    return;
+  }
   // Low weathered community board with three separate pinned parchment notices.
   R(x-22,y-5,5,13,'#382c25');R(x+17,y-5,5,13,'#382c25');
   R(x-25,y-34,50,30,'#292923');R(x-23,y-31,46,25,'#795638');
@@ -3420,8 +3438,8 @@ function drawProvisions(x,y){
   R(x+12,y-28,13,7,'#a16b3f');R(x+15,y-31,7,4,'#e1b66a');
   R(x+24,y-17,10,13,'#7d6446');R(x+26,y-20,6,5,'#b6a078');
 }
-function drawDecor(kind,x,y,a,b){
-  if(kind==='supply')drawSupply(x,y);else if(kind==='board')drawBoard(x,y);else if(kind==='well')drawWell(x,y);else if(kind==='stall')drawStall(x,y,a);else if(kind==='barrel')drawBarrel(x,y);else if(kind==='crate')drawCrate(x,y);
+function drawDecor(kind,x,y,a,b,now){
+  if(kind==='supply')drawSupply(x,y);else if(kind==='board')drawBoard(x,y,now);else if(kind==='well')drawWell(x,y);else if(kind==='stall')drawStall(x,y,a);else if(kind==='barrel')drawBarrel(x,y);else if(kind==='crate')drawCrate(x,y);
   else if(kind==='hay')drawHay(x,y);else if(kind==='pot')drawPot(x,y);else if(kind==='fbox')drawFbox(x,y);else if(kind==='sack')drawSack(x,y);else if(kind==='fence')drawFence(x,y,a,b);else if(kind==='bush')drawBush(x,y,a);else if(kind==='provisions')drawProvisions(x,y);
   if(kind==='stall'&&a==='#3a7a9a'&&Math.hypot(me.x-SPOTS.odd.x,me.y-SPOTS.odd.y)<64)label('Odd Shop',x,y-34,'#ffffff');
 }
@@ -3588,11 +3606,16 @@ function drawOutdoor(cx,cy,now){
     const boundary=tx<EDGE/T||ty<EDGE/T||tx>=WW/T-EDGE/T||ty>=WH/T-EDGE/T;
     const d=VILLAGE.waterDistance(wx+8,wy+8),kind=boundary?'boundary':pathAt(tx,ty);
     const edge=kind==='path'||kind==='plaza'?(pathAt(tx,ty-1)==='grass'?1:0)|(pathAt(tx,ty+1)==='grass'?2:0)|(pathAt(tx-1,ty)==='grass'?4:0)|(pathAt(tx+1,ty)==='grass'?8:0):0;
-    MyrrenEnvironment.terrain(ctx,tx,ty,x,y,d<-18?'water':kind,now,edge);
+
     // Cleared, lived-in crater floor: compacted earth, ash, and recovering growth.
     // Townsfolk maintain the basin; no uninterrupted dark-green lawn.
     const basin=Math.hypot((wx+8-CX)/305,(wy+8-CY)/235);
-    if(basin<.84&&kind==='grass'){
+    const grit=H2(tx+731,ty-391)%17;
+    const ground=kind==='grass'&&d>25
+      ?(basin>.83&&basin<1.18&&grit<12?(grit<5?'stone':'gravel'):basin<.84?'dirt':kind)
+      :kind;
+    const native=MyrrenEnvironment.terrain(ctx,tx,ty,x,y,d<-18?'water':kind,now,edge,ground);
+    if(!native&&basin<.84&&kind==='grass'){
       const grain=H2(tx+93,ty-71)%13;
       R(x,y,16,16,grain<3?'#74634c':grain<7?'#796b53':grain<10?'#807158':'#6c614e');
       if(grain%3===0){R(x+2,y+5,5,2,'#948369');R(x+10,y+12,4,2,'#5d5647')}
@@ -3603,9 +3626,8 @@ function drawOutdoor(cx,cy,now){
     }
     // The Camp lies inside the overgrown impact crater of the lost trading city.
     // Subtle rocky terraces, not a solid wall: all existing routes stay open.
-    const craterR=Math.hypot((wx+8-CX)/305,(wy+8-CY)/235);
-    if(d>25&&kind==='grass'&&craterR>.70&&craterR<1.35){
-      const grit=H2(tx+731,ty-391)%17;
+    const craterR=basin;
+    if(!native&&d>25&&kind==='grass'&&craterR>.70&&craterR<1.35){
       // Two softly staggered rock shelves form the crater's visible inner wall.
       const shelf=craterR>.83&&craterR<1.18;
       if(shelf&&grit<12){
@@ -3784,17 +3806,21 @@ function drawOutdoor(cx,cy,now){
   if(vis(TRADER.x,TRADER.y))list.push({y:TRADER.y,f:()=>drawTraderCart(Math.round(TRADER.x-cx),Math.round(TRADER.y-cy),now)});
   for(const station of VILLAGE.stations)list.push({y:station.y,f:()=>{
     const x=Math.round(station.x-cx),y=Math.round(station.y-cy);
-    MyrrenEnvironment.smithyPart(ctx,station.kind,x,y,now);
+    const art=station.kind==='furnace'?'open_furnace':station.kind==='anvil'?'blacksmith_anvil':null;
+    if(!art||!window.MyrrenCampProps?.draw(ctx,art,x,y,now))
+      MyrrenEnvironment.smithyPart(ctx,station.kind,x,y,now);
     if(Math.hypot(me.x-station.x,me.y-station.y)<43)label(station.kind==='furnace'?'Smelt ingots':station.kind==='anvil'?'Forge equipment':'Blacksmith supplies',x,y-(station.kind==='furnace'?59:29),'#e5d9af');
   }});
   for(const [lx,ly] of LAMPS)if(vis(lx,ly))list.push({y:ly,f:()=>drawLamp(Math.round(lx-cx),Math.round(ly-cy),now)});
-  for(const [kind,dx,dy,a,b2] of DECOR)if(vis(dx,dy)&&VILLAGE.dryFootprint(dx+(kind==='fence'&&b2!=='v'?a/2:0),dy,kind==='fence'?(b2==='v'?4:a/2+3):kind==='stall'?23:19,kind==='fence'&&b2==='v'?a+16:kind==='fence'?17:53,5,10))list.push({y:dy,f:()=>drawDecor(kind,Math.round(dx-cx),Math.round(dy-cy),a,b2)});
+  for(const [kind,dx,dy,a,b2] of DECOR)if(vis(dx,dy)&&VILLAGE.dryFootprint(dx+(kind==='fence'&&b2!=='v'?a/2:0),dy,kind==='fence'?(b2==='v'?4:a/2+3):kind==='stall'?23:19,kind==='fence'&&b2==='v'?a+16:kind==='fence'?17:53,5,10))list.push({y:dy,f:()=>drawDecor(kind,Math.round(dx-cx),Math.round(dy-cy),a,b2,now)});
   // Small cooking fire kept with the provisions, not in the central circle.
-  list.push({y:CY-90,f:()=>{
-    const fx2=Math.round(CX+176-cx),fy=Math.round(CY-90-cy),fl=Math.floor(now/120)%3;
-    shadowE(fx2+2,fy+1,7,2,.2);
-    for(let k=0;k<6;k++){const a2=k/6*6.283;R(fx2+Math.round(Math.cos(a2)*6)-2,fy+Math.round(Math.sin(a2)*3)-1,4,3,'#68675b')}
-    R(fx2-4,fy-6-fl,8,7+fl,'#df733a');R(fx2-2,fy-9-fl,4,7+fl,'#ffd15d');
+  list.push({y:CAMPFIRE.y,f:()=>{
+    const fx2=Math.round(CAMPFIRE.x-cx),fy=Math.round(CAMPFIRE.y-cy),fl=Math.floor(now/120)%3;
+    if(!window.MyrrenCampProps?.draw(ctx,'campfire',fx2,fy,now)){
+      shadowE(fx2+2,fy+1,7,2,.2);
+      for(let k=0;k<6;k++){const a2=k/6*6.283;R(fx2+Math.round(Math.cos(a2)*6)-2,fy+Math.round(Math.sin(a2)*3)-1,4,3,'#68675b')}
+      R(fx2-4,fy-6-fl,8,7+fl,'#df733a');R(fx2-2,fy-9-fl,4,7+fl,'#ffd15d');
+    }
   }});
   peers.forEach(o=>{if(vis(o.x,o.y))list.push({y:o.y,f:()=>drawPerson(Math.round(o.x-cx),Math.round(o.y-cy),{dv:(()=>{const dx=o.tx-o.x,dy=o.ty-o.y;if(Math.hypot(dx,dy)>1)o.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s';return o.dv||'d'})(),f:o.face,moving:Math.hypot(o.tx-o.x,o.ty-o.y)>1,hue:o.h,name:o.n,col:'#ffffff',tool:o.tool,mat:o.mat,hold:o.hold,swingAt:o.swingAt,waving:now<o.until,g:o.g,dye:o.dye},now)})});
   for(const pt of pets)list.push({y:pt.y,f:()=>drawPet(pt,Math.round(pt.x-cx),Math.round(pt.y-cy),now)});

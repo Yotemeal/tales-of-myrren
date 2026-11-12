@@ -1,0 +1,243 @@
+{
+  "schema": "myrren.camp.props.native-atlas.v1",
+  "version": 1,
+  "status": "art-review-only",
+  "gameplayIntegrated": false,
+  "approvalRequired": true,
+  "image": "/assets/camp/camp_props_v1.png",
+  "resolution": [
+    256,
+    384
+  ],
+  "cell": [
+    64,
+    64
+  ],
+  "columns": 4,
+  "rows": 6,
+  "format": "lossless indexed PNG with per-index alpha; exact native RGBA on decode",
+  "drawRules": [
+    "No runtime painted shape substitutes for approved PNG artwork",
+    "No fractional scale; imageSmoothingEnabled=false; integer destination coordinates",
+    "Use frameIndex modulo the defined frames count; static rows have only frame zero populated",
+    "The uniform cell foot anchor is x32 y56; sprite-specific source alpha margins stay unchanged",
+    "The art branch does not register any production sprites or modify collision/interactions"
+  ],
+  "originalCharacter": [
+    21,
+    27
+  ],
+  "terrainTile": [
+    16,
+    16
+  ],
+  "approvedDirection": "docs/APPROVED_CRATER_CAMP_VISUAL_DIRECTION_2026-11-12.md in draft PR #80",
+  "gameplaySafety": [
+    "bank chest continues to use existing storage menu and save data",
+    "odd jobs board continues to use original quest data and notification logic",
+    "furnace and anvil share existing forge interaction events and world coordinates",
+    "campfire asset does not add or relocate a cooking interaction",
+    "lantern remains decorative and keeps original placement",
+    "no NPC, save, multiplayer, movement, skill, world or item changes"
+  ],
+  "props": {
+    "bank_chest": {
+      "row": 0,
+      "frames": 1,
+      "sourceSize": [
+        48,
+        36
+      ],
+      "sourceAnchor": [
+        24,
+        32
+      ],
+      "existingRuntime": "drawBankChest / SPOTS.bank",
+      "description": "static",
+      "spriteCell": [
+        64,
+        64
+      ],
+      "sourceRect": {
+        "x": 0,
+        "y": 0,
+        "width": 64,
+        "height": 64
+      },
+      "footAnchorInCell": [
+        32,
+        56
+      ],
+      "sourcePixelOffsetInCell": [
+        8,
+        24
+      ],
+      "animationMs": null
+    },
+    "jobs_board": {
+      "row": 1,
+      "frames": 4,
+      "sourceSize": [
+        64,
+        56
+      ],
+      "sourceAnchor": [
+        32,
+        51
+      ],
+      "existingRuntime": "drawBoard / BOARD",
+      "description": "two subtly distinct paper poses in four-frame pacing",
+      "spriteCell": [
+        64,
+        64
+      ],
+      "sourceRect": {
+        "x": 0,
+        "y": 64,
+        "width": 64,
+        "height": 64
+      },
+      "footAnchorInCell": [
+        32,
+        56
+      ],
+      "sourcePixelOffsetInCell": [
+        0,
+        5
+      ],
+      "animationMs": 350
+    },
+    "blacksmith_anvil": {
+      "row": 2,
+      "frames": 1,
+      "sourceSize": [
+        48,
+        38
+      ],
+      "sourceAnchor": [
+        24,
+        34
+      ],
+      "existingRuntime": "MyrrenEnvironment.smithyPart('anvil') / stations",
+      "description": "static",
+      "spriteCell": [
+        64,
+        64
+      ],
+      "sourceRect": {
+        "x": 0,
+        "y": 128,
+        "width": 64,
+        "height": 64
+      },
+      "footAnchorInCell": [
+        32,
+        56
+      ],
+      "sourcePixelOffsetInCell": [
+        8,
+        22
+      ],
+      "animationMs": null
+    },
+    "open_furnace": {
+      "row": 3,
+      "frames": 4,
+      "sourceSize": [
+        64,
+        64
+      ],
+      "sourceAnchor": [
+        32,
+        56
+      ],
+      "existingRuntime": "MyrrenEnvironment.smithyPart('furnace') / stations",
+      "description": "four fire/smoke frames",
+      "spriteCell": [
+        64,
+        64
+      ],
+      "sourceRect": {
+        "x": 0,
+        "y": 192,
+        "width": 64,
+        "height": 64
+      },
+      "footAnchorInCell": [
+        32,
+        56
+      ],
+      "sourcePixelOffsetInCell": [
+        0,
+        0
+      ],
+      "animationMs": 240
+    },
+    "campfire": {
+      "row": 4,
+      "frames": 4,
+      "sourceSize": [
+        56,
+        46
+      ],
+      "sourceAnchor": [
+        28,
+        42
+      ],
+      "existingRuntime": "existing fire/cooking visual: inspect origin before integrating",
+      "description": "four stable ring/flame frames",
+      "spriteCell": [
+        64,
+        64
+      ],
+      "sourceRect": {
+        "x": 0,
+        "y": 256,
+        "width": 64,
+        "height": 64
+      },
+      "footAnchorInCell": [
+        32,
+        56
+      ],
+      "sourcePixelOffsetInCell": [
+        4,
+        14
+      ],
+      "animationMs": 240
+    },
+    "lantern": {
+      "row": 5,
+      "frames": 4,
+      "sourceSize": [
+        24,
+        48
+      ],
+      "sourceAnchor": [
+        5,
+        46
+      ],
+      "existingRuntime": "drawLamp / MyrrenEnvironment.prop('lamp')",
+      "description": "two flame colours in four-frame pacing",
+      "spriteCell": [
+        64,
+        64
+      ],
+      "sourceRect": {
+        "x": 0,
+        "y": 320,
+        "width": 64,
+        "height": 64
+      },
+      "footAnchorInCell": [
+        32,
+        56
+      ],
+      "sourcePixelOffsetInCell": [
+        27,
+        10
+      ],
+      "animationMs": 280
+    }
+  }
+}
