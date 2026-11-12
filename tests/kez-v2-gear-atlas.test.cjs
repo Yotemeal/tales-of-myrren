@@ -20,13 +20,17 @@ const manifest=require('../public/assets/armour/bronze_layers_21x27.json');
  vm.runInNewContext(fs.readFileSync(path.join(publicDir,'kez-v2-equipment.js'),'utf8'),{
   window,Image,URL,URLSearchParams,Event,console,
   fetch:async url=>({ok:true,json:async()=>url.endsWith('equipment-atlases.json')
-   ? ['/bronze.json','/replacement.json']
-   : url==='/bronze.json'?manifest:{...manifest,materialId:3,image:manifest.image+'&fixture=1',originX:1,collapse:{...manifest.collapse,originX:11}}})
+   ? ['/bronze.json','/replacement.json','/partial.json']
+   : url==='/bronze.json'?manifest:url==='/partial.json'?{...manifest,materialId:5,slotOrder:['helmet'],slotBlockRows:84,collapse:null}:{...manifest,materialId:3,image:manifest.image+'&fixture=1',originX:1,collapse:{...manifest.collapse,originX:11}}})
  });
  await new Promise(setImmediate);
  const api=window.MyrrenKezV2Equipment;
  assert(api.hasAtlas(2));
  assert(api.hasAtlas(3));
+ assert(api.hasAtlas(5));
+ assert(api.supportsAttack([5,2,0,0,0,0],'sword'));
+ assert(!api.supportsAttack([2,5,0,0,0,0],'sword'));
+ assert(!api.supportsAttack([2,5,0,0,0,0],'punch'));
  assert(api.supportsCollapse([2,3,0,0,0,0]));
  assert(!api.supportsCollapse([4,0,0,0,0,0]));
  const slots=['helmet','body','legs','boots','shield','gloves'];

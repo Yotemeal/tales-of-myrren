@@ -343,9 +343,16 @@
   }
   shield(false);
  }
+ function supportsSlots(gear,field){
+  return clean(gear).every((mat,index)=>{
+   if(!mat)return true;
+   const atlas=atlases.get(mat);
+   return atlas?.[field]!=null&&atlas.slotOrder.includes(LIVE_SLOTS[index]);
+  });
+ }
  window.MyrrenKezV2Equipment={draw,drawCollapse,clean,palette:METALS,colorsFor,order:ORDER,hasAtlas:material=>atlases.has(material),
   supportsPunch:material=>atlases.get(material)?.punchStartRow!=null,
-  supportsCollapse:gear=>clean(gear).every((mat,index)=>!mat||
-    (atlases.get(mat)?.collapse&&atlases.get(mat).slotOrder.includes(LIVE_SLOTS[index]))),
+  supportsCollapse:gear=>supportsSlots(gear,'collapse'),
+  supportsAttack:(gear,style)=>supportsSlots(gear,style==='sword'?'swordStartRow':'punchStartRow'),
   supportsSword:material=>atlases.get(material)?.swordStartRow!=null};
 })();
