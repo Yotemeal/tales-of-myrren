@@ -86,8 +86,21 @@ const server=http.createServer((req,res)=>{
           null,{timeout:12000});
         if(mode==='bronze-and-camp')
           await page.waitForFunction(()=>window.MyrrenKezV2Equipment?.hasAtlas(2)&&
-            window.MyrrenKezV2Atlas?.swordReady&&window.MyrrenKezV2Atlas?.punchReady,
-            null,{timeout:15000});
+            window.MyrrenKezV2Atlas?.swordReady&&window.MyrrenKezV2Atlas?.punchReady&&
+            window.MyrrenSwords?.ready,null,{timeout:15000});
+        if(mode==='bronze-and-camp'){
+          // A loaded attack pose alone is insufficient: the held sword must
+          // render from the approved forged-sword atlas, not a silent fallback.
+          await page.evaluate(()=>{
+            const original=window.MyrrenSwords.draw;
+            window.__combinedQa.swordDraws=0;
+            window.MyrrenSwords.draw=function(...args){
+              const rendered=original(...args);
+              if(rendered&&args[1]===2)window.__combinedQa.swordDraws++;
+              return rendered;
+            };
+          });
+        }
         const enabled=await page.evaluate(()=>window.MyrrenCampProps?.enabled);
         assert.equal(enabled,mode!=='terrain-only');
         await page.locator('#nick').fill('World QA');
@@ -98,7 +111,8 @@ const server=http.createServer((req,res)=>{
           assert.equal(proof.equipped.length,7,'full Bronze set and sword must equip');
           assert.deepEqual(proof.fire,{x:864,y:850},
             'native Bronze must not move the current courtyard cooking station');
-          await page.waitForFunction(()=>window.__combinedQa.bronze>5,null,{timeout:9000});
+          await page.waitForFunction(()=>window.__combinedQa.bronze>5&&
+            window.__combinedQa.swordDraws>0,null,{timeout:9000});
         }
         await page.waitForFunction(()=>window.__combinedQa.terrain>80,null,{timeout:9000});
         if(mode!=='terrain-only')await page.waitForFunction(()=>window.__combinedQa.props>3,
@@ -108,6 +122,7 @@ const server=http.createServer((req,res)=>{
           terrain:window.__combinedQa.terrain,
           props:window.__combinedQa.props,
           bronze:window.__combinedQa.bronze,
+          bronzeSwordDraws:window.__combinedQa.swordDraws||0,
           bronzeCells:window.__combinedQa.bronzeSource.size,
           terrainCells:window.__combinedQa.terrainSource.size,
           propCells:window.__combinedQa.propSource.size,
@@ -121,8 +136,12 @@ const server=http.createServer((req,res)=>{
           'several native prop sprite rows should render in camp');
         assert.equal(counts.bronze>0,mode==='bronze-and-camp',
           'Bronze proof must render only when equipped and explicitly enabled');
-        if(mode==='bronze-and-camp')assert(counts.bronzeCells>=4,
-          'multiple native Bronze equipment cells must render alongside terrain/props');
+        if(mode==='bronze-and-camp'){
+          assert(counts.bronzeCells>=4,
+            'multiple native Bronze equipment cells must render alongside terrain/props');
+          assert(counts.bronzeSwordDraws>0,
+            'equipped Bronze sword must use the existing forged-sword renderer');
+        }
         const name=device.name+'-'+mode+'.png';
         await page.locator('#cv').screenshot({path:path.join(output,name)});
         assert.deepEqual(errors,[],'uncaught browser errors: '+device.name+' '+mode);
