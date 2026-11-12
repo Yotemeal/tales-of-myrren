@@ -8,6 +8,10 @@ on:
       - 'public/assets/camp/camp_props_v1.json'
       - 'tests/native-camp-props-v1.test.py'
       - 'tests/native-camp-props-v1-browser.test.cjs'
+      - 'tests/native-camp-props-runtime.test.cjs'
+      - 'public/myrren-camp-props.js'
+      - 'public/myrren-game.js'
+      - 'public/index.html'
       - 'scripts/review-native-camp-gameplay-captures.py'
       - 'scripts/preview-native-camp-props-v1.py'
       - '.github/workflows/native-camp-props-v1.yml'
@@ -60,6 +64,8 @@ jobs:
           npx playwright install chromium
       - name: Capture existing vs PNG game sprites in desktop and mobile
         run: node tests/native-camp-props-v1-browser.test.cjs
+      - name: Validate production opt-in prop sprite paths and fallback
+        run: node tests/native-camp-props-runtime.test.cjs
       - name: Prepare screenshot review contact sheets
         run: |
           python3 -m venv "${RUNNER_TEMP}/myrren-camp-gameplay-contact"
@@ -71,5 +77,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: crater-camp-props-20-gameplay-qa-screenshots-not-integrated
-          path: /tmp/myrren-camp-props-gameplay-proof/
+          path: |
+            /tmp/myrren-camp-props-gameplay-proof/
+            /tmp/myrren-camp-runtime-proof/
           if-no-files-found: warn
