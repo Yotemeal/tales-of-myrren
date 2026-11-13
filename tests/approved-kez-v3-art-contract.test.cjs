@@ -41,6 +41,15 @@ assert.deepEqual(c.ironCompositeCandidate.directions,['front','right','back','le
 assert.equal(c.ironCompositeCandidate.qa.atlasReconstruction,true);
 assert.equal(c.ironCompositeCandidate.qa.modularWearableLayersDone,false);
 assert.equal(c.ironCompositeCandidate.readyToMerge,false);
+assert.equal(c.steelCompositeCandidate.referenceSha256,'527005897090001f80f11cb22500b4d6347a3d9780189e6c73592e0f7172b8ea');
+assert.equal(c.steelCompositeCandidate.materialId,4);
+assert.equal(c.steelCompositeCandidate.forgeLevel,20);
+assert.equal(c.steelCompositeCandidate.sourceDerivedFrames,64);
+assert.deepEqual(c.steelCompositeCandidate.actions,['idle','walk','attack','death']);
+assert.deepEqual(c.steelCompositeCandidate.directions,['front','right','back','left']);
+assert.equal(c.steelCompositeCandidate.qa.atlasReconstruction,true);
+assert.equal(c.steelCompositeCandidate.qa.modularWearableLayersDone,false);
+assert.equal(c.steelCompositeCandidate.readyToMerge,false);
 assert.equal(c.releaseGate.readyForDefaultGame,false,'do not publish unreviewed sprite assets');
 assert(c.releaseGate.reasons.length>=5,'incomplete source art must list release blockers');
 assert.equal(c.releaseGate.existingGameBuildOnMainAtLock,88);
