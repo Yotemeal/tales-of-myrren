@@ -73,7 +73,13 @@ const server=http.createServer((req,res)=>{
           propCells:window.__combinedQa.propSource.size,
           build:window.MyrrenBuild
         }));
-        assert.equal(counts.build,88,'integrated game cache/version mismatch');
+        // Compare against the actual deployed script cache version, not the
+        // old mainline release number. Draft character/asset QA builds vary.
+        const liveGameScript=fs.readFileSync(path.join(root,'index.html'),'utf8')
+          .match(/\/myrren-game\.js\?v=(\d+)/);
+        assert(liveGameScript,'game script version missing from index.html');
+        assert.equal(counts.build,Number(liveGameScript[1]),
+          'integrated game cache/version mismatch');
         assert(counts.terrainCells>=4,'expected multiple real terrain source cells');
         assert.equal(counts.props>0,mode!=='terrain-only',
           'camp atlas must be opt-in while native terrain stays enabled');
