@@ -43,9 +43,9 @@ async function checkBronzeArt(browser,base){
           state:null,
           apply(now){
             if(!this.state)return;
-            const [dv,face,action]=this.state;
+            const [dv,face,action,swingAge]=this.state;
             Object.assign(me,{dv,face,moving:action==='walk',
-              swing:action==='attack'?now-250:-99999,
+              swing:action==='attack'?now-swingAge:-99999,
               deathAt:action==='death'?now-320:null});
           }
         };
@@ -68,13 +68,13 @@ async function checkBronzeArt(browser,base){
       };
     });
     for(const [direction,dv,face] of [['front','d',1],['right','s',1],['back','u',1],['left','s',-1]]){
-      for(const action of ['idle','walk','attack','death']){
+      for(const [action,swingAge] of [['idle',0],['walk',0],['attack',40],['attack',120],['attack',200],['attack',280],['death',0]]){
         await page.evaluate(state=>{
           window.bronzeArtQA.drew=false;
           window.bronzeArtQA.state=state;
-        },[dv,face,action]);
+        },[dv,face,action,swingAge]);
         await page.waitForFunction(()=>window.bronzeArtQA.drew);
-        await page.screenshot({path:'/tmp/myrren-asset-bronze-'+name+'-'+direction+'-'+action+'.png'});
+        await page.screenshot({path:'/tmp/myrren-asset-bronze-'+name+'-'+direction+'-'+action+(action==='attack'?'-'+swingAge:'')+'.png'});
       }
     }
     assert.deepEqual(errors,[]);
@@ -281,3 +281,4 @@ async function checkBronzeArt(browser,base){
     console.log('PASS: real browser loads Kez V2, enters game, paints world, opens equipped portrait and renders all seven metal tiers.');
   }finally{await browser?.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
+
