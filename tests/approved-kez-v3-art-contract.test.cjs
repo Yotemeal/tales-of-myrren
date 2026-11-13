@@ -50,6 +50,14 @@ assert.deepEqual(c.steelCompositeCandidate.directions,['front','right','back','l
 assert.equal(c.steelCompositeCandidate.qa.atlasReconstruction,true);
 assert.equal(c.steelCompositeCandidate.qa.modularWearableLayersDone,false);
 assert.equal(c.steelCompositeCandidate.readyToMerge,false);
+assert.equal(c.blackIronConceptCandidate.materialId,5);
+assert.equal(c.blackIronConceptCandidate.forgeLevel,30);
+assert.equal(c.blackIronConceptCandidate.sourceDerivedFrames,64);
+assert.deepEqual(c.blackIronConceptCandidate.directions,['front','right','back','left']);
+assert.deepEqual(c.blackIronConceptCandidate.actions,['idle','walk','attack','death']);
+assert.equal(c.blackIronConceptCandidate.qa.originalFrontVisualFidelity,false,'candidate cannot be visually auto-approved');
+assert.equal(c.blackIronConceptCandidate.releaseApproved,false);
+assert.equal(c.blackIronConceptCandidate.readyToMerge,false);
 assert.equal(c.releaseGate.readyForDefaultGame,false,'do not publish unreviewed sprite assets');
 assert(c.releaseGate.reasons.length>=5,'incomplete source art must list release blockers');
 assert.equal(c.releaseGate.existingGameBuildOnMainAtLock,88);
