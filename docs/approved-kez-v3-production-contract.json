@@ -137,5 +137,48 @@
     ],
     "existingGameBuildOnMainAtLock": 88,
     "policy": "No merging art without separate desktop/mobile real gameplay review; draft only until whole feature passes"
+  },
+  "bronzeCompositeProof": {
+    "referenceFilename": "a_detailed_pixel_art_spritesheet_on_a_dark_navy_bl.png",
+    "referenceSha256": "efaf7a296bb7b9aeb321193c8ac53daa02909719f91efa1fb456d387f5f90029",
+    "status": "source-derived composite artwork extracted locally for QA; NOT uploaded as binary to this PR",
+    "materials": [
+      "bronze"
+    ],
+    "materialId": 2,
+    "sourceDerivedFrames": 64,
+    "atlasCells": {
+      "columns": 16,
+      "rows": 4,
+      "width": 104,
+      "height": 162
+    },
+    "directions": [
+      "front",
+      "right",
+      "back",
+      "left"
+    ],
+    "actions": [
+      "idle",
+      "walk",
+      "attack",
+      "death"
+    ],
+    "knownIssues": [
+      "Composite full-body frames only, NOT separated helmet/body/legs/boots/gloves/shield",
+      "Attack fourth frame embeds a white slash: no second VFX layer until redrawn",
+      "Final in-world size not locked; nearest-neighbour scale proof only"
+    ],
+    "qa": {
+      "alphaValid": true,
+      "allCellsPopulated": true,
+      "atlasReconstruction": true,
+      "correctedDeathCrop": true,
+      "correctedNeighbourBleed": true,
+      "desktopBrowserIntegrated": false,
+      "mobileBrowserIntegrated": false
+    },
+    "readyToMerge": false
   }
 }
