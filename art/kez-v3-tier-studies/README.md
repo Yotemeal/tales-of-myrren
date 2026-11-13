@@ -17,4 +17,4 @@ The pose studies use the Bronze gameplay draft's 32×40 cell and foot boundary a
 
 To use these designs as wearable equipment, author separate helmet, chest, glove, leg and boot layers on the chosen gameplay rig. Author clean weapon and unarmed poses, hurt frames, and offhand profiles and grips. The full-suit poses here cannot represent mixed slots. The older Myrrenite 32×48 trial predates this character and its wearable sprites require review against the current design.
 
-Iron also has a separate full-suit body atlas and a four-row finishing slash PNG. Each slash cell shares the body cell's origin and can be drawn independently. Recombining the layers reconstructs the existing Iron pose study byte-for-byte. The separate body atlas is the input for future Iron sword-fit work.
+Iron, Steel and Black Iron each have a separate full-suit body atlas and a four-row finishing slash PNG. Each slash cell shares the body cell's origin and can be drawn independently. Recombining the layers reconstructs the original pose study byte-for-byte. These separate body atlases are inputs for sword-fit work.

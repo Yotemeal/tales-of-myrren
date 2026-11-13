@@ -161,6 +161,18 @@
         "bakedSlash": {
           "action": "attack",
           "frameIndex": 3
+        },
+        "separatedFinish": {
+          "bodyAtlas": "body-study.png",
+          "effectAtlas": "finish-slash-study.png",
+          "effectRows": [
+            "front",
+            "right",
+            "back",
+            "left"
+          ],
+          "bodyColumn": 11,
+          "status": "full-suit visual study; sword grip and gameplay verification pending"
         }
       }
     },
@@ -229,6 +241,18 @@
         "bakedSlash": {
           "action": "attack",
           "frameIndex": 3
+        },
+        "separatedFinish": {
+          "bodyAtlas": "body-study.png",
+          "effectAtlas": "finish-slash-study.png",
+          "effectRows": [
+            "front",
+            "right",
+            "back",
+            "left"
+          ],
+          "bodyColumn": 11,
+          "status": "full-suit visual study; sword grip and gameplay verification pending"
         }
       }
     },
