@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "project": "Tales of Myrren",
+  "status": "approved_visual_reference_not_game_ready",
+  "approvedCharacter": {
+    "referenceFilename": "a_clean_professional_pixel_art_game_asset_sheet_i.png",
+    "sha256": "17425a331ab29b84e0218fd30356f76505527965fd3b18e908414dd82dada918",
+    "design": "Brown asymmetrical shaggy hair, simple face, dark brown adventurer clothing, gold belt, compact Curse-of-Aros-like silhouette. Keep consistent in every direction.",
+    "completeArtworkProvided": [
+      "front-facing unarmoured full set",
+      "four directional idle concept poses",
+      "right-facing walk concept",
+      "right-facing attack concept",
+      "front collapse concept"
+    ],
+    "missingProduction": [
+      "author final native-resolution base sheets",
+      "front/back/left/right full idle and movement animations",
+      "punch and sword attacks in all directions",
+      "hurt and death in all directions",
+      "fixed foot anchor and weapon-hand sockets"
+    ],
+    "sourceMasterIsProductionAtlas": false
+  },
+  "armour": {
+    "visualApproval": true,
+    "approach": "Seven individual original pixel-art armour lineages on approved character; progressive enclosure and coverage, never procedural rectangles or recoloured blobs.",
+    "materialOrder": [
+      {
+        "name": "bronze",
+        "id": 2,
+        "concept": "open copper helm, face/hair visible, shaped breastplate and modest guards"
+      },
+      {
+        "name": "iron",
+        "id": 3,
+        "concept": "stronger metal structure, nasal guard, mail and increased coverage"
+      },
+      {
+        "name": "steel",
+        "id": 4,
+        "concept": "fuller knightly plate and more enclosed head protection"
+      },
+      {
+        "name": "black_iron",
+        "id": 5,
+        "concept": "heavy dark plate and near-closed face guard"
+      },
+      {
+        "name": "obsidianite",
+        "id": 7,
+        "concept": "violet angular elite full armour"
+      },
+      {
+        "name": "myrrenite",
+        "id": 6,
+        "concept": "teal and gold prestigious closed helm with dark T visor"
+      },
+      {
+        "name": "starsteel",
+        "id": 8,
+        "concept": "white gold and blue masterwork complete armour"
+      }
+    ],
+    "slots": [
+      "helmet",
+      "body",
+      "legs",
+      "boots",
+      "gloves",
+      "shield"
+    ],
+    "sourceFrontsAvailable": true,
+    "separateWearableSlotArtCompleted": false,
+    "directionalArmourArtworkCompleted": false
+  },
+  "weapons": {
+    "previousReferenceFilename": "Myrren_APPROVED_Equipment_Board.png",
+    "previousReferenceSha256": "6009b28eee61d6e29b89c1bf8607e2c14b50793ac355edc4848a1856e29ae356",
+    "status": "previous-reference-only-not-proven-game-ready",
+    "swordHand": "dominant",
+    "shieldHand": "offhand",
+    "swordAndShieldSameHandForbidden": true
+  },
+  "production": {
+    "nativeFrameSize": null,
+    "worldDrawScale": null,
+    "note": "32x40 reduction lost significant reference detail. Native scale must be validated against real Crater Camp and CoA-like compact in-world proportions before setting.",
+    "directions": [
+      "front",
+      "right",
+      "back",
+      "left"
+    ],
+    "baseActions": {
+      "idle": 4,
+      "walk": 4,
+      "punch": 4,
+      "sword": 4,
+      "hurt": 2,
+      "death": 4
+    },
+    "equipmentActions": [
+      "idle",
+      "walk",
+      "punch",
+      "sword",
+      "hurt",
+      "death"
+    ],
+    "transparentPngsRequired": true,
+    "sourceAlignedToSharedFootPivot": true,
+    "gameCompatibility": [
+      "saves",
+      "inventory",
+      "combat",
+      "mining",
+      "forging",
+      "fishing",
+      "woodcutting",
+      "multiplayer",
+      "dyes",
+      "hud"
+    ],
+    "preserveOriginalOnMissingAsset": true,
+    "requireTwoScaleVisualQA": true
+  },
+  "releaseGate": {
+    "readyForDefaultGame": false,
+    "reasons": [
+      "native frame dimensions undecided",
+      "full character action sheets incomplete",
+      "independent equipment slots incomplete",
+      "all directional armour frames incomplete",
+      "mixed gear and weapon sockets untested",
+      "desktop and mobile real-game visual QA incomplete"
+    ],
+    "existingGameBuildOnMainAtLock": 88,
+    "policy": "No merging art without separate desktop/mobile real gameplay review; draft only until whole feature passes"
+  }
+}
