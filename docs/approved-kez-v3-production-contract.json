@@ -454,5 +454,42 @@
       "Binary source frames delivered only in conversation ZIP; not committed to GitHub"
     ],
     "readyToMerge": false
+  },
+  "obsidianiteCanonicalTurnaroundV2": {
+    "materialId": 7,
+    "forgingLevel": 40,
+    "status": "Canonical front unchanged; source-derived right/back/left directional design STUDIES only; not accepted or game-ready",
+    "canonicalFrontFile": "obsidianite_source_cutout.png",
+    "canonicalFrontSha256": "1acec039f713f3d1e7bdb4c06c63f1f5bc287b3df506ec29d29cfc70b56149ea",
+    "directionStudyIllustrationFile": "a_crisp_detailed_pixel_art_game_sprite_reference.png",
+    "directionStudySourceSha256": "65383764dcbfe7dc9f1c87a754434ec569756f1282ac230bde9ae7945e4fda0d",
+    "canonicalFrontPixelPreserved": true,
+    "extractedTransparentDirectionStudies": [
+      "right",
+      "back",
+      "left"
+    ],
+    "qa": {
+      "sourceSha256Verified": true,
+      "canonicalFrontPngUnchanged": true,
+      "fourDistinctDirectionalPngs": true,
+      "allFourRgba": true,
+      "archiveCrc": true,
+      "userApprovedNewDirections": false,
+      "visuallyEquivalentSideHelmets": false,
+      "nativeArtGridFixed": false,
+      "full64FrameFixComplete": false,
+      "wearableSlotsReady": false,
+      "gameIntegrated": false
+    },
+    "blockers": [
+      "New side helmets have no correct small exposed peach lower-face opening; current source reference front remains authoritative.",
+      "Back design has a long glowing diamond back tabard not confirmed in approved front design; direction-specific details need continuity review.",
+      "Updated concept contains 64 illustrated samples but NOT 64 matching approved sprite poses; old 64-frame draft has visible-eye error.",
+      "No standalone helmet/body/legs/gloves/boots/shield layers, punch/hurt frames, or dynamically gripped weapon and shield.",
+      "User has not signed off three new directions; no browser/mobile gameplay render."
+    ],
+    "readyForProduction": false,
+    "readyToMerge": false
   }
 }
