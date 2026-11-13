@@ -316,7 +316,7 @@
   "blackIronV2Candidate": {
     "materialId": 5,
     "forgeLevel": 30,
-    "status": "V2 turnaround closer to approved art, pending user visual approval; source sprites NOT integrated",
+    "status": "User accepted Black Iron V2 64-frame visual review on 2026-11-13; still not an integrated wearable armour release",
     "sourceFilename": "a_detailed_pixel_art_game_sprite_sheet_asset_pre.png",
     "sourceSha256": "d1dd89e65fdc169ccfd4704fa504942538f13ea9c71c57c006d4e7f98955ac5c",
     "canonicalFrontSha256": "92475dd69836183a9be23414216182f74ce0937d83a4b4d86efca1c846b9565b",
@@ -358,7 +358,7 @@
       "nonemptyTransparentSprites": true,
       "byteExactAtlasReconstruction": true,
       "zipCRC": true,
-      "designApproval": false,
+      "designApproval": true,
       "modularWearableLayers": false,
       "realGameIntegrationTested": false,
       "nativeScaleLocked": false
@@ -371,6 +371,8 @@
       "ZIP and PNG files delivered only as local user artifacts, not committed into GitHub"
     ],
     "releaseApproved": false,
-    "readyToMerge": false
+    "readyToMerge": false,
+    "visualApprovedOn": "2026-11-13",
+    "visualApprovalScope": "Source-derived composite 64-frame Black Iron appearance; does not approve modular layers or game-scale rendering"
   }
 }
