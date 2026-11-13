@@ -180,5 +180,46 @@
       "mobileBrowserIntegrated": false
     },
     "readyToMerge": false
+  },
+  "ironCompositeCandidate": {
+    "referenceFilename": "a_high_contrast_clean_pixel_art_sprite_sheet_on_a.png",
+    "referenceSha256": "af68a0bc67a9ae00d784e8498059b00cb7a6d711827156a9a511328156d04ff5",
+    "status": "NEW IRON DESIGN CANDIDATE — pending user visual review, not approved",
+    "materialId": 3,
+    "forgeLevel": 10,
+    "sourceLabelMistake": "Generated concept header says Forge Lv. 2; gameplay/manifest and all review metadata correctly say Lv. 10",
+    "sourceDerivedFrames": 64,
+    "atlasCells": {
+      "columns": 16,
+      "rows": 4,
+      "cellWidth": 112,
+      "cellHeight": 170
+    },
+    "directions": [
+      "front",
+      "right",
+      "back",
+      "left"
+    ],
+    "actions": [
+      "idle",
+      "walk",
+      "attack",
+      "death"
+    ],
+    "qa": {
+      "transparentRGBA": true,
+      "all64CellsPopulated": true,
+      "atlasReconstruction": true,
+      "archiveCRC": true,
+      "finalGameScaleTested": false,
+      "modularWearableLayersDone": false
+    },
+    "limitations": [
+      "Complete suit composites; no separately equipable helmet/body/legs/boots/gloves/shield",
+      "Attack animation contains embedded weapon VFX, cannot mix independent swords yet",
+      "Generated candidate requires explicit visual approval and comparison with approved Iron front"
+    ],
+    "readyToMerge": false
   }
 }
