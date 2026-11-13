@@ -325,12 +325,17 @@
       "poseStudy": {
         "file": "pose-study.png",
         "columns": [
-          "front"
+          "front",
+          "right",
+          "back",
+          "left"
         ],
         "framesPerDirection": 1,
         "sourceArchive": null,
         "action": "idle",
-        "sideAndRearDesignApprovalPending": false
+        "sideAndRearDesignApprovalPending": true,
+        "frontSource": "canonical front PNG",
+        "sideAndRearSource": "new generated idle art using the canonical front reference"
       }
     },
     "starsteel": {
@@ -380,12 +385,17 @@
       "poseStudy": {
         "file": "pose-study.png",
         "columns": [
-          "front"
+          "front",
+          "right",
+          "back",
+          "left"
         ],
         "framesPerDirection": 1,
         "sourceArchive": null,
         "action": "idle",
-        "sideAndRearDesignApprovalPending": false
+        "sideAndRearDesignApprovalPending": true,
+        "frontSource": "canonical front PNG",
+        "sideAndRearSource": "new generated idle art using the canonical front reference"
       }
     }
   }

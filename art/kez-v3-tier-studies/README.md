@@ -8,8 +8,8 @@ This directory contains art sources and scale studies. The game does not load th
 | Steel | 4 | 64 earlier full-suit draft poses |
 | Black Iron | 5 | 64 poses from the revised V2 concept |
 | Obsidianite | 7 | Canonical front and three directional studies pending visual review |
-| Myrrenite | 6 | Canonical front |
-| Starsteel | 8 | Canonical front |
+| Myrrenite | 6 | Canonical front and three new directional studies pending visual review |
+| Starsteel | 8 | Canonical front and three new directional studies pending visual review |
 
 Each tier includes the original transparent front, sword and shield cutouts. The compact sword and shield studies use Bronze's trial image heights (14 px and 10 px) with each source's aspect ratio. These files have no hand anchors or directional profiles yet.
 
