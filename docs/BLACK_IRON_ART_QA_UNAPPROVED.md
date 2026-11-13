@@ -30,3 +30,8 @@ Local artifact package `Myrren_Black_Iron_v2_01_Atlas_And_Reviews.zip` contains 
 A static collage of the existing Crater Camp screenshot compares sprite display heights 28, 36, 44, and 52 px. **None of these is a live rendering test, and none is approved native gameplay scale**. As the sprites shrink to the original small player footprint, helmet facial and tasset detail becomes much less legible. A compact native-resolution artist redraw may be needed instead of blindly shrinking the illustration.
 
 **Unchanged blockers:** mixed-slot wearable armour art missing; sword slash painted into attack source; verified grip and body layering absent; hurt/punch missing; real mobile/desktop browser art tests absent; final user visual approval of the V2 candidate not yet supplied. This remains an UNMERGED DRAFT only.
+
+
+## User review — 13 November 2026
+
+**VISUAL CONCEPT APPROVED:** The user reviewed the revised **Black Iron V2 64-frame sprite preview** and said “64 iron frames looks good.” This follows directly from the Black Iron animation review. Treat the revised V2 full-suit appearance as approved for continuing the tier art progression, with the original approved reference's helmet, shoulders and tassets preserved as canonical geometry. **This approval is visual only.** It does not indicate separately wearable layer assets, authored attack/hurt mixes, in-browser game QA, binary GitHub upload, production release or merging are complete. Accordingly `blackIronV2Candidate.qa.designApproval=true` but `readyToMerge=false` and `releaseGate.readyForDefaultGame=false`.
