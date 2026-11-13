@@ -33,6 +33,14 @@ assert.deepEqual(c.bronzeCompositeProof.actions,['idle','walk','attack','death']
 assert.equal(c.bronzeCompositeProof.readyToMerge,false);
 assert.equal(c.bronzeCompositeProof.qa.atlasReconstruction,true);
 assert.equal(c.bronzeCompositeProof.qa.mobileBrowserIntegrated,false);
+assert.equal(c.ironCompositeCandidate.materialId,3);
+assert.equal(c.ironCompositeCandidate.forgeLevel,10,'Iron is unlocked at Forging Lv. 10, never Lv. 2');
+assert.equal(c.ironCompositeCandidate.sourceDerivedFrames,64);
+assert.deepEqual(c.ironCompositeCandidate.actions,['idle','walk','attack','death']);
+assert.deepEqual(c.ironCompositeCandidate.directions,['front','right','back','left']);
+assert.equal(c.ironCompositeCandidate.qa.atlasReconstruction,true);
+assert.equal(c.ironCompositeCandidate.qa.modularWearableLayersDone,false);
+assert.equal(c.ironCompositeCandidate.readyToMerge,false);
 assert.equal(c.releaseGate.readyForDefaultGame,false,'do not publish unreviewed sprite assets');
 assert(c.releaseGate.reasons.length>=5,'incomplete source art must list release blockers');
 assert.equal(c.releaseGate.existingGameBuildOnMainAtLock,88);
