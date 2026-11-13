@@ -109,12 +109,24 @@ jobs:
           npx playwright install chromium
       - name: Verify real 390x844 game and produce visual screenshots
         run: node tests/kez-v2-browser.test.cjs
+      - name: Capture supplied Bronze art in gameplay
+        run: node tests/kez-v2-browser.test.cjs --bronze-art
+      - name: Capture supplied Iron art in gameplay
+        run: node tests/kez-v2-browser.test.cjs --iron-art
+      - name: Capture Steel and Black Iron in gameplay
+        run: |
+          node tests/kez-v2-browser.test.cjs --steel-art
+          node tests/kez-v2-browser.test.cjs --black-iron-art
       - name: Save visual QA snapshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: kez-v2-mobile-and-seven-metals
           path: |
+            /tmp/myrren-asset-bronze-*.png
+            /tmp/myrren-asset-iron-*.png
+            /tmp/myrren-asset-steel-*.png
+            /tmp/myrren-asset-black_iron-*.png
             /tmp/myrren-kez-v2-mobile.png
             /tmp/myrren-kez-v2-equipment.png
             /tmp/myrren-kez-v2-seven-metals.png

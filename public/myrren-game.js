@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=88;
+window.MyrrenBuild=97;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -993,9 +993,14 @@ function rGear(){
        c.save();c.scale(scale,scale);
        c.fillStyle='rgba(34,29,25,.18)';c.fillRect(10,38,12,2);
        const equipped={...portraitPose,g:gearArr(),dye:save.dye,now};
-       window.MyrrenKezV2Equipment?.draw(c,16,39,equipped,'under');
-       window.MyrrenKezV2Atlas.draw(c,16,39,equipped,now);
-       window.MyrrenKezV2Equipment?.draw(c,16,39,equipped,'over');
+       const weapon=activeDef('weapon');
+       equipped.tool=weapon?.kind;
+       equipped.mat=weapon?.mat;
+       if(!window.MyrrenBronzeArt?.draw(c,16,39,equipped,now)){
+         window.MyrrenKezV2Equipment?.draw(c,16,39,equipped,'under');
+         window.MyrrenKezV2Atlas.draw(c,16,39,equipped,now);
+         window.MyrrenKezV2Equipment?.draw(c,16,39,equipped,'over');
+       }
        c.restore();
      }
      requestAnimationFrame(paintPortrait);
@@ -3084,6 +3089,17 @@ function drawKezV2(x,y,o,now){
   const deathAge=deathAt==null?-1:now-deathAt;
   const age=now-(o.swingAt??-99999),attacking=age>=0&&age<320;
   const hurtAge=now-(o.isMe?(me.hurtAt??-99999):(o.hurtAt??-99999));
+  if(window.MyrrenBronzeArt?.ready()){
+    // The costume owns the whole body draw for the exact loadout it depicts.
+    // Its PNG layers must never stack with the old equipment renderer.
+    if(window.MyrrenBronzeArt.draw(ctx,x,y,state,now,deathAge,hurtAge)){
+      if(deathAge<0){
+        label(o.name,x,y-40,o.col||'#ffffff');
+        if(o.waving)label('*waves*',x,y-51,'#ffffff');
+      }
+      return true;
+    }
+  }
   const holding=o.tool&&o.tool!=='fist'&&(attacking||now<o.hold);
   const direction=o.dv==='u'?'back':o.dv==='s'?'side':'front';
   const facing=o.f<0?-1:1;

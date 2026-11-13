@@ -71,9 +71,11 @@ const server=http.createServer((req,res)=>{
           props:window.__combinedQa.props,
           terrainCells:window.__combinedQa.terrainSource.size,
           propCells:window.__combinedQa.propSource.size,
-          build:window.MyrrenBuild
+          build:window.MyrrenBuild,
+          scriptBuild:Number(new URL(document.querySelector('script[src*="/myrren-game.js"]').src).searchParams.get('v'))
         }));
-        assert.equal(counts.build,88,'integrated game cache/version mismatch');
+        assert(Number.isSafeInteger(counts.build)&&counts.build>0,'game build must be a positive integer');
+        assert.equal(counts.build,counts.scriptBuild,'integrated game cache/version mismatch');
         assert(counts.terrainCells>=4,'expected multiple real terrain source cells');
         assert.equal(counts.props>0,mode!=='terrain-only',
           'camp atlas must be opt-in while native terrain stays enabled');

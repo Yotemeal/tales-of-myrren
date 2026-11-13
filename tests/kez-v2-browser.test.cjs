@@ -17,12 +17,85 @@ const server=http.createServer((request,response)=>{
     fs.createReadStream(filename).pipe(response);
   }catch(_){response.writeHead(404);response.end('Not found')}
 });
+async function checkCostumeArt(browser,base,tier,material){
+  for(const [name,width,height] of [['desktop',1100,720],['mobile',390,844]]){
+    const mobile=name==='mobile';
+    const page=await browser.newPage({viewport:{width,height},isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1});
+    const errors=[];
+    page.on('pageerror',error=>errors.push(error.message));
+    await page.route('**/myrren-game.js?*',async route=>{
+      const response=await route.fetch();
+      const original=await response.text();
+      const loop='  update(dt,now);';
+      assert(original.includes(loop));
+      const script=original.replace(loop,loop+'\n  window.bronzeArtQA?.apply(now);');
+      const end=script.lastIndexOf('})();');
+      assert(end>0);
+      const hook=`
+        window.bronzeArtQA={
+          equip(tier){
+            for(const kind of ['helm','body','legs','boots','gloves','shield','sword']){
+              const id=(tier==='black_iron'?'cobalt':tier)+'_'+kind, def=DEFS[id];
+              save.xp[def.skill]=Math.max(save.xp[def.skill],xpTable[def.req]);
+              save.bag.push(id);
+              equipFromBag(save.bag.length-1);
+            }
+            return gearArr();
+          },
+          state:null,
+          apply(now){
+            if(!this.state)return;
+            const [dv,face,action,swingAge]=this.state;
+            Object.assign(me,{dv,face,moving:action==='walk',
+              swing:action==='attack'?now-swingAge:-99999,
+              deathAt:action==='death'?now-320:null});
+          }
+        };
+      `;
+      await route.fulfill({response,body:script.slice(0,end)+hook+script.slice(end)});
+    });
+    await page.goto(base+'/?'+tier.replace('_','-')+'-art');
+    await page.waitForFunction(()=>window.MyrrenBronzeArt?.ready()&&!document.querySelector('#go').disabled);
+    assert.deepEqual(errors,[], 'game scripts should load before entering');
+    await page.locator('#nick').fill(tier+' QA');
+    await page.locator('#go').click();
+    await page.waitForFunction(()=>document.querySelector('#intro').hidden,{timeout:5000});
+    assert.deepEqual(await page.evaluate(t=>window.bronzeArtQA.equip(t),tier),Array(6).fill(material));
+    await page.evaluate(()=>{
+      const original=window.MyrrenBronzeArt.draw;
+      window.MyrrenBronzeArt.draw=(...args)=>{
+        const drawn=original(...args);
+        if(drawn&&args[3].isMe)window.bronzeArtQA.drew=true;
+        return drawn;
+      };
+    });
+    for(const [direction,dv,face] of [['front','d',1],['right','s',1],['back','u',1],['left','s',-1]]){
+      for(const [action,swingAge] of [['idle',0],['walk',0],['attack',40],['attack',120],['attack',200],['attack',280],['death',0]]){
+        await page.evaluate(state=>{
+          window.bronzeArtQA.drew=false;
+          window.bronzeArtQA.state=state;
+        },[dv,face,action,swingAge]);
+        await page.waitForFunction(()=>window.bronzeArtQA.drew);
+        await page.screenshot({path:'/tmp/myrren-asset-'+tier+'-'+name+'-'+direction+'-'+action+(action==='attack'?'-'+swingAge:'')+'.png'});
+      }
+    }
+    assert.deepEqual(errors,[]);
+    await page.close();
+  }
+  console.log('PASS: '+tier+' PNGs drawn in the real game on desktop and mobile');
+}
 (async()=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const base='http://127.0.0.1:'+server.address().port;
   let browser;
   try{
     browser=await chromium.launch({headless:true});
+    for(const [tier,material] of [['bronze',2],['iron',3],['steel',4],['black_iron',5]]){
+      if(process.argv.includes('--'+tier.replace('_','-')+'-art')){
+        await checkCostumeArt(browser,base,tier,material);
+        return;
+      }
+    }
     const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
     const errors=[];
     page.on('pageerror',e=>errors.push(e.message));
@@ -215,3 +288,4 @@ const server=http.createServer((request,response)=>{
     console.log('PASS: real browser loads Kez V2, enters game, paints world, opens equipped portrait and renders all seven metal tiers.');
   }finally{await browser?.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(e=>{console.error(e);process.exitCode=1});
+
