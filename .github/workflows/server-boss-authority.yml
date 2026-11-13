@@ -1,0 +1,104 @@
+name: Server boss authority regression
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/boss-encounter.mjs'
+      - 'src/boss-room-coordinator.mjs'
+      - 'src/boss-account-ledger.mjs'
+      - 'src/boss-reward-delivery.mjs'
+      - 'src/server-player-positions.mjs'
+      - 'src/server-boss-behavior.mjs'
+      - 'src/server-player-health.mjs'
+      - 'src/server-boss-room.mjs'
+      - 'src/server-room-events.mjs'
+      - 'src/server-supabase-auth.mjs'
+      - 'src/server-boss-command-gateway.mjs'
+      - 'src/server-trusted-characters.mjs'
+      - 'src/server-boss-durable-service.mjs'
+      - 'src/server-global-account.mjs'
+      - 'src/server-account-preview-object.mjs'
+      - 'src/multiplayer-preview-worker.mjs'
+      - 'wrangler.multiplayer-preview.jsonc'
+      - 'wrangler.jsonc'
+      - 'src/worker.js'
+      - 'tests/server-boss-encounter.test.cjs'
+      - 'tests/boss-room-coordinator.test.cjs'
+      - 'tests/boss-account-ledger.test.cjs'
+      - 'tests/server-player-positions.test.cjs'
+      - 'tests/server-boss-behavior.test.cjs'
+      - 'tests/server-player-health.test.cjs'
+      - 'tests/server-boss-room.test.cjs'
+      - 'tests/server-room-events.test.cjs'
+      - 'tests/server-supabase-auth.test.cjs'
+      - 'tests/server-boss-command-gateway.test.cjs'
+      - 'tests/server-boss-durable-service.test.cjs'
+      - 'tests/server-global-account.test.cjs'
+      - 'tests/server-boss-preview-contract.test.cjs'
+      - 'tests/game-runtime.cjs'
+      - 'public/myrren-game.js'
+      - '.github/workflows/server-boss-authority.yml'
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  authority:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and authoritative boss combat parity
+        run: |
+          node --check src/boss-encounter.mjs
+          node --check src/boss-room-coordinator.mjs
+          node --check src/boss-account-ledger.mjs
+          node --check src/boss-reward-delivery.mjs
+          node --check src/server-player-positions.mjs
+          node --check src/server-boss-behavior.mjs
+          node --check src/server-player-health.mjs
+          node --check src/server-boss-room.mjs
+          node --check src/server-room-events.mjs
+          node --check src/server-supabase-auth.mjs
+          node --check src/server-boss-command-gateway.mjs
+          node --check src/server-trusted-characters.mjs
+          node --check src/server-boss-durable-service.mjs
+          node --check src/server-global-account.mjs
+          node --check src/server-account-preview-object.mjs
+          node --check src/multiplayer-preview-worker.mjs
+          node --check tests/server-player-positions.test.cjs
+          node --check tests/server-boss-behavior.test.cjs
+          node --check tests/server-player-health.test.cjs
+          node --check tests/server-boss-room.test.cjs
+          node --check tests/server-room-events.test.cjs
+          node --check tests/server-supabase-auth.test.cjs
+          node --check tests/server-boss-command-gateway.test.cjs
+          node --check tests/server-boss-durable-service.test.cjs
+          node --check tests/server-global-account.test.cjs
+          node --check tests/server-boss-preview-contract.test.cjs
+          node --check tests/server-boss-encounter.test.cjs
+          node tests/server-boss-encounter.test.cjs
+          node tests/boss-room-coordinator.test.cjs
+          node tests/boss-account-ledger.test.cjs
+          node tests/server-player-positions.test.cjs
+          node tests/server-boss-behavior.test.cjs
+          node tests/server-player-health.test.cjs
+          node tests/server-boss-room.test.cjs
+          node tests/server-room-events.test.cjs
+      - name: Supabase identity and anti-spoof command security
+        run: |
+          node tests/server-supabase-auth.test.cjs
+          node tests/server-boss-command-gateway.test.cjs
+          node tests/server-boss-durable-service.test.cjs
+          node tests/server-global-account.test.cjs
+          node tests/server-boss-preview-contract.test.cjs
+      - name: Bundle SQLite preview Worker without deploying
+        run: |
+          npx --yes wrangler@latest deploy --config wrangler.multiplayer-preview.jsonc --dry-run --outdir /tmp/myrren-boss-preview-build
+      - name: Existing boss contribution regression
+        run: node tests/boss-contribution-loot.test.cjs
