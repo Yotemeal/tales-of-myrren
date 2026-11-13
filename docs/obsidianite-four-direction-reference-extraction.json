@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "material": "obsidianite",
+  "materialId": 7,
+  "forgingLevel": 40,
+  "approvedFrontOriginalSHA256": "1acec039f713f3d1e7bdb4c06c63f1f5bc287b3df506ec29d29cfc70b56149ea",
+  "userPreferredPresentationSHA256": "2e4e001caa1ecb2d9535511182c9f666524eec6aa15fcd77172b9f3482e0f628",
+  "status": "4 transparent reference cutouts extracted locally; no game sprites integrated",
+  "canvas": [
+    144,
+    260
+  ],
+  "commonReferenceFootAnchor": [
+    72,
+    248
+  ],
+  "sourcePixelScalePreserved": true,
+  "directions": [
+    {
+      "facing": "front",
+      "file": "obsidianite_front_reference_rgba.png",
+      "sha256": "aa866c9f1e6ea4971d7361d2e62d42530f2cd739a75f998658c33abd16a48ad5"
+    },
+    {
+      "facing": "right",
+      "file": "obsidianite_right_reference_rgba.png",
+      "sha256": "c1cdc9611d760d0e8ed0267c47f7b01a70fca6b8e4a9ffa4cb8da42c2550b2ec"
+    },
+    {
+      "facing": "back",
+      "file": "obsidianite_back_reference_rgba.png",
+      "sha256": "f12cdc177ac97943e3b2499525faa573e93686d1292ccd62859142ed5694bc39"
+    },
+    {
+      "facing": "left",
+      "file": "obsidianite_left_reference_rgba.png",
+      "sha256": "c25fa39474abea43c2f07a816015270368b6d0bdc572d42da7e80176b7f0e093"
+    }
+  ],
+  "qa": {
+    "rgba": true,
+    "alphaMasks": true,
+    "atlasByteExactReconstruction": true,
+    "singleFootAnchor": true,
+    "zipCRC": true,
+    "simulatedSizes": [
+      40,
+      48,
+      56,
+      64,
+      96
+    ],
+    "realGameScaleVerified": false
+  },
+  "release": {
+    "nativeGameSpritesDone": false,
+    "originalAuthoredWalkAttackDeathDone": false,
+    "independentWearableSlotsDone": false,
+    "rendererIntegrated": false,
+    "desktopMobileVisualQA": false,
+    "readyToMerge": false
+  },
+  "note": "These files exist only in the conversation's review ZIP and are NOT committed as PNG binaries. They are screenshot-derived and require genuine frame-by-frame pixel-art authoring. The original canonical approved front remains intact."
+}

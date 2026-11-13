@@ -1,0 +1,495 @@
+{
+  "schemaVersion": 1,
+  "project": "Tales of Myrren",
+  "status": "approved_visual_reference_not_game_ready",
+  "approvedCharacter": {
+    "referenceFilename": "a_clean_professional_pixel_art_game_asset_sheet_i.png",
+    "sha256": "17425a331ab29b84e0218fd30356f76505527965fd3b18e908414dd82dada918",
+    "design": "Brown asymmetrical shaggy hair, simple face, dark brown adventurer clothing, gold belt, compact Curse-of-Aros-like silhouette. Keep consistent in every direction.",
+    "completeArtworkProvided": [
+      "front-facing unarmoured full set",
+      "four directional idle concept poses",
+      "right-facing walk concept",
+      "right-facing attack concept",
+      "front collapse concept"
+    ],
+    "missingProduction": [
+      "author final native-resolution base sheets",
+      "front/back/left/right full idle and movement animations",
+      "punch and sword attacks in all directions",
+      "hurt and death in all directions",
+      "fixed foot anchor and weapon-hand sockets"
+    ],
+    "sourceMasterIsProductionAtlas": false
+  },
+  "armour": {
+    "visualApproval": true,
+    "approach": "Seven individual original pixel-art armour lineages on approved character; progressive enclosure and coverage, never procedural rectangles or recoloured blobs.",
+    "materialOrder": [
+      {
+        "name": "bronze",
+        "id": 2,
+        "concept": "open copper helm, face/hair visible, shaped breastplate and modest guards"
+      },
+      {
+        "name": "iron",
+        "id": 3,
+        "concept": "stronger metal structure, nasal guard, mail and increased coverage"
+      },
+      {
+        "name": "steel",
+        "id": 4,
+        "concept": "fuller knightly plate and more enclosed head protection"
+      },
+      {
+        "name": "black_iron",
+        "id": 5,
+        "concept": "heavy dark plate and near-closed face guard"
+      },
+      {
+        "name": "obsidianite",
+        "id": 7,
+        "concept": "violet angular elite full armour"
+      },
+      {
+        "name": "myrrenite",
+        "id": 6,
+        "concept": "teal and gold prestigious closed helm with dark T visor"
+      },
+      {
+        "name": "starsteel",
+        "id": 8,
+        "concept": "white gold and blue masterwork complete armour"
+      }
+    ],
+    "slots": [
+      "helmet",
+      "body",
+      "legs",
+      "boots",
+      "gloves",
+      "shield"
+    ],
+    "sourceFrontsAvailable": true,
+    "separateWearableSlotArtCompleted": false,
+    "directionalArmourArtworkCompleted": false
+  },
+  "weapons": {
+    "previousReferenceFilename": "Myrren_APPROVED_Equipment_Board.png",
+    "previousReferenceSha256": "6009b28eee61d6e29b89c1bf8607e2c14b50793ac355edc4848a1856e29ae356",
+    "status": "previous-reference-only-not-proven-game-ready",
+    "swordHand": "dominant",
+    "shieldHand": "offhand",
+    "swordAndShieldSameHandForbidden": true
+  },
+  "production": {
+    "nativeFrameSize": null,
+    "worldDrawScale": null,
+    "note": "32x40 reduction lost significant reference detail. Native scale must be validated against real Crater Camp and CoA-like compact in-world proportions before setting.",
+    "directions": [
+      "front",
+      "right",
+      "back",
+      "left"
+    ],
+    "baseActions": {
+      "idle": 4,
+      "walk": 4,
+      "punch": 4,
+      "sword": 4,
+      "hurt": 2,
+      "death": 4
+    },
+    "equipmentActions": [
+      "idle",
+      "walk",
+      "punch",
+      "sword",
+      "hurt",
+      "death"
+    ],
+    "transparentPngsRequired": true,
+    "sourceAlignedToSharedFootPivot": true,
+    "gameCompatibility": [
+      "saves",
+      "inventory",
+      "combat",
+      "mining",
+      "forging",
+      "fishing",
+      "woodcutting",
+      "multiplayer",
+      "dyes",
+      "hud"
+    ],
+    "preserveOriginalOnMissingAsset": true,
+    "requireTwoScaleVisualQA": true
+  },
+  "releaseGate": {
+    "readyForDefaultGame": false,
+    "reasons": [
+      "native frame dimensions undecided",
+      "full character action sheets incomplete",
+      "independent equipment slots incomplete",
+      "all directional armour frames incomplete",
+      "mixed gear and weapon sockets untested",
+      "desktop and mobile real-game visual QA incomplete"
+    ],
+    "existingGameBuildOnMainAtLock": 88,
+    "policy": "No merging art without separate desktop/mobile real gameplay review; draft only until whole feature passes"
+  },
+  "bronzeCompositeProof": {
+    "referenceFilename": "a_detailed_pixel_art_spritesheet_on_a_dark_navy_bl.png",
+    "referenceSha256": "efaf7a296bb7b9aeb321193c8ac53daa02909719f91efa1fb456d387f5f90029",
+    "status": "source-derived composite artwork extracted locally for QA; NOT uploaded as binary to this PR",
+    "materials": [
+      "bronze"
+    ],
+    "materialId": 2,
+    "sourceDerivedFrames": 64,
+    "atlasCells": {
+      "columns": 16,
+      "rows": 4,
+      "width": 104,
+      "height": 162
+    },
+    "directions": [
+      "front",
+      "right",
+      "back",
+      "left"
+    ],
+    "actions": [
+      "idle",
+      "walk",
+      "attack",
+      "death"
+    ],
+    "knownIssues": [
+      "Composite full-body frames only, NOT separated helmet/body/legs/boots/gloves/shield",
+      "Attack fourth frame embeds a white slash: no second VFX layer until redrawn",
+      "Final in-world size not locked; nearest-neighbour scale proof only"
+    ],
+    "qa": {
+      "alphaValid": true,
+      "allCellsPopulated": true,
+      "atlasReconstruction": true,
+      "correctedDeathCrop": true,
+      "correctedNeighbourBleed": true,
+      "desktopBrowserIntegrated": false,
+      "mobileBrowserIntegrated": false
+    },
+    "readyToMerge": false
+  },
+  "ironCompositeCandidate": {
+    "referenceFilename": "a_high_contrast_clean_pixel_art_sprite_sheet_on_a.png",
+    "referenceSha256": "af68a0bc67a9ae00d784e8498059b00cb7a6d711827156a9a511328156d04ff5",
+    "status": "NEW IRON DESIGN CANDIDATE — pending user visual review, not approved",
+    "materialId": 3,
+    "forgeLevel": 10,
+    "sourceLabelMistake": "Generated concept header says Forge Lv. 2; gameplay/manifest and all review metadata correctly say Lv. 10",
+    "sourceDerivedFrames": 64,
+    "atlasCells": {
+      "columns": 16,
+      "rows": 4,
+      "cellWidth": 112,
+      "cellHeight": 170
+    },
+    "directions": [
+      "front",
+      "right",
+      "back",
+      "left"
+    ],
+    "actions": [
+      "idle",
+      "walk",
+      "attack",
+      "death"
+    ],
+    "qa": {
+      "transparentRGBA": true,
+      "all64CellsPopulated": true,
+      "atlasReconstruction": true,
+      "archiveCRC": true,
+      "finalGameScaleTested": false,
+      "modularWearableLayersDone": false
+    },
+    "limitations": [
+      "Complete suit composites; no separately equipable helmet/body/legs/boots/gloves/shield",
+      "Attack animation contains embedded weapon VFX, cannot mix independent swords yet",
+      "Generated candidate requires explicit visual approval and comparison with approved Iron front"
+    ],
+    "readyToMerge": false
+  },
+  "steelCompositeCandidate": {
+    "referenceFilename": "a_polished_pixel_art_sprite_sheet_in_the_same_styl.png",
+    "referenceSha256": "527005897090001f80f11cb22500b4d6347a3d9780189e6c73592e0f7172b8ea",
+    "status": "NEW STEEL CONCEPT CANDIDATE, NOT YET VISUALLY APPROVED",
+    "materialId": 4,
+    "forgeLevel": 20,
+    "sourceDerivedFrames": 64,
+    "atlasCells": {
+      "columns": 16,
+      "rows": 4,
+      "cellWidth": 112,
+      "cellHeight": 170
+    },
+    "directions": [
+      "front",
+      "right",
+      "back",
+      "left"
+    ],
+    "actions": [
+      "idle",
+      "walk",
+      "attack",
+      "death"
+    ],
+    "qa": {
+      "transparentRGBA": true,
+      "all64CellsPopulated": true,
+      "atlasReconstruction": true,
+      "archiveCRC": true,
+      "realGameScaleTested": false,
+      "modularWearableLayersDone": false
+    },
+    "limitations": [
+      "Complete suit composites only, not independently wearable helmet/body/legs/boots/gloves/shield",
+      "White slash arc embedded in attack; avoid duplicate weapon visual effect",
+      "Approval pending; not a finished source-resolution production animation set"
+    ],
+    "readyToMerge": false
+  },
+  "blackIronConceptCandidate": {
+    "materialId": 5,
+    "forgeLevel": 30,
+    "referenceFilename": "a_detailed_pixel_art_animation_sprite_sheet_in_a_c.png",
+    "referenceSha256": "2dda3f5d2b0cfab0422e5ff125bb0b0bfb264e5dbec8d4540b3db0babd0130e2",
+    "approvedOriginalFrontSha256": "92475dd69836183a9be23414216182f74ce0937d83a4b4d86efca1c846b9565b",
+    "status": "REVIEW ONLY — FAILED visual match with approved original Black Iron front",
+    "sourceDerivedFrames": 64,
+    "atlasCells": {
+      "columns": 16,
+      "rows": 4,
+      "cellWidth": 112,
+      "cellHeight": 156
+    },
+    "directions": [
+      "front",
+      "right",
+      "back",
+      "left"
+    ],
+    "actions": [
+      "idle",
+      "walk",
+      "attack",
+      "death"
+    ],
+    "qa": {
+      "transparentRGBA": true,
+      "all64CellsPopulated": true,
+      "atlasReconstruction": true,
+      "tinyIsolatedPixelComponentsRemoved": true,
+      "archiveCRC": true,
+      "originalFrontVisualFidelity": false,
+      "modularWearableLayersDone": false,
+      "liveGameTested": false
+    },
+    "releaseApproved": false,
+    "readyToMerge": false,
+    "designCorrectionsNeeded": [
+      "reproduce original pointed crown and sharply angled violet side flares",
+      "restore deep-violet chest plate, hanging side tassets and angular shoulders",
+      "avoid merely dark Steel silhouette and generic silver buckles",
+      "retain no back-facing front buckle; correctly occlude shield in sides/back"
+    ],
+    "limitations": [
+      "Concept full-suit sprites only; not individually wearable layers",
+      "Attack includes painted white slash, not separate weapon effect",
+      "Native world pixel scale not validated against live browser render",
+      "Artwork rejected against original approved Black Iron master pending redraw"
+    ]
+  },
+  "blackIronV2Candidate": {
+    "materialId": 5,
+    "forgeLevel": 30,
+    "status": "User accepted Black Iron V2 64-frame visual review on 2026-11-13; still not an integrated wearable armour release",
+    "sourceFilename": "a_detailed_pixel_art_game_sprite_sheet_asset_pre.png",
+    "sourceSha256": "d1dd89e65fdc169ccfd4704fa504942538f13ea9c71c57c006d4e7f98955ac5c",
+    "canonicalFrontSha256": "92475dd69836183a9be23414216182f74ce0937d83a4b4d86efca1c846b9565b",
+    "compositeFrameCount": 64,
+    "atlas": {
+      "columns": 16,
+      "rows": 4,
+      "width": 1856,
+      "height": 608,
+      "cellWidth": 116,
+      "cellHeight": 152,
+      "actions": [
+        "idle",
+        "walk",
+        "attack",
+        "death"
+      ],
+      "directions": [
+        "front",
+        "right",
+        "back",
+        "left"
+      ]
+    },
+    "additionalArtwork": [
+      "four larger directional idle art references",
+      "side-by-side with canonical approved front",
+      "four source-derived four-direction animated GIF previews",
+      "static Crater Camp 28,36,44,52 pixel size comparisons"
+    ],
+    "visualCorrections": [
+      "stronger violet angular pauldrons",
+      "V-shaped chest",
+      "original-inspired helmet fins",
+      "visible hanging violet side tassets"
+    ],
+    "qa": {
+      "frameCount64": true,
+      "nonemptyTransparentSprites": true,
+      "byteExactAtlasReconstruction": true,
+      "zipCRC": true,
+      "designApproval": true,
+      "modularWearableLayers": false,
+      "realGameIntegrationTested": false,
+      "nativeScaleLocked": false
+    },
+    "limitations": [
+      "V2 looks closer to original but does not exactly copy all canonical front pixels",
+      "Full suit composites; no separable helmet/body/legs/gloves/boots/shield",
+      "Painted weapon arc baked into attack frame",
+      "No independent hurt/punch/sword rig, multiplayer or game regression visual QA",
+      "ZIP and PNG files delivered only as local user artifacts, not committed into GitHub"
+    ],
+    "releaseApproved": false,
+    "readyToMerge": false,
+    "visualApprovedOn": "2026-11-13",
+    "visualApprovalScope": "Source-derived composite 64-frame Black Iron appearance; does not approve modular layers or game-scale rendering"
+  },
+  "obsidianiteSourceReference": {
+    "materialId": 7,
+    "forgeLevel": 40,
+    "status": "Original approved front image preserved; four-direction production artwork not yet authored",
+    "sourceFilename": "obsidianite_source_cutout.png",
+    "sourceSha256": "1acec039f713f3d1e7bdb4c06c63f1f5bc287b3df506ec29d29cfc70b56149ea",
+    "sourceSize": {
+      "width": 142,
+      "height": 239
+    },
+    "visualRules": [
+      "Use bright angular violet/purple crown and pointed visor, not a silver recolour",
+      "Retain distinctive central violet jewel and enclosed helmet profile",
+      "Retain pointed violet pauldrons and symmetrical side hanging panels",
+      "Expose only the original narrow face area, no detailed blue eyes",
+      "Four directions must consistently show the same helmet, pauldrons, chest and hip geometry",
+      "Back contains no face or gold front buckle"
+    ],
+    "limits": {
+      "frontReferenceExists": true,
+      "sideReferenceComplete": false,
+      "backReferenceComplete": false,
+      "fullAnimationSetComplete": false,
+      "separateWearableEquipmentComplete": false,
+      "gameIntegrated": false
+    }
+  },
+  "obsidianiteConceptCandidate": {
+    "materialId": 7,
+    "forgeLevel": 40,
+    "status": "NEW CONCEPT SOURCE-DERIVED 64-FRAME DRAFT — FAILS canonical visor/face fidelity; NOT user approved, NOT game-ready",
+    "sourceFilename": "a_clean_high_resolution_pixel_art_sprite_sheet.png",
+    "sourceSha256": "048958b26de5fd85424dd7acda45f71ae8f4dfc31967450e6588fcb7f482ea19",
+    "canonicalFrontSha256": "1acec039f713f3d1e7bdb4c06c63f1f5bc287b3df506ec29d29cfc70b56149ea",
+    "atlas": {
+      "columns": 16,
+      "rows": 4,
+      "width": 1824,
+      "height": 640,
+      "cellWidth": 114,
+      "cellHeight": 160,
+      "actions": [
+        "idle",
+        "walk",
+        "attack",
+        "death"
+      ],
+      "directions": [
+        "front",
+        "right",
+        "back",
+        "left"
+      ],
+      "framesPerAction": 4,
+      "commonFootPivot": [
+        57,
+        157
+      ]
+    },
+    "conceptFrameCount": 64,
+    "qa": {
+      "transparentSourceDerivedPNG": true,
+      "all64CellsPopulated": true,
+      "pixelExactAtlasReconstruction": true,
+      "zipCRC": true,
+      "sourceVisualFidelity": false,
+      "wearableLayersComplete": false,
+      "realGameBrowserTested": false,
+      "userApproved": false
+    },
+    "blockers": [
+      "Front concept helmet exposes two eyes while canonical front has a narrow lower-face opening under near-full closed visor",
+      "Side profile helmet and pauldrons do not yet reproduce canonical violet angular shape",
+      "Source art composites only, no separately wearable slots nor independent sword/shield frames",
+      "Painted arc is baked into concept attack frame, incompatible with independent weapon effects",
+      "No native pixel scale or desktop/mobile live game QA",
+      "Binary source frames delivered only in conversation ZIP; not committed to GitHub"
+    ],
+    "readyToMerge": false
+  },
+  "obsidianiteCanonicalTurnaroundV2": {
+    "materialId": 7,
+    "forgingLevel": 40,
+    "status": "Canonical front unchanged; source-derived right/back/left directional design STUDIES only; not accepted or game-ready",
+    "canonicalFrontFile": "obsidianite_source_cutout.png",
+    "canonicalFrontSha256": "1acec039f713f3d1e7bdb4c06c63f1f5bc287b3df506ec29d29cfc70b56149ea",
+    "directionStudyIllustrationFile": "a_crisp_detailed_pixel_art_game_sprite_reference.png",
+    "directionStudySourceSha256": "65383764dcbfe7dc9f1c87a754434ec569756f1282ac230bde9ae7945e4fda0d",
+    "canonicalFrontPixelPreserved": true,
+    "extractedTransparentDirectionStudies": [
+      "right",
+      "back",
+      "left"
+    ],
+    "qa": {
+      "sourceSha256Verified": true,
+      "canonicalFrontPngUnchanged": true,
+      "fourDistinctDirectionalPngs": true,
+      "allFourRgba": true,
+      "archiveCrc": true,
+      "userApprovedNewDirections": false,
+      "visuallyEquivalentSideHelmets": false,
+      "nativeArtGridFixed": false,
+      "full64FrameFixComplete": false,
+      "wearableSlotsReady": false,
+      "gameIntegrated": false
+    },
+    "blockers": [
+      "New side helmets have no correct small exposed peach lower-face opening; current source reference front remains authoritative.",
+      "Back design has a long glowing diamond back tabard not confirmed in approved front design; direction-specific details need continuity review.",
+      "Updated concept contains 64 illustrated samples but NOT 64 matching approved sprite poses; old 64-frame draft has visible-eye error.",
+      "No standalone helmet/body/legs/gloves/boots/shield layers, punch/hurt frames, or dynamically gripped weapon and shield.",
+      "User has not signed off three new directions; no browser/mobile gameplay render."
+    ],
+    "readyForProduction": false,
+    "readyToMerge": false
+  }
+}

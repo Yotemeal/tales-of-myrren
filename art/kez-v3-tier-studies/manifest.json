@@ -1,0 +1,438 @@
+{
+  "status": "source art and scale studies; draft; no runtime registration",
+  "frameSize": [
+    32,
+    40
+  ],
+  "footAnchor": [
+    16,
+    39
+  ],
+  "targetFrontIdleHeight": 33,
+  "directions": [
+    "front",
+    "right",
+    "back",
+    "left"
+  ],
+  "tiers": {
+    "iron": {
+      "materialId": 3,
+      "originals": {
+        "front": {
+          "file": "front-source.png",
+          "size": [
+            125,
+            239
+          ],
+          "sha256": "66ba9598bc772924ebf8e59e26230bc8a4741cce6b360205ac35ed3647a49eb6"
+        },
+        "sword": {
+          "file": "sword-source.png",
+          "size": [
+            65,
+            66
+          ],
+          "sha256": "7b56d67478b4cbce13549687f576f9f1ad6f434c6bd5841230e4d3ab8bc393f0"
+        },
+        "shield": {
+          "file": "shield-source.png",
+          "size": [
+            47,
+            59
+          ],
+          "sha256": "7741fb7a36937e7b17129642b83d7fbe7664cddf5aaa6d612b86cc3e32c69cf7"
+        }
+      },
+      "itemStudies": {
+        "sword": {
+          "file": "sword-study.png",
+          "size": [
+            14,
+            14
+          ]
+        },
+        "shield": {
+          "file": "shield-study.png",
+          "size": [
+            8,
+            10
+          ]
+        }
+      },
+      "poseStudy": {
+        "file": "pose-study.png",
+        "rows": [
+          "front",
+          "right",
+          "back",
+          "left"
+        ],
+        "columnGroups": [
+          "idle",
+          "walk",
+          "attack",
+          "death"
+        ],
+        "framesPerAction": 4,
+        "sourceArchive": "Myrren_Iron_01_Concept_Atlas_Review.zip",
+        "sourceAtlas": "iron_full_suit_composite_16x4.png",
+        "sourceAtlasSha256": "c7a23304a6e1e224166939d2ce9aeb7cf1ee595e00a310fa08ce1cb074a2dddb",
+        "bakedSlash": {
+          "action": "attack",
+          "frameIndex": 3
+        },
+        "separatedFinish": {
+          "bodyAtlas": "body-study.png",
+          "effectAtlas": "finish-slash-study.png",
+          "effectRows": [
+            "front",
+            "right",
+            "back",
+            "left"
+          ],
+          "bodyColumn": 11,
+          "status": "full-suit visual study; sword grip and gameplay verification pending"
+        }
+      }
+    },
+    "steel": {
+      "materialId": 4,
+      "originals": {
+        "front": {
+          "file": "front-source.png",
+          "size": [
+            126,
+            239
+          ],
+          "sha256": "0f570bc0831e30441613517d0758f6be3facf44fc642d2b89f23e25c8784e930"
+        },
+        "sword": {
+          "file": "sword-source.png",
+          "size": [
+            66,
+            66
+          ],
+          "sha256": "90eba3d3c83dca27d722dd429c5ed438669919de37903d3a7b2035434a2a2726"
+        },
+        "shield": {
+          "file": "shield-source.png",
+          "size": [
+            48,
+            60
+          ],
+          "sha256": "dc6031044ee1fffc494000ef6f2bd34298bbb09729d9e37658db5e7cd95ccce9"
+        }
+      },
+      "itemStudies": {
+        "sword": {
+          "file": "sword-study.png",
+          "size": [
+            14,
+            14
+          ]
+        },
+        "shield": {
+          "file": "shield-study.png",
+          "size": [
+            8,
+            10
+          ]
+        }
+      },
+      "poseStudy": {
+        "file": "pose-study.png",
+        "rows": [
+          "front",
+          "right",
+          "back",
+          "left"
+        ],
+        "columnGroups": [
+          "idle",
+          "walk",
+          "attack",
+          "death"
+        ],
+        "framesPerAction": 4,
+        "sourceArchive": "Myrren_Steel_01_Atlas_And_Review.zip",
+        "sourceAtlas": "steel_full_suit_composite_16x4.png",
+        "sourceAtlasSha256": "49d96559c079ba3b480e6bdd5b5f4ab64c7de2636ee2b53e873c5ab85720bd3b",
+        "bakedSlash": {
+          "action": "attack",
+          "frameIndex": 3
+        },
+        "separatedFinish": {
+          "bodyAtlas": "body-study.png",
+          "effectAtlas": "finish-slash-study.png",
+          "effectRows": [
+            "front",
+            "right",
+            "back",
+            "left"
+          ],
+          "bodyColumn": 11,
+          "status": "full-suit visual study; sword grip and gameplay verification pending"
+        }
+      }
+    },
+    "black_iron": {
+      "materialId": 5,
+      "originals": {
+        "front": {
+          "file": "front-source.png",
+          "size": [
+            152,
+            236
+          ],
+          "sha256": "92475dd69836183a9be23414216182f74ce0937d83a4b4d86efca1c846b9565b"
+        },
+        "sword": {
+          "file": "sword-source.png",
+          "size": [
+            65,
+            65
+          ],
+          "sha256": "47f70a01c055b6f0b64f770e328776ddba039cbc21be5c18b5490141d873b705"
+        },
+        "shield": {
+          "file": "shield-source.png",
+          "size": [
+            48,
+            60
+          ],
+          "sha256": "9ea3d13d961c0bceb7da825b74e1153b5a646aacef40ccb750ad683f780dec18"
+        }
+      },
+      "itemStudies": {
+        "sword": {
+          "file": "sword-study.png",
+          "size": [
+            14,
+            14
+          ]
+        },
+        "shield": {
+          "file": "shield-study.png",
+          "size": [
+            8,
+            10
+          ]
+        }
+      },
+      "poseStudy": {
+        "file": "pose-study.png",
+        "rows": [
+          "front",
+          "right",
+          "back",
+          "left"
+        ],
+        "columnGroups": [
+          "idle",
+          "walk",
+          "attack",
+          "death"
+        ],
+        "framesPerAction": 4,
+        "sourceArchive": "Myrren_Black_Iron_v2_01_Atlas_And_Reviews.zip",
+        "sourceAtlas": "black_iron_v2_composite_16x4.png",
+        "sourceAtlasSha256": "4e3c0d9b12717c617909f7334508810e4d752ccec12a4230bb0053ce377c7af1",
+        "bakedSlash": {
+          "action": "attack",
+          "frameIndex": 3
+        },
+        "separatedFinish": {
+          "bodyAtlas": "body-study.png",
+          "effectAtlas": "finish-slash-study.png",
+          "effectRows": [
+            "front",
+            "right",
+            "back",
+            "left"
+          ],
+          "bodyColumn": 11,
+          "status": "full-suit visual study; sword grip and gameplay verification pending"
+        }
+      }
+    },
+    "obsidianite": {
+      "materialId": 7,
+      "originals": {
+        "front": {
+          "file": "front-source.png",
+          "size": [
+            142,
+            239
+          ],
+          "sha256": "1acec039f713f3d1e7bdb4c06c63f1f5bc287b3df506ec29d29cfc70b56149ea"
+        },
+        "sword": {
+          "file": "sword-source.png",
+          "size": [
+            65,
+            66
+          ],
+          "sha256": "41b2790d510113038dd3d4e53e2c1c9870f2cfd7ad7f57763acac14506d59f34"
+        },
+        "shield": {
+          "file": "shield-source.png",
+          "size": [
+            48,
+            60
+          ],
+          "sha256": "e14b5f0952fcb35f8d7082c0324c7ca4ff085e86e2024d9a1d8693178df109fd"
+        }
+      },
+      "itemStudies": {
+        "sword": {
+          "file": "sword-study.png",
+          "size": [
+            14,
+            14
+          ]
+        },
+        "shield": {
+          "file": "shield-study.png",
+          "size": [
+            8,
+            10
+          ]
+        }
+      },
+      "poseStudy": {
+        "file": "pose-study.png",
+        "columns": [
+          "front",
+          "right",
+          "back",
+          "left"
+        ],
+        "framesPerDirection": 1,
+        "sourceArchive": "Myrren_Obsidianite_Canonical_Front_Turnaround_v2.zip",
+        "action": "idle",
+        "sideAndRearDesignApprovalPending": true
+      }
+    },
+    "myrrenite": {
+      "materialId": 6,
+      "originals": {
+        "front": {
+          "file": "front-source.png",
+          "size": [
+            141,
+            239
+          ],
+          "sha256": "a5316871204e0419404e77452309f7109d784c795bab43ebd621db56f3d18921"
+        },
+        "sword": {
+          "file": "sword-source.png",
+          "size": [
+            63,
+            66
+          ],
+          "sha256": "3f16a74667098e8234f763a1340584e94e06b16011bd81d4049c22d5b6ff6cdf"
+        },
+        "shield": {
+          "file": "shield-source.png",
+          "size": [
+            47,
+            60
+          ],
+          "sha256": "8a1bc83e228c4b68a5ddfba18b0b5825bdf11e92b3d5c71a39b2fe12d8ef86bd"
+        }
+      },
+      "itemStudies": {
+        "sword": {
+          "file": "sword-study.png",
+          "size": [
+            13,
+            14
+          ]
+        },
+        "shield": {
+          "file": "shield-study.png",
+          "size": [
+            8,
+            10
+          ]
+        }
+      },
+      "poseStudy": {
+        "file": "pose-study.png",
+        "columns": [
+          "front",
+          "right",
+          "back",
+          "left"
+        ],
+        "framesPerDirection": 1,
+        "sourceArchive": null,
+        "action": "idle",
+        "sideAndRearDesignApprovalPending": true,
+        "frontSource": "canonical front PNG",
+        "sideAndRearSource": "new generated idle art using the canonical front reference"
+      }
+    },
+    "starsteel": {
+      "materialId": 8,
+      "originals": {
+        "front": {
+          "file": "front-source.png",
+          "size": [
+            145,
+            239
+          ],
+          "sha256": "4a820c965786243f7ba117276afe682798d6c5117fb29bf0228754bc7e00aaf6"
+        },
+        "sword": {
+          "file": "sword-source.png",
+          "size": [
+            64,
+            66
+          ],
+          "sha256": "edc7bdca977efe6f4c2d8b61bd650cbabaa15260a1cfee3e0b91bccebe256719"
+        },
+        "shield": {
+          "file": "shield-source.png",
+          "size": [
+            48,
+            60
+          ],
+          "sha256": "59ed13a4de0f514f1e7dfe8a40d8090b96797c4c653115bc8e5e898d63430168"
+        }
+      },
+      "itemStudies": {
+        "sword": {
+          "file": "sword-study.png",
+          "size": [
+            14,
+            14
+          ]
+        },
+        "shield": {
+          "file": "shield-study.png",
+          "size": [
+            8,
+            10
+          ]
+        }
+      },
+      "poseStudy": {
+        "file": "pose-study.png",
+        "columns": [
+          "front",
+          "right",
+          "back",
+          "left"
+        ],
+        "framesPerDirection": 1,
+        "sourceArchive": null,
+        "action": "idle",
+        "sideAndRearDesignApprovalPending": true,
+        "frontSource": "canonical front PNG",
+        "sideAndRearSource": "new generated idle art using the canonical front reference"
+      }
+    }
+  }
+}
