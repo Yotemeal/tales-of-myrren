@@ -312,5 +312,65 @@
       "Native world pixel scale not validated against live browser render",
       "Artwork rejected against original approved Black Iron master pending redraw"
     ]
+  },
+  "blackIronV2Candidate": {
+    "materialId": 5,
+    "forgeLevel": 30,
+    "status": "V2 turnaround closer to approved art, pending user visual approval; source sprites NOT integrated",
+    "sourceFilename": "a_detailed_pixel_art_game_sprite_sheet_asset_pre.png",
+    "sourceSha256": "d1dd89e65fdc169ccfd4704fa504942538f13ea9c71c57c006d4e7f98955ac5c",
+    "canonicalFrontSha256": "92475dd69836183a9be23414216182f74ce0937d83a4b4d86efca1c846b9565b",
+    "compositeFrameCount": 64,
+    "atlas": {
+      "columns": 16,
+      "rows": 4,
+      "width": 1856,
+      "height": 608,
+      "cellWidth": 116,
+      "cellHeight": 152,
+      "actions": [
+        "idle",
+        "walk",
+        "attack",
+        "death"
+      ],
+      "directions": [
+        "front",
+        "right",
+        "back",
+        "left"
+      ]
+    },
+    "additionalArtwork": [
+      "four larger directional idle art references",
+      "side-by-side with canonical approved front",
+      "four source-derived four-direction animated GIF previews",
+      "static Crater Camp 28,36,44,52 pixel size comparisons"
+    ],
+    "visualCorrections": [
+      "stronger violet angular pauldrons",
+      "V-shaped chest",
+      "original-inspired helmet fins",
+      "visible hanging violet side tassets"
+    ],
+    "qa": {
+      "frameCount64": true,
+      "nonemptyTransparentSprites": true,
+      "byteExactAtlasReconstruction": true,
+      "zipCRC": true,
+      "designApproval": false,
+      "modularWearableLayers": false,
+      "realGameIntegrationTested": false,
+      "nativeScaleLocked": false
+    },
+    "limitations": [
+      "V2 looks closer to original but does not exactly copy all canonical front pixels",
+      "Full suit composites; no separable helmet/body/legs/gloves/boots/shield",
+      "Painted weapon arc baked into attack frame",
+      "No independent hurt/punch/sword rig, multiplayer or game regression visual QA",
+      "ZIP and PNG files delivered only as local user artifacts, not committed into GitHub"
+    ],
+    "releaseApproved": false,
+    "readyToMerge": false
   }
 }
