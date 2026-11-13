@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=88;
+window.MyrrenBuild=89;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -3123,8 +3123,11 @@ function drawKezV2(x,y,o,now){
   if(direction!=='back'){paintHeld();paintPunch()}
   ctx.restore();
   if(deathAge>=0)return true;
-  label(o.name,x,y-32,o.col||'#ffffff');
-  if(o.waving)label('*waves*',x,y-43,'#ffffff');
+  // The optional compact-scale visual proof needs a taller name clearance.
+  // Keep the exact normal offsets and all save/network state unchanged.
+  const scaledBare=atlas.scaleProof&&!o.g?.some(Boolean)&&(!o.tool||o.tool==='fist');
+  label(o.name,x,y-(scaledBare?46:32),o.col||'#ffffff');
+  if(o.waving)label('*waves*',x,y-(scaledBare?57:43),'#ffffff');
   return true;
 }
 function drawPerson(x,y,o,now){
