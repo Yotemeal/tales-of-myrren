@@ -221,5 +221,45 @@
       "Generated candidate requires explicit visual approval and comparison with approved Iron front"
     ],
     "readyToMerge": false
+  },
+  "steelCompositeCandidate": {
+    "referenceFilename": "a_polished_pixel_art_sprite_sheet_in_the_same_styl.png",
+    "referenceSha256": "527005897090001f80f11cb22500b4d6347a3d9780189e6c73592e0f7172b8ea",
+    "status": "NEW STEEL CONCEPT CANDIDATE, NOT YET VISUALLY APPROVED",
+    "materialId": 4,
+    "forgeLevel": 20,
+    "sourceDerivedFrames": 64,
+    "atlasCells": {
+      "columns": 16,
+      "rows": 4,
+      "cellWidth": 112,
+      "cellHeight": 170
+    },
+    "directions": [
+      "front",
+      "right",
+      "back",
+      "left"
+    ],
+    "actions": [
+      "idle",
+      "walk",
+      "attack",
+      "death"
+    ],
+    "qa": {
+      "transparentRGBA": true,
+      "all64CellsPopulated": true,
+      "atlasReconstruction": true,
+      "archiveCRC": true,
+      "realGameScaleTested": false,
+      "modularWearableLayersDone": false
+    },
+    "limitations": [
+      "Complete suit composites only, not independently wearable helmet/body/legs/boots/gloves/shield",
+      "White slash arc embedded in attack; avoid duplicate weapon visual effect",
+      "Approval pending; not a finished source-resolution production animation set"
+    ],
+    "readyToMerge": false
   }
 }
