@@ -1,0 +1,2708 @@
+{
+  "schemaVersion": 1,
+  "asset": "Myrren Adventurer V1",
+  "status": "art_handoff_not_live",
+  "pixelArt": "original 32x40 native pixels, lossless indexed PNG with binary transparency (RGBA after decode), no runtime smoothing",
+  "sheet": "myrren_adventurer_v1_32x40.png",
+  "width": 768,
+  "height": 160,
+  "cell": [
+    32,
+    40
+  ],
+  "anchor": [
+    16,
+    39
+  ],
+  "feetLine": 38,
+  "directions": [
+    "front",
+    "right",
+    "back",
+    "left"
+  ],
+  "actions": [
+    "idle",
+    "walk",
+    "punch",
+    "sword",
+    "hurt",
+    "death"
+  ],
+  "framesPerAction": 4,
+  "layout": "rows=directions; columns=action_index*4+frame",
+  "palette": {
+    "ink": "#29211e",
+    "hair_dark": "#49312b",
+    "hair": "#765047",
+    "hair_lit": "#956356",
+    "hair_light": "#ac7a66",
+    "skin_shade": "#d98f6d",
+    "skin": "#f3b18a",
+    "skin_lit": "#ffd0a9",
+    "white": "#fff8e7",
+    "eye": "#251f23",
+    "scar": "#b66f63",
+    "cape_dark": "#343d2a",
+    "cape": "#52633a",
+    "cape_light": "#75864d",
+    "shirt_shade": "#937257",
+    "shirt": "#c4a07c",
+    "shirt_lit": "#e0bd96",
+    "leather_dark": "#533a30",
+    "leather": "#825344",
+    "leather_lit": "#a36d53",
+    "metal": "#cda85b",
+    "metal_lit": "#f8d47d",
+    "boot": "#3c302c"
+  },
+  "frameMap": [
+    {
+      "direction": "front",
+      "action": "idle",
+      "frame": 0,
+      "rect": [
+        0,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "idle",
+      "frame": 1,
+      "rect": [
+        32,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "idle",
+      "frame": 2,
+      "rect": [
+        64,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "idle",
+      "frame": 3,
+      "rect": [
+        96,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "walk",
+      "frame": 0,
+      "rect": [
+        128,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          31
+        ],
+        "offhand": [
+          7,
+          29
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "walk",
+      "frame": 1,
+      "rect": [
+        160,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        6,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "walk",
+      "frame": 2,
+      "rect": [
+        192,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          29
+        ],
+        "offhand": [
+          7,
+          31
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "walk",
+      "frame": 3,
+      "rect": [
+        224,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        6,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "punch",
+      "frame": 0,
+      "rect": [
+        256,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "punch",
+      "frame": 1,
+      "rect": [
+        288,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        28,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          28,
+          29
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "punch",
+      "frame": 2,
+      "rect": [
+        320,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        30,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          30,
+          28
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "punch",
+      "frame": 3,
+      "rect": [
+        352,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        28,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          28,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "sword",
+      "frame": 0,
+      "rect": [
+        384,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "sword",
+      "frame": 1,
+      "rect": [
+        416,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        28,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          28,
+          26
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "sword",
+      "frame": 2,
+      "rect": [
+        448,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        30,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          30,
+          24
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "sword",
+      "frame": 3,
+      "rect": [
+        480,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        28,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          28,
+          28
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "hurt",
+      "frame": 0,
+      "rect": [
+        512,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "hurt",
+      "frame": 1,
+      "rect": [
+        544,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        8,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "hurt",
+      "frame": 2,
+      "rect": [
+        576,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "hurt",
+      "frame": 3,
+      "rect": [
+        608,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        8,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "death",
+      "frame": 0,
+      "rect": [
+        640,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "death",
+      "frame": 1,
+      "rect": [
+        672,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        8,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "front",
+      "action": "death",
+      "frame": 2,
+      "rect": [
+        704,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        1,
+        8,
+        31,
+        39
+      ],
+      "sockets": {
+        "dominant": null,
+        "offhand": null,
+        "weaponVisible": false
+      }
+    },
+    {
+      "direction": "front",
+      "action": "death",
+      "frame": 3,
+      "rect": [
+        736,
+        0,
+        32,
+        40
+      ],
+      "bbox": [
+        0,
+        18,
+        32,
+        39
+      ],
+      "sockets": {
+        "dominant": null,
+        "offhand": null,
+        "weaponVisible": false
+      }
+    },
+    {
+      "direction": "right",
+      "action": "idle",
+      "frame": 0,
+      "rect": [
+        0,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "idle",
+      "frame": 1,
+      "rect": [
+        32,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "idle",
+      "frame": 2,
+      "rect": [
+        64,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "idle",
+      "frame": 3,
+      "rect": [
+        96,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "walk",
+      "frame": 0,
+      "rect": [
+        128,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          31
+        ],
+        "offhand": [
+          7,
+          29
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "walk",
+      "frame": 1,
+      "rect": [
+        160,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        6,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "walk",
+      "frame": 2,
+      "rect": [
+        192,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          29
+        ],
+        "offhand": [
+          7,
+          31
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "walk",
+      "frame": 3,
+      "rect": [
+        224,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        6,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "punch",
+      "frame": 0,
+      "rect": [
+        256,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "punch",
+      "frame": 1,
+      "rect": [
+        288,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        28,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          28,
+          29
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "punch",
+      "frame": 2,
+      "rect": [
+        320,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        30,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          30,
+          28
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "punch",
+      "frame": 3,
+      "rect": [
+        352,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        28,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          28,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "sword",
+      "frame": 0,
+      "rect": [
+        384,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "sword",
+      "frame": 1,
+      "rect": [
+        416,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        28,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          28,
+          26
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "sword",
+      "frame": 2,
+      "rect": [
+        448,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        30,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          30,
+          24
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "sword",
+      "frame": 3,
+      "rect": [
+        480,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        28,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          28,
+          28
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "hurt",
+      "frame": 0,
+      "rect": [
+        512,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "hurt",
+      "frame": 1,
+      "rect": [
+        544,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        8,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "hurt",
+      "frame": 2,
+      "rect": [
+        576,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "hurt",
+      "frame": 3,
+      "rect": [
+        608,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        8,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "death",
+      "frame": 0,
+      "rect": [
+        640,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        7,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "death",
+      "frame": 1,
+      "rect": [
+        672,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        8,
+        27,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          27,
+          30
+        ],
+        "offhand": [
+          7,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "right",
+      "action": "death",
+      "frame": 2,
+      "rect": [
+        704,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        1,
+        8,
+        31,
+        39
+      ],
+      "sockets": {
+        "dominant": null,
+        "offhand": null,
+        "weaponVisible": false
+      }
+    },
+    {
+      "direction": "right",
+      "action": "death",
+      "frame": 3,
+      "rect": [
+        736,
+        40,
+        32,
+        40
+      ],
+      "bbox": [
+        0,
+        18,
+        32,
+        39
+      ],
+      "sockets": {
+        "dominant": null,
+        "offhand": null,
+        "weaponVisible": false
+      }
+    },
+    {
+      "direction": "back",
+      "action": "idle",
+      "frame": 0,
+      "rect": [
+        0,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "idle",
+      "frame": 1,
+      "rect": [
+        32,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "idle",
+      "frame": 2,
+      "rect": [
+        64,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "idle",
+      "frame": 3,
+      "rect": [
+        96,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "walk",
+      "frame": 0,
+      "rect": [
+        128,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          31
+        ],
+        "offhand": [
+          24,
+          29
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "walk",
+      "frame": 1,
+      "rect": [
+        160,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        6,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "walk",
+      "frame": 2,
+      "rect": [
+        192,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          29
+        ],
+        "offhand": [
+          24,
+          31
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "walk",
+      "frame": 3,
+      "rect": [
+        224,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        6,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "punch",
+      "frame": 0,
+      "rect": [
+        256,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "punch",
+      "frame": 1,
+      "rect": [
+        288,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        4,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          3,
+          29
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "punch",
+      "frame": 2,
+      "rect": [
+        320,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        2,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          1,
+          28
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "punch",
+      "frame": 3,
+      "rect": [
+        352,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        4,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          3,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "sword",
+      "frame": 0,
+      "rect": [
+        384,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "sword",
+      "frame": 1,
+      "rect": [
+        416,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        4,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          3,
+          26
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "sword",
+      "frame": 2,
+      "rect": [
+        448,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        2,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          1,
+          24
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "sword",
+      "frame": 3,
+      "rect": [
+        480,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        4,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          3,
+          28
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "hurt",
+      "frame": 0,
+      "rect": [
+        512,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "hurt",
+      "frame": 1,
+      "rect": [
+        544,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        8,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "hurt",
+      "frame": 2,
+      "rect": [
+        576,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "hurt",
+      "frame": 3,
+      "rect": [
+        608,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        8,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "death",
+      "frame": 0,
+      "rect": [
+        640,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "death",
+      "frame": 1,
+      "rect": [
+        672,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        8,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "back",
+      "action": "death",
+      "frame": 2,
+      "rect": [
+        704,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        0,
+        9,
+        31,
+        39
+      ],
+      "sockets": {
+        "dominant": null,
+        "offhand": null,
+        "weaponVisible": false
+      }
+    },
+    {
+      "direction": "back",
+      "action": "death",
+      "frame": 3,
+      "rect": [
+        736,
+        80,
+        32,
+        40
+      ],
+      "bbox": [
+        0,
+        18,
+        32,
+        39
+      ],
+      "sockets": {
+        "dominant": null,
+        "offhand": null,
+        "weaponVisible": false
+      }
+    },
+    {
+      "direction": "left",
+      "action": "idle",
+      "frame": 0,
+      "rect": [
+        0,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "idle",
+      "frame": 1,
+      "rect": [
+        32,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "idle",
+      "frame": 2,
+      "rect": [
+        64,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "idle",
+      "frame": 3,
+      "rect": [
+        96,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "walk",
+      "frame": 0,
+      "rect": [
+        128,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          31
+        ],
+        "offhand": [
+          24,
+          29
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "walk",
+      "frame": 1,
+      "rect": [
+        160,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        6,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "walk",
+      "frame": 2,
+      "rect": [
+        192,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          29
+        ],
+        "offhand": [
+          24,
+          31
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "walk",
+      "frame": 3,
+      "rect": [
+        224,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        6,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "punch",
+      "frame": 0,
+      "rect": [
+        256,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "punch",
+      "frame": 1,
+      "rect": [
+        288,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        4,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          3,
+          29
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "punch",
+      "frame": 2,
+      "rect": [
+        320,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        2,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          1,
+          28
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "punch",
+      "frame": 3,
+      "rect": [
+        352,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        4,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          3,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "sword",
+      "frame": 0,
+      "rect": [
+        384,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "sword",
+      "frame": 1,
+      "rect": [
+        416,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        4,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          3,
+          26
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "sword",
+      "frame": 2,
+      "rect": [
+        448,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        2,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          1,
+          24
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "sword",
+      "frame": 3,
+      "rect": [
+        480,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        4,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          3,
+          28
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "hurt",
+      "frame": 0,
+      "rect": [
+        512,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "hurt",
+      "frame": 1,
+      "rect": [
+        544,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        8,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "hurt",
+      "frame": 2,
+      "rect": [
+        576,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "hurt",
+      "frame": 3,
+      "rect": [
+        608,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        6,
+        8,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "death",
+      "frame": 0,
+      "rect": [
+        640,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        7,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "death",
+      "frame": 1,
+      "rect": [
+        672,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        5,
+        8,
+        26,
+        39
+      ],
+      "sockets": {
+        "dominant": [
+          4,
+          30
+        ],
+        "offhand": [
+          24,
+          30
+        ],
+        "weaponVisible": true
+      }
+    },
+    {
+      "direction": "left",
+      "action": "death",
+      "frame": 2,
+      "rect": [
+        704,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        1,
+        8,
+        31,
+        39
+      ],
+      "sockets": {
+        "dominant": null,
+        "offhand": null,
+        "weaponVisible": false
+      }
+    },
+    {
+      "direction": "left",
+      "action": "death",
+      "frame": 3,
+      "rect": [
+        736,
+        120,
+        32,
+        40
+      ],
+      "bbox": [
+        0,
+        18,
+        32,
+        39
+      ],
+      "sockets": {
+        "dominant": null,
+        "offhand": null,
+        "weaponVisible": false
+      }
+    }
+  ],
+  "drawScale": "candidate native 1x; compare in real game at 1x/2x; do not mutate hitboxes",
+  "layering": "base only; future six-slot armour and independent weapons/shields",
+  "sourceGenerator": "build_character.py",
+  "originalImageIsNotPixelGrid": true,
+  "sha256": "25c17b24218a56b2359a4cd48d6e1241c8f75ba727e01b1a39d44dad712bd187",
+  "releaseApproved": false,
+  "integrated": false
+}
