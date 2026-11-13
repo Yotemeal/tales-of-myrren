@@ -35,7 +35,7 @@ async function checkCostumeArt(browser,base,tier,material){
         window.bronzeArtQA={
           equip(tier){
             for(const kind of ['helm','body','legs','boots','gloves','shield','sword']){
-              const id=tier+'_'+kind, def=DEFS[id];
+              const id=(tier==='black_iron'?'cobalt':tier)+'_'+kind, def=DEFS[id];
               save.xp[def.skill]=Math.max(save.xp[def.skill],xpTable[def.req]);
               save.bag.push(id);
               equipFromBag(save.bag.length-1);
@@ -54,7 +54,7 @@ async function checkCostumeArt(browser,base,tier,material){
       `;
       await route.fulfill({response,body:script.slice(0,end)+hook+script.slice(end)});
     });
-    await page.goto(base+'/?'+tier+'-art');
+    await page.goto(base+'/?'+tier.replace('_','-')+'-art');
     await page.waitForFunction(()=>window.MyrrenBronzeArt?.ready()&&!document.querySelector('#go').disabled);
     assert.deepEqual(errors,[], 'game scripts should load before entering');
     await page.locator('#nick').fill(tier+' QA');
@@ -90,8 +90,12 @@ async function checkCostumeArt(browser,base,tier,material){
   let browser;
   try{
     browser=await chromium.launch({headless:true});
-    if(process.argv.includes('--bronze-art')){await checkCostumeArt(browser,base,'bronze',2);return;}
-    if(process.argv.includes('--iron-art')){await checkCostumeArt(browser,base,'iron',3);return;}
+    for(const [tier,material] of [['bronze',2],['iron',3],['steel',4],['black_iron',5]]){
+      if(process.argv.includes('--'+tier.replace('_','-')+'-art')){
+        await checkCostumeArt(browser,base,tier,material);
+        return;
+      }
+    }
     const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
     const errors=[];
     page.on('pageerror',e=>errors.push(e.message));

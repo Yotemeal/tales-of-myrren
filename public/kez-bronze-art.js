@@ -2,18 +2,25 @@
 (() => {
   'use strict';
   const flags=new URLSearchParams(location.search);
-  const iron=flags.has('iron-art');
-  if(!iron&&!flags.has('bronze-art'))return;
-  const material=iron?3:2;
-  const root='/assets/characters/kez-v3-'+(iron?'iron':'bronze')+'/';
+  const tiers=[
+    {key:'iron',material:3,finish:[[7,-19],[7,-17],[7,-21],[7,-20]]},
+    {key:'steel',material:4,finish:[[7,-19],[7,-18],[7,-21],[7,-20]]},
+    {key:'black_iron',material:5,finish:[[6,-19],[7,-17],[7,-20],[7,-19]]},
+    {key:'bronze',material:2}
+  ];
+  const tier=tiers.find(({key})=>flags.has(key.replace('_','-')+'-art'));
+  if(!tier)return;
+  const {material,finish}=tier;
+  const root='/assets/characters/kez-v3-'+tier.key+'/';
+  const bronze=tier.key==='bronze';
   function load(name,width,height){
     const image=new Image();
     image.src=root+name+'.png';
     return {image,ready:()=>image.complete&&image.naturalWidth===width&&image.naturalHeight===height};
   }
-  const body=load(iron?'body':'bronze_32x40',512,160);
-  const sword=load(iron?'sword':'bronze_sword',14,14);
-  const shield=load(iron?'shield':'bronze_shield',8,10);
+  const body=load(bronze?'bronze_32x40':'body',512,160);
+  const sword=load(bronze?'bronze_sword':'sword',14,14);
+  const shield=load(bronze?'bronze_shield':'shield',8,10);
   const readyHands=[[6,-10],[5,-10],[-6,-10],[-5,-10]];
   const swingHands=[
     [[6,-10],[7,-11],[8,-12],[6,-17]],
@@ -21,7 +28,6 @@
     [[-6,-10],[-6,-11],[-7,-12],[7,-19]],
     [[-5,-10],[-5,-11],[-7,-12],[6,-18]]
   ];
-  const ironFinishHands=[[7,-19],[7,-17],[7,-21],[7,-20]];
   const ready=()=>body.ready()&&sword.ready()&&shield.ready();
   function draw(ctx,x,y,state,now,deathAge=-1,hurtAge=-1){
     const g=state.g;
@@ -52,7 +58,7 @@
     const paintSword=()=>{
       if(!armed||deathAge>=0)return;
       ctx.save();
-      const [hx,hy]=!attacking?readyHands[row]:iron&&phase===3?ironFinishHands[row]:swingHands[row][phase];
+      const [hx,hy]=!attacking?readyHands[row]:finish&&phase===3?finish[row]:swingHands[row][phase];
       ctx.translate(hx,hy);
       const mirror=attacking&&phase===3?1:row>=2?-1:1;
       ctx.scale(mirror,1);
