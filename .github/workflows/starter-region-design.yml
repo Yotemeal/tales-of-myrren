@@ -1,0 +1,75 @@
+name: Starter region art and map design contract
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'design/starter-region-v1.json'
+      - 'design/validate-starter-region.cjs'
+      - 'design/audit-resource-sources.py'
+      - 'design/capture-world-scale-gameplay.cjs'
+      - 'design/build-gameplay-scale-contact-sheet.py'
+      - 'docs/STARTER_REGION_ASSET_HANDOFF_2026-11-12.md'
+      - '.github/workflows/starter-region-design.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check approved story, resources and player scale
+        run: node design/validate-starter-region.cjs
+      - name: Create isolated image-audit Python environment
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/myrren-environment-qa"
+          "${RUNNER_TEMP}/myrren-environment-qa/bin/python" -m pip install 'Pillow>=11,<13'
+      - name: Audit transparency, source bounds, and crop warnings
+        run: "${RUNNER_TEMP}/myrren-environment-qa/bin/python design/audit-resource-sources.py --out /tmp/myrren-resource-source-audit"
+      - name: Publish existing-source reference contact sheet
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: myrren-environment-source-audit-not-game-art
+          path: /tmp/myrren-resource-source-audit/
+          if-no-files-found: warn
+
+  browser-scale:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium QA only
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install chromium
+      - name: Capture actual gameplay-scale trees and ores beside Kez
+        run: node design/capture-world-scale-gameplay.cjs
+      - name: Create isolated Pillow environment for browser screenshots
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/myrren-scale-contact"
+          "${RUNNER_TEMP}/myrren-scale-contact/bin/python" -m pip install 'Pillow>=11,<13'
+      - name: Build reviewer contact sheets from real gameplay screenshots
+        run: "${RUNNER_TEMP}/myrren-scale-contact/bin/python design/build-gameplay-scale-contact-sheet.py --out /tmp/myrren-world-scale-qa"
+      - name: Preserve real gameplay screenshots and draw measurements
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: myrren-game-world-scale-real-chromium-not-approved
+          path: /tmp/myrren-world-scale-qa/
+          if-no-files-found: warn

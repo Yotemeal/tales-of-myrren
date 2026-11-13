@@ -1,0 +1,423 @@
+{
+  "schema": "myrren.starter-region.design.v1",
+  "status": "planning-reference-only",
+  "productionSafe": false,
+  "title": "The Crater and Bramblewood — Act I map contract",
+  "approvalScope": "Narrative and visual placement concepts only; gameplay coordinates, native production art and migration remain unapproved",
+  "coordinateSystem": {
+    "unit": "world-pixels",
+    "tileSize": 16,
+    "mapWidth": 1600,
+    "mapHeight": 1600,
+    "craterCenter": {
+      "x": 800,
+      "y": 800
+    },
+    "playerNativeFrame": {
+      "width": 21,
+      "height": 27
+    },
+    "positions": "directional-only-except-existing-crater-center"
+  },
+  "preservedRuntime": {
+    "source": "public/myrren-world.js",
+    "worldEntry": "public/index.html",
+    "existingBuildings": [
+      "axe",
+      "pick",
+      "arms",
+      "food",
+      "fish"
+    ],
+    "existingBridge": false,
+    "existingRiverCrossing": false,
+    "currentLake": {
+      "x": 1250,
+      "y": 1055
+    },
+    "saveAndCollisionMustRemainUnchanged": true
+  },
+  "zones": [
+    {
+      "id": "crater_camp",
+      "label": "Crater Camp",
+      "risk": "safe",
+      "position": "centre",
+      "purpose": "starting survivors' outpost",
+      "visuals": [
+        "fractured crater walls",
+        "sparse grass on earth and stone",
+        "ancient fragments",
+        "single southern opening"
+      ],
+      "structures": [
+        "odd_jobs_board",
+        "storage_box",
+        "open_furnace",
+        "anvil",
+        "essentials_stall",
+        "rest_fire",
+        "trader_gus_and_horse_cart"
+      ],
+      "forbidden": [
+        "house",
+        "residence",
+        "enclosed_store",
+        "river",
+        "bridge"
+      ]
+    },
+    {
+      "id": "southern_gate",
+      "label": "Collapsed crater entrance",
+      "risk": "safe",
+      "position": "southern rim",
+      "purpose": "single land entry to camp",
+      "visuals": [
+        "fractured rock",
+        "worn dirt path",
+        "weathered stakes"
+      ],
+      "structures": [],
+      "forbidden": []
+    },
+    {
+      "id": "bramblewood",
+      "label": "Bramblewood",
+      "risk": "beginner",
+      "position": "outside crater",
+      "purpose": "beginner exploration, gathering and low-level combat",
+      "visuals": [
+        "thick native trees",
+        "intermittent clear paths",
+        "fallen logs",
+        "early mineral nodes",
+        "small wildlife"
+      ],
+      "structures": [],
+      "forbidden": [
+        "permanent_village"
+      ]
+    },
+    {
+      "id": "northern_ruins",
+      "label": "Ancient city remnants",
+      "risk": "beginner-to-mid",
+      "position": "west and north",
+      "purpose": "early environmental storytelling and exploration",
+      "visuals": [
+        "moss-covered stone",
+        "collapsed pillars",
+        "scattered foundations"
+      ],
+      "structures": [],
+      "forbidden": []
+    },
+    {
+      "id": "goblin_route",
+      "label": "Goblin emergence",
+      "risk": "rising",
+      "position": "northeast",
+      "purpose": "surface approach to underground goblin mining",
+      "visuals": [
+        "disturbed rock",
+        "crude mining debris",
+        "cave opening",
+        "occasional mysterious star fragments"
+      ],
+      "structures": [],
+      "forbidden": []
+    },
+    {
+      "id": "river_fishing",
+      "label": "Southern river and beginner fishing",
+      "risk": "beginner",
+      "position": "south of Bramblewood",
+      "purpose": "fishing and natural biome boundary",
+      "visuals": [
+        "riverside reeds",
+        "shallow fishing banks",
+        "damaged travellers' bridge"
+      ],
+      "structures": [
+        "basic_fishing_spots",
+        "broken_usable_bridge"
+      ],
+      "forbidden": [
+        "bridge_inside_crater"
+      ]
+    },
+    {
+      "id": "travellers_bridge",
+      "label": "Travellers' bridge",
+      "risk": "transition",
+      "position": "southern river",
+      "purpose": "damaged but traversable access from forest to Direwood",
+      "visuals": [
+        "missing parapet",
+        "weathered stone or timber",
+        "safe, readable crossing"
+      ],
+      "structures": [
+        "broken_usable_bridge"
+      ],
+      "forbidden": [
+        "impassable_bridge"
+      ]
+    },
+    {
+      "id": "direwood",
+      "label": "The Direwood",
+      "risk": "mid-to-high",
+      "position": "south across the river",
+      "purpose": "first visual reveal of Act IV corruption",
+      "visuals": [
+        "darker denser canopy",
+        "twisted roots",
+        "failing vegetation",
+        "rare corruption glow"
+      ],
+      "structures": [],
+      "forbidden": [
+        "starter_ore_abundance"
+      ]
+    }
+  ],
+  "connections": [
+    [
+      "crater_camp",
+      "southern_gate"
+    ],
+    [
+      "southern_gate",
+      "bramblewood"
+    ],
+    [
+      "bramblewood",
+      "northern_ruins"
+    ],
+    [
+      "bramblewood",
+      "goblin_route"
+    ],
+    [
+      "bramblewood",
+      "river_fishing"
+    ],
+    [
+      "river_fishing",
+      "travellers_bridge"
+    ],
+    [
+      "travellers_bridge",
+      "direwood"
+    ]
+  ],
+  "campFeatures": [
+    {
+      "id": "odd_jobs_board",
+      "role": "starter jobs and hints",
+      "interaction": "preserve current jobs interface",
+      "relativePlacement": "central approach"
+    },
+    {
+      "id": "storage_box",
+      "role": "bank/storage",
+      "interaction": "preserve existing stored item IDs and save rules",
+      "relativePlacement": "near board"
+    },
+    {
+      "id": "open_furnace",
+      "role": "smelting",
+      "interaction": "preserve existing forging station",
+      "relativePlacement": "edge of camp"
+    },
+    {
+      "id": "anvil",
+      "role": "smithing",
+      "interaction": "preserve existing forging station",
+      "relativePlacement": "beside furnace"
+    },
+    {
+      "id": "essentials_stall",
+      "role": "basic food, tools and supplies",
+      "interaction": "preserve current inventory and economy rules",
+      "relativePlacement": "opposite forge"
+    },
+    {
+      "id": "rest_fire",
+      "role": "resting and camp ambience",
+      "interaction": "preserve current cooking/rest mechanics",
+      "relativePlacement": "small communal clearing"
+    },
+    {
+      "id": "trader_gus_and_horse_cart",
+      "role": "wandering trader and distinctive camp NPC",
+      "interaction": "preserve NPC/shop IDs and access",
+      "relativePlacement": "outer edge, off main path"
+    }
+  ],
+  "approvedArtReferences": {
+    "baseCharacter": {
+      "reference": "Kez V2 — bare chest, dark shorts, dark brown-purple hair",
+      "spritePath": "public/assets/kez-v2/kez_v2_atlas.png",
+      "pixelNative": {
+        "width": 21,
+        "height": 27
+      },
+      "mustNotRedesign": true
+    },
+    "tiles": {
+      "width": 16,
+      "height": 16,
+      "requirements": [
+        "seamless nearest-neighbour pixels",
+        "natural grass-path-stone-water transitions",
+        "no fractional scaling",
+        "authored pixels; no procedural replacement for artwork"
+      ]
+    },
+    "trees": [
+      {
+        "name": "Bramblewood",
+        "file": "tree_bramblewood.png",
+        "status": "approved-concept"
+      },
+      {
+        "name": "Alder",
+        "file": "tree_alder.png",
+        "status": "approved-concept"
+      },
+      {
+        "name": "Ironbark",
+        "file": "tree_ironbark.png",
+        "status": "approved-concept"
+      },
+      {
+        "name": "Elderthorn",
+        "file": "tree_elderthorn.png",
+        "status": "approved-concept"
+      },
+      {
+        "name": "Starroot",
+        "file": "tree_starroot.png",
+        "status": "approved-concept"
+      }
+    ],
+    "ores": [
+      {
+        "name": "Copper",
+        "file": "ore_copper.png",
+        "beginner": true,
+        "kind": "metal"
+      },
+      {
+        "name": "Tin",
+        "file": "ore_tin.png",
+        "beginner": true,
+        "kind": "metal"
+      },
+      {
+        "name": "Iron",
+        "file": "ore_iron.png",
+        "beginner": true,
+        "kind": "metal"
+      },
+      {
+        "name": "Coal",
+        "file": "ore_coal.png",
+        "beginner": true,
+        "kind": "fuel"
+      },
+      {
+        "name": "Black Iron",
+        "file": "ore_black_iron.png",
+        "beginner": false,
+        "kind": "metal"
+      },
+      {
+        "name": "Obsidianite",
+        "file": "ore_obsidianite.png",
+        "beginner": false,
+        "kind": "metal"
+      },
+      {
+        "name": "Myrrenite",
+        "file": "ore_myrrenite.png",
+        "beginner": false,
+        "kind": "metal"
+      },
+      {
+        "name": "Meteorite",
+        "file": "ore_meteorite.png",
+        "beginner": false,
+        "kind": "metal",
+        "producesEquipmentTier": "Starsteel"
+      }
+    ],
+    "propScope": [
+      {
+        "id": "fallen_log",
+        "status": "reference-only",
+        "collision": "nonblocking-unless-approved"
+      },
+      {
+        "id": "mossy_pillar",
+        "status": "reference-only",
+        "collision": "review-before-introduction"
+      },
+      {
+        "id": "broken_wall",
+        "status": "reference-only",
+        "collision": "review-before-introduction"
+      },
+      {
+        "id": "exposed_roots",
+        "status": "reference-only",
+        "collision": "nonblocking-unless-approved"
+      },
+      {
+        "id": "river_reeds",
+        "status": "reference-only",
+        "collision": "nonblocking-unless-approved"
+      }
+    ]
+  },
+  "implementationStages": [
+    {
+      "id": "review",
+      "goal": "Confirm final storyboard and exactly what exists in the current game",
+      "canShip": false
+    },
+    {
+      "id": "vertical_slice",
+      "goal": "Author small native tile/prop sample plus gameplay-scale screenshots against the existing character",
+      "canShip": false
+    },
+    {
+      "id": "map_migration",
+      "goal": "Plan collision, path clearance, water field, fishing access and saved-position compatibility before changing coordinates",
+      "canShip": false
+    },
+    {
+      "id": "integration",
+      "goal": "Introduce approved world layout in isolated gameplay-tested stages and review mobile screenshots",
+      "canShip": false
+    }
+  ],
+  "invariants": [
+    "No changes to live world geometry in this design contract",
+    "No houses in the starter outpost",
+    "River and broken usable bridge are beyond the southern forest, not within Crater Camp",
+    "Beginner deposits occur near the starter forest but high-tier ores do not appear there as abundant clutter",
+    "Goblin emergence is northeast; Direwood corruption is south of river",
+    "Preserve existing monster/item/save IDs, economics, multiplayer authority, interaction ranges and storage"
+  ],
+  "referencePrs": {
+    "equipment": 78,
+    "resourceScale": 77,
+    "olderBronze": 76,
+    "craterCreatures": 24,
+    "bossArchitecture": 72
+  }
+}
