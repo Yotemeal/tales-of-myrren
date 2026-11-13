@@ -2,6 +2,9 @@
  * cannot silently revert to a superseded character when artwork fails to load. */
 (function(){
 'use strict';
+// Scale experiment only: redraw will follow once 32x40 feels right in the real
+// world. This flag never replaces the approved source sheet or old saves.
+const scaleProof=/(?:[?&])kez-scale-proof(?:[=&]|$)/.test(window.location?.search||'');
 const atlas=new Image();
 let ready=false,failed=false;
 atlas.onerror=()=>{ready=false;failed=true;console.error('Kez V2 sprite atlas failed to load');window.dispatchEvent?.(new Event('myrren-kez-v2-error'))};
@@ -83,6 +86,8 @@ atlas.src='/assets/kez-v2/kez_v2_atlas.png?v=1';
 window.MyrrenKezV2Atlas={
  get ready(){return ready},
  get failed(){return failed},
+ get scaleProof(){return scaleProof},
+ get previewDimensions(){return scaleProof?{cellWidth:32,cellHeight:40,opaqueHeight:36}:null},
  get dimensions(){return {cellWidth:21,cellHeight:27,frames:4,rows:6,scale:1}},
  draw(ctx,x,y,o,now){
   if(!ready)return false;
@@ -105,7 +110,11 @@ window.MyrrenKezV2Atlas={
   const frame=useIdle?Math.floor(now/440)%4:swordHit?0:
     directionalIdle?0:o.moving?Math.floor(now/130)%4:0;
   const bounds=directionalIdle&&idleBounds[direction]?idleBounds[direction]:frameBounds[row][frame];
-  const scale=1,sw=bounds.right-bounds.left+1,sh=bounds.bottom-bounds.top+1;
+  const sw=bounds.right-bounds.left+1,sh=bounds.bottom-bounds.top+1;
+  // Only bare/fist characters get the visual scale proof. Existing worn gear,
+  // weapon grips, NPCs and all default gameplay remain on the live renderer.
+  const useScaleProof=scaleProof&&!o.g?.some(Boolean)&&(!o.tool||o.tool==='fist');
+  const scale=useScaleProof?36/sh:1;
   const dw=Math.round(sw*scale),dh=Math.round(sh*scale);
   const flip=false;
   ctx.save();ctx.imageSmoothingEnabled=false;
