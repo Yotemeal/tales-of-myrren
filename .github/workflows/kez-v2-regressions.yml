@@ -44,6 +44,7 @@ jobs:
         run: |
           node tests/kez-v2-rendering.test.cjs
           node tests/approved-kez-v3-art-contract.test.cjs
+          node tests/obsidianite-canonical-source-lock.test.cjs
           node tests/idle-pixel-integrity.test.cjs
       - name: Save, balance and gameplay regressions
         run: |
