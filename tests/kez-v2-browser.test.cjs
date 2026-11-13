@@ -28,7 +28,7 @@ async function checkBronzeArt(browser,base){
       const original=await response.text();
       const loop='  update(dt,now);';
       assert(original.includes(loop));
-      const script=original.replace(loop,loop+'\\n  window.bronzeArtQA?.apply(now);');
+      const script=original.replace(loop,loop+'\n  window.bronzeArtQA?.apply(now);');
       const end=script.lastIndexOf('})();');
       assert(end>0);
       const hook=`
@@ -54,9 +54,10 @@ async function checkBronzeArt(browser,base){
     });
     await page.goto(base+'/?bronze-art');
     await page.waitForFunction(()=>window.MyrrenBronzeArt?.ready()&&!document.querySelector('#go').disabled);
+    assert.deepEqual(errors,[], 'game scripts should load before entering');
     await page.locator('#nick').fill('Bronze QA');
     await page.locator('#go').click();
-    await page.waitForFunction(()=>document.querySelector('#intro').hidden);
+    await page.waitForFunction(()=>document.querySelector('#intro').hidden,{timeout:5000});
     assert.deepEqual(await page.evaluate(()=>window.bronzeArtQA.equip()),[2,2,2,2,2,2]);
     await page.evaluate(()=>{
       const original=window.MyrrenBronzeArt.draw;
