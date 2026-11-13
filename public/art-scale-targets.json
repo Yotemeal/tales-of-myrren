@@ -1,0 +1,238 @@
+{
+  "schema": "tales-of-myrren/world-scale-study/v1",
+  "status": "review-only-not-production-approved",
+  "basis": "Myrren main (2026-11-11); visual proportions from Curse of Aros public gameplay screenshots (not original sprite files)",
+  "uncertainty": "Curse of Aros native asset dimensions and internal map tile size could not be independently verified. Targets are original Myrren proposals, not asserted CoA sprite measurements.",
+  "units": "game-world pixels, before canvas/device zoom",
+  "tileSize": 16,
+  "world": {
+    "width": 1600,
+    "height": 1600,
+    "tilesWide": 100,
+    "tilesHigh": 100,
+    "change": false
+  },
+  "character": {
+    "image": "/assets/kez-v2/kez_v2_atlas.png",
+    "sourceAtlas": [
+      84,
+      162
+    ],
+    "frame": [
+      21,
+      27
+    ],
+    "display": [
+      21,
+      27
+    ],
+    "change": false
+  },
+  "resources": {
+    "ores": {
+      "originalSourceDimensions": {
+        "copper": [
+          167,
+          134
+        ],
+        "tin": [
+          153,
+          133
+        ],
+        "iron": [
+          162,
+          136
+        ],
+        "coal": [
+          164,
+          138
+        ],
+        "black_iron": [
+          203,
+          147
+        ],
+        "obsidianite": [
+          161,
+          135
+        ],
+        "myrrenite": [
+          161,
+          184
+        ],
+        "meteorite": [
+          162,
+          134
+        ]
+      },
+      "previewWidths": {
+        "copper": 22,
+        "tin": 22,
+        "iron": 22,
+        "coal": 22,
+        "black_iron": 26,
+        "obsidianite": 26,
+        "myrrenite": 26,
+        "meteorite": 26
+      },
+      "finalArtBudget": "Native 22px common / 26px rare ore clusters, with single-stage integer/nearest-neighbour draw. Existing large reference PNGs remain untouched for approved art direction.",
+      "physicalFootprintChange": false,
+      "currentSourceDrawWidth": 24,
+      "outerDrawScale": 0.72,
+      "currentEffectiveDisplayWidth": 17.28,
+      "note": "Current rock wrapper drawRock() applies ctx.scale(0.72,0.72) OUTSIDE MyrrenEnvironment.rock() which draws 24px resource images; the effective width is 17.28 game px. Procedural 42px fallback becomes 30.24px wide and visibly changes size when the PNG loads."
+    },
+    "trees": {
+      "originalSourceSize": [
+        96,
+        96
+      ],
+      "currentDisplay": [
+        144,
+        144
+      ],
+      "species": {
+        "bramblewood": {
+          "previewWidth": 58,
+          "targetAuthoredSize": [
+            58,
+            76
+          ],
+          "note": "starter conifer; taller than wide, broad tiers of boughs"
+        },
+        "alder": {
+          "previewWidth": 64,
+          "targetAuthoredSize": [
+            64,
+            78
+          ],
+          "note": "well-rounded canopy, readable sturdy trunk"
+        },
+        "ironbark": {
+          "previewWidth": 68,
+          "targetAuthoredSize": [
+            68,
+            90
+          ],
+          "note": "mature taller tree with open lower trunk"
+        },
+        "elderthorn": {
+          "previewWidth": 102,
+          "targetAuthoredSize": [
+            102,
+            124
+          ],
+          "note": "deliberately rare oversized ancient; branching limbs and roots"
+        },
+        "starroot": {
+          "previewWidth": 82,
+          "targetAuthoredSize": [
+            82,
+            106
+          ],
+          "note": "rare mystical tree; distinctive roots, restrained luminescence"
+        },
+        "duskwillow": {
+          "previewWidth": 68,
+          "targetAuthoredSize": [
+            68,
+            89
+          ],
+          "note": "ornamental hanging boughs, airy silhouette"
+        },
+        "redleaf": {
+          "previewWidth": 62,
+          "targetAuthoredSize": [
+            62,
+            78
+          ],
+          "note": "ornamental warm canopy, consistent shading"
+        }
+      },
+      "animationNote": "Never animate full tree by 24 horizontal source-image slices; stable trunk, independent canopy/leaf frames at native pixel resolution.",
+      "physicalFootprintChange": false,
+      "notes": "Target proportions calibrated to 21x27 Kez character; common crowns 2.8–3.2 character widths and trees 2.8–3.3 character heights, not 144x144. Native final art taller than existing 96x96 square sprites; preview width may not portray new height until art is authored."
+    }
+  },
+  "buildings": {
+    "currentFootprintWidths": {
+      "axe": 56,
+      "pick": 56,
+      "arms": 88,
+      "food": 56,
+      "fish": 54
+    },
+    "recommendation": "Keep footprints/doors/collision fixed during scale study; re-evaluate 70–100px displayed facades after trees shrink.",
+    "change": false,
+    "currentVisibleIllustration": "Building art renders into a 110x126 local canvas but actual house silhouette varies by shop and its roof heights; 54–88 px are base footprints, not full visible-art widths. Arms smithy is an open outdoor station instead of a closed facade.",
+    "targetVisualFacade": "[approx. 70–100px width × 68–105px height] for small shops; major public structures up to 110–140px wide. Existing game/shop interaction footprints stay constant pending art review."
+  },
+  "paths": {
+    "currentTotalWidthApprox": 26,
+    "proposedMainVisualWidth": 34,
+    "notes": "Current pathKind threshold is 13px on either side of route. Test 34px (around two tiles) as a visual-only change; retain world positions and access/collisions.",
+    "change": false
+  },
+  "fishing": {
+    "recommendation": "Keep node positions, approximate 24–36px effect envelope with understated ripples/fish; future art pass.",
+    "change": false
+  },
+  "designRule": "Use coherent pixel density, original colour language, restrained outlines and native nearest-neighbour assets. Objects share a feet/ground anchor, never rescale the source with nested fractional transforms.",
+  "monsters": {
+    "actual": "Monsters are currently drawn by procedural per-pixel sprSlime, sprGoblin, sprWolf and sprQuad in myrren-game.js; many share approximate 12–25px silhouettes. Main boss bear species use Q_BEAR-sized artwork, not a separate native boss atlas.",
+    "targetBounds": {
+      "slime": [
+        12,
+        10,
+        16,
+        12
+      ],
+      "goblin": [
+        15,
+        18,
+        20,
+        24
+      ],
+      "wolf": [
+        24,
+        15,
+        30,
+        23
+      ],
+      "boar": [
+        22,
+        15,
+        30,
+        23
+      ],
+      "bear": [
+        28,
+        22,
+        38,
+        31
+      ],
+      "eliteBoss": [
+        42,
+        38,
+        58,
+        52
+      ],
+      "smallWildlife": [
+        10,
+        7,
+        22,
+        20
+      ],
+      "pets": [
+        10,
+        9,
+        18,
+        18
+      ]
+    },
+    "note": "TargetBounds [minimum width,minimum height,maximum width,maximum height] are design budgets, not existing sprite metrics. Keep collision and AI reach unchanged until sprite-review and combat QA."
+  },
+  "camera": {
+    "basis": "Current world is 1600x1600, 16px tiles, 100x100 tiles; 5 built shop/station anchors around an 800x800 crater hub. Preserve saved world coordinates and screen zoom; change scenery density and distinct biomes first.",
+    "change": false
+  }
+}

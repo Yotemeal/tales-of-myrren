@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Tales of Myrren — World Scale Study</title>
+<style>
+:root{color-scheme:dark;background:#181b20;color:#f0e7d4;font:14px/1.5 system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0}main{max-width:1140px;margin:auto;padding:20px}
+h1{font:600 clamp(26px,4vw,39px) Georgia,serif;margin:5px 0 12px}
+h2{font:600 18px system-ui,sans-serif}
+p{color:#c5c3b8;line-height:1.6}
+.eyebrow{color:#e1bc76;letter-spacing:.14em;font-size:11px;text-transform:uppercase;font-weight:bold}
+.panel{background:#252a2b;border:1px solid #53594d;border-radius:12px;padding:16px;margin:16px 0}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+label{display:grid;gap:5px;font-size:12px;color:#e9ddc7;min-width:142px}
+select,button,input{font:inherit}
+select,button{padding:9px;background:#393e3b;border:1px solid #777767;border-radius:8px;color:#fff0d5}
+button{cursor:pointer}input[type=range]{width:180px;accent-color:#ddbb7b}
+.scroller{overflow-x:auto;padding-bottom:4px}
+canvas{display:block;width:1360px;height:520px;max-width:none;image-rendering:pixelated;background:#39483d}
+.info{font-size:12px;color:#edcd92}
+.note{border-left:3px solid #b99255;padding-left:12px}
+a{color:#eac581}
+table{border-collapse:collapse;width:100%;font-size:13px}td,th{padding:7px;border-bottom:1px solid #52584e;text-align:left}th{color:#e8d8bb}
+</style></head><body><main>
+<div class="eyebrow">Tales of Myrren · Concept scale QA only</div>
+<h1>Character-to-world proportions</h1>
+<p>Both panels reuse the real deployed Kez V2 character, actual tree and ore PNGs, and the current building drawing code. Only the proposed tree and ore display widths and visible pathway change on the right. Trees in the right panel still use the existing square art as a sizing proxy; the final trees will be drawn as new, taller native sprites. This is a representative comparison stage, <strong>not a map screenshot</strong>.</p>
+<section class="panel">
+<div class="controls">
+<label>Comparison area
+<select id="scene"><option value="camp">Camp and shop</option><option value="forest">Forest and ore</option><option value="lakeside">Lake and fishing</option></select></label>
+<label>Proposed tree width <span id="treePct"></span>
+<input id="treeFactor" type="range" min="65" max="135" step="5" value="100"></label>
+<label>Proposed ore width <span id="orePct"></span>
+<input id="oreFactor" type="range" min="70" max="140" step="5" value="100"></label>
+<button id="reset" type="button">Reset comparison</button>
+</div>
+<p id="status" class="info" role="status">Loading character, rocks and trees…</p>
+<div class="scroller"><canvas id="comparison" width="1360" height="520" aria-label="Two side-by-side panels comparing current game-world rock and tree sizes with adjustable proposed sizes"></canvas></div>
+<p class="info">Both scenes use a fixed 2× integer display zoom. Compare object-to-character ratios, not the absolute number of screen pixels.</p>
+</section>
+<section class="panel"><h2>Provisional size contract</h2>
+<table>
+<thead><tr><th>Object</th><th>Current game size</th><th>Proposed game-space target</th></tr></thead>
+<tbody>
+<tr><td>Character</td><td>21 × 27</td><td>21 × 27 — keep for now</td></tr>
+<tr><td>Ordinary ore node</td><td>~17px effective (24 × 0.72)</td><td>About 22px wide, authored at native size</td></tr>
+<tr><td>Rare ore node</td><td>~17px effective (24 × 0.72)</td><td>About 26px wide, authored at native size</td></tr>
+<tr><td>Common trees</td><td>144 × 144</td><td>~58–68px wide; ~76–90px authored height</td></tr>
+<tr><td>Ancient / rare tree</td><td>144 × 144</td><td>~82–102px wide; ~106–124px authored height</td></tr>
+<tr><td>Shop footprints</td><td>54–88px wide</td><td>Keep collisions; redesign façades around ~70–100px wide</td></tr>
+<tr><td>Monsters</td><td>Small pixel-drawn silhouettes; many bosses use a normal bear-sized base</td><td>Clear species silhouettes; bosses ~1.4–2 player heights</td></tr>
+<tr><td>Major paths</td><td>~26px wide</td><td>Preview 34px wide; no path collision change</td></tr>
+<tr><td>World / tiles</td><td>1600×1600 / 16×16</td><td>Keep game world and saved coordinates</td></tr>
+</tbody></table>
+</section>
+<p class="note"><strong>Scale study, not an asset conversion.</strong> Existing resource PNGs are temporarily resampled in this viewer to check visual footprint. Once proportions are approved, Work should hand-author source art at the target native pixel dimensions rather than downsample 150px ore paintings or stretch square 96px trees. The current game code, collisions, harvest mechanics and saves are completely unchanged.</p>
+<p><a href="/">Back to game</a> · <a href="https://github.com/Yotemeal/tales-of-myrren/blob/art/world-scale-ratios-2026-11/public/art-scale-targets.json">Scale metadata</a></p>
+</main>
+<script src="/myrren-world.js?v=1"></script>
+<script src="/myrren-environment.js?v=1"></script>
+<script src="/kez-v2-atlas.js?v=1"></script>
+<script src="/asset-scale-lab.js?v=1"></script>
+<script>
+  const tree=document.querySelector('#treeFactor'),ore=document.querySelector('#oreFactor');
+  function updateLabels(){document.querySelector('#treePct').textContent=tree.value+'%';document.querySelector('#orePct').textContent=ore.value+'%'}
+  for(const input of [tree,ore])input.addEventListener('input',updateLabels);
+  document.querySelector('#reset').addEventListener('click',updateLabels);
+  updateLabels();
+</script>
+</body></html>
