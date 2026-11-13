@@ -17,12 +17,77 @@ const server=http.createServer((request,response)=>{
     fs.createReadStream(filename).pipe(response);
   }catch(_){response.writeHead(404);response.end('Not found')}
 });
+async function checkBronzeArt(browser,base){
+  for(const [name,width,height] of [['desktop',1100,720],['mobile',390,844]]){
+    const mobile=name==='mobile';
+    const page=await browser.newPage({viewport:{width,height},isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1});
+    const errors=[];
+    page.on('pageerror',error=>errors.push(error.message));
+    await page.route('**/myrren-game.js?*',async route=>{
+      const response=await route.fetch();
+      const original=await response.text();
+      const loop='  update(dt,now);';
+      assert(original.includes(loop));
+      const script=original.replace(loop,loop+'\\n  window.bronzeArtQA?.apply(now);');
+      const end=script.lastIndexOf('})();');
+      assert(end>0);
+      const hook=`
+        window.bronzeArtQA={
+          equip(){
+            for(const kind of ['helm','body','legs','boots','gloves','shield','sword']){
+              save.bag.push('bronze_'+kind);
+              equipFromBag(save.bag.length-1);
+            }
+            return gearArr();
+          },
+          state:null,
+          apply(now){
+            if(!this.state)return;
+            const [dv,face,action]=this.state;
+            Object.assign(me,{dv,face,moving:action==='walk',
+              swing:action==='attack'?now-250:-99999,
+              deathAt:action==='death'?now-320:null});
+          }
+        };
+      `;
+      await route.fulfill({response,body:script.slice(0,end)+hook+script.slice(end)});
+    });
+    await page.goto(base+'/?bronze-art');
+    await page.waitForFunction(()=>window.MyrrenBronzeArt?.ready()&&!document.querySelector('#go').disabled);
+    await page.locator('#nick').fill('Bronze QA');
+    await page.locator('#go').click();
+    await page.waitForFunction(()=>document.querySelector('#intro').hidden);
+    assert.deepEqual(await page.evaluate(()=>window.bronzeArtQA.equip()),[2,2,2,2,2,2]);
+    await page.evaluate(()=>{
+      const original=window.MyrrenBronzeArt.draw;
+      window.MyrrenBronzeArt.draw=(...args)=>{
+        const drawn=original(...args);
+        if(drawn&&args[3].isMe)window.bronzeArtQA.drew=true;
+        return drawn;
+      };
+    });
+    for(const [direction,dv,face] of [['front','d',1],['right','s',1],['back','u',1],['left','s',-1]]){
+      for(const action of ['idle','walk','attack','death']){
+        await page.evaluate(state=>{
+          window.bronzeArtQA.drew=false;
+          window.bronzeArtQA.state=state;
+        },[dv,face,action]);
+        await page.waitForFunction(()=>window.bronzeArtQA.drew);
+        await page.screenshot({path:'/tmp/myrren-asset-bronze-'+name+'-'+direction+'-'+action+'.png'});
+      }
+    }
+    assert.deepEqual(errors,[]);
+    await page.close();
+  }
+  console.log('PASS: supplied Bronze PNGs drawn in the real game on desktop and mobile');
+}
 (async()=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const base='http://127.0.0.1:'+server.address().port;
   let browser;
   try{
     browser=await chromium.launch({headless:true});
+    if(process.argv.includes('--bronze-art')){await checkBronzeArt(browser,base);return;}
     const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
     const errors=[];
     page.on('pageerror',e=>errors.push(e.message));
