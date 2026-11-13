@@ -1,3 +1,15 @@
+# REJECTED — Obsidianite 32×48 walk proof
+
+**User visual rejection:** "thats not correct at all" (13 November 2026).
+
+This was an inappropriate production method: resampling and programmatically moving pieces of a source-derived *standing* figure did not produce acceptable authentic animations. **Do not use any PNG, atlas, GIF, or code from `Myrren_Obsidianite_32x48_Walk_Proof.zip` as approved artwork, animation reference, or input for the release.** The 20 extracted/test frames are only a record of a failed experiment. Passing transparency/atlas tests cannot override the visual rejection.
+
+**Corrected work order:** Use the user's existing Kez base four-direction artwork, preferred dark-violet Obsidianite appearance, original canonical front, Bronze/Iron animation examples, and already-decided character scale. Preserve the compact body and concealed-eye helmet with lower-face opening. Author *distinct, actual pixel art* for four-direction idle, walk, attack and death (four frames each), then inspect visual fidelity, alignment and motion. Do not substitute colour-block procedural armour or generated progress infographic. Original source and in-game character remain unchanged until explicit approval.
+
+**State:** blocked on genuinely authored visual frames, not missing user input. No current art is mergeable. The prior QA record is retained below for traceability.
+
+---
+
 # Obsidianite — 32×48 native walk motion proof (NOT game-ready)
 
 **Status:** Local transparency and animation-movement *proof only*. User-preferred mysterious Obsidianite appearance; original approved front master remains untouched.
