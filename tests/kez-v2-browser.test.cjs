@@ -17,7 +17,7 @@ const server=http.createServer((request,response)=>{
     fs.createReadStream(filename).pipe(response);
   }catch(_){response.writeHead(404);response.end('Not found')}
 });
-async function checkBronzeArt(browser,base){
+async function checkCostumeArt(browser,base,tier,material){
   for(const [name,width,height] of [['desktop',1100,720],['mobile',390,844]]){
     const mobile=name==='mobile';
     const page=await browser.newPage({viewport:{width,height},isMobile:mobile,hasTouch:mobile,deviceScaleFactor:mobile?2:1});
@@ -33,9 +33,11 @@ async function checkBronzeArt(browser,base){
       assert(end>0);
       const hook=`
         window.bronzeArtQA={
-          equip(){
+          equip(tier){
             for(const kind of ['helm','body','legs','boots','gloves','shield','sword']){
-              save.bag.push('bronze_'+kind);
+              const id=tier+'_'+kind, def=DEFS[id];
+              save.xp[def.skill]=Math.max(save.xp[def.skill],xpTable[def.req]);
+              save.bag.push(id);
               equipFromBag(save.bag.length-1);
             }
             return gearArr();
@@ -52,13 +54,13 @@ async function checkBronzeArt(browser,base){
       `;
       await route.fulfill({response,body:script.slice(0,end)+hook+script.slice(end)});
     });
-    await page.goto(base+'/?bronze-art');
+    await page.goto(base+'/?'+tier+'-art');
     await page.waitForFunction(()=>window.MyrrenBronzeArt?.ready()&&!document.querySelector('#go').disabled);
     assert.deepEqual(errors,[], 'game scripts should load before entering');
-    await page.locator('#nick').fill('Bronze QA');
+    await page.locator('#nick').fill(tier+' QA');
     await page.locator('#go').click();
     await page.waitForFunction(()=>document.querySelector('#intro').hidden,{timeout:5000});
-    assert.deepEqual(await page.evaluate(()=>window.bronzeArtQA.equip()),[2,2,2,2,2,2]);
+    assert.deepEqual(await page.evaluate(t=>window.bronzeArtQA.equip(t),tier),Array(6).fill(material));
     await page.evaluate(()=>{
       const original=window.MyrrenBronzeArt.draw;
       window.MyrrenBronzeArt.draw=(...args)=>{
@@ -74,13 +76,13 @@ async function checkBronzeArt(browser,base){
           window.bronzeArtQA.state=state;
         },[dv,face,action,swingAge]);
         await page.waitForFunction(()=>window.bronzeArtQA.drew);
-        await page.screenshot({path:'/tmp/myrren-asset-bronze-'+name+'-'+direction+'-'+action+(action==='attack'?'-'+swingAge:'')+'.png'});
+        await page.screenshot({path:'/tmp/myrren-asset-'+tier+'-'+name+'-'+direction+'-'+action+(action==='attack'?'-'+swingAge:'')+'.png'});
       }
     }
     assert.deepEqual(errors,[]);
     await page.close();
   }
-  console.log('PASS: supplied Bronze PNGs drawn in the real game on desktop and mobile');
+  console.log('PASS: '+tier+' PNGs drawn in the real game on desktop and mobile');
 }
 (async()=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
@@ -88,7 +90,8 @@ async function checkBronzeArt(browser,base){
   let browser;
   try{
     browser=await chromium.launch({headless:true});
-    if(process.argv.includes('--bronze-art')){await checkBronzeArt(browser,base);return;}
+    if(process.argv.includes('--bronze-art')){await checkCostumeArt(browser,base,'bronze',2);return;}
+    if(process.argv.includes('--iron-art')){await checkCostumeArt(browser,base,'iron',3);return;}
     const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
     const errors=[];
     page.on('pageerror',e=>errors.push(e.message));

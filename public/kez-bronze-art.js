@@ -1,16 +1,19 @@
-/* Source-derived Bronze costume. Gameplay and equipment ownership stay with the game. */
+/* Source-derived full-suit previews. Gameplay and equipment ownership stay with the game. */
 (() => {
   'use strict';
-  if(!new URLSearchParams(location.search).has('bronze-art'))return;
-  const root='/assets/characters/kez-v3-bronze/';
+  const flags=new URLSearchParams(location.search);
+  const iron=flags.has('iron-art');
+  if(!iron&&!flags.has('bronze-art'))return;
+  const material=iron?3:2;
+  const root='/assets/characters/kez-v3-'+(iron?'iron':'bronze')+'/';
   function load(name,width,height){
     const image=new Image();
     image.src=root+name+'.png';
     return {image,ready:()=>image.complete&&image.naturalWidth===width&&image.naturalHeight===height};
   }
-  const body=load('bronze_32x40',512,160);
-  const sword=load('bronze_sword',14,14);
-  const shield=load('bronze_shield',8,10);
+  const body=load(iron?'body':'bronze_32x40',512,160);
+  const sword=load(iron?'sword':'bronze_sword',14,14);
+  const shield=load(iron?'shield':'bronze_shield',8,10);
   const readyHands=[[6,-10],[5,-10],[-6,-10],[-5,-10]];
   const swingHands=[
     [[6,-10],[7,-11],[8,-12],[6,-17]],
@@ -18,11 +21,12 @@
     [[-6,-10],[-6,-11],[-7,-12],[7,-19]],
     [[-5,-10],[-5,-11],[-7,-12],[6,-18]]
   ];
+  const ironFinishHands=[[7,-19],[7,-17],[7,-21],[7,-20]];
   const ready=()=>body.ready()&&sword.ready()&&shield.ready();
   function draw(ctx,x,y,state,now,deathAge=-1,hurtAge=-1){
     const g=state.g;
-    if(!ready()||g?.length!==6||g.some((mat,slot)=>slot===4?mat!==0&&mat!==2:mat!==2))return false;
-    const armed=state.tool==='sword'&&state.mat===2;
+    if(!ready()||g?.length!==6||g.some((mat,slot)=>slot===4?mat!==0&&mat!==material:mat!==material))return false;
+    const armed=state.tool==='sword'&&state.mat===material;
     if(state.tool&&state.tool!=='fist'&&!armed)return false;
     const swing=now-(state.swingAt??-99999);
     const attacking=swing>=0&&swing<320;
@@ -35,7 +39,7 @@
     if(hurtAge>=0&&hurtAge<220)ctx.globalAlpha*=.65;
     ctx.translate(Math.round(x),Math.round(y));
     const paintShield=()=>{
-      if(g[4]!==2||deathAge>=0)return;
+      if(g[4]!==material||deathAge>=0)return;
       const left=row===0||row===1;
       if(row===1||row===3){
         // Side poses show the rim. The cropped strip uses the supplied shield pixels.
@@ -48,7 +52,7 @@
     const paintSword=()=>{
       if(!armed||deathAge>=0)return;
       ctx.save();
-      const [hx,hy]=attacking?swingHands[row][phase]:readyHands[row];
+      const [hx,hy]=!attacking?readyHands[row]:iron&&phase===3?ironFinishHands[row]:swingHands[row][phase];
       ctx.translate(hx,hy);
       const mirror=attacking&&phase===3?1:row>=2?-1:1;
       ctx.scale(mirror,1);
