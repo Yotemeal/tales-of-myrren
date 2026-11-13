@@ -261,5 +261,56 @@
       "Approval pending; not a finished source-resolution production animation set"
     ],
     "readyToMerge": false
+  },
+  "blackIronConceptCandidate": {
+    "materialId": 5,
+    "forgeLevel": 30,
+    "referenceFilename": "a_detailed_pixel_art_animation_sprite_sheet_in_a_c.png",
+    "referenceSha256": "2dda3f5d2b0cfab0422e5ff125bb0b0bfb264e5dbec8d4540b3db0babd0130e2",
+    "approvedOriginalFrontSha256": "92475dd69836183a9be23414216182f74ce0937d83a4b4d86efca1c846b9565b",
+    "status": "REVIEW ONLY — FAILED visual match with approved original Black Iron front",
+    "sourceDerivedFrames": 64,
+    "atlasCells": {
+      "columns": 16,
+      "rows": 4,
+      "cellWidth": 112,
+      "cellHeight": 156
+    },
+    "directions": [
+      "front",
+      "right",
+      "back",
+      "left"
+    ],
+    "actions": [
+      "idle",
+      "walk",
+      "attack",
+      "death"
+    ],
+    "qa": {
+      "transparentRGBA": true,
+      "all64CellsPopulated": true,
+      "atlasReconstruction": true,
+      "tinyIsolatedPixelComponentsRemoved": true,
+      "archiveCRC": true,
+      "originalFrontVisualFidelity": false,
+      "modularWearableLayersDone": false,
+      "liveGameTested": false
+    },
+    "releaseApproved": false,
+    "readyToMerge": false,
+    "designCorrectionsNeeded": [
+      "reproduce original pointed crown and sharply angled violet side flares",
+      "restore deep-violet chest plate, hanging side tassets and angular shoulders",
+      "avoid merely dark Steel silhouette and generic silver buckles",
+      "retain no back-facing front buckle; correctly occlude shield in sides/back"
+    ],
+    "limitations": [
+      "Concept full-suit sprites only; not individually wearable layers",
+      "Attack includes painted white slash, not separate weapon effect",
+      "Native world pixel scale not validated against live browser render",
+      "Artwork rejected against original approved Black Iron master pending redraw"
+    ]
   }
 }
