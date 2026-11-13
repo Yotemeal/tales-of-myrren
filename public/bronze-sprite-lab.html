@@ -1,0 +1,49 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Myrren — Bronze armour sheet fitting lab</title>
+<style>
+:root{color-scheme:dark;background:#17191d;color:#f1e6d2;font:14px system-ui,sans-serif}
+*{box-sizing:border-box}main{max-width:940px;margin:auto;padding:18px}
+h1{font:600 clamp(24px,4vw,35px) Georgia,serif}p{line-height:1.6;color:#c3bbaa}
+section{padding:17px;background:#25282b;border:1px solid #55524d;border-radius:12px;margin:16px 0}
+label{display:inline-flex;align-items:center;gap:8px;color:#eee4d0}
+.settings{display:flex;flex-wrap:wrap;gap:12px}
+.settings label{font-size:13px}
+select,button{border:1px solid #797064;background:#393b3a;color:#eee2cf;border-radius:7px;padding:8px;font:inherit}
+button{cursor:pointer}.checks{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px}
+.scroller{max-width:100%;overflow-x:auto}
+canvas{display:block;image-rendering:pixelated;background:#2b3d36;width:864px;max-width:none}
+.tag{color:#e2bc76;font-size:11px;letter-spacing:.13em;font-weight:700}
+.note{border-left:3px solid #bc9154;padding-left:12px}
+a{color:#edcc8a}
+</style></head><body><main>
+<div class="tag">TALES OF MYRREN · PROTOTYPE ONLY</div>
+<h1>Bronze armour — native sprite-sheet fitting</h1>
+<p>Actual character atlas remains 21×27 native pixels. Real transparent PNG layers (helmet, chest, leggings, boots, gloves, shield) are fitted over the existing Kez V2 directional character frames. This is a visual inspection page, not a live renderer change.</p>
+<section>
+<div class="settings">
+<label>Animation <select id="motion"><option value="walk" selected>Walking</option><option value="idle">Idle</option></select></label>
+<label>Frame <select id="frame"><option value="0">1</option><option value="1">2</option><option value="2">3</option><option value="3">4</option></select></label>
+<label>Zoom <select id="zoom"><option value="3">3×</option><option value="4" selected>4×</option><option value="5">5×</option></select></label>
+<label>Armour renderer <select id="mode"><option value="atlas" selected>Transparent PNG atlas</option><option value="procedural">Old rectangles — compare</option></select></label>
+<button id="play" type="button">Play</button><button id="step" type="button">Next frame</button>
+</div>
+<div class="checks">
+<label><input type="checkbox" id="helmet" checked>Helmet</label>
+<label><input type="checkbox" id="body" checked>Body</label>
+<label><input type="checkbox" id="legs" checked>Legs</label>
+<label><input type="checkbox" id="boots" checked>Boots</label>
+<label><input type="checkbox" id="gloves" checked>Gloves</label>
+<label><input type="checkbox" id="shield" checked>Shield</label>
+</div>
+<p id="status" role="status">Loading original character and Bronze atlas…</p>
+<h2>Bronze equipped</h2><div class="scroller"><canvas id="equipped" width="864" height="220"></canvas></div>
+<h2>Original character (no equipment)</h2><div class="scroller"><canvas id="base" width="864" height="220"></canvas></div>
+</section>
+<p class="note"><strong>Important:</strong> This first 21×27 PNG is a functional alignment study: helmets, chestplates and shields currently have static walking pixels. The preview aligns stationary poses but these layers still need authored animation.  <strong>not final approved Bronze art</strong>. Directional idle breathing, attack hand sockets, mixed tiers, visual quality and device-size review still need approval. No gameplay, progress, save, collision, multiplayer or production art files are changed by this page.</p>
+<p><a href="/">Return to the live game</a></p>
+</main>
+<script src="/kez-v2-atlas.js?v=1"></script>
+<script src="/kez-v2-equipment.js?v=1"></script>
+<script src="/native-gear-layers.js?v=1"></script>
+<script src="/bronze-sprite-lab.js?v=2"></script>
+</body></html>
