@@ -96,7 +96,7 @@ assert.equal(c.obsidianiteConceptCandidate.qa.realGameBrowserTested,false);
 assert.equal(c.obsidianiteConceptCandidate.qa.userApproved,false);
 assert.equal(c.obsidianiteConceptCandidate.readyToMerge,false);
 assert.equal(c.obsidianiteCanonicalTurnaroundV2.materialId,7);
-assert.equal(c.obsidianiteCanonicalTurnaroundV2.forgeLevel,40);
+assert.equal(c.obsidianiteCanonicalTurnaroundV2.forgingLevel,40);
 assert.equal(c.obsidianiteCanonicalTurnaroundV2.canonicalFrontSha256,c.obsidianiteSourceReference.sourceSha256);
 assert.equal(c.obsidianiteCanonicalTurnaroundV2.directionStudySourceSha256,'65383764dcbfe7dc9f1c87a754434ec569756f1282ac230bde9ae7945e4fda0d');
 assert.equal(c.obsidianiteCanonicalTurnaroundV2.canonicalFrontPixelPreserved,true);
