@@ -12,7 +12,7 @@
 - The user supplied a simple *Curse of Aros* character image as an **anatomical/scale example**, NOT as an asset to copy. Their specific constraints: compact and readable, **no massive arms, outlined elbow joints, long legs, or oversized accessories**. The character should blend into the world and read clearly at a small game pixel scale.
 - First generated attempt copied the reference too closely. The user rejected it over legal/originality concerns. **Never bring that attempt back.**
 - The user **approved a different new design**: warm-skinned small adventurer, asymmetric tousled medium-brown hair, big simple expressive square eyes, tiny cheek scar, olive-green short shoulder cape with small golden throat clasp, beige tunic, dark belt, short brown pants/boots. This is an independently authored Myrren identity, **not** an Aros clone. Keep the head-to-body ratio compact and friendly. Retain a one-pixel-dark outline and disciplined earthy shading; avoid excessive detail and visual noise.
-- The **accepted concept** was a large rendered image, not itself a pixel-perfect source sprite. Never resample the whole large concept and call the blurry result an authored native atlas. The base raster here was hand-defined from primitives at exactly **32×40 actual pixels per frame**.
+- The **accepted concept** is preserved on this branch as `approved_concept_reference.webp` and was a large rendered image, not itself a pixel-perfect source sprite. Never resample the whole large concept and call the blurry result an authored native atlas. The base raster here was hand-defined from primitives at exactly **32×40 actual pixels per frame**.
 - This newer base-design approval **supersedes the earlier Kez V3 unarmoured brown/gold concept for NEW character art only**. It does **not** erase old references, approve replacement armour, change forging tier progression, or authorize merging draft PRs. If any older approval conflicts, surface it and apply the latest specific character decision.
 
 ## 2. Files and where they belong
@@ -27,6 +27,7 @@ Production-candidate files in this isolated handoff branch:
 | `art/myrren-adventurer-v1/build_character.py` | Editable deterministic *native-pixel authoring source* — regenerate all frames, manifest, review sheet from Pillow. |
 | `art/myrren-adventurer-v1/test_character.py` | Pixel exactness/alpha/cell bounds/anchors/sockets/hash checks (run after any modification). |
 | `art/myrren-adventurer-v1/myrren_adventurer_v1_review.png` | 4-directions × 6-actions first-frame contact sheet, nearest-neighbour enlarged. NOT game source. |
+| `art/myrren-adventurer-v1/approved_concept_reference.webp` | **Original user-approved olive-cloak visual reference** preserved at 1254×1254 in web-friendly quality, not a sprite sheet. Original generation PNG SHA-256 `989e58624adde64903bc062592045bdb5b2868479100ce396c8d774158015a6d`; do not substitute the old Kez V3 concept. |
 | `docs/CHARACTER_V1_IMPLEMENTATION_HANDOFF.md` | This decision log and implementation contract. |
 
 ### Rebuild and local QA
