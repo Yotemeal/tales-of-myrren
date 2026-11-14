@@ -1,0 +1,63 @@
+{
+  "version": "v19b",
+  "status": "user-accepted current walking baseline (2026-11-15); no in-game approval yet",
+  "project": "Tales of Myrren",
+  "native_frame": [
+    24,
+    32
+  ],
+  "walk_atlas": {
+    "file": "myrren_walk_4x6_native.png",
+    "width": 144,
+    "height": 128,
+    "columns": 6,
+    "rows": [
+      "front",
+      "left",
+      "right",
+      "back"
+    ],
+    "milliseconds_per_frame": 110,
+    "sha256": "a0d9b80587e5d06584fda7bc97388a4a642f7e2a3031d20461085f8da4b38be7"
+  },
+  "idle_atlas": {
+    "file": "myrren_idle_4dir_native.png",
+    "width": 96,
+    "height": 32,
+    "columns": 4,
+    "order": [
+      "front",
+      "left",
+      "right",
+      "back"
+    ],
+    "sha256": "73127b54a3810fcd4087e733a2cbd3fc82bdfa1da210c0c733b650d24645fcd1"
+  },
+  "approved_front_master": {
+    "file": "myrren_front_game_ready_24x32.png",
+    "width": 24,
+    "height": 32,
+    "sha256": "bd28aadb6eead9b32172df4e96962cb247b87e760cc0220b490b006bc6b67895"
+  },
+  "approved_gif_source_sha256": {
+    "front": "84fe2e28ef254aaef8c9d31ff9fb23bd50fc7fa6c3a3ebb4d6fbf4a4443ef679",
+    "back": "4bb333fdffe0171e1072390f9a8dae04c34fb7be55329ff39815195dc3889fc7"
+  },
+  "v5_approved_side_sha256": {
+    "left_0": "019b494d3a8e0142211393c5c944a67ff9a19c9dc10f431fd26ce2813e6e12e5",
+    "left_1": "998cac5b361ddbd2e69fda9b196f951762990727215f624440f80ce40f0acb9a",
+    "left_2": "18eef2fe799488c8d2467faf5f4486c791eacc6bd087ee5a6b4365b9cd20d487",
+    "left_3": "cb0d1cd9ca4fa70639b01ddabb737a21e42c5baeb17bd3ad76a72056086db464",
+    "left_4": "f99b5a81cecde3a5aba5b29c8a596c8d4d0d610f5559dda800df1a0091eca19e",
+    "left_5": "e7488c1a616168cd64daadc160eca5c2700b93bc47dd512cc0d2d38528830950",
+    "right_0": "6efc66ab561edeeabb7af0696d34d084062d56bf23106e253ff2b3d52c0fe36b",
+    "right_1": "306b7780a4287aab11e5922f401dbd655c59768003f0f251e16e051252667846",
+    "right_2": "02a3481a4e826df4c295235ca98d26a483945aef27e0b3f20bce1a2ab046dec2",
+    "right_3": "e181189190997321a39670fa0a31d32cbe1b4012f38ad741db93c9f51b46c7cb",
+    "right_4": "8802fcb8760b5c10ca30a115d0d5664c22770d070417541f3089211afaa7ee3a",
+    "right_5": "0f3b8dbe28e48db5a4112a4357ba7754925ee8e1e1c0ddf705cec720dde03612"
+  },
+  "permissions": "No merge/deploy without explicit user approval",
+  "integration_tested": false,
+  "runtime_wired": false
+}

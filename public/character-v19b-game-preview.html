@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tales of Myrren</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="stylesheet" href="/myrren-ui.css?v=36">
+</head>
+<body>
+<div id="app">
+  <canvas id="cv"></canvas>
+  <div id="hud" class="gut" hidden>
+    <div id="hudL">
+      <div id="lvl" class="wood rim" title="Combat level"><b id="lvlTxt">3</b></div>
+    </div>
+    <div id="qline" class="wood rim" hidden></div>
+    <div id="tgt" class="wood rim" hidden><b id="tgtName">Pink slime</b><div class="tb"><i id="tgtFill"></i></div></div>
+    <div id="hudBottom">
+    <div id="bars"><div id="hp" class="ebar"><i id="hpFill"></i><span id="hpTxt">10 / 10</span></div></div>
+    <nav id="hudR" aria-label="Quick menus">
+      <button class="ibtn" type="button" data-ui-open="gear" aria-label="Equipment" title="Equipment" data-i="helm"></button>
+      <button class="ibtn" type="button" data-ui-open="skills" aria-label="Skills" title="Skills" data-i="pick"></button>
+      <button class="ibtn" type="button" data-ui-open="jobs" aria-label="Jobs" title="Jobs" data-i="scroll"></button>
+      <button id="bMenu" class="ibtn" type="button" aria-label="Settings" data-i="cog"></button>
+      <button id="bBag" class="ibtn" type="button" aria-label="Backpack" title="Inventory" data-i="bag"></button>
+    </nav>
+    </div>
+  </div>
+  <div id="toast"></div>
+  <!-- Lightweight XP drops live above menus so forging/cooking gains remain visible. -->
+  <div id="xpDrops" aria-hidden="true"></div>
+  <ol id="chat" hidden></ol>
+  <div id="pad" hidden aria-label="Movement pad"><div id="knob"></div></div>
+  <div id="acts" hidden>
+    <button id="aEat" class="ibtn round" type="button" aria-label="Eat bread"><span data-i="bread"></span><em id="eatN"></em></button>
+    <button id="aUse" class="ibtn big" type="button" aria-label="Gather what you are facing, or talk to the shopkeeper"></button>
+    <button id="aAtk" class="ibtn big" type="button" aria-label="Attack. Hold to keep swinging"></button>
+  </div>
+  <div id="modal" hidden>
+    <div class="win" role="dialog" aria-labelledby="mTitle">
+      <header><h2 id="mTitle">Equipment</h2><button id="mClose" class="x" type="button" aria-label="Close">X</button></header>
+
+      <section id="mBody"></section>
+      <footer class="window-footer" aria-label="Currencies"><div class="currency"><span data-i="coins"></span><span class="label">GOLD</span><strong id="mCoins">0</strong><button id="bBanknotes" class="banknote-toggle" type="button" hidden aria-label="Withdraw as banknotes" aria-pressed="false" title="Withdraw normal items"><svg viewBox="0 0 20 20" width="26" height="26" aria-hidden="true" shape-rendering="crispEdges"><path fill="#413a2c" d="M2 1h13l3 3v15H2z"/><path fill="#e5d39b" d="M3 2h11v4h3v12H3z"/><path fill="#a59464" d="M14 2v4h3zM5 5h6v2H5zM5 13h10v1H5zM5 15h7v1H5z"/><path fill="#538c83" d="M10 7h2v2h2v2h-2v2h-2v-2H8V9h2z"/></svg></button></div><div class="currency tokens"><span data-i="scroll"></span><span class="label">JOB TOKENS</span><strong id="mTokens">0</strong></div></footer>
+    </div>
+  </div>
+  <div id="intro" class="gut">
+    <div class="card">
+      <h1><span>TALES OF</span><strong>MYRREN</strong></h1>
+      <p>An old woodland. A new name.<br>Your story begins in Myrren.</p>
+      <div class="intro-controls"><span><b>MOVE</b>WASD / pad</span><span><b>GATHER</b>E / tool</span><span><b>FIGHT</b>Space / sword</span></div>
+      <details><summary>How to play</summary><p>Move with WASD, the arrow keys or the pad. To gather, equip a tool, stand close to a tree, rock or fishing spot, face it and press E or the tool button. Hold Space or the sword button to keep attacking a nearby enemy; your character turns toward the selected target. Tap a tree or rock to see its name and level. Visit Trader Gus for starter tools and supplies. Use the outdoor furnace to smelt ingots and the anvil to forge equipment. Cook your catch on the campfire, store items in the bank chest and take odd jobs from the board.</p></details>
+      <div class="row"><input id="nick" maxlength="14" placeholder="Your name" aria-label="Your name" autocomplete="off"><button id="go" class="btn" type="button">ENTER</button></div>
+      <div id="net">Connecting...</div>
+    </div>
+  </div>
+</div>
+
+<div id="v19b-preview-tools" aria-label="V19B test controls" style="position:fixed;z-index:99999;top:5px;right:5px;display:flex;align-items:center;gap:6px;padding:4px 6px;border:1px solid #83978b;border-radius:8px;background:rgba(22,34,26,.94);color:#f5f8f2;font:10px/1.3 sans-serif">
+  <span id="v19b-build-notice" aria-live="polite">V19B PREVIEW · LOADING</span>
+  <button id="v19b-compare" type="button" aria-label="Compare original character rendering" aria-pressed="true" style="padding:5px 6px;border:1px solid #83978b;border-radius:6px;background:#395246;color:#fff;font:10px sans-serif">V19B ON</button>
+</div>
+
+<script src="/myrren-world.js?v=8"></script>
+<script src="/myrren-environment.js?v=13"></script>
+<script src="/wardrobe-v5.js?v=5"></script>
+<script src="/forged-swords-v1.js?v=3"></script>
+<script src="/kez-v2-atlas.js?v=12"></script>
+<script src="/kez-v2-equipment.js?v=1"></script>
+<script src="/kez-v2-sword-motion.js?v=1"></script>
+<script src="/myrren-camp-props.js?v=2"></script>
+<script src="/myrren-v19b-atlas.js"></script>
+<script src="/myrren-v19b-optin-game-bridge.js"></script>
+<script>
+  (() => {
+    'use strict';
+    const status=document.getElementById('v19b-build-notice');
+    const toggle=document.getElementById('v19b-compare');
+    const bridge=window.MyrrenV19BGameplayPreview;
+    const native=window.MyrrenV19BAtlas;
+    const refresh=() => {
+      if(native?.failed) status.textContent='V19B ATLAS ERROR';
+      else if(!native?.ready) status.textContent='V19B PREVIEW · LOADING';
+      else status.textContent=bridge?.enabled?'V19B WALK/IDLE':'LEGACY COMPARISON';
+      toggle.textContent=bridge?.enabled?'V19B ON':'LEGACY';
+      toggle.setAttribute('aria-pressed',String(!!bridge?.enabled));
+    };
+    addEventListener('myrren-v19b-ready',refresh);
+    addEventListener('myrren-v19b-error',refresh);
+    toggle.addEventListener('click',event=>{
+      event.stopPropagation();
+      if(bridge) bridge.setEnabled(!bridge.enabled);
+      refresh();
+    });
+    refresh();
+  })();
+</script>
+<script src="/myrren-game.js?v=92"></script>
+
+</body>
+</html>

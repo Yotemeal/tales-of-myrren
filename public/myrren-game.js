@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=91;
+window.MyrrenBuild=92;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -3142,10 +3142,14 @@ function drawKezV2(x,y,o,now){
     return false;
   }
   const gear=window.MyrrenKezV2Equipment;
-  const state={...o,now},deathAt=o.isMe?me.deathAt:o.deathAt;
+  const deathAt=o.isMe?me.deathAt:o.deathAt;
+  const hurtAt=o.isMe?(me.hurtAt??-99999):(o.hurtAt??-99999);
+  // Resolve local-only death/hurt timestamps once and expose them to opt-in
+  // character adapters; the legacy renderer and gameplay timings stay unchanged.
+  const state={...o,now,deathAt,hurtAt};
   const deathAge=deathAt==null?-1:now-deathAt;
   const age=now-(o.swingAt??-99999),attacking=age>=0&&age<320;
-  const hurtAge=now-(o.isMe?(me.hurtAt??-99999):(o.hurtAt??-99999));
+  const hurtAge=now-hurtAt;
   const holding=o.tool&&o.tool!=='fist'&&(attacking||now<o.hold);
   const direction=o.dv==='u'?'back':o.dv==='s'?'side':'front';
   const facing=o.f<0?-1:1;

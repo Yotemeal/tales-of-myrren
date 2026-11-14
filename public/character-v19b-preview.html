@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Myrren V19B | Native Sprite Preview Only</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: #141b18; color: #f0f1ed; margin: 0; padding: 14px; }
+    main { max-width: 650px; margin: auto; }
+    h1 { font-size: 1.1rem; margin: 4px 0; }
+    p { font-size: .85rem; line-height: 1.45; color: #c9d6cf; }
+    #stage-scroll { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+    #stage { box-sizing: content-box; width: 384px; height: 216px; max-width: none; border-radius: 12px;
+      overflow: hidden; border: 1px solid #57645e; background: #26342d; }
+    canvas { width: 384px; height: 216px; display: block; image-rendering: pixelated;
+      image-rendering: crisp-edges; }
+    .controls { display: flex; gap: 8px; align-items: center; padding-top: 10px; }
+    button { color: #f5f5f3; background: #34463d; border: 1px solid #687f72;
+      border-radius: 9px; padding: 8px 14px; font: inherit; cursor: pointer; }
+    #status { font-size: .85rem; color: #c6e4d4; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Myrren V19B — isolated walking review</h1>
+  <p>Native 24×32 frames • exact 2× CSS scale • 6 × 110 ms walking cycle. This page does not run the game, save progress, equip armour or connect multiplayer.</p>
+  <div id="stage-scroll"><div id="stage"><canvas id="preview" width="192" height="108" aria-label="Four-direction animated sprite preview"></canvas></div></div>
+  <div class="controls"><button id="toggle" type="button">Pause walking</button><span id="status">Loading native sprites…</span></div>
+  <p>Left and right V5 frames are unchanged. On narrower screens, swipe sideways within the preview. This is an animation test, not proof of live gameplay integration.</p>
+</main>
+<script src="/myrren-v19b-atlas.js"></script>
+<script>
+(() => {
+  'use strict';
+  const cv = document.getElementById('preview');
+  const ctx = cv.getContext('2d', { alpha: false });
+  const status = document.getElementById('status');
+  let walking = true;
+  let phaseStart = performance.now();
+  let freezeAt = 0;
+  document.getElementById('toggle').addEventListener('click', event => {
+    walking = !walking;
+    phaseStart = performance.now();
+    event.target.textContent = walking ? 'Pause walking' : 'Resume walking';
+    status.textContent = walking ? 'Walking · 110 ms/frame' : 'Showing stationary sprites';
+  });
+  window.addEventListener('myrren-v19b-error', () => { status.textContent = 'Missing or invalid native sprite assets'; });
+  window.addEventListener('myrren-v19b-ready', () => { status.textContent = 'Walking · 110 ms/frame'; });
+  function draw(now) {
+    const atlas = window.MyrrenV19BAtlas;
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#2e4137';
+    ctx.fillRect(0, 0, 192, 108);
+    ctx.fillStyle = '#354b3f';
+    ctx.fillRect(0, 88, 192, 20);
+    ctx.fillStyle = '#edf2e8';
+    ctx.font = '7px monospace';
+    const directions = [ {dv:'d', f:1}, {dv:'s', f:-1}, {dv:'s', f:1}, {dv:'u', f:1} ];
+    const labels = ['FRONT', 'LEFT', 'RIGHT', 'BACK'];
+    directions.forEach((item, index) => {
+      const x = 25 + index * 47;
+      ctx.fillText(labels[index], x - 12, 18);
+      if (atlas.ready) atlas.draw(ctx, x, 80, {...item, moving:walking}, walking ? now - phaseStart : freezeAt);
+    });
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>
