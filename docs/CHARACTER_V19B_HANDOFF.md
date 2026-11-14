@@ -37,3 +37,12 @@ At the time of handoff, `main` HEAD was `9b9b03710070ea38c5c2b83e14a24f6ebe232d8
 It preserves the precise accepted artwork before any risky renderer swap. The 24×32 source cells, six-frame animation cadence, equipment anchors and camera semantics must be integrated together. A direct sprite replacement of the 21×27 Kez V2 file would be a regression.
 
 **Next chat:** Start with this document and its manifest. Treat these staged files as the current character movement baseline, NOT V9/V12/V18 or an earlier experiment. Original detailed conversation/handoff ZIP remains available outside GitHub.
+
+
+## Isolated V19B native renderer — staged for testing
+The same feature branch now also contains:
+- `public/myrren-v19b-atlas.js` — separate 24×32, six-frame native adapter, 110ms cadence, no visible-bound auto-cropping, fixed cell/foot anchor, no Kez fallback.
+- `public/character-v19b-preview.html` — isolated 2× CSS-scale walk/idle inspection page; does NOT load game, saves or multiplayer.
+- `tests/myrren-v19b-renderer.test.cjs` — four Node VM tests for load/failure, frame/row timing, fixed draw rectangles and 24×32 assets.
+
+The four Node adapter tests passed locally (Node 22). A headless Chromium screenshot attempt was blocked by the execution environment and did not produce a screenshot; **browser playback, real iPhone and multiplayer remain unverified**. The production `public/index.html`, `public/myrren-game.js`, `public/kez-v2-atlas.js`, equipment and camera remain unchanged. No PR, merge or deployment.
