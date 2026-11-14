@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=90;
+window.MyrrenBuild=91;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -2013,42 +2013,14 @@ pad.addEventListener('pointerdown',e=>{if(stick.on)return;stick.on=true;stick.id
 pad.addEventListener('pointermove',e=>{if(stick.on&&e.pointerId===stick.id)moveStick(e)});
 function endStick(e){if(e.pointerId!==stick.id)return;stick.on=false;stick.id=null;stick.dx=0;stick.dy=0;knob.style.transform=''}
 pad.addEventListener('pointerup',endStick);pad.addEventListener('pointercancel',endStick);pad.addEventListener('lostpointercapture',endStick);
-// Two-finger pinch zoom. Separate saved preferences for portrait and landscape.
-const cameraZoom={portrait:null,landscape:null};
-try{const z=JSON.parse(localStorage.getItem('myrren-camera-zoom')||'{}');for(const k of ['portrait','landscape'])if(Number.isFinite(z[k]))cameraZoom[k]=clamp(z[k],1,4)}catch(_){}
-const zoomTouches=new Map();let pinch=null,blockCanvasTap=false;
-const pinchDistance=()=>{const a=[...zoomTouches.values()];return Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)};
-cv.addEventListener('pointerdown',e=>{
-  if(e.pointerType!=='touch')return;
-  zoomTouches.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  if(zoomTouches.size===2){
-    const landscape=cv.clientWidth>cv.clientHeight*1.15,key=landscape?'landscape':'portrait';
-    const base=landscape?1:clamp(Math.round(Math.min(cv.clientWidth,cv.clientHeight)/330),1,4);
-    pinch={key,distance:Math.max(1,pinchDistance()),scale:cameraZoom[key]??base};
-    blockCanvasTap=true;
-  }
-},true);
-cv.addEventListener('pointermove',e=>{
-  if(!zoomTouches.has(e.pointerId))return;
-  zoomTouches.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  if(pinch&&zoomTouches.size>=2){
-    cameraZoom[pinch.key]=clamp(pinch.scale*pinchDistance()/pinch.distance,1,4);
-    e.preventDefault();
-  }
-},{capture:true,passive:false});
-function endZoomTouch(e){
-  if(!zoomTouches.delete(e.pointerId))return;
-  if(pinch){
-    try{localStorage.setItem('myrren-camera-zoom',JSON.stringify(cameraZoom))}catch(_){}
-    pinch=null;blockCanvasTap=true;
-  }
-  if(zoomTouches.size===0)requestAnimationFrame(()=>{blockCanvasTap=false});
+// Remove only the retired device-local camera preference.
+try{localStorage.removeItem('myrren-camera-zoom')}catch(_){}
+function toWorld(cx,cy){
+  const r=cv.getBoundingClientRect();
+  return [(cx-r.left)*cv.width/r.width+Math.round(cam.x),(cy-r.top)*cv.height/r.height+Math.round(cam.y)];
 }
-cv.addEventListener('pointerup',endZoomTouch,true);
-cv.addEventListener('pointercancel',endZoomTouch,true);
-function toWorld(cx,cy){const r=cv.getBoundingClientRect();return [(cx-r.left)/(r.width/cv.width)+cam.x,(cy-r.top)/(r.height/cv.height)+cam.y]}
 cv.addEventListener('pointerdown',e=>{
-  if(!started||blockCanvasTap||zoomTouches.size>=2)return;
+  if(!started||e.isPrimary===false)return;
   const [wx,wy]=toWorld(e.clientX,e.clientY),now=performance.now();
   if(inside){
     if(Math.hypot(wx-88,wy-44)<22||(wx>30&&wx<146&&wy>40&&wy<68)){if(Math.hypot(me.x-88,me.y-62)<44)useAction();else say('Walk up to the counter first.')}
@@ -3927,14 +3899,24 @@ const GRASS=['#263d31','#344d39','#3b5840'];
 // A CanvasGradient is immutable for a given viewport. Reuse it rather than
 // allocating a new radial gradient on every mobile animation frame.
 let outdoorVignette=null,vignetteWidth=0,vignetteHeight=0;
+// One gameplay scale. Quantize the display footprint to whole device pixels
+// and let the viewport clip the final pixel instead of stretching the canvas.
+const GAMEPLAY_SCALE=2;
+let viewportWidth=0,viewportHeight=0,viewportDpr=0;
+function resizeGameplayCanvas(){
+  const width=cv.parentElement.clientWidth,height=cv.parentElement.clientHeight;
+  const dpr=window.devicePixelRatio||1;
+  if(width===viewportWidth&&height===viewportHeight&&dpr===viewportDpr)return;
+  viewportWidth=width;viewportHeight=height;viewportDpr=dpr;
+  const scale=Math.max(1,Math.round(GAMEPLAY_SCALE*dpr))/dpr;
+  cv.width=Math.max(1,Math.ceil(width/scale));
+  cv.height=Math.max(1,Math.ceil(height/scale));
+  cv.style.width=cv.width*scale+'px';
+  cv.style.height=cv.height*scale+'px';
+}
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;
-  const cssW=cv.clientWidth,cssH=cv.clientHeight;
-  const landscape=cssW>cssH*1.15;
-  const zoomKey=landscape?'landscape':'portrait';
-  const sc=cameraZoom[zoomKey]??(landscape?1:clamp(Math.round(Math.min(cssW,cssH)/330),1,4));
-  const w=Math.ceil(cssW/sc),h=Math.ceil(cssH/sc);
-  if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}
+  resizeGameplayCanvas();
   ctx.imageSmoothingEnabled=false;
   update(dt,now);
 
