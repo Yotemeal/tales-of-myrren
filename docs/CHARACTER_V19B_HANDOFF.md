@@ -95,3 +95,6 @@ The browser test was JS syntax checked locally. **It has not yet been run as a f
 
 ## Guard correction (15 Nov 2026)
 Local-player render options with deathAt=undefined are now treated as missing state and use the older sprite. Remote peers may legitimately provide deathAt=undefined and continue to use the approved V19B walk/idle atlas when healthy. Coverage added to both bridge tests. This is a fail-safe adjustment only, not a change to artwork, camera, saves, combat, or network protocol.
+
+## Required V19B mainline CI guard (Nov 15 2026)
+The `Mainline game integrity` core workflow now includes a dedicated V19B step that executes all seven builtin-only tests: signed native sprite locks, atlas animation, exact RGBA pixel hashes, legacy compatibility, failover and rollback, real `drawKezV2` composition, and canonical entry checks. A separate mobile Chromium job remains responsible for full-game interaction and portrait/landscape captures. These checks must be green on PR #99 before merging.

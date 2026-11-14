@@ -21,8 +21,12 @@ test('V19B native sheets are byte-identical to accepted candidate',()=>{
   assert.equal(Object.keys(manifest.v5_approved_side_sha256).length,12);
   readLocked(manifest.walk_atlas);readLocked(manifest.idle_atlas);readLocked(manifest.approved_front_master);
 });
-test('new character baseline is staged, not enabled in production runtime',()=>{
+test('main game uses locked V19B via opt-in safe renderer bridge with legacy backup',()=>{
   const runtime=fs.readFileSync(path.join(__dirname,'../public/index.html'),'utf8');
-  assert(!runtime.includes('/assets/myrren-v19b/myrren_walk_4x6_native.png'),'do not hot-swap untested atlas');
-  assert(runtime.includes('/kez-v2-atlas.js'),'live Kez V2 renderer retained');
+  assert(runtime.includes('/kez-v2-atlas.js'),'legacy Kez V2 renderer must remain available');
+  assert(runtime.includes('/myrren-v19b-atlas.js'),'approved V19B atlas adapter must be loaded');
+  assert(runtime.includes('/myrren-v19b-optin-game-bridge.js'),'guarded fallback bridge must be loaded');
+  assert(runtime.indexOf('/kez-v2-atlas.js')<runtime.indexOf('/myrren-v19b-atlas.js'));
+  assert(runtime.indexOf('/myrren-v19b-atlas.js')<runtime.indexOf('/myrren-v19b-optin-game-bridge.js'));
+  assert(runtime.indexOf('/myrren-v19b-optin-game-bridge.js')<runtime.indexOf('/myrren-game.js?v=92'));
 });
