@@ -33,14 +33,20 @@ test('preserves old renderer for local death and hurt, attacks, gear, weapons an
     {...base, g:[]},
     {...base, g:undefined},
     {...base, deathAt:undefined, hurtAt:undefined},
-    {...base, isMe:0,deathAt:undefined,hurtAt:-99999},
+    {...base, deathAt:undefined},
     (({deathAt,...o})=>o)(base),
     (({hurtAt,...o})=>o)(base),
   ];
-  for(const v of variants.slice(0,-1)) window.MyrrenKezV2Atlas.draw({},50,70,v,660);
-  assert.deepEqual(calls.map(x=>x[0]),variants.slice(0,-1).map(()=>'legacy'));
-  window.MyrrenKezV2Atlas.draw({},50,70,variants.at(-1),660);
-  assert.equal(calls.at(-1)[0],'v19b','remote peer can have no deathAt timestamp');
+  for(const v of variants) window.MyrrenKezV2Atlas.draw({},50,70,v,660);
+  assert.deepEqual(calls.map(x=>x[0]),variants.map(()=>'legacy'));
+});
+test('remote peer may have undefined deathAt but must preserve combat and hurt fallback',()=>{
+  const {window,calls}=harness();
+  const peer={...base,isMe:0,deathAt:undefined};
+  window.MyrrenKezV2Atlas.draw({},50,70,peer,660);
+  window.MyrrenKezV2Atlas.draw({},50,70,{...peer,hurtAt:600},660);
+  window.MyrrenKezV2Atlas.draw({},50,70,{...peer,tool:'sword'},660);
+  assert.deepEqual(calls.map(x=>x[0]),['v19b','legacy','legacy']);
 });
 test('old renderer can be toggled for comparisons without reloading or changing art',()=>{
   const {window,calls}=harness();
