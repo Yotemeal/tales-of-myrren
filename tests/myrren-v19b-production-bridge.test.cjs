@@ -44,6 +44,7 @@ test('attack, hurt, death, armour, and missing explicit render state use legacy'
     {...h.input,swingAt:600},
     {...h.input,hurtAt:undefined},
     {...h.input,g:[0,0,0]},
+    {...h.input,isMe:1,deathAt:undefined},
     (({deathAt,...rest})=>rest)(h.input)
   ];
   for(const o of variants)h.render(o);

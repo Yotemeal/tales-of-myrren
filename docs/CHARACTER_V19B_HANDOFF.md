@@ -92,3 +92,6 @@ No merge until actual full-game browser validation and relevant CI (self-hosted 
 `tests/myrren-v19b-game-browser.test.cjs` serves the canonical `public/` via ephemeral loopback HTTP in Chromium. It verifies V19B and legacy asset loading, all **24 distinct directional walking poses**, rollback visual change, access to the main game, movement input, fixed **2× CSS scale**, zero script exceptions and mobile portrait/landscape screenshots. It is called in the existing Kez V2 browser CI job after the legacy art browser test; screenshots are uploaded as CI artifacts.
 
 The browser test was JS syntax checked locally. **It has not yet been run as a full-game test** because a complete checked-out repo was unavailable in the current environment. Existing self-hosted GitHub Action jobs on PR #99 were QUEUED at the time this note was prepared. Hold the merge until that browser test and core regression jobs are confirmed green and screenshot quality reviewed.
+
+## Guard correction (15 Nov 2026)
+Local-player render options with deathAt=undefined are now treated as missing state and use the older sprite. Remote peers may legitimately provide deathAt=undefined and continue to use the approved V19B walk/idle atlas when healthy. Coverage added to both bridge tests. This is a fail-safe adjustment only, not a change to artwork, camera, saves, combat, or network protocol.

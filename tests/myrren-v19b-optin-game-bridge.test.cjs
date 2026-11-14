@@ -33,11 +33,14 @@ test('preserves old renderer for local death and hurt, attacks, gear, weapons an
     {...base, g:[]},
     {...base, g:undefined},
     {...base, deathAt:undefined, hurtAt:undefined},
+    {...base, isMe:0,deathAt:undefined,hurtAt:-99999},
     (({deathAt,...o})=>o)(base),
     (({hurtAt,...o})=>o)(base),
   ];
-  for(const v of variants) window.MyrrenKezV2Atlas.draw({},50,70,v,660);
-  assert.deepEqual(calls.map(x=>x[0]),variants.map(()=>'legacy'));
+  for(const v of variants.slice(0,-1)) window.MyrrenKezV2Atlas.draw({},50,70,v,660);
+  assert.deepEqual(calls.map(x=>x[0]),variants.slice(0,-1).map(()=>'legacy'));
+  window.MyrrenKezV2Atlas.draw({},50,70,variants.at(-1),660);
+  assert.equal(calls.at(-1)[0],'v19b','remote peer can have no deathAt timestamp');
 });
 test('old renderer can be toggled for comparisons without reloading or changing art',()=>{
   const {window,calls}=harness();

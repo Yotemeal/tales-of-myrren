@@ -28,6 +28,9 @@
     // Old portraits and unrelated render calls lack that state, so stay legacy.
     if (!owns(o, 'deathAt') || !owns(o, 'hurtAt')) return false;
     if (o.dead || o.deathAt != null) return false;
+    // A live local player must explicitly have a null death timestamp.
+    // Remote peers legitimately have an undefined deathAt field.
+    if (o.isMe && o.deathAt !== null) return false;
     const attackAge = now - (o.swingAt ?? -99999);
     if (!Number.isFinite(attackAge) || (attackAge >= 0 && attackAge < 320)) return false;
     const hurtAge = now - o.hurtAt;
