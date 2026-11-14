@@ -49,12 +49,14 @@ jobs:
           node tests/armour-progression.test.cjs
           node tests/inventory-capacity.cjs
           node tests/save-inventory.test.cjs
+          node tests/save-restore-session.test.cjs
           node tests/save-write-order.test.cjs
           node tests/combat-kiting.test.cjs
           node tests/cross-tab-save.test.cjs
           node tests/bank-notes.test.cjs
           node tests/combat-kill-xp.test.cjs
           node tests/movement-speed.test.cjs
+          node tests/village-layout.test.cjs
 
   mobile:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
@@ -70,7 +72,9 @@ jobs:
           npm install --no-save --no-package-lock playwright
           npx playwright install chromium
       - name: Validate live public entry in portrait and landscape
-        run: node tests/mainline-mobile-hud.test.cjs
+        run: |
+          node tests/mainline-mobile-hud.test.cjs
+          node tests/keyboard-interface-browser.test.cjs
       - name: Keep mobile screenshot references
         if: always()
         uses: actions/upload-artifact@v4

@@ -1,12 +1,170 @@
 'use strict';
-const fs=require('node:fs');
+// Current Crater Camp layout: the retired river ring/two-bridge village is
+// deliberately absent. Exercise shared geometry and the deployable runtime.
 const assert=require('node:assert/strict');
-const worldSource=fs.readFileSync('public/myrren-world.js','utf8');
-const envSource=fs.readFileSync('public/myrren-environment.js','utf8');
-const gameSource=require('./game-source.cjs')();
-new Function(worldSource);new Function(envSource);new Function(gameSource);new Function(fs.readFileSync('public/environment-preview.js','utf8'));
-const window={};new Function('window',worldSource)(window);
-const geometry=(new Function("return function testGeometry(W){\nconst assert=(c,m)=>{if(!c)throw Error(m)};\nfor(let i=0;i<1440;i++){const a=i*Math.PI/720,f=W.riverF(a),x=800+W.river.rx*Math.cos(a)*f,y=800+W.river.ry*Math.sin(a)*f;assert(W.waterDistance(x,y)<0,'river gap '+i)}\nfor(const b of W.bridges){for(let x=b.x-b.halfLength;x<=b.x+b.halfLength;x++)for(let y=b.y-11;y<=b.y+11;y+=2)assert(!W.inWater(x,y),'bridge blocked');for(const x of [b.x-b.halfLength,b.x+b.halfLength])assert(W.waterDistance(x,b.y)>8,'bridge ends in water')}\nfor(const b of W.buildings)assert(W.dryFootprint(b.x,b.y,b.w/2+14,b.open?90:b.id==='axe'?124:104,6,24),'roof reaches bank '+b.id);\nfunction canExit(block){\n const queue=[[800,840]],seen=new Set(['800:840']);\n for(let k=0;k<queue.length;k++){\n  const [x,y]=queue[k];if(!W.inVillage(x,y)&&W.waterDistance(x,y)>25)return true;\n  for(const [dx,dy] of [[4,0],[-4,0],[0,4],[0,-4]]){const xx=x+dx,yy=y+dy,key=xx+':'+yy;\n   if(xx<260||xx>1360||yy<400||yy>1190||seen.has(key)||W.inWater(xx,yy)||W.bridges.some(b=>block.includes(b.id)&&Math.abs(xx-b.x)<=b.halfLength&&Math.abs(yy-b.y)<=b.halfWidth))continue;\n   seen.add(key);queue.push([xx,yy]);\n  }\n }return false;\n}\nassert(canExit(['west']),'east crossing unreachable');assert(canExit(['east']),'west crossing unreachable');assert(!canExit(['east','west']),'unintended third crossing');\nlet paths=0;for(let y=112;y<1488;y+=16)for(let x=112;x<1488;x+=16){if(W.pathKind(x,y)==='grass'||W.bridgeApproach(x,y))continue;for(const [dx,dy] of [[-8,-8],[7,-8],[-8,7],[7,7]])assert(W.waterDistance(x+dx,y+dy)>4,'path tile crops bank at '+x+','+y);paths++}\nfor(let i=0;i<16;i++){const p=W.fishingPosition(i/16*Math.PI*2+.3);assert(W.waterDistance(p.x,p.y)<0,'fish on land');let dry=false;for(let j=0;j<64;j++){const a=j*Math.PI/32;if(!W.inWater(p.x+Math.cos(a)*24,p.y+Math.sin(a)*24))dry=true}assert(dry,'fish out of reach')}\nfor(let i=0;i<300;i++){const a=i*Math.PI/150,f=W.riverF(a),x=800+W.river.rx*Math.cos(a)*f,y=800+W.river.ry*Math.sin(a)*f,p=W.safePosition(x,y);assert(!W.inWater(p.x,p.y),'save recovery in water')}\nreturn {riverSamples:1440,bridges:'two independently accessible crossings',buildingFootprints:'all clear with 24px bank buffer',pathTiles:paths,fishingSpots:16,saveRecoverySamples:300};\n}\n"))();
-const runtime=(new Function("\nreturn async function run(worldSource,envSource,gameSource){\n let rects=0;\n const context=()=>new Proxy({globalAlpha:1,fillRect(...p){if(!p.slice(0,4).every(Number.isFinite))throw Error('Nonfinite rectangle '+p);rects++},drawImage(){},createRadialGradient(){return {addColorStop(){}}}}, {get(t,k){return k in t?t[k]:(()=>{})}});\n const elements=new Map();\n function element(id=''){\n   return {id,value:'',disabled:false,hidden:false,width:800,height:600,clientWidth:800,clientHeight:600,dataset:{},style:{},children:[],scrollTop:0,classList:{add(){},remove(){},contains(){return false}},events:{},\n    getContext:()=>context(),addEventListener(k,v){this.events[k]=v},append(...v){this.children.push(...v)},setAttribute(){},querySelectorAll(){return []},querySelector(){return null},getBoundingClientRect(){return {left:0,top:0,width:800,height:600}},contains(){return false},blur(){},focus(){},select(){},click(){this.events.click?.({preventDefault(){}})}};\n }\n const document={getElementById(id){if(!elements.has(id))elements.set(id,element(id));return elements.get(id)},createElement:()=>element(),querySelectorAll:()=>[],addEventListener(){},hidden:false,activeElement:null};\n const memory=new Map(),localStorage={getItem:k=>memory.get(k)||null,setItem:(k,v)=>memory.set(k,v)};\n const window={addEventListener(){}};new Function('window',worldSource)(window);new Function('window','document',envSource)(window,document);\n class Image{constructor(){this.naturalWidth=128;this.naturalHeight=320}set src(v){this.onload?.()}}\n let request=null;\n const source=gameSource.slice(0,gameSource.lastIndexOf('})();'))+'window.__test={me,save,BLD,SOLID,keys,VILLAGE,SMELT,FORGE,DEFS,xpTable,start,update,frame,drawOutdoor,smelt,forge,snap,applySave,adoptSave,nearSmithy,openSmithy,curShop,closeModal,enterBuilding,relocateSavedPosition,getInside:()=>inside,getTab:()=>tab,getCat:()=>shopCat,setForgeMat:v=>forgeMat=v};'+gameSource.slice(gameSource.lastIndexOf('})();'));\n new Function('window','document','localStorage','indexedDB','navigator','performance','Image','requestAnimationFrame','addEventListener','setTimeout','clearTimeout','MyrrenWorld','MyrrenEnvironment','URLSearchParams','location',source)(\n window,document,localStorage,{open(){throw Error('No IDB in unit test')}},{getGamepads:()=>[]},{now:()=>1000},Image,f=>request=f,()=>{},()=>1,()=>{},window.MyrrenWorld,window.MyrrenEnvironment,class{get(){return null}},{search:''});\n await Promise.resolve();await Promise.resolve();\n const t=window.__test,W=t.VILLAGE,assert=(c,m)=>{if(!c)throw Error(m)};\n elements.get('nick').value='QA';t.start();\n assert(t.getInside()===null,'not outdoors');\n const model={v:3,ts:1,name:'Kez',xp:{mining:t.xpTable[60],melee:t.xpTable[25],woodcutting:1200,fishing:700,cooking:600},inv:{coins:12345,copper:5,tin:5,ing_bronze:10},eq:{body:'steel_body',legs:'steel_legs',boots:'steel_boots'},bag:['iron_pick'],wear:{steel_body:.2},jobs:[],tokens:47,perks:{},dye:null,pets:{woodcutting:0,fishing:0,mining:0},x:1100,y:760};\n t.adoptSave(model);assert(!W.inWater(t.me.x,t.me.y),'save stranded in water');const snap=t.snap();\n assert(snap.inv.coins===12345&&snap.tokens===47&&snap.eq.body==='steel_body'&&snap.bag[0]==='iron_pick','progress altered');\n assert(snap.xp.mining===model.xp.mining&&snap.wear.steel_body===.2,'levels or wear altered');\n const furnace=W.stations.find(s=>s.kind==='furnace');t.me.x=furnace.x;t.me.y=furnace.y+20;\n t.openSmithy('furnace');assert(t.getInside()===null&&t.getCat()==='Smelt'&&t.curShop().id==='arms','outdoor furnace context');\n const before=t.save.inv.ing_bronze;t.smelt(t.SMELT[0]);assert(t.save.inv.ing_bronze===before+1&&t.save.inv.copper===4&&t.save.inv.tin===4,'smelt recipe');\n t.closeModal();const anvil=W.stations.find(s=>s.kind==='anvil');t.me.x=anvil.x;t.me.y=anvil.y+20;t.openSmithy('anvil');assert(t.getInside()===null&&t.getCat()==='Forge','outdoor anvil context');\n t.setForgeMat(2);const bars=t.save.inv.ing_bronze;t.forge('sword');assert(t.save.inv.ing_bronze===bars-t.FORGE.sword&&t.save.eq.weapon==='bronze_sword','forge recipe and equip');\n t.closeModal();t.me.x=915;t.me.y=725;t.update(.02,1000);assert(t.getInside()===null,'smithy triggered interior');\n const oldX=t.me.x;t.keys.arrowright=true;t.update(.05,1100);t.keys.arrowright=false;assert(t.me.x>oldX,'movement stopped');\n for(const b of t.BLD.filter(b=>!b.open)){t.closeModal();t.enterBuilding(b,2000);assert(t.getInside().id===b.id,'house entry broken');}\n // Render the real outdoor draw function in a synthetic canvas, including bank masks/stations.\n t.drawOutdoor(430,540,3000);\n return {status:'PASS',savedProgress:'inventory/gear/XP/coins/tokens/wear preserved',outdoorSmithy:'smelting and forging recipes passed without interior entry',movement:'open smithy remains walkable',houses:4,drawOperations:rects};\n}"))();
-(async()=>{console.log(geometry(window.MyrrenWorld));console.log(await runtime(worldSource,envSource,gameSource))})().catch(e=>{console.error(e);process.exitCode=1});
+const createGame=require('./game-runtime.cjs');
 
+function reachableCamp(world,sealGate=false){
+  const queue=[[800,840]],seen=new Set(['800:840']);
+  let outside=false;
+  for(let i=0;i<queue.length;i++){
+    const [x,y]=queue[i];
+    if(Math.hypot((x-800)/305,(y-800)/235)>1.1)outside=true;
+    for(const [dx,dy] of [[4,0],[-4,0],[0,4],[0,-4]]){
+      const nx=x+dx,ny=y+dy,key=nx+':'+ny;
+      if(nx<440||nx>1160||ny<520||ny>1136||seen.has(key)||world.inWater(nx,ny))continue;
+      if(sealGate&&Math.abs(nx-800)<=56&&ny>=992&&ny<=1060)continue;
+      seen.add(key);queue.push([nx,ny]);
+    }
+  }
+  return {outside,points:queue};
+}
+
+function testGeometry(world){
+  assert.deepEqual(world.bridges,[],'Crater Camp has a dry southern opening, not river bridges');
+  assert(!world.inWater(800,840),'arrival point is walkable');
+  for(const [x,y] of [[800,565],[1105,800],[495,800]])
+    assert(world.craterWall(x,y)&&world.inWater(x,y),'the northern/eastern/western rim blocks movement');
+  for(let y=980;y<=1100;y+=4)
+    assert(!world.inWater(800,y),'southern entrance stays clear at '+y);
+
+  // The ring has one continuous opening; a sealed entrance must leave no
+  // second route through the rockfall. This catches gaps as well as blocked gates.
+  const rim=Array.from({length:1440},(_,i)=>{
+    const angle=i*Math.PI/720;
+    return !world.craterWall(800+305*Math.cos(angle),800+235*Math.sin(angle));
+  });
+  const transitions=rim.reduce((n,open,i)=>n+(open!==rim[(i+rim.length-1)%rim.length]),0);
+  assert(rim.some(Boolean)&&rim.some(open=>!open),'ring contains both solid wall and entrance');
+  assert.equal(transitions,2,'the rockfall ring has exactly one contiguous opening');
+  const reachable=reachableCamp(world);
+  assert(reachable.outside,'camp arrival point connects to the wilderness');
+  assert(!reachableCamp(world,true).outside,'sealing the southern entrance blocks every exit');
+  for(const spot of [...world.stations,{x:650,y:914},{x:658,y:762},{x:792,y:728}])
+    assert(reachable.points.some(([x,y])=>Math.hypot(x-spot.x,y-spot.y)<24),
+      'furnace, anvil, trader, bank and board must be reachable from arrival');
+
+  assert(world.waterDistance(world.lake.x,world.lake.y)<0,'lake centre remains water');
+  assert(world.inWater(world.lake.x,world.lake.y),'lake collision blocks walking');
+  let pathTiles=0;
+  for(let y=112;y<1488;y+=16)for(let x=112;x<1488;x+=16){
+    if(world.pathKind(x,y)==='grass')continue;
+    for(const [dx,dy] of [[-8,-8],[7,-8],[-8,7],[7,7]])
+      assert(world.waterDistance(x+dx,y+dy)>4,'path tile crops the lake bank at '+x+','+y);
+    pathTiles++;
+  }
+  assert(pathTiles>100,'camp paths and the southern wilderness trail remain visible');
+  for(let i=0;i<16;i++){
+    const point=world.fishingPosition(i*Math.PI/8+.3);
+    assert(world.waterDistance(point.x,point.y)<0,'fishing spot belongs in the lake');
+    assert(Array.from({length:64},(_,j)=>j*Math.PI/32).some(angle=>
+      !world.inWater(point.x+Math.cos(angle)*24,point.y+Math.sin(angle)*24)),
+      'each fishing spot has a reachable dry bank');
+  }
+  for(let i=0;i<300;i++){
+    const angle=i*Math.PI/150;
+    for(const point of [
+      {x:800+305*Math.cos(angle),y:800+235*Math.sin(angle)},
+      {x:world.lake.x+Math.cos(angle)*world.lake.rx*.8,y:world.lake.y+Math.sin(angle)*world.lake.ry*.8}
+    ]){
+      const safe=world.safePosition(point.x,point.y);
+      assert(Number.isFinite(safe.x)&&Number.isFinite(safe.y));
+      assert(!world.inWater(safe.x,safe.y),'saved wall/lake positions recover onto walkable ground');
+    }
+  }
+  console.log('PASS: 1,440 rim samples; one connected southern exit; camp service reachability; '+pathTiles+' dry path tiles; 16 bank-reachable fishing spots; 600 save recovery positions.');
+}
+
+(async()=>{
+  const runtime=await createGame(),game=runtime.game,world=game.VILLAGE;
+  testGeometry(world);
+  // Exercise the outdoor scenery before starting: the synthetic logic harness
+  // deliberately omits player artwork (covered by the real browser suites).
+  const beforeDraw=runtime.rectCount();game.drawOutdoor(430,540,10000);
+  assert(runtime.rectCount()>beforeDraw,'current outdoor camp actually renders');
+  runtime.elements.get('nick').value='Layout QA';game.start();game.mons.length=0;
+  const model={v:3,ts:1,name:'Kez',
+    xp:{mining:game.xpTable[60],melee:game.xpTable[25],forging:game.xpTable[10],woodcutting:1200,fishing:700,cooking:600},
+    inv:{coins:12345,copper:5,tin:5,ing_bronze:10},
+    eq:{body:'steel_body',legs:'steel_legs',boots:'steel_boots'},bag:['iron_pick'],
+    bank:{logs:42},notes:{copper:7},jobs:[],tokens:47,perks:{},dye:null,
+    pets:{woodcutting:0,fishing:0,mining:0},x:1105,y:800};
+  const original=JSON.stringify(model);
+  game.adoptSave(model);
+  assert.equal(JSON.stringify(model),original,'layout recovery cannot mutate an imported save');
+  assert(!world.inWater(game.me.x,game.me.y),'saved crater-wall position relocates to land');
+  const snapshot=game.snap();
+  for(const field of ['name','xp','bag','bank','notes','tokens'])
+    assert.deepEqual(snapshot[field],model[field],field+' survives world-layout save recovery');
+  for(const [slot,item] of Object.entries(model.eq))assert.equal(snapshot.eq[slot],item,slot+' equipment is preserved');
+  for(const [item,count] of Object.entries(model.inv))assert.equal(snapshot.inv[item],count,item+' is preserved');
+  assert.equal(snapshot.x,Math.round(game.me.x));assert.equal(snapshot.y,Math.round(game.me.y));
+
+  const house=game.BLD.find(b=>!b.open);
+  game.me.x=house.x;game.me.y=house.y-7;game.relocateSavedPosition();
+  assert(!(Math.abs(game.me.x-house.x)<house.w/2+3&&game.me.y>house.y-14&&game.me.y<house.y),
+    'old saves inside a legacy building footprint recover outside it');
+
+  // Use the actual movement/collision loop, not only the geometry helper.
+  game.adoptSave({...model,x:1050,y:800});
+  game.keys.d=true;
+  for(let i=0;i<40;i++)game.update(.05,1000+i*50);
+  game.keys.d=false;
+  assert(game.me.x>1050&&game.me.x<1074,'eastward movement stops at the crater wall');
+  assert(!world.inWater(game.me.x,game.me.y),'collision cannot strand the player in the wall');
+  game.adoptSave({...model,x:800,y:950});game.keys.s=true;
+  for(let i=0;i<40;i++)game.update(.05,4000+i*50);
+  game.keys.s=false;
+  assert(game.me.y>1100&&!world.inWater(game.me.x,game.me.y),'actual walking exits through the southern gate');
+
+  const realNow=Date.now;let now=realNow();Date.now=()=>now;
+  try{
+    game.adoptSave({...model,x:800,y:840});
+    const furnace=world.stations.find(s=>s.kind==='furnace');
+    game.openSmithy('furnace');
+    assert.equal(game.getTab(),'','distant players cannot open the furnace');
+    game.me.x=furnace.x;game.me.y=furnace.y+20;game.openSmithy('furnace');
+    assert.equal(game.getInside(),null);assert.equal(game.getTab(),'smelt');
+    assert.equal(game.curShop(),null,'crafting does not silently open a merchant');
+    assert(game.smithStation('smelt'),'player is within furnace working reach');
+    const beforeBars=game.save.inv.ing_bronze,beforeXp=game.save.xp.forging;
+    assert(game.smelt(game.SMELT[0]));
+    assert.equal(game.save.inv.ing_bronze,beforeBars+1);
+    assert.equal(game.save.inv.copper,4);assert.equal(game.save.inv.tin,4);
+    assert.equal(game.save.xp.forging,beforeXp+game.SMELT[0].xp);
+
+    game.closeModal();now+=game.PRODUCTION_MS.smelt;
+    const anvil=world.stations.find(s=>s.kind==='anvil');
+    game.me.x=anvil.x;game.me.y=anvil.y+20;game.openSmithy('anvil');
+    assert.equal(game.getInside(),null);assert.equal(game.getTab(),'forge');
+    assert(game.smithStation('forge'));game.setForgeMat(2);
+    const bars=game.save.inv.ing_bronze;
+    assert(game.forge('sword'));
+    assert.equal(game.save.inv.ing_bronze,bars-game.FORGE.sword);
+    assert.equal(game.save.eq.weapon,'bronze_sword','first forged weapon auto-equips');
+    assert.equal(game.save.inv.coins,model.inv.coins,'crafting does not spend shop currency');
+    game.closeModal();
+
+    game.me.x=game.TRADER.x;game.me.y=game.TRADER.y;
+    runtime.elements.get('aUse').click();
+    assert.equal(game.getInside(),null);assert.equal(game.getTab(),'shop');
+    assert.equal(game.curShop().id,'cart','Trader Gus remains the starter-supply merchant');
+    const coins=game.save.inv.coins,price=game.DEFS.bronze_axe.price;
+    game.buyItem('bronze_axe');
+    assert.equal(game.save.inv.coins,coins-price);
+    assert(game.save.bag.includes('bronze_axe'),'starter tool goes into the pack while a sword is equipped');
+    for(const building of game.BLD.filter(b=>!b.open)){
+      game.closeModal();game.enterBuilding(building,8000);
+      assert.equal(game.getInside(),null,'retired shop entrances cannot trap the character indoors');
+      assert.equal(game.curShop().id,'cart','legacy shops route to the current camp trader');
+    }
+    game.closeModal();
+    const trade=world.stations.find(s=>s.kind==='trade');
+    game.me.x=trade.x;game.me.y=trade.y;game.openSmithy('trade');
+    assert.equal(game.getInside(),null);assert.equal(game.getTab(),'shop');
+    assert.equal(game.curShop().id,'arms','blacksmith trade stays separate from furnace/anvil crafting');
+    game.closeModal();
+  }finally{Date.now=realNow}
+
+  console.log('PASS: saved progression and blocked-position recovery; runtime wall/gate collision; outdoor smelting/forging; starter purchases and legacy shop routing; camp rendering.');
+})().catch(error=>{console.error(error);process.exitCode=1});

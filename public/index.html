@@ -39,7 +39,7 @@
     <button id="aAtk" class="ibtn big" type="button" aria-label="Attack. Hold to keep swinging"></button>
   </div>
   <div id="modal" hidden>
-    <div class="win">
+    <div class="win" role="dialog" aria-labelledby="mTitle">
       <header><h2 id="mTitle">Equipment</h2><button id="mClose" class="x" type="button" aria-label="Close">X</button></header>
 
       <section id="mBody"></section>
@@ -52,7 +52,7 @@
       <p>An old woodland. A new name.<br>Your story begins in Myrren.</p>
       <div class="intro-controls"><span><b>MOVE</b>WASD / pad</span><span><b>GATHER</b>E / tool</span><span><b>FIGHT</b>Space / sword</span></div>
       <details><summary>How to play</summary><p>Walk with the pad. To gather, stand close to a tree, rock or fishing spot, face it and press the tool button. To fight, press the sword button: hold it to keep swinging, and every swing hits everything in the arc in front of you. Tap a tree or rock to see its name and level. Walk through cottage doors for supplies. Use the outdoor blacksmith furnace to smelt ingots and its anvil to forge equipment. Cook your catch on the town fire.</p></details>
-      <div class="row"><input id="nick" maxlength="14" placeholder="Your name" autocomplete="off"><button id="go" class="btn" type="button">ENTER</button></div>
+      <div class="row"><input id="nick" maxlength="14" placeholder="Your name" aria-label="Your name" autocomplete="off"><button id="go" class="btn" type="button">ENTER</button></div>
       <div id="net">Connecting...</div>
     </div>
   </div>
@@ -66,6 +66,6 @@
 <script src="/kez-v2-equipment.js?v=1"></script>
 <script src="/kez-v2-sword-motion.js?v=1"></script>
 <script src="/myrren-camp-props.js?v=2"></script>
-<script src="/myrren-game.js?v=88"></script>
+<script src="/myrren-game.js?v=89"></script>
 </body>
 </html>
