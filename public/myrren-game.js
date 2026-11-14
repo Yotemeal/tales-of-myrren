@@ -3189,7 +3189,16 @@ function drawKezV2(x,y,o,now){
   if(o.waving)label('*waves*',x,y-43,'#ffffff');
   return true;
 }
+// Front-pose scale study for the local player on this preview branch.
+const characterScaleCandidate=new Image();
+characterScaleCandidate.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAcCAYAAABh2p9gAAAEyElEQVR4nG2VW4hVZRTHf2t9+xyncdRxzsw5M87oeLxkaWkQmkKJQhBYUAQhXd7ypV66QNFLPkQEvUjUs9BDlCEYofYQPgRFhVgQZje10pnUGc8c07mey16rh2+fMzPY2k/fZa/vv/7rv9aS8rqtCIK7gYMD7gCOiMQzDBBEhOvjl5zMlq/okXy+CxEQARASccGjB1o3RcDcEcDFcTPMHVVhobkb4LhL+8HEcZDFqACq10ed/7G9dw+RU+HLcyNM3vrXl/QuE9rvOEnLmaoyPvZ328mO9UU2lbqzM0jNUVWmZus0bf6tSmXEewpDEjTEuy3SzGwREkWoNVIQx3BQIXUjhMjqQqtOjLq54ThJFiuqCsDuTUMkCmbGtZszDBW6EAfBUIU7coGJWzX23DWIAI3U+Ob8VSBGkIgK18fmMydAcXkHqoALGvnGPeIKIgz2LgXAHK5WpwGYqIx6X3FYpGvpCt//wEbcDUfIJYI4uMcEmcO1GzOIKgPdHTHTUQZIRkOz6UyncOLMBZRMd6kZ7k6aOuaOi+AIV6rTpO70duVpZdMMDKg1jCvVWZppSr1WjxGuGd5CtRIlsrNcJEkCq3o6CcBPIzfYMthNLoRMuFGkv4xW2Ty4kjQDcvT0xflkLhARSVCCCpYa9WaKAHfkEsBJPepVBcyFZlsdizMuXUtX+PbVBTYMrCTF4+dwaWKWJ7dv5PgPf7C2N5ZXPTUujk3y7IP3cPT7X5lrpGwoLcMcbtXqnDo7Gjkc7u+hkZVadarG35UZ5hoN9u25j/dfeorLE7PMNp3RiVnee/Fx9u7YxEy9SRIUM0dwchpaHN5NtXKljXvLqgIicPj1Z9iwYxv1mSk++vAkx779mRce38Mj+3bgjSku/3aN5w8d5ezIeDvc0sB6SYLmFnFgluIq9A8WKOw6AMCV4+9w5KsfeWjnnZQefgWAf068224qLXNLUQd6+9ZIX3FYAI68tp8vDr1A6OhsX2ymxmcfvEroWNLeS5t1jrx1oL0ulobF3ZFy+d75HujGRCahy5+/jdem0aQDVHEHxxFRgjcxUVY/cZBVQ+ul2UgziKAQhSOAZMQCUJtGlizDREAT3FJENfZIhN/PRu016lHQreilvPZeXGIPEwRzY6Iy4gC7t22mUW/w5tO7SEIAN976+Gtu1pqcvXgZMrpEYnN1d2Tdum2YWRYOVMZH/P5H30BFqIyeI4hG8kVAFHNQcbpLmxBVzpx8h2KpLNnwQMrlbQjOeDYrTh56hYOnEpAAHnBJs3kTgw0anUJKkstzcO80j738Ht09fZJPOlFw5gsVtgyv5OjzXVw9cxirT0YpRDJQUUCwuQq1Xz/lk+cSNg90ZZJpNVhawyazEAgSaDYb6F/H6MgndOUFBUSFybkUN2MmKNqoIZ3LaGVFEKRc3pqtI9LKgjF55/b95DpX4BbPBJCkg9pUhfOnP25j6B9YL+6Gm0WESCYeEXqLw9JyuiFcgGbguwsVVJVyf4GBpUpd5zifOSv1r5M0bQAax2gmrKx5OgvnT7dMkppzY+xPAApSYePaEinzFJlZGz0QZUPLp4NhiDjXx0YWFWqxf1jGr11atFfoWyVB81FyyMKktCA6it5W9DGLt20RND9/nv3zH93zXQehOhd+AAAAAElFTkSuQmCC';
 function drawPerson(x,y,o,now){
+  if(o.isMe&&characterScaleCandidate.complete&&characterScaleCandidate.naturalWidth){
+    shadowE(x,y,7,2,.3);
+    ctx.drawImage(characterScaleCandidate,x-10,y-28);
+    label(o.name,x,y-33,o.col||'#ffffff');
+    return;
+  }
   // Player and peers always use Kez V2. Procedural drawing below is NPC-only.
   if(!o.apron){drawKezV2(x,y,o,now);return;}
   const f=o.f,mv=!!o.moving,ph=Math.floor(now/90)%4,g=o.g||[0,0,0,0,0],dv=o.dv||'d';
