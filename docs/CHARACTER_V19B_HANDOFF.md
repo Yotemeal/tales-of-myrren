@@ -87,3 +87,8 @@ On all unarmed, unequipped, healthy/non-attacking players and peers, accepted V1
 Safety fallback: while V19B assets load or fail, game continues drawing Kez V2. A failed load emits an error and one fall-back event. `?character=legacy` forces Kez V2 for the full page session and cannot modify game saves. Asset files, V5 side frame hashes and V19B raw RGBA frames remain locked unchanged.
 
 No merge until actual full-game browser validation and relevant CI (self-hosted runner) pass; no claim of physical iPhone or live multiplayer verification. No main-line changes yet.
+
+## Full-game browser gate attached to CI
+`tests/myrren-v19b-game-browser.test.cjs` serves the canonical `public/` via ephemeral loopback HTTP in Chromium. It verifies V19B and legacy asset loading, all **24 distinct directional walking poses**, rollback visual change, access to the main game, movement input, fixed **2× CSS scale**, zero script exceptions and mobile portrait/landscape screenshots. It is called in the existing Kez V2 browser CI job after the legacy art browser test; screenshots are uploaded as CI artifacts.
+
+The browser test was JS syntax checked locally. **It has not yet been run as a full-game test** because a complete checked-out repo was unavailable in the current environment. Existing self-hosted GitHub Action jobs on PR #99 were QUEUED at the time this note was prepared. Hold the merge until that browser test and core regression jobs are confirmed green and screenshot quality reviewed.

@@ -111,6 +111,8 @@ jobs:
           npx playwright install chromium
       - name: Verify real 390x844 game and produce visual screenshots
         run: node tests/kez-v2-browser.test.cjs
+      - name: Verify new V19B player, frames and fixed camera in actual game
+        run: node tests/myrren-v19b-game-browser.test.cjs
       - name: Save visual QA snapshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -118,6 +120,8 @@ jobs:
           name: kez-v2-mobile-and-seven-metals
           path: |
             /tmp/myrren-kez-v2-mobile.png
+            /tmp/myrren-v19b-landscape-game.png
+            /tmp/myrren-v19b-portrait-game.png
             /tmp/myrren-kez-v2-equipment.png
             /tmp/myrren-kez-v2-seven-metals.png
             /tmp/myrren-kez-v2-directions.png
