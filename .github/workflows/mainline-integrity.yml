@@ -56,6 +56,7 @@ jobs:
           node tests/bank-notes.test.cjs
           node tests/combat-kill-xp.test.cjs
           node tests/movement-speed.test.cjs
+          node tests/village-layout.test.cjs
 
   mobile:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository

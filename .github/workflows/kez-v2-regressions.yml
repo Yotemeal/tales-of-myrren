@@ -69,6 +69,8 @@ jobs:
           node tests/approved-character.test.cjs
           node tests/wardrobe-v5.test.cjs
           node tests/shields-approved.test.cjs
+          node tests/character-motion.test.cjs
+          node tests/forged-swords.test.cjs
 
   paperdoll:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
