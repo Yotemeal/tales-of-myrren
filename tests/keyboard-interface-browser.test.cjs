@@ -20,6 +20,9 @@ const server=http.createServer((req,res)=>{
     page.on('pageerror',err=>errors.push(err.message));
     // Network services are optional for local play; keep the test offline.
     await page.route('https://**/*',route=>route.abort());
+    await page.addInitScript(()=>localStorage.setItem('ember-reach-v2',JSON.stringify({
+      v:3,ts:1,xp:{},inv:{coins:30,logs:4},eq:{},bag:[],x:800,y:840
+    })));
     await page.goto('http://127.0.0.1:'+server.address().port,{waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>!document.getElementById('go').disabled);
     await page.getByRole('textbox',{name:'Your name'}).fill('Keyboard QA');
@@ -55,8 +58,42 @@ const server=http.createServer((req,res)=>{
     const blurred=await position();await page.waitForTimeout(160);
     assert.deepEqual(await position(),blurred,'window blur releases held movement without needing keyup');
     await page.keyboard.up('d');
+    // Closing or rebuilding the pack must cancel long-press timers and drag
+    // ghosts, even when no pointerup reaches the removed inventory button.
+    await page.getByRole('button',{name:'Backpack',exact:true}).click();
+    let slot=page.locator('[data-item-key="s:logs"]');
+    let rect=await slot.boundingBox();
+    await page.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);
+    await page.mouse.down();await page.keyboard.press('Escape');
+    await page.waitForTimeout(550);
+    assert.equal(await page.locator('.item-action-menu').count(),0,'closing a pack cancels pending long-press menus');
+    await page.mouse.up();
+    await page.getByRole('button',{name:'Backpack',exact:true}).click();
+    slot=page.locator('[data-item-key="s:logs"]');rect=await slot.boundingBox();
+    await page.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);
+    await page.mouse.down();await page.mouse.move(rect.x+rect.width/2+20,rect.y+rect.height/2+12);
+    assert.equal(await page.locator('.inventory-drag-ghost').count(),1,'inventory drag begins before cancellation');
+    await page.keyboard.press('Escape');await page.mouse.up();
+    assert.equal(await page.locator('.inventory-drag-ghost').count(),0,'closing removes detached drag artwork');
+    await page.getByRole('button',{name:'Backpack',exact:true}).click();
+    slot=page.locator('[data-item-key="s:logs"]');
+    rect=await slot.boundingBox();
+    await page.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);
+    await page.mouse.down();await page.mouse.move(rect.x+rect.width/2+20,rect.y+rect.height/2+12);
+    await slot.evaluate(el=>el.releasePointerCapture(1));
+    await page.mouse.move(1090,10);await page.mouse.up();
+    assert.equal(await page.locator('.inventory-drag-ghost').count(),0,'capture loss cancels a drag without pointerup on the pack');
+    await slot.click();
+    assert.equal(await page.locator('.pack-info-popover').count(),1,'the next fresh tap after cancellation selects the item');
+    await page.getByRole('button',{name:'Close item information',exact:true}).click();
+    slot=page.locator('[data-item-key="s:logs"]');
+    await slot.click({button:'right'});
+    await page.getByRole('dialog',{name:'Item actions',exact:true}).waitFor({state:'visible'});
+    await page.getByRole('button',{name:'Settings',exact:true}).click();
+    assert.equal(await page.locator('.item-action-menu').count(),0,'changing menus closes item actions tied to the old inventory');
+    await page.keyboard.press('Escape');
     await page.screenshot({path:'/tmp/myrren-keyboard-interface.png'});
     assert.deepEqual(errors,[],'keyboard/menu flows have no uncaught browser errors');
-    console.log('PASS: real-browser WASD after entry, dialog focus/Tab/Escape, native save-code typing and blur input release.');
+    console.log('PASS: real-browser WASD, dialog keys, native typing, blur release and cancelled inventory long-press/drag/menu interactions.');
   }finally{await browser?.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(error=>{console.error(error);process.exitCode=1});

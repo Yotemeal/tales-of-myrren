@@ -50,12 +50,16 @@ jobs:
           node tests/inventory-capacity.cjs
           node tests/save-inventory.test.cjs
           node tests/save-restore-session.test.cjs
+          node tests/save-import-validation.test.cjs
+          node tests/cloud-startup-recovery.test.cjs
           node tests/save-write-order.test.cjs
           node tests/combat-kiting.test.cjs
           node tests/cross-tab-save.test.cjs
           node tests/bank-notes.test.cjs
           node tests/combat-kill-xp.test.cjs
           node tests/movement-speed.test.cjs
+          node tests/respawn-input.test.cjs
+          node tests/jobs-progression.test.cjs
           node tests/village-layout.test.cjs
 
   mobile:

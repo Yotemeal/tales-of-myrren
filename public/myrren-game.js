@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=89;
+window.MyrrenBuild=90;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -365,6 +365,7 @@ function applySave(o){
     if(+o.x)save.x=+o.x;if(+o.y)save.y=+o.y;
     if(o.eq)Object.assign(save.eq,o.eq);
     if(Array.isArray(o.jobs))save.jobs=o.jobs.slice(0,3).filter(j=>j&&Array.isArray(j.objs)&&j.objs.length).map(j=>({id:String(j.id||''),bracket:String(j.bracket||'early'),tokens:+j.tokens|0,xp:(j.xp&&typeof j.xp==='object')?j.xp:{},done:!!j.done,objs:j.objs.filter(x=>x&&((x.type==='deliver'&&ITEMS[x.item])||(x.type==='slay'&&MT[x.mon]))).map(x=>({type:x.type,skill:x.skill,item:x.item,mon:x.mon,need:+x.need|0,have:Math.min(+x.have|0,+x.need|0)}))})).filter(j=>j.objs.length);
+    save.jobs=uniqueJobIds(save.jobs);
     save.tokens=nonNegativeCount(o.tokens);if(o.perks&&typeof o.perks==='object')save.perks=Object.assign({},o.perks);save.dye=Number.isInteger(o.dye)?o.dye:null;
     if(o.pets)Object.assign(save.pets,o.pets);
     if(Array.isArray(o.bag))save.bag=o.bag.filter(id=>DEFS[id]);
@@ -449,14 +450,22 @@ async function idbGetAll(){
   }catch(e){return []}
 }
 async function idbGet(){try{const d=await idbOpen();const v=await new Promise(res=>{const q=d.transaction('s').objectStore('s').get('save');q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)});d.close();return v}catch(e){return null}}
-let cdoc=null,cloudState='checking',cloudSig='',cloudAt=0,cloudBusy=false,bakAt=0,lastSavedAt=0;
+let cdoc=null,cloudState='checking',cloudSig='',cloudAt=0,cloudBusy=false,cloudReady=false,cloudPending=null,bakAt=0,lastSavedAt=0;
 // Save timestamps change every autosave; ignore them when comparing content.
 function saveSignature(str){return str.replace(/"ts":\d+,?/,'')}
 async function cloudPush(str,force){
   if(saveConflict)return;
-  if(!cdoc||cloudBusy)return;const sig=saveSignature(str);if(sig===cloudSig)return;
+  if(!cdoc||!cloudReady||cloudBusy)return;const sig=saveSignature(str);if(sig===cloudSig)return;
   if(!force&&Date.now()-cloudAt<20000)return;
   cloudBusy=true;try{await cdoc.set({json:str,ts:saveTs});cloudSig=sig;cloudAt=Date.now();cloudState='on'}catch(e){cloudState='error'}cloudBusy=false;
+}
+function chooseCloudSave(restore){
+  if(!cloudPending||saveConflict)return;
+  const recovered=cloudPending;cloudPending=null;cloudReady=true;cloudState='on';
+  if(restore)adoptSave(recovered);
+  cloudSig='';persist(true);
+  toast(restore?'Cloud character restored':'Device character kept');
+  if(tab==='settings')renderModal();
 }
 /* Standalone/PWA Supabase account saves. Publishable key only; RLS protects rows. */
 const SB_URL='https://mwhpgxyluezkfulqpaiy.supabase.co';
@@ -744,6 +753,7 @@ function openModal(t){
 }
 function closeModal(){stopSmithing('',false);stopCooking('',false);closeItemMenu();tab='';sel=null;outdoorShop=null;renderModal();if(modalReturnFocus?.isConnected)modalReturnFocus.focus({preventScroll:true});modalReturnFocus=null}
 function renderModal(){
+  cancelInventoryPointer();closeItemMenu();
   modal.dataset.screen=tab;
   modal.hidden=!tab;
   document.querySelectorAll('#hudR button').forEach(b=>{const screen=b.dataset.uiOpen||(b.id==='bBag'?'pack':'settings');b.setAttribute('aria-pressed',String(tab===screen))});
@@ -942,8 +952,15 @@ function finishInventoryPointer(e,cancelled=false){
     if(target&&target.dataset.inventory===drag.source)moveInventorySlot(drag.source,drag.index,+target.dataset.slotIndex);
   }
 }
+function cancelInventoryPointer(){
+  const drag=inventoryDrag;if(!drag)return;
+  inventoryDrag=null;clearTimeout(drag.timer);
+  if(drag.ghost)drag.ghost.remove();
+  try{drag.button.releasePointerCapture(drag.pointerId)}catch(_){}
+}
 mBody.addEventListener('pointerdown',e=>{
   const b=e.target.closest('button[data-item-key]');if(!b||e.button!==0)return;
+  delete b.dataset.suppressClick;
   closeItemMenu();const source=b.dataset.inventory,entry=inventorySlots(source)[+b.dataset.slotIndex];
   const drag={pointerId:e.pointerId,source,index:+b.dataset.slotIndex,x:e.clientX,y:e.clientY,button:b,entry,dragging:false,ghost:null};inventoryDrag=drag;
   drag.timer=setTimeout(()=>{if(inventoryDrag!==drag||drag.dragging)return;b.dataset.suppressClick='1';openItemMenu(entry,source,b)},450);
@@ -959,6 +976,7 @@ mBody.addEventListener('pointermove',e=>{
 });
 mBody.addEventListener('pointerup',e=>finishInventoryPointer(e));
 mBody.addEventListener('pointercancel',e=>finishInventoryPointer(e,true));
+mBody.addEventListener('lostpointercapture',e=>finishInventoryPointer(e,true));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&itemMenu){e.preventDefault();closeItemMenu()}});
 // Keep keyboard navigation inside the open dialog, and return to its opener
 // when closing. Item actions handle Escape first without closing the parent.
@@ -1202,12 +1220,19 @@ function rSettings(){
   mBody.append(el('p','note','Left stick or D-pad: move. A: gather or talk. X, RT or RB: attack (hold to keep swinging). Y: eat. Menu: this screen. View: backpack. LB and RB: switch tabs. B: close menus.'));
   mBody.append(el('h3','sub','Save'));
   const sv=el('div','');sv.style.cssText='margin-top:6px';
-  const st=el('div','',(cloudState==='on'?'Cloud save: ON (survives cleared browser data). ':cloudState==='error'?'Cloud save: ERROR, using this device only. ':'Cloud save: OFF, saving on this device only. ')+(lastSavedAt?'Last saved '+Math.round((Date.now()-lastSavedAt)/1000)+'s ago.':''));
+  const st=el('div','',(cloudPending?'Cloud character recovered — choose which save to keep. ':cloudState==='on'?'Cloud save: ON (survives cleared browser data). ':cloudState==='error'?'Cloud save: ERROR, using this device only. ':'Cloud save: OFF, saving on this device only. ')+(lastSavedAt?'Last saved '+Math.round((Date.now()-lastSavedAt)/1000)+'s ago.':''));
   st.style.cssText='font:18px VT323,monospace;line-height:1.1;margin-bottom:6px';sv.append(st);
+  if(cloudPending){
+    sv.append(el('p','note','A saved character arrived after you entered. Restoring replaces this device progress; keeping this device replaces the cloud character.'));
+    for(const [label,restore] of [['Restore recovered character',true],['Keep current character',false]]){
+      const button=el('button','btn',label);button.type='button';button.disabled=saveConflict;
+      button.addEventListener('click',()=>chooseCloudSave(restore));sv.append(button);
+    }
+  }
   const box=document.createElement('textarea');box.rows=3;box.placeholder='Save code appears here. Paste a code to restore.';box.setAttribute('aria-label','Save code');box.style.cssText='width:100%;font:14px monospace;background:#1d120a;color:#ffe9a8;border:2px solid #6a4422;box-sizing:border-box';
   const mk=(t,fn)=>{const b=el('button','btn',t);b.type='button';b.style.cssText='width:49%;height:38px;margin:6px 1% 0 0';b.addEventListener('click',fn);return b};
   const bExp=mk('Export code',()=>{persist(true);box.value='ER1.'+btoa(unescape(encodeURIComponent(JSON.stringify(snap()))));box.select();try{navigator.clipboard.writeText(box.value).then(()=>toast('Save code copied'),()=>toast('Code ready: copy it from the box'))}catch(e){toast('Code ready: copy it from the box')}});
-  const bImp=mk('Restore code',()=>{try{const c=box.value.trim().replace(/^ER1\./,'');const o=JSON.parse(decodeURIComponent(escape(atob(c))));if(!o||!o.xp)throw 0;o.ts=Date.now();adoptSave(o);persist(true);toast('Save restored');renderModal()}catch(e){toast('That code is not valid')}});
+  const bImp=mk('Restore code',()=>{try{const c=box.value.trim().replace(/^ER1\./,'');const o=parseSavedProgress(JSON.parse(decodeURIComponent(escape(atob(c)))));if(!o)throw 0;o.ts=Date.now();adoptSave(o);persist(true);toast('Save restored');renderModal()}catch(e){toast('That code is not valid')}});
   const auth=el('div','');auth.style.cssText='margin:8px 0;padding:7px;border:1px solid #73502c';
   const authStatus=el('p','note','Account cloud save: '+sbStatus);auth.append(authStatus);
   const action=(label,fn)=>{const b=el('button','btn',label);b.type='button';b.style.cssText='margin:3px;min-height:35px';b.onclick=async()=>{b.disabled=true;try{await fn();renderModal()}catch(e){toast(e.message);authStatus.textContent='Account cloud save: '+e.message}finally{b.disabled=false}};return b};
@@ -1251,7 +1276,22 @@ const BR=L=>L>=70?'end':L>=30?'mid':'early';
 const BRNAME={early:'Early',mid:'Mid',end:'End-game'};
 const QTY={early:[15,40],mid:[30,60],end:[50,100]},SLAYQ={early:[8,20],mid:[20,40],end:[30,60]};
 const jobDone=j=>j.objs.every(o=>o.have>=o.need);
-let boardOffers=null,boardLv=0;
+// Older slips could share an ID when generated in the same millisecond.
+// Keep every saved slip, giving collisions independent claim/drop identities.
+function uniqueJobIds(jobs){
+  const used=new Set();
+  for(const job of jobs){
+    let id=job.id||'job';while(used.has(id))id+='-';
+    job.id=id;used.add(id);
+  }
+  return jobs;
+}
+let boardOffers=null,boardLv=0,jobSerial=0;
+function nextJobId(){
+  const used=new Set(save.jobs.map(job=>job.id));
+  let id;do{id=Date.now().toString(36)+'-'+(++jobSerial).toString(36)}while(used.has(id));
+  return id;
+}
 function mkObj(sk){
   const L=lvlFor(save.xp[sk]),br=BR(L);
   if(sk==='melee'){
@@ -1271,15 +1311,18 @@ function genOffers(){
     const cnt=br==='end'?3:br==='mid'?2:1,objs=[];
     for(let i=0;i<cnt;i++)objs.push(mkObj(sks[i]));
     const xp={};objs.forEach(o=>{xp[o.skill]=(xp[o.skill]||0)+objXp(o)});
-    return {id:Date.now().toString(36)+rint(0,9999),bracket:br,objs,xp,tokens:br==='end'?rint(25,40):br==='mid'?rint(8,14):rint(2,4),done:false};
+    return {id:nextJobId(),bracket:br,objs,xp,tokens:br==='end'?rint(25,40):br==='mid'?rint(8,14):rint(2,4),done:false};
   });
 }
 const objTxt=o=>o.type==='slay'?'Slay '+o.need+' '+MT[o.mon].name.toLowerCase()+'s':'Deliver '+o.need+' '+ITEMS[o.item].name.toLowerCase();
 const rewTxt=j=>Object.keys(j.xp).map(k=>NAMES[k]+' '+j.xp[k].toLocaleString()+' xp').join(', ')+' + '+j.tokens+' tokens';
 function acceptJob(j){
-  if(save.jobs.length>=3){say('Your job log is full. Drop a job first.','warn');return}
-  save.jobs.push(JSON.parse(JSON.stringify(j)));boardOffers=boardOffers.filter(x=>x.id!==j.id);
+  const offered=boardOffers?.find(job=>job.id===j?.id);
+  if(!offered||save.jobs.some(job=>job.id===offered.id))return false;
+  if(save.jobs.length>=3){say('Your job log is full. Drop a job first.','warn');return false}
+  save.jobs.push(JSON.parse(JSON.stringify(offered)));boardOffers=boardOffers.filter(x=>x.id!==offered.id);
   say('You take an odd job slip.','gold');persist();uiHud();renderModal();
+  return true;
 }
 function dropJob(id){
   save.jobs=save.jobs.filter(j=>j.id!==id);say('You drop the job slip.');persist();uiHud();renderModal();
@@ -1347,7 +1390,9 @@ const DYES=[
   {n:'Midnight',M:'#2a2e6a',H:'#7a84d8',D:'#10123a'},
   {n:'Royal gold',M:'#c8a02a',H:'#fff0a0',D:'#6a4c10'}];
 const maxSkill=()=>Math.max(...SK.map(k=>lvlFor(save.xp[k])));
+const oddOwned=it=>it.item?((save.inv[it.id]||0)+(save.bank[it.id]||0)+(save.notes[it.id]||0)>0):!!save.perks[it.id];
 function oddBuy(it){
+  if(oddOwned(it))return;
   if(save.tokens<it.cost){say('You need '+it.cost+' job tokens.','warn');return}
   if(lvlFor(save.xp[it.sk])<it.lv){say('You need '+NAMES[it.sk]+' '+it.lv+'.','warn');return}
   if(it.item){if(save.inv[it.id]>0)return;if(!canFitInventory({[it.id]:1})){say('Your pack is full.','warn');return}save.inv[it.id]=1}
@@ -1358,7 +1403,7 @@ function rOdd(){
   mBody.append(el('div','shophead','<span>Odd Shop</span><span>'+save.tokens.toLocaleString()+' tokens</span>'));
   mBody.append(el('p','note','Utility items and prestige goods, paid for with job tokens and unlocked by skill level.'));
   ODD.forEach(it=>{
-    const owned=it.item?save.inv[it.id]>0:!!save.perks[it.id],ok=lvlFor(save.xp[it.sk])>=it.lv,row=el('div','shoprow');
+    const owned=oddOwned(it),ok=lvlFor(save.xp[it.sk])>=it.lv,row=el('div','shoprow');
     row.innerHTML=(it.item?itemSvg(it.id,32):svg(it.id==='magnet'?'ore':it.id==='spiked'?'sword':'axe',32,it.id==='magnet'?{o:'#c07aff'}:null))+'<span>'+it.name+'<small>'+it.desc+'</small><small class="'+(ok?'':'bad')+'">Needs '+NAMES[it.sk]+' '+it.lv+'</small></span>';
     const b=el('button','btn',owned?'Owned':it.cost+' tokens');b.type='button';b.disabled=owned||!ok||save.tokens<it.cost;b.addEventListener('click',()=>oddBuy(it));row.append(b);mBody.append(row);
   });
@@ -1921,6 +1966,8 @@ function sendPresence(){
 
 /* ---------- start ---------- */
 function start(){
+  // Enter in the name field must obey the same save-loading gate as the button.
+  if(!loadDone)return;
   // Never start with an invisible player or silently select an old sprite.
   if(!window.MyrrenKezV2Atlas?.ready){$('net').textContent=window.MyrrenKezV2Atlas?.failed?'Character artwork failed. Reload to retry.':'Loading character artwork…';return}
   relocateSavedPosition();
@@ -2289,13 +2336,16 @@ function leaveBuilding(now){
 }
 function die(){
   if(me.deathAt!=null)return;
-  stopSmithing('',false);stopCooking('',false);
+  stopSmithing('',false);stopCooking('',false);resetGameplayInput();
   me.deathAt=performance.now();me.hp=0;me.moving=false;me.pend=0;pendingStrike=null;me.swing=-99999;
+  me.tgt=null;me.tgtUntil=0;
   act=null;marker=null;wantSwing=false;closeModal();
   say('Oh dear, you are dead!','red');toast('YOU DIED');uiHud();
   for(const m of mons){if(m.state==='chase')m.state='return';m.warn=null}
 }
 function respawnPlayer(){
+  // Input received during the defeat animation must not carry into revival.
+  resetGameplayInput();
   me.deathAt=null;inside=null;me.x=CX;me.y=CY+40;me.hp=hpMax();me.hurtAt=-99999;
   me.dv='d';me.face=1;me.moving=false;regen=0;snapCam=true;exitCD=performance.now()+700;
   uiHud();petsTeleport();sendPresence();
@@ -3947,9 +3997,10 @@ function adoptSave(o,why){
   try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}
 }
 async function bootLoad(){
+  const initialSaveTs=saveTs,initialFresh=fresh;
   const g=$('go');g.disabled=true;g.textContent='LOADING SAVE...';
   const guard=setTimeout(finishLoad,4000);
-  const cands=[];
+  const cands=[];let cloudSave=null;
   try{for(const raw of await idbGetAll()){const o=parseSavedProgress(raw);if(o)cands.push(o)}}catch(e){}
   try{
     if(window.claude&&window.claude.use){
@@ -3958,7 +4009,7 @@ async function bootLoad(){
       if(id){
         cdoc=db.collection('data/users/'+id).doc('ember');
         const snapd=await cdoc.get();
-        if(snapd.exists){const d=snapd.data();if(d&&d.json){const o=parseSavedProgress(d.json);if(o){cands.push(o);cloudSig=String(d.json).replace(/"ts":\d+,?/,'')}}}
+        if(snapd.exists){const d=snapd.data(),o=d&&d.json?parseSavedProgress(d.json):null;if(!o)throw Error('Invalid cloud character');cloudSave=o;cands.push(o);cloudSig=saveSignature(String(d.json))}
         cloudState='on';
       }else cloudState='off';
     }else cloudState='off';
@@ -3966,6 +4017,14 @@ async function bootLoad(){
   clearTimeout(guard);
   let best=null;for(const o of cands)if(o&&o.xp&&(!best||(+o.ts||0)>(+best.ts||0)))best=o;
   if(best&&!started&&(fresh||(+best.ts||0)>saveTs))adoptSave(best);
+  // The four-second fallback can allow play before a cloud read completes.
+  // Compare against the startup snapshot, not its newer autosave timestamp,
+  // and keep uploads blocked until the player resolves the recovered save.
+  if(started&&cloudSave&&(initialFresh||(+cloudSave.ts||0)>initialSaveTs)){
+    cloudPending=cloudSave;cloudState='pending';
+    toast('A cloud character arrived after startup. Choose which save to keep in Settings.');
+  }else cloudReady=cloudState==='on';
+  if(tab==='settings')renderModal();
   finishLoad();
   if(!fresh&&cdoc&&cloudState==='on')cloudPush(JSON.stringify(snap()),true);
   if(sbSession)sbLoad().then(()=>{if(tab==='settings')renderModal()}).catch(e=>{sbStatus='Cloud unavailable: '+e.message;if(tab==='settings')renderModal()});
