@@ -62,3 +62,19 @@ The four Node adapter tests passed locally (Node 22). A headless Chromium screen
 - `tests/myrren-v19b-optin-game-bridge.test.cjs` tests route selection, state immutability and idempotence. All **3 local bridge tests passed**, alongside the 7 existing V19B tests (**10 total, 0 failed**).
 - No in-game browser capture yet: complete game navigation/integration remains unverified; physical iPhone Safari and multiplayer remain pending. Do not claim otherwise.
 - No PR, deployment or merge. Ask for user approval before publishing any preview externally.
+
+
+## Preview integration hardening (15 Nov 2026)
+The opt-in preview exposed a real state contract bug: `drawKezV2` resolved the local player's death from `me.deathAt` but passed only raw player options to the atlas adapter. During death the new walking sprite could remain visible.
+
+**Feature-branch-only correction:** `public/myrren-game.js` now resolves `deathAt` and `hurtAt` once and includes both in the renderer `state` object. The old drawing logic still uses exactly the same time values and composition. This is a small, targeted runtime source edit ON THE FEATURE BRANCH ONLY; production main remains unchanged.
+
+**Safer preview bridge:**
+- V19B only for `tool==='fist'`, exactly six zero equipment slots, no active swing, no death, no active hurt, and explicit resolved state.
+- Unsafe or unsupported states (including gear portraits) continue using Kez V2 visuals. This remains a TRANSITIONAL opt-in bridge, not an approved final combat/equipment renderer.
+- An on-page V19B/Legacy comparison toggle was added to `public/character-v19b-game-preview.html`. It affects only local renderer selection for the preview; never saves or sends this setting.
+- The test toolbar now exists before asset scripts, so early ready/error events have a visible status target.
+
+**QA:** 11 local tests passed in aggregate: 4 new bridge cases + 7 prior native atlas/asset tests. Four composition tests passed against a local extraction of the `drawKezV2()` function; the committed composition test also runs against the actual `public/myrren-game.js` file when executed in the checked-out repository, but the full repository/CI test run has NOT been performed here.
+
+**Remaining gates:** Actual full-game Chromium playthrough and screenshots, browser navigation to a served preview, preservation of data on an isolated preview hostname, physical iPhone Safari, multiplayer, attacks and all equipment alignment. No merge, PR or deployment without explicit approval.
