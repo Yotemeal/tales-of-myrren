@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=88;
+window.MyrrenBuild=89;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -729,9 +729,20 @@ function addXp(skill,amt){
 
 /* ---------- modal ---------- */
 const modal=$('modal'),mBody=$('mBody');
+let modalReturnFocus=null;
 const TITLES={gear:'Equipment',pack:'Inventory',skills:'Skills',players:'Party',shop:'Shop',smelt:'Furnace · Smelting',forge:'Anvil · Forging',cook:'Campfire · Cooking',settings:'Settings',board:'Community Board',jobs:'Odd Jobs',odd:'Odd Shop',bank:'Storage Chest'};
-function openModal(t){if(me.deathAt!=null)return;if(smithJob&&t!==(smithJob.type==='smelt'?'smelt':'forge'))stopSmithing('',false);if(cookJob&&t!=='cook')stopCooking('',false);closeItemMenu();if(!tab)gpIdx=-1;tab=t;if(t!=='shop'&&t!=='smelt'&&t!=='forge'&&t!=='cook'&&t!=='settings'&&t!=='board'&&t!=='odd')lastTab=t;sel=null;renderModal()}
-function closeModal(){stopSmithing('',false);stopCooking('',false);closeItemMenu();tab='';sel=null;outdoorShop=null;renderModal()}
+function openModal(t){
+  if(me.deathAt!=null)return;
+  if(smithJob&&t!==(smithJob.type==='smelt'?'smelt':'forge'))stopSmithing('',false);
+  if(cookJob&&t!=='cook')stopCooking('',false);
+  closeItemMenu();
+  if(!tab){gpIdx=-1;modalReturnFocus=document.activeElement}
+  tab=t;
+  if(!['shop','smelt','forge','cook','settings','board','odd'].includes(t))lastTab=t;
+  sel=null;renderModal();
+  if(!gpName||!cfg.pad)$('mClose').focus({preventScroll:true});
+}
+function closeModal(){stopSmithing('',false);stopCooking('',false);closeItemMenu();tab='';sel=null;outdoorShop=null;renderModal();if(modalReturnFocus?.isConnected)modalReturnFocus.focus({preventScroll:true});modalReturnFocus=null}
 function renderModal(){
   modal.dataset.screen=tab;
   modal.hidden=!tab;
@@ -949,6 +960,20 @@ mBody.addEventListener('pointermove',e=>{
 mBody.addEventListener('pointerup',e=>finishInventoryPointer(e));
 mBody.addEventListener('pointercancel',e=>finishInventoryPointer(e,true));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&itemMenu){e.preventDefault();closeItemMenu()}});
+// Keep keyboard navigation inside the open dialog, and return to its opener
+// when closing. Item actions handle Escape first without closing the parent.
+document.addEventListener('keydown',e=>{
+  if(!tab||e.defaultPrevented)return;
+  if(e.key==='Escape'){e.preventDefault();closeModal();return}
+  if(e.key!=='Tab')return;
+  const scope=itemMenu||modal;
+  const controls=[...scope.querySelectorAll('button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href], summary, [tabindex="0"]')].filter(node=>node.getClientRects().length);
+  const first=controls[0],last=controls[controls.length-1];
+  if(!first){e.preventDefault();$('mClose').focus();return}
+  if(!scope.contains(document.activeElement)||(e.shiftKey?document.activeElement===first:document.activeElement===last)){
+    e.preventDefault();(e.shiftKey?last:first).focus();
+  }
+});
 document.addEventListener('pointerdown',e=>{if(itemMenu&&!itemMenu.contains(e.target)&&!e.target.closest('[data-item-key]'))closeItemMenu()});
 
 function equipmentPaper(){
@@ -1179,7 +1204,7 @@ function rSettings(){
   const sv=el('div','');sv.style.cssText='margin-top:6px';
   const st=el('div','',(cloudState==='on'?'Cloud save: ON (survives cleared browser data). ':cloudState==='error'?'Cloud save: ERROR, using this device only. ':'Cloud save: OFF, saving on this device only. ')+(lastSavedAt?'Last saved '+Math.round((Date.now()-lastSavedAt)/1000)+'s ago.':''));
   st.style.cssText='font:18px VT323,monospace;line-height:1.1;margin-bottom:6px';sv.append(st);
-  const box=document.createElement('textarea');box.rows=3;box.placeholder='Save code appears here. Paste a code to restore.';box.style.cssText='width:100%;font:14px monospace;background:#1d120a;color:#ffe9a8;border:2px solid #6a4422;box-sizing:border-box';
+  const box=document.createElement('textarea');box.rows=3;box.placeholder='Save code appears here. Paste a code to restore.';box.setAttribute('aria-label','Save code');box.style.cssText='width:100%;font:14px monospace;background:#1d120a;color:#ffe9a8;border:2px solid #6a4422;box-sizing:border-box';
   const mk=(t,fn)=>{const b=el('button','btn',t);b.type='button';b.style.cssText='width:49%;height:38px;margin:6px 1% 0 0';b.addEventListener('click',fn);return b};
   const bExp=mk('Export code',()=>{persist(true);box.value='ER1.'+btoa(unescape(encodeURIComponent(JSON.stringify(snap()))));box.select();try{navigator.clipboard.writeText(box.value).then(()=>toast('Save code copied'),()=>toast('Code ready: copy it from the box'))}catch(e){toast('Code ready: copy it from the box')}});
   const bImp=mk('Restore code',()=>{try{const c=box.value.trim().replace(/^ER1\./,'');const o=JSON.parse(decodeURIComponent(escape(atob(c))));if(!o||!o.xp)throw 0;o.ts=Date.now();adoptSave(o);persist(true);toast('Save restored');renderModal()}catch(e){toast('That code is not valid')}});
@@ -1188,8 +1213,8 @@ function rSettings(){
   const action=(label,fn)=>{const b=el('button','btn',label);b.type='button';b.style.cssText='margin:3px;min-height:35px';b.onclick=async()=>{b.disabled=true;try{await fn();renderModal()}catch(e){toast(e.message);authStatus.textContent='Account cloud save: '+e.message}finally{b.disabled=false}};return b};
   if(!sbSession){
     const email=el('input',''),password=el('input','');
-    email.type='email';email.placeholder='Email address';email.autocomplete='email';
-    password.type='password';password.placeholder='Password (6+ characters)';password.autocomplete='current-password';
+    email.type='email';email.placeholder='Email address';email.setAttribute('aria-label','Email address');email.autocomplete='email';
+    password.type='password';password.placeholder='Password (6+ characters)';password.setAttribute('aria-label','Password');password.autocomplete='current-password';
     for(const field of [email,password])field.style.cssText='display:block;width:100%;box-sizing:border-box;margin:4px 0;padding:7px;background:#21160e;color:#fff0c5;border:1px solid #89643d;font-size:16px';
     auth.append(email,password,action('Sign in',()=>sbLogin(email.value.trim(),password.value,false)),action('Create account',()=>sbLogin(email.value.trim(),password.value,true)));
   }else{
@@ -1555,15 +1580,15 @@ function equipmentSetPlan(mat,includeSword=false){
   const totalBars=pieces.reduce((sum,p)=>sum+p.bars,0);
   const barsNeeded=missing.reduce((sum,p)=>sum+p.bars,0);
   const barKey='ing_'+recipe.id;
-  const heldBars=save.inv[barKey]||0,bankBars=save.bank[barKey]||0;
-  const barsToSmelt=Math.max(0,barsNeeded-heldBars-bankBars);
+  const heldBars=save.inv[barKey]||0,bankBars=save.bank[barKey]||0,notedBars=save.notes[barKey]||0;
+  const barsToSmelt=Math.max(0,barsNeeded-heldBars-bankBars-notedBars);
   const ores=Object.entries(recipe.in).map(([id,perBar])=>{
     const needed=barsToSmelt*perBar;
     const carried=save.inv[id]||0,banked=save.bank[id]||0,noted=save.notes[id]||0;
     return {id,perBar,needed,available:carried+banked+noted,
       missing:Math.max(0,needed-carried-banked-noted)};
   });
-  return {recipe,material,pieces,missing,totalBars,barsNeeded,heldBars,bankBars,
+  return {recipe,material,pieces,missing,totalBars,barsNeeded,heldBars,bankBars,notedBars,
     barsToSmelt,ores,levelRequired:Math.max(...pieces.map(p=>p.level)),
     remainingLevel:missing.length?Math.max(...missing.map(p=>p.level)):0,
     totalSmeltXp:totalBars*recipe.xp,
@@ -1601,7 +1626,7 @@ function rForgeSetPlan(){
     }
     content.append(el('p','note',
       'Still needed: '+plan.barsNeeded+' ingots for missing pieces · '+
-      (plan.heldBars+plan.bankBars)+' ingots carried/banked · '+
+      (plan.heldBars+plan.bankBars+plan.notedBars)+' ingots carried/banked/noted · '+
       plan.barsToSmelt+' more to smelt.'));
     for(const ore of plan.ores){
       content.append(el('div','forge-set-line',
@@ -1704,8 +1729,10 @@ const SWING_IV=900,COS_ARC=Math.cos(Math.PI*50/180);
 let atkHeld=false,gpAtk=false,wantSwing=false,nextSwing=0;const atkPtrs=new Set();
 const aAtk=$('aAtk');aAtk.style.touchAction='none';
 aAtk.addEventListener('pointerdown',e=>{e.preventDefault();if(inside){say('No fighting indoors.');return}atkPtrs.add(e.pointerId);atkHeld=true;wantSwing=true;try{aAtk.setPointerCapture(e.pointerId)}catch(_){}});
-['pointerup','pointercancel'].forEach(t=>aAtk.addEventListener(t,e=>{atkPtrs.delete(e.pointerId);atkHeld=atkPtrs.size>0}));
-addEventListener('blur',()=>{atkPtrs.clear();atkHeld=false});
+['pointerup','pointercancel','lostpointercapture'].forEach(t=>aAtk.addEventListener(t,e=>{atkPtrs.delete(e.pointerId);atkHeld=atkPtrs.size>0}));
+// Keyboard Enter and assistive activation emit a click without pointer input.
+// Pointer clicks already queued their strike on pointerdown.
+aAtk.addEventListener('click',e=>{if(e.detail!==0||!started||me.deathAt!=null)return;if(inside){say('No fighting indoors.');return}wantSwing=true});
 aAtk.addEventListener('contextmenu',e=>e.preventDefault());
 // Lock the strike's position and facing at input time. Players can retreat
 // immediately without the 110ms animation delay changing an already-aimed hit.
@@ -1913,8 +1940,21 @@ $('nick').value=save.name||'';
 /* ---------- input ---------- */
 const keys={};
 const stick={on:false,id:null,dx:0,dy:0};
-addEventListener('keydown',e=>{if(e.target.id==='nick')return;const kk=e.key.toLowerCase();keys[kk]=true;if(started&&!tab&&!e.repeat&&(kk==='e'||kk==='f'))useAction();if(kk===' ')e.preventDefault()});
+function isTextEntry(target){return target?.id==='nick'||target?.isContentEditable||['INPUT','TEXTAREA','SELECT'].includes(target?.tagName)}
+function usesNativeKeys(target,key){return isTextEntry(target)||(target?.tagName==='BUTTON'&&(key==='Enter'||(key===' '&&target.id!=='aAtk')))}
+function releaseKeyboardInput(){for(const k of Object.keys(keys))delete keys[k]}
+function resetGameplayInput(){
+  releaseKeyboardInput();
+  atkPtrs.clear();atkHeld=false;gpAtk=false;wantSwing=false;
+  stick.on=false;stick.id=null;stick.dx=0;stick.dy=0;knob.style.transform='';
+}
+// Text entry retains all keys; UI buttons retain Space/Enter activation while
+// allowing movement after clicks. The attack button also supports held Space.
+addEventListener('keydown',e=>{if(usesNativeKeys(e.target,e.key))return;const kk=e.key.toLowerCase();keys[kk]=true;if(started&&!tab&&!e.repeat&&(kk==='e'||kk==='f'))useAction();if(kk===' ')e.preventDefault()});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
+document.addEventListener('focusin',e=>{if(isTextEntry(e.target))releaseKeyboardInput();else if(e.target?.tagName==='BUTTON'&&e.target.id!=='aAtk')delete keys[' ']});
+addEventListener('blur',resetGameplayInput);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)resetGameplayInput()});
 const pad=$('pad'),knob=$('knob'),PR=46;
 function moveStick(e){
   const r=pad.getBoundingClientRect();
@@ -1924,8 +1964,8 @@ function moveStick(e){
 }
 pad.addEventListener('pointerdown',e=>{if(stick.on)return;stick.on=true;stick.id=e.pointerId;try{pad.setPointerCapture(e.pointerId)}catch(_){}moveStick(e)});
 pad.addEventListener('pointermove',e=>{if(stick.on&&e.pointerId===stick.id)moveStick(e)});
-function endStick(e){if(e.pointerId!==stick.id)return;stick.on=false;stick.dx=0;stick.dy=0;knob.style.transform=''}
-pad.addEventListener('pointerup',endStick);pad.addEventListener('pointercancel',endStick);
+function endStick(e){if(e.pointerId!==stick.id)return;stick.on=false;stick.id=null;stick.dx=0;stick.dy=0;knob.style.transform=''}
+pad.addEventListener('pointerup',endStick);pad.addEventListener('pointercancel',endStick);pad.addEventListener('lostpointercapture',endStick);
 // Two-finger pinch zoom. Separate saved preferences for portrait and landscape.
 const cameraZoom={portrait:null,landscape:null};
 try{const z=JSON.parse(localStorage.getItem('myrren-camera-zoom')||'{}');for(const k of ['portrait','landscape'])if(Number.isFinite(z[k]))cameraZoom[k]=clamp(z[k],1,4)}catch(_){}
@@ -3895,8 +3935,15 @@ function finishLoad(){
   if(save.name&&!$('nick').value)$('nick').value=save.name;
 }
 function adoptSave(o,why){
-  applySave(o);me.x=clamp(save.x,EDGE+8,WW-EDGE-8);me.y=clamp(save.y,EDGE+8,WH-EDGE-8);relocateSavedPosition();
-  syncPets();petsTeleport();uiHud();
+  // Restoring a character also replaces its live session. Do not carry an
+  // old health total, pending attack or production queue into the new save.
+  stopSmithing('',false);stopCooking('',false);resetGameplayInput();
+  inside=null;outdoorShop=null;act=null;marker=null;blocked.clear();
+  pendingStrike=null;me.pend=0;me.tgt=null;me.tgtUntil=0;me.catchFx=null;
+  me.deathAt=null;me.hurtAt=-99999;me.swing=-99999;me.moving=false;regen=0;
+  applySave(o);me.hp=hpMax();refreshHeld();
+  me.x=clamp(save.x,EDGE+8,WW-EDGE-8);me.y=clamp(save.y,EDGE+8,WH-EDGE-8);relocateSavedPosition();
+  fade=0;snapCam=true;syncPets();petsTeleport();uiHud();refreshActionButtons();
   try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}
 }
 async function bootLoad(){

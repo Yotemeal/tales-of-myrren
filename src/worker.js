@@ -5,8 +5,10 @@ export default {
     // Historical links to the repository-style /public/ path must resolve to
     // the same production asset instead of becoming another game entry point.
     if (url.pathname === '/public' || url.pathname.startsWith('/public/')) {
-      const path = url.pathname === '/public' ? '/' : url.pathname.slice('/public'.length);
-      return Response.redirect(new URL(path + url.search, url.origin), 308);
+      // Assign the pathname on the existing URL so leading slashes cannot
+      // turn a legacy asset path into a protocol-relative external redirect.
+      url.pathname = url.pathname === '/public' ? '/' : url.pathname.slice('/public'.length);
+      return Response.redirect(url, 308);
     }
 
     const response = await env.ASSETS.fetch(request);

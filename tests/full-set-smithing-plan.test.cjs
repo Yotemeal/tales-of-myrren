@@ -92,6 +92,18 @@ const createGame=require('./game-runtime.cjs');
    assert.equal(swordPlan.barsNeeded,13,'sword is not yet owned');
    assert.equal(swordPlan.barsToSmelt,8);
    assert.equal(swordPlan.ores[0].needed,24,'sword adds four bars of ingredients');
+   g.save.notes.ing_starsteel=3;
+   const notedPlan=g.equipmentSetPlan(star.mat);
+   assert.equal(notedPlan.notedBars,3);
+   assert.equal(notedPlan.barsToSmelt,1,'owned ingot banknotes reduce the remaining smelting budget');
+   assert.equal(notedPlan.ores[0].needed,3,'only ore for the one missing ingot is needed');
+   g.save.notes.ing_starsteel=20;
+   assert.equal(g.equipmentSetPlan(star.mat).barsToSmelt,0,
+     'sufficient noted ingots never prompt the player to mine extra ore');
+   g.setForgeMat(star.mat);
+   assert.equal(g.smithMaterials('forge','sword'),0,
+     'advisory noted bars cannot be consumed at the anvil');
+   delete g.save.notes.ing_starsteel;
    g.save.eq.weapon='starsteel_sword';
    assert.equal(g.equipmentSetPlan(star.mat,true).barsNeeded,9,
      'equipped sword satisfies optional seventh piece');

@@ -17,8 +17,19 @@ vm.runInNewContext(source,context);
     const res=await context.worker.fetch(new Request('https://example.workers.dev'+path),env);
     assert.match(res.headers.get('Cache-Control'),/no-store/,path+' must not cache stale game files');
   }
-  const old=await context.worker.fetch(new Request('https://example.workers.dev/public/index.html?utm_source=chatgpt.com'),env);
-  assert.equal(old.status,308);
-  assert.equal(old.headers.get('Location'),'https://example.workers.dev/index.html?utm_source=chatgpt.com');
-  console.log('PASS: single canonical game for all query parameters, no stale scripts/styles, old path redirects');
+  for(const [path,location] of [
+    ['/public','/'],
+    ['/public/','/'],
+    ['/public/index.html?utm_source=chatgpt.com','/index.html?utm_source=chatgpt.com'],
+    ['/public//evil.com?next=https://elsewhere.example','//evil.com?next=https://elsewhere.example'],
+    ['/public/\\evil.com','//evil.com'],
+    ['/public/\\\\evil.com','///evil.com'],
+    ['/public/%5C%5Cevil.com','/%5C%5Cevil.com']
+  ]){
+    const old=await context.worker.fetch(new Request('https://example.workers.dev'+path),env);
+    assert.equal(old.status,308,path);
+    assert.equal(old.headers.get('Location'),'https://example.workers.dev'+location,path);
+    assert.equal(new URL(old.headers.get('Location')).origin,'https://example.workers.dev',path+' must stay on the game origin');
+  }
+  console.log('PASS: single canonical game for all query parameters, no stale scripts/styles, same-origin old path redirects including slash/backslash inputs');
 })().catch(e=>{console.error(e);process.exitCode=1});

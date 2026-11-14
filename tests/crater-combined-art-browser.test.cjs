@@ -5,6 +5,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),http=require('node:http'),path=require('node:path');
 const {chromium}=require('playwright');
 const root=path.resolve(__dirname,'../public');
+const expectedBuild=Number(/myrren-game\.js\?v=(\d+)/.exec(fs.readFileSync(path.join(root,'index.html'),'utf8'))[1]);
 const output='/tmp/myrren-combined-world-art-qa';
 fs.mkdirSync(output,{recursive:true});
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8',
@@ -73,7 +74,7 @@ const server=http.createServer((req,res)=>{
           propCells:window.__combinedQa.propSource.size,
           build:window.MyrrenBuild
         }));
-        assert.equal(counts.build,88,'integrated game cache/version mismatch');
+        assert.equal(counts.build,expectedBuild,'integrated game cache/version mismatch');
         assert(counts.terrainCells>=4,'expected multiple real terrain source cells');
         assert.equal(counts.props>0,mode!=='terrain-only',
           'camp atlas must be opt-in while native terrain stays enabled');
