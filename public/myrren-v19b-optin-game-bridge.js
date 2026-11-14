@@ -22,7 +22,11 @@
 
   function eligible(o, now) {
     if (!o || !Number.isFinite(now)) return false;
-    if (o.tool !== 'fist') return false;
+    // Network presence encodes an unequipped/unarmed peer as action 0,
+    // decoded to the empty tool string. Local players use 'fist' instead.
+    // Neither case means a weapon should be hidden.
+    const barehanded = o.tool === 'fist' || (!o.isMe && o.tool === '');
+    if (!barehanded) return false;
     if (!Array.isArray(o.g) || o.g.length !== 6 || o.g.some(v => v !== 0)) return false;
     // Local death/hurt timestamps are resolved in drawKezV2 before this bridge.
     // Old portraits and unrelated render calls lack that state, so stay legacy.

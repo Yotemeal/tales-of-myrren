@@ -50,3 +50,25 @@ test('attack, hurt, death, armour, and missing explicit render state use legacy'
   for(const o of variants)h.render(o);
   assert.deepEqual(h.calls.map(x=>x[0]),variants.map(()=>'legacy'));
 });
+
+test('real multiplayer action code 0 selects V19B for an unarmed peer',()=>{
+  const h=harness();
+  const peer={...h.input,tool:'',isMe:undefined,deathAt:undefined};
+  h.render(peer);
+  assert.deepEqual(h.calls.map(x=>x[0]),['v19b']);
+});
+test('remote empty tool does not override gear, combat or local uninitialized state',()=>{
+  const h=harness();
+  const barePeer={...h.input,tool:'',isMe:undefined,deathAt:undefined};
+  const options=[
+    {...barePeer,g:[2,0,0,0,0,0]},
+    {...barePeer,swingAt:600},
+    {...barePeer,hurtAt:600},
+    {...barePeer,dead:true},
+    {...barePeer,deathAt:500},
+    {...h.input,isMe:1,tool:''},
+    {...h.input,tool:undefined},
+  ];
+  for(const o of options)h.render(o);
+  assert.deepEqual(h.calls.map(x=>x[0]),options.map(()=>'legacy'));
+});
