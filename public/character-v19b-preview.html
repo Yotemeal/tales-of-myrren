@@ -11,7 +11,8 @@
     main { max-width: 650px; margin: auto; }
     h1 { font-size: 1.1rem; margin: 4px 0; }
     p { font-size: .85rem; line-height: 1.45; color: #c9d6cf; }
-    #stage { width: 384px; height: 216px; max-width: none; border-radius: 12px;
+    #stage-scroll { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+    #stage { box-sizing: content-box; width: 384px; height: 216px; max-width: none; border-radius: 12px;
       overflow: hidden; border: 1px solid #57645e; background: #26342d; }
     canvas { width: 384px; height: 216px; display: block; image-rendering: pixelated;
       image-rendering: crisp-edges; }
@@ -25,9 +26,9 @@
 <main>
   <h1>Myrren V19B — isolated walking review</h1>
   <p>Native 24×32 frames • exact 2× CSS scale • 6 × 110 ms walking cycle. This page does not run the game, save progress, equip armour or connect multiplayer.</p>
-  <div id="stage"><canvas id="preview" width="192" height="108" aria-label="Four-direction animated sprite preview"></canvas></div>
+  <div id="stage-scroll"><div id="stage"><canvas id="preview" width="192" height="108" aria-label="Four-direction animated sprite preview"></canvas></div></div>
   <div class="controls"><button id="toggle" type="button">Pause walking</button><span id="status">Loading native sprites…</span></div>
-  <p>Left and right V5 frames are unchanged. This is an animation test, not proof of live gameplay integration.</p>
+  <p>Left and right V5 frames are unchanged. On narrower screens, swipe sideways within the preview. This is an animation test, not proof of live gameplay integration.</p>
 </main>
 <script src="/myrren-v19b-atlas.js"></script>
 <script>

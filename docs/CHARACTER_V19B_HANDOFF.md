@@ -46,3 +46,11 @@ The same feature branch now also contains:
 - `tests/myrren-v19b-renderer.test.cjs` — four Node VM tests for load/failure, frame/row timing, fixed draw rectangles and 24×32 assets.
 
 The four Node adapter tests passed locally (Node 22). A headless Chromium screenshot attempt was blocked by the execution environment and did not produce a screenshot; **browser playback, real iPhone and multiplayer remain unverified**. The production `public/index.html`, `public/myrren-game.js`, `public/kez-v2-atlas.js`, equipment and camera remain unchanged. No PR, merge or deployment.
+
+## Follow-on QA (15 Nov 2026)
+- Ran V19B's **unaltered isolated renderer JS and PNGs** through Chromium using an in-memory asset URL shim because the execution environment blocks navigations to localhost and file:// pages.
+- All **three canvas configurations passed**: 852×393 landscape at DPR3, 393×852 portrait at DPR3, and 1280×720 desktop at DPR1. Sprite animation changed frames; pause produced stable idle frames; browser JavaScript errors: none. Canvas CSS scale stayed exactly **2×**.
+- Initial portrait preview made the page wider than its viewport. Adjusted ONLY the isolated preview HTML to provide horizontal scrolling for the 384-pixel-wide, 2× canvas; no scaling or blur.
+- Added `tests/myrren-v19b-pixel-lock.test.cjs` and fixture `tests/fixtures/myrren-v19b-native-rgba-sha256.json`. It decodes PNG RGBA8 with Node built-ins, verifies the exact raw RGBA SHA-256 of **all 24 accepted V19B frames**, binary alpha and connected silhouettes, and the unchanged front/back upper body. Local combined tests: **7 passed, 0 failed**.
+- This was a **Chromium in-memory canvas test**, NOT an HTTP website navigation, in-game test, iPhone Safari, multiplayer, or armour test. No runtime integration, merge or deployment.
+- No user action needed until an accessible test build is intentionally prepared. Do not ask the user to open the opt-in preview on the production domain: it is staged only on the feature branch, not deployed.
