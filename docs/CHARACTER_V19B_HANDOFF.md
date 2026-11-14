@@ -78,3 +78,12 @@ The opt-in preview exposed a real state contract bug: `drawKezV2` resolved the l
 **QA:** 11 local tests passed in aggregate: 4 new bridge cases + 7 prior native atlas/asset tests. Four composition tests passed against a local extraction of the `drawKezV2()` function; the committed composition test also runs against the actual `public/myrren-game.js` file when executed in the checked-out repository, but the full repository/CI test run has NOT been performed here.
 
 **Remaining gates:** Actual full-game Chromium playthrough and screenshots, browser navigation to a served preview, preservation of data on an isolated preview hostname, physical iPhone Safari, multiplayer, attacks and all equipment alignment. No merge, PR or deployment without explicit approval.
+
+## Production-candidate wiring (NOT YET MERGED/DEPLOYED)
+The user authorized integration into main **only if tested safe**. The feature-branch candidate loads the V19B native atlas and compatibility bridge before the game script in canonical `public/index.html`. The runtime build marker and script cache bust are both bumped to v92. The merged #97 fixed 2× camera is untouched. Save schema, gameplay movement, collision, combat and multiplayer protocol are untouched.
+
+On all unarmed, unequipped, healthy/non-attacking players and peers, accepted V19B 24×32 walking + idle is drawn. Combat, injury, death, worn gear and held tools continue using existing 21×27 Kez V2 art, **so visible size/style changes are expected on these transitions** until new 24×32 combat/equipment overlays are ready.
+
+Safety fallback: while V19B assets load or fail, game continues drawing Kez V2. A failed load emits an error and one fall-back event. `?character=legacy` forces Kez V2 for the full page session and cannot modify game saves. Asset files, V5 side frame hashes and V19B raw RGBA frames remain locked unchanged.
+
+No merge until actual full-game browser validation and relevant CI (self-hosted runner) pass; no claim of physical iPhone or live multiplayer verification. No main-line changes yet.
