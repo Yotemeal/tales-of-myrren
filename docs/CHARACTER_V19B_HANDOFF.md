@@ -54,3 +54,11 @@ The four Node adapter tests passed locally (Node 22). A headless Chromium screen
 - Added `tests/myrren-v19b-pixel-lock.test.cjs` and fixture `tests/fixtures/myrren-v19b-native-rgba-sha256.json`. It decodes PNG RGBA8 with Node built-ins, verifies the exact raw RGBA SHA-256 of **all 24 accepted V19B frames**, binary alpha and connected silhouettes, and the unchanged front/back upper body. Local combined tests: **7 passed, 0 failed**.
 - This was a **Chromium in-memory canvas test**, NOT an HTTP website navigation, in-game test, iPhone Safari, multiplayer, or armour test. No runtime integration, merge or deployment.
 - No user action needed until an accessible test build is intentionally prepared. Do not ask the user to open the opt-in preview on the production domain: it is staged only on the feature branch, not deployed.
+
+## Opt-in in-game visual bridge (branch-only, not deployed)
+- `public/character-v19b-game-preview.html` is a copy of the canonical `public/index.html` with **two extra script imports and a small test notice**. The canonical production HTML remains untouched.
+- `public/myrren-v19b-optin-game-bridge.js` is loaded ONLY by that preview page and temporarily replaces the **draw method** of the legacy atlas object in memory, without modifying the game state.
+- V19B is shown ONLY when the entity is unarmed, unequipped, not attacking and not flagged dead; other poses use existing Kez V2 to avoid mismatched 21×27 equipment. This is deliberately a **partial visual integration test**, not a final armour, combat or multiplayer renderer.
+- `tests/myrren-v19b-optin-game-bridge.test.cjs` tests route selection, state immutability and idempotence. All **3 local bridge tests passed**, alongside the 7 existing V19B tests (**10 total, 0 failed**).
+- No in-game browser capture yet: complete game navigation/integration remains unverified; physical iPhone Safari and multiplayer remain pending. Do not claim otherwise.
+- No PR, deployment or merge. Ask for user approval before publishing any preview externally.
