@@ -1,0 +1,23 @@
+{
+  "project": "Tales of Myrren",
+  "stage": "art review; no game integration",
+  "concept_status": "approved",
+  "native_sprite_status": "candidate pending in-game visual check",
+  "source_image": "tales_of_myrren_black_iron_review.png",
+  "source_image_sha256": "ce2407b2c841d0aea8307c3e97ed87234c40a5004a0f303a448422c37bb3f628",
+  "sprite": "public/assets/art-review/black-iron/ore_black_iron_v1_28x20.png",
+  "sprite_sha256": "b02a06067cc2137deff34bb0f31eff4764c7f6e61343a7ee7537c82e43d2108c",
+  "native_width": 28,
+  "native_height": 20,
+  "opaque_pixels": 412,
+  "transparent_pixels": 148,
+  "opaque_components": 1,
+  "format": "PNG RGBA",
+  "world_target_width": 28,
+  "camera_zoom": 2,
+  "hero_reference": "public/assets/myrren-v19f/myrren_front_game_ready_24x32.png",
+  "hero_sha256": "748ad641d103dc91228327c91abbc058bf685fad21011f809076ed47028c69a2",
+  "safe_resource_id": "cobalt",
+  "legacy_art_untouched": true,
+  "gameplay_untouched": true
+}
