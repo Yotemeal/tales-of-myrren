@@ -54,7 +54,8 @@ jobs:
             tests/myrren-v19b-optin-game-bridge.test.cjs \
             tests/myrren-v19b-production-bridge.test.cjs \
             tests/myrren-v19b-game-composition.test.cjs \
-            tests/myrren-v19b-production-entry.test.cjs
+            tests/myrren-v19b-production-entry.test.cjs \
+            tests/myrren-v19b-side-idle-candidate.test.cjs
       - name: Gameplay, economy and save integrity
         run: |
           node tests/forging-skill.test.cjs
