@@ -1,0 +1,66 @@
+{
+  "project": "Tales of Myrren",
+  "version": "native-ore-art-review-v1",
+  "status": "awaiting owner yes/no; NOT merged or deployed",
+  "anchor_reference": "approved V19F 24x32 native character and approved Black Iron 28x20 source",
+  "camera_zoom_reference": 2,
+  "native_dimensions": [
+    28,
+    20
+  ],
+  "production_integration": false,
+  "legacy_runtime_material_ids_untouched": true,
+  "hero_sha256": "748ad641d103dc91228327c91abbc058bf685fad21011f809076ed47028c69a2",
+  "sprite_directory": "public/assets/art-review/mining-ores-v1",
+  "assets": [
+    {
+      "name": "copper",
+      "path": "public/assets/art-review/mining-ores-v1/ore_copper.png",
+      "sha256": "d9f0fb57ee12752d71ee06be9c88a842dd307145edc7437e25344e155de8cba6",
+      "visual_design": "Orange embedded copper flecks; squat asymmetrical round rock"
+    },
+    {
+      "name": "tin",
+      "path": "public/assets/art-review/mining-ores-v1/ore_tin.png",
+      "sha256": "52abc7198526feeafa9c9197654afa5107a6ac6f4904a8b6a33a74429f4c3c0f",
+      "visual_design": "Low two-lobed stone with silver mineral faces"
+    },
+    {
+      "name": "iron",
+      "path": "public/assets/art-review/mining-ores-v1/ore_iron.png",
+      "sha256": "2e3c7c8bf390aa3f870f49d0ea31f71419e517d7f54e846e6f067caf990a3207",
+      "visual_design": "Round boulder, muted rust mineral exposed"
+    },
+    {
+      "name": "coal",
+      "path": "public/assets/art-review/mining-ores-v1/ore_coal.png",
+      "sha256": "c9443d60df9c157de488838efe81f48c5f2dfa7e2c744021f99f91244ab47c31",
+      "visual_design": "Compact pile of dark coal fragments; not a metallic boulder"
+    },
+    {
+      "name": "black_iron",
+      "path": "public/assets/art-review/mining-ores-v1/ore_black_iron.png",
+      "sha256": "b02a06067cc2137deff34bb0f31eff4764c7f6e61343a7ee7537c82e43d2108c",
+      "visual_design": "Owner-approved Black Iron native v1, copied byte-for-byte"
+    },
+    {
+      "name": "chromium",
+      "path": "public/assets/art-review/mining-ores-v1/ore_chromium.png",
+      "sha256": "b1be8da319ed2162b65c0f30a55a62d89229302894a933f438a06fa7fc7f239b",
+      "visual_design": "Long low rock with subtle violet-grey metallic facets"
+    },
+    {
+      "name": "iridium",
+      "path": "public/assets/art-review/mining-ores-v1/ore_iridium.png",
+      "sha256": "d8040a983b14b9f050ba95c0fb298a56951cb661192491f8325a87184a673a17",
+      "visual_design": "Raised crest with silver-blue embedded minerals"
+    },
+    {
+      "name": "myrrenite",
+      "path": "public/assets/art-review/mining-ores-v1/ore_myrrenite.png",
+      "sha256": "86877916b8766b79078a64b22342604f02fa224ecac43f64ed2d97cd241230cd",
+      "visual_design": "Rounded dark stone with turquoise exposed mineral, no spikes"
+    }
+  ],
+  "important": "Black Iron PNG is byte-for-byte unchanged from approved native review. Chromium and Iridium are art-only proposed names; Obsidianite and Starsteel gameplay still exist on main."
+}
