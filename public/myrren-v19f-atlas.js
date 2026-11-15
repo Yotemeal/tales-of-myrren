@@ -12,8 +12,8 @@
   const DIRECTIONS = ['front', 'left', 'right', 'back'];
   const URL_BASE = '/assets/myrren-v19f/';
   const assets = {
-    walk: { image: new Image(), width: 144, height: 128, path: URL_BASE + 'myrren_walk_4x6_native.png' },
-    idle: { image: new Image(), width: 96, height: 32, path: URL_BASE + 'myrren_idle_4dir_native.png' },
+    walk: { image: new Image(), width: 144, height: 128, path: URL_BASE + 'myrren_walk_4x6_native.png?rev=hairclean1' },
+    idle: { image: new Image(), width: 96, height: 32, path: URL_BASE + 'myrren_idle_4dir_native.png?rev=hairclean1' },
   };
   let status = 'loading';
   let loaded = 0;

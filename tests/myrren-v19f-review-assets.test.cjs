@@ -36,10 +36,30 @@ test('new candidate PNG files exactly reproduce locked source and expected RGBA 
 test('old V19B originals remain immutable, unmodified and available for rollback',()=>{
  for(const [key,fn] of Object.entries(name))assert.equal(sha(fs.readFileSync(path.join(src,fn))),SOURCE[key]);
 });
-test('all V19E side idle and 12 walk frames preserved byte-for-byte',()=>{
- for(const [n,row] of [['left',1],['right',2]]){
-  assert.equal(hsh(frame(files.idle,0,row)),V19E_SIDES[n].idle);
-  for(let i=0;i<6;i++)assert.equal(hsh(frame(files.walk,row,i)),V19E_SIDES[n].walk[i]);
+test('approved V19E side face/eye/gait unchanged except targeted hairline correction',()=>{
+ const before=constructed.untouched;
+ const gray=new Set(['81,73,66,255','100,85,78,255','38,37,28,255']);
+ for(const [name,row] of [['left',1],['right',2]]){
+  assert.equal(hsh(frame(before.idle,0,row)),V19E_SIDES[name].idle);
+  for(let f=0;f<6;f++)assert.equal(hsh(frame(before.walk,row,f)),V19E_SIDES[name].walk[f]);
+ }
+ for(const [key,im] of Object.entries(files)){
+  const old=before[key],rows=im.height/H,cols=im.width/W;
+  for(let row=0;row<rows;row++)for(let col=0;col<cols;col++)
+   for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const xx=col*W+x,yy=row*H+y;
+    const a=rgba(old,xx,yy),b=rgba(im,xx,yy);
+    if(a.every((v,i)=>v===b[i]))continue;
+    assert(y<HEAD_H,'body or leg pixel unexpectedly changed');
+    const front=key==='walk'?row===0:key==='idle'?col===0:true;
+    if(front&&x===17&&y===3){
+      assert.deepEqual(a,[232,224,220,255]);
+      assert.deepEqual(b,[0,0,0,0]);
+    }else{
+      assert(gray.has(a.join(',')),'face, eye or normal hair pixel changed');
+      assert.deepEqual(b,[25,22,16,255]);
+    }
+   }
  }
 });
 test('each front and back idle head matches every walking frame',()=>{
@@ -84,4 +104,17 @@ test('all 24 frames retained original feet and animation variation',()=>{
   for(let col=0;col<6;col++)variants.add(hsh(frame(files.walk,row,col)));
   assert(variants.size>=4,`${dirs[row]} walk sequence collapsed`);
  }
+});
+test('white speck removed from front master, idle, and all six walk frames',()=>{
+ for(const [name,im] of Object.entries(files)){
+  for(let f=0;f<(name==='walk'?6:1);f++)
+   assert.deepEqual(rgba(im,f*W+17,3),[0,0,0,0]);
+ }
+});
+test('hair outlines have no stray white or neutral-grey pixels across four views',()=>{
+ const stray=new Set(['232,224,220,255','81,73,66,255','100,85,78,255','38,37,28,255']);
+ for(const im of Object.values(files))
+  for(let row=0;row<im.height/H;row++)for(let col=0;col<im.width/W;col++)
+   for(let y=0;y<HEAD_H;y++)for(let x=0;x<W;x++)
+    assert(!stray.has(rgba(im,col*W+x,row*H+y).join(',')),'unexpected stray hair pixel');
 });

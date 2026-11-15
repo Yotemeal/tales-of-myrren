@@ -20,9 +20,9 @@ const SOURCE={
  master:'bd28aadb6eead9b32172df4e96962cb247b87e760cc0220b490b006bc6b67895'
 };
 const OUT={
- walk:'cb21314d8e5708ea4233c8db38feecb94abeb3f35d4688057a3b8e0071bb0797',
- idle:'0fab0a99fc77e32955425fdeda3fd88bc7cc97d5e758a0c0bf2a62752c4f35de',
- master:'8b5a4d1511af2a34bf30fb3992e88fa7fa73c0d62e96050fb044429e9ccf8638'
+ walk:'d128924818364558e3fd5654cf3d0b34210e6aaaf240344c7d57a417c1125011',
+ idle:'ea501d6c3c8e14da151535b158e8c0bbbf790af0d5d212c16ac7fa7ad1a05252',
+ master:'71d77ec6fb0eab628331c93cfaf1e0f25fb374381a264a39619ee818b5d2a4b5'
 };
 const HEADS_SHA='550e582ffc5682a6e1ee87a33e6fe9dd905461e9072535fca7dc4d1b7611f9ac';
 const PACKED_HEADS='eNrlWC1LREEU3Z9gEgSToCAY7YpgMCgYxGIRRJtiM9lMRqPJ4m8w+RMMVg0msYp9V87CeRwv987c2ScoKlz27fjm3I+ZOefODgY/+zczPTUqWR/s7Y210criXGe7y0tfDPgHO1ujPrGfba2HxhzeXp5Hk9QDMQOHsVt8ji/Mz47fx2cGX7G8+pTyqcXNmC22xfJ8MQfPj6215yfy4fn5bnz1Ea3DydF+iGXHLTYNe7q21z2Mh4u9FD5it/F7+5yYtI/bi64G+Hy8Ou3+562B+lB8jQWY1rxxbw10jXHGUXv4vNxf/YIxHA7Hxu+Y+3p93I2/39+OvxOb9QGe1gg+4NPGCAyOq2GM+Don4iTiIxbWO4P/dHM+/o45mIvYoz2EnDBP8Wt2d7jZ4WOurcvgF+tLH1ycJdQx0gDlw74xl/Bb8yC/tnByNg9918Pv60ProXqVyaVWK1trL06PP1v00cOp6ZX2Kln9Jb4XYzTGuRE3UGPs3iG/e7noM+ZkcrD6Qu6NehavTpk1xrvkePXBWKN+sdZj0QcwycF4Vh/kZw8/yw+KrzqIcYvfyhXIUTme8VPPtf6TcBDjV2zi6z7mc6av/Yv3l5IGZDghg13r91s1jPriYXv8puuc8cP3vXtQ1I8zlxJ+FLdyQeauF60H8S0nRnwcaUWN36L8SxqgvX8Jn7W3c7M6luFmu7ZenLhbeLpQir+0Zyy+5etMD2H11/YnNGJTe4jf0v9YjddYFR/volZctywn2PqTp6nHik8daumbvXOgOmCtBV/PsWqUxq66hvr8V32xnORx2iT3F+0Va/iwUs9ZqkfEc15fla1XdDfK3mFaftdrsVoeNS3PWsQVk8adxVcfNf2K1qOGrfgRTslH1O/iHEV6Uts33p4lb3m9WqnHsePRb3w2B82rxYe1Ui9nOTny4WFm7ht674p8WFxPm0vnWO+/Oj+K1Yvdct0nVFHIvg==';
@@ -80,11 +80,32 @@ function build(assetDir,outDir){
   for(let frame=0;frame<6;frame++)data.copy(result.walk.rgba,((row*H+y)*result.walk.width+frame*W)*4);
   if(row===0)data.copy(result.master.rgba,y*W*4);
  }
+ const untouched=Object.fromEntries(Object.entries(result).map(([key,im])=>[key,{...im,rgba:Buffer.from(im.rgba)}]));
+ // Native 1x review cleanup. Restrict changes to non-standard grey edge colours
+ // and one obvious white pixel at (17,3) outside the front hairline.
+ const grayEdges=new Set(['81,73,66,255','100,85,78,255','38,37,28,255']);
+ const outline=[25,22,16,255],clear=[0,0,0,0],edits={walk:0,idle:0,master:0};
+ for(const [key,im] of Object.entries(result)){
+  const rows=im.height/H,cols=im.width/W;
+  for(let row=0;row<rows;row++)for(let col=0;col<cols;col++)
+   for(let y=0;y<HEAD_H;y++)for(let x=0;x<W;x++){
+    const xx=col*W+x,yy=row*H+y,off=(yy*im.width+xx)*4;
+    const current=Array.from(im.rgba.subarray(off,off+4));
+    const front=(key==='walk'?row===0:key==='idle'?col===0:true);
+    let after=null;
+    if(front&&x===17&&y===3){
+      assert.deepEqual(current,[232,224,220,255],'front white stray changed unexpectedly');
+      after=clear;
+    }else if(grayEdges.has(current.join(',')))after=outline;
+    if(after){for(let n=0;n<4;n++)im.rgba[off+n]=after[n];edits[key]++;}
+   }
+ }
+ assert.deepEqual(edits,{walk:246,idle:41,master:21},'unexpected hairline pixel scope');
  for(const [key,im] of Object.entries(result))assert.equal(sha(im.rgba),OUT[key],`V19F ${key} raw RGBA mismatch`);
  const targets={walk:'myrren_walk_4x6_V19F_CANDIDATE.png',idle:'myrren_idle_4dir_V19F_CANDIDATE.png',master:'myrren_front_master_V19F_CANDIDATE.png'};
  fs.mkdirSync(outDir,{recursive:true});
  const paths={};for(const [key,name] of Object.entries(targets)){paths[key]=path.join(outDir,name);fs.writeFileSync(paths[key],encode(result[key]));}
- return {originals,...result,paths};
+ return {originals,untouched,...result,paths};
 }
 if(require.main===module){
  const root=path.resolve(__dirname,'../public/assets/myrren-v19b');

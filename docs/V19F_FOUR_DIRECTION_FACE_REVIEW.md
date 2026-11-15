@@ -33,3 +33,11 @@ node --test tests/myrren-v19f-review-assets.test.cjs
 - walk `064ffdd2e937448c28f9a70d9879f3518f4d9b3dd4fcc295d53af71c5a84215f`
 - idle `6f9356c5c6951f1225b1bbee3d696c4072e38cb007e6711a089e96a51d903eac`
 - front master `a391141233d7c1cffc2c71a391091b67393e382b24a5eac2a19cc78d7ae3d0c9`
+## Approved V19F hairline cleanup (native 1×)
+The user approved the V19F face and walking appearance and requested the stray white pixel and hairline speckles removed. The white/light-grey pixel at native front (17,3) is removed (transparent) in the front master, front idle and all six front walk frames. Three off-palette neutral grey outline colours `#514942`, `#64554e`, `#26251c` become the approved deep hair outline `#191610`, in the upper 17 pixel rows only. This is 246 local pixel edits in the walking atlas, 41 in idle, and 21 in the front master. Eye whites/pupils, hair's three brown-shade proportions, facial shapes, body, legs, gait, 110ms animation timing, and fixed camera are untouched. The generator's pixel hashes and 10 tests enforce the exact change whitelist.
+
+* Cleaned walk PNG SHA256: `4cfaf373e587a29dca93fd5e6efdfe331a5c95f86db4b5d870695676ed4d8e45`
+* Cleaned idle PNG SHA256: `8637d8942fcf8a3adaa693a83c7ce04a7e5d687c055f2468f3f5539580f5c132`
+* Cleaned front master SHA256: `748ad641d103dc91228327c91abbc058bf685fad21011f809076ed47028c69a2`
+
+**Compatibility:** V19F covers full 4-dir *idle+walk* at native 24×32 and 110ms. The game's old equipment, sword, fist attack, hurt/death and gear paperdoll overlays remain based on Kez V2's 21×27 assets. The preview retains legacy visual fallbacks for these states; they are **not yet converted to V19F**. Do not claim complete equipment/action animation compatibility. Live main continues to use V19B; the updated PR #103 is still an isolated preview candidate.
