@@ -33,6 +33,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Validate Black Iron native pixel art and renderer geometry
+        run: node --test tests/black-iron-native-32px.test.cjs
       - name: Syntax and deployment asset contracts
         run: |
           node --check public/myrren-game.js
