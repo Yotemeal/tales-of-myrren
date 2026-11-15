@@ -11,14 +11,24 @@ function capture(re, name) {
   return match;
 }
 const swingMs = Number(capture(/const SWING_IV\s*=\s*(\d+)/, 'directional swing interval')[1]);
-assert.match(src, /const iv=SWING_IV\/1000;a\.t\+=dt;/, 'targeted attacks must use shared swing cooldown');
+const fistSwingMs = Number(capture(/FIST_SWING_IV=(\d+)/, 'distinct barehanded interval')[1]);
+assert.equal(fistSwingMs,850,'V19F unarmed cooldown target');
+assert.equal(swingMs,900,'equipped weapon cooldown remains unchanged');
+assert.ok(fistSwingMs<swingMs,'unarmed strikes should have a different, slightly faster rhythm');
+assert.match(src,/const swingInterval=w=>w\?SWING_IV:FIST_SWING_IV;/,
+  'both input paths must resolve cadence from the equipped weapon state');
+assert.match(src,/const interval=swingInterval\(w\),iv=interval\/1000;a\.t\+=dt;/,
+  'targeted attacks must use the same weapon-dependent interval as manual attacks');
 const targetedSeconds = swingMs / 1000;
 const directionalSeconds = swingMs / 1000;
 assert.ok(swingMs > 0 && targetedSeconds > 0);
 const swingDpsFactor = targetedSeconds / directionalSeconds;
-assert.equal(swingDpsFactor, 1, 'attack methods must have identical theoretical single-target DPS');
+assert.equal(swingDpsFactor, 1, 'weapon attacks must have identical manual/targeted DPS');
+const unarmedSeconds=fistSwingMs/1000;
+assert.equal(unarmedSeconds,0.85);
+assert.ok((swingMs/fistSwingMs-1)<0.07,'unarmed speed increase remains modest');
 
-const manualGate = capture(/if\(started&&!inside&&!me\.pend&&\(combatHeld\|\|wantSwing\)&&now>=nextSwing\)\{\s*nextSwing=now\+SWING_IV;wantSwing=false;beginSwing\(now\);\s*\}/, 'manual attack cooldown gate');
+const manualGate = capture(/if\(started&&!inside&&!me\.pend&&\(combatHeld\|\|wantSwing\)&&now>=nextSwing\)\{\s*nextSwing=now\+swingInterval\(activeDef\('weapon'\)\);wantSwing=false;beginSwing\(now\);\s*\}/, 'manual attack cooldown gate');
 assert.ok(manualGate);
 const updateCode = capture(/function update\(dt,now\)\{([\s\S]*?)\n\}\n\n\/\* ---------- drawing/, 'main update loop')[1];
 const gamepadInput = updateCode.indexOf('const gp=pollPad(now)');
@@ -26,7 +36,7 @@ const collisionEnd = updateCode.indexOf('const lockedEnemy=started&&!inside&&com
 const attackGate = updateCode.indexOf('if(started&&!inside&&!me.pend&&(combatHeld||wantSwing)');
 assert.ok(gamepadInput>=0&&collisionEnd>gamepadInput&&attackGate>collisionEnd, 'gamepad input and collision-adjusted facing must precede attack scheduling');
 assert.match(src, /if\(!a\.swung&&a\.t>=iv-\.2&&now>=nextSwing-200\)\{a\.swung=true;startSwing\(now\)\}/, 'targeted attack animation must wait until shared cooldown is nearly ready');
-assert.match(src, /if\(a\.t>=iv&&now>=nextSwing\)\{\s*\/\/ Manual and targeted attacks consume the same per-character cooldown\.[\s\S]*?nextSwing=now\+SWING_IV;\s*a\.t=0;/, 'targeted attacks must consume the manual attack cooldown and discard queued time');
+assert.match(src, /if\(a\.t>=iv&&now>=nextSwing\)\{\s*\/\/ Manual and targeted attacks consume the same per-character cooldown\.[\s\S]*?nextSwing=now\+interval;\s*a\.t=0;/, 'targeted attacks must consume the manual attack cooldown and discard queued time');
 
 const tiers = [
   {name:'Bronze', level:1, attack:1},
@@ -55,7 +65,7 @@ assert.match(src,/function killMon\(m,now\)/);
 assert.match(src,/m\.hp-=dmg/g);
 assert.equal(tiers.length,7);
 console.log('Attack interval audit (read-only):');
-console.log('directional: '+directionalSeconds.toFixed(2)+'s; targeted: '+targetedSeconds.toFixed(2)+'s; theoretical DPS factor: '+swingDpsFactor.toFixed(3)+'x');
+console.log('equipped manual/targeted: '+directionalSeconds.toFixed(2)+'s; unarmed manual/targeted: '+unarmedSeconds.toFixed(2)+'s; speed shift: '+((swingMs/fistSwingMs-1)*100).toFixed(1)+'%');
 console.log('Enemy | level | HP | directional DPS | targeted DPS | directional expected TTK (s)');
 for(const [name,level,hp,def] of monsterStats){
   const tier=[...tiers].reverse().find(t=>t.level<=level)||tiers[0];
@@ -77,7 +87,7 @@ assert.match(src, /t&&t\.state!=='dead'&&meleeDistance\(t\)<=reach\?t:nearestMon
 assert.match(src, /const lockedEnemy=started&&!inside&&combatHeld\?meleeTarget\(\):null/, 'held attacks should track a reachable enemy');
 assert.match(src, /if\(target\)\{faceMeleeTarget\(target\)/, 'swing must face the acquired target');
 assert.match(src, /function meleeDistance\(m,x=me\.x,y=me\.y\)/, 'targeting must use strike-centre hit distance');
-const targetStart=src.indexOf('const iv=SWING_IV/1000;a.t+=dt;'),targetEnd=src.indexOf('function beginMonsterWarning(',targetStart);
+const targetStart=src.indexOf('const interval=swingInterval(w),iv=interval/1000;a.t+=dt;'),targetEnd=src.indexOf('function beginMonsterWarning(',targetStart);
 assert.ok(targetStart>=0&&targetEnd>targetStart,'could not locate targeted combat action');
 const targetBody=src.slice(targetStart,targetEnd);
 assert.match(targetBody, /m\.hp-=dmg/, 'targeted combat action resolves against one monster');

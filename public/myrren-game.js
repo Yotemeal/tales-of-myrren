@@ -1777,7 +1777,11 @@ function faceMeleeTarget(m){
   me.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s';
 }
 function nearestNode(r,now){let best=null,bd=r;for(const n of nodes){if(now<n.back)continue;const d=Math.hypot(n.x-me.x,n.y-me.y);if(d<bd){bd=d;best=n}}return best}
-const SWING_IV=900,COS_ARC=Math.cos(Math.PI*50/180);
+// Distinct Myrren combat rhythm: slightly quicker barehanded strikes, while
+// weapons retain the original cadence. One per-player nextSwing gate remains
+// authoritative across manual/targeted attacks and equipment switching.
+const SWING_IV=900,FIST_SWING_IV=850,COS_ARC=Math.cos(Math.PI*50/180);
+const swingInterval=w=>w?SWING_IV:FIST_SWING_IV;
 let atkHeld=false,gpAtk=false,wantSwing=false,nextSwing=0;const atkPtrs=new Set();
 const aAtk=$('aAtk');aAtk.style.touchAction='none';
 aAtk.addEventListener('pointerdown',e=>{e.preventDefault();if(inside){say('No fighting indoors.');return}atkPtrs.add(e.pointerId);atkHeld=true;wantSwing=true;try{aAtk.setPointerCapture(e.pointerId)}catch(_){}});
@@ -2481,12 +2485,12 @@ function doAction(dt,now){
     if(!a.checked){a.checked=true}
     const w=activeDef('weapon');
     me.tool=w?'sword':'fist';me.mat=w?w.mat:2;
-    const iv=SWING_IV/1000;a.t+=dt;
+    const interval=swingInterval(w),iv=interval/1000;a.t+=dt;
     if(!a.swung&&a.t>=iv-.2&&now>=nextSwing-200){a.swung=true;startSwing(now)}
     if(a.t>=iv&&now>=nextSwing){
       // Manual and targeted attacks consume the same per-character cooldown.
       // Discard accumulated action time to prevent burst attacks on mode switch.
-      nextSwing=now+SWING_IV;
+      nextSwing=now+interval;
       a.t=0;a.swung=false;
           const atk=atkBonus();
       const hit=Math.random()<clamp(.55+(L-mt.def)*.03+atk*.01,.25,.95);
@@ -2588,7 +2592,7 @@ function update(dt,now){
     me.dv=Math.abs(me.fy)>Math.abs(me.fx)*1.1?(me.fy>0?'d':'u'):'s';
   }
   if(started&&!inside&&!me.pend&&(combatHeld||wantSwing)&&now>=nextSwing){
-    nextSwing=now+SWING_IV;wantSwing=false;beginSwing(now);
+    nextSwing=now+swingInterval(activeDef('weapon'));wantSwing=false;beginSwing(now);
   }
   if(act&&inRange){
     if(act.kind==='npc'){act=null;openShop()}
