@@ -113,6 +113,8 @@ jobs:
         run: node tests/kez-v2-browser.test.cjs
       - name: Verify new V19B player, frames and fixed camera in actual game
         run: node tests/myrren-v19b-game-browser.test.cjs
+      - name: Test isolated V19F candidate inside real game
+        run: node tests/myrren-v19f-game-preview-browser.test.cjs
       - name: Save visual QA snapshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -122,6 +124,9 @@ jobs:
             /tmp/myrren-kez-v2-mobile.png
             /tmp/myrren-v19b-landscape-game.png
             /tmp/myrren-v19b-portrait-game.png
+            /tmp/myrren-v19f-landscape-preview.png
+            /tmp/myrren-v19f-portrait-preview.png
+            /tmp/myrren-v19f-unequipped-portrait.png
             /tmp/myrren-kez-v2-equipment.png
             /tmp/myrren-kez-v2-seven-metals.png
             /tmp/myrren-kez-v2-directions.png

@@ -1,0 +1,57 @@
+{
+  "version": "v19f",
+  "status": "V19F approved face + precise hairline clean-up: review candidate; production unchanged",
+  "project": "Tales of Myrren",
+  "native_frame": [
+    24,
+    32
+  ],
+  "walk_atlas": {
+    "file": "myrren_walk_4x6_native.png",
+    "width": 144,
+    "height": 128,
+    "columns": 6,
+    "rows": [
+      "front",
+      "left",
+      "right",
+      "back"
+    ],
+    "milliseconds_per_frame": 110,
+    "sha256": "4cfaf373e587a29dca93fd5e6efdfe331a5c95f86db4b5d870695676ed4d8e45"
+  },
+  "idle_atlas": {
+    "file": "myrren_idle_4dir_native.png",
+    "width": 96,
+    "height": 32,
+    "columns": 4,
+    "order": [
+      "front",
+      "left",
+      "right",
+      "back"
+    ],
+    "sha256": "8637d8942fcf8a3adaa693a83c7ce04a7e5d687c055f2468f3f5539580f5c132"
+  },
+  "front_master": {
+    "file": "myrren_front_game_ready_24x32.png",
+    "width": 24,
+    "height": 32,
+    "sha256": "748ad641d103dc91228327c91abbc058bf685fad21011f809076ed47028c69a2"
+  },
+  "head_height": 17,
+  "head_rgba_sha256": "c0d80c4bbc5e5a0ec2614bd71e186f2e9ea13da3d45fd0d5a0551d6f0cd1cfd0",
+  "raw_rgba_sha256": {
+    "walk": "d128924818364558e3fd5654cf3d0b34210e6aaaf240344c7d57a417c1125011",
+    "idle": "ea501d6c3c8e14da151535b158e8c0bbbf790af0d5d212c16ac7fa7ad1a05252",
+    "master": "71d77ec6fb0eab628331c93cfaf1e0f25fb374381a264a39619ee818b5d2a4b5"
+  },
+  "original_V19B_source_sha256": {
+    "walk": "a0d9b80587e5d06584fda7bc97388a4a642f7e2a3031d20461085f8da4b38be7",
+    "idle": "73127b54a3810fcd4087e733a2cbd3fc82bdfa1da210c0c733b650d24645fcd1",
+    "front_master": "bd28aadb6eead9b32172df4e96962cb247b87e760cc0220b490b006bc6b67895"
+  },
+  "face_standard": "V19E: each visible eye is 2x3 native pixels; 4 white and 2 pupil; keep directional facial outline.",
+  "permissions": "user accepted V19F visual design; review hairline cleanup in PR before production integration",
+  "cleanup": "Removed 1 pale out-of-line front hair pixel per front frame, replaced 3 off-palette grey outline colours with #191610 in upper 17 native rows only; exact eyes, face, gait and brown shade ratios unchanged."
+}
