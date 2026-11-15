@@ -17,6 +17,7 @@
   const originalDraw = legacy.draw.bind(legacy);
   const forcedLegacy = /(?:^|[?&])character=legacy(?:&|$)/i.test(window.location?.search || '');
   const owns = (obj, prop) => Object.prototype.hasOwnProperty.call(obj, prop);
+  const nativeName = native.version === 'V19F' ? 'V19F' : 'V19B';
   let enabled = !forcedLegacy;
   let warned = false;
 
@@ -52,7 +53,7 @@
         if (native.draw(ctx, x, y, o, now) === true) {
           if (isLocal) {
             local.nativeFrames++;
-            local.lastRenderer = 'V19B';
+            local.lastRenderer = nativeName;
             local.lastReason = 'native 24x32';
             local.lastTool = String(o.tool);
             local.lastGear = o.g.slice();

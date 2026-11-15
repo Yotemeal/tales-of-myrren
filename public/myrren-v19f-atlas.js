@@ -1,5 +1,5 @@
 /* Tales of Myrren — V19F isolated, native 24x32 character renderer.
- * Review-only V19F renderer: production entry remains on V19B.
+ * Approved V19F walking/idle renderer; legacy combat and gear stay on Kez V2.
  * The approved PNGs are loaded unchanged; no bounding-box auto-recentering,
  * pixel editing, old Kez fallback, or game/save mutation.
  */
@@ -70,6 +70,7 @@
     return true;
   }
   window.MyrrenV19FAtlas = Object.freeze({
+    version: "V19F",
     get ready() { return status === 'ready'; },
     get failed() { return status === 'error'; },
     get dimensions() { return { cellWidth: CELL_W, cellHeight: CELL_H, frames: 6, directions: 4, millisecondsPerFrame: FRAME_MS, footRow: FOOT_ROW }; },
