@@ -79,6 +79,7 @@ jobs:
           node tests/cloud-startup-recovery.test.cjs
           node tests/save-write-order.test.cjs
           node tests/combat-kiting.test.cjs
+          node --test tests/combat-distinct-cadence.test.cjs
           node tests/cross-tab-save.test.cjs
           node tests/bank-notes.test.cjs
           node tests/combat-kill-xp.test.cjs
