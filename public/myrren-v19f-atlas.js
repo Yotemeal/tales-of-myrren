@@ -17,11 +17,11 @@
   };
   const punch = new Image();
   let punchReady = false;
-  punch.onload = () => { punchReady = punch.naturalWidth === 336 && punch.naturalHeight === 36; };
-  punch.src = URL_BASE + 'myrren_punch_right_native.png';
+  punch.onload = () => { punchReady = punch.naturalWidth === 336 && punch.naturalHeight === 144; };
+  punch.src = URL_BASE + 'myrren_punch_4dir_native.png';
   const punchEnds = [55, 85, 120, 225, 270, 320];
   function canDrawPunch(o) {
-    return punchReady && direction(o) === 'right';
+    return punchReady;
   }
   let status = 'loading';
   let loaded = 0;
@@ -69,7 +69,7 @@
       const frame = punchEnds.findIndex(end => attackAge < end) + 1;
       ctx.save();
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(punch, frame * 48, 0, 48, 36,
+      ctx.drawImage(punch, frame * 48, DIRECTIONS.indexOf(direction(o)) * 36, 48, 36,
         Math.round(x) - 18, Math.round(y) - 34, 48, 36);
       ctx.restore();
       return true;
