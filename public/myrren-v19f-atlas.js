@@ -30,6 +30,52 @@
   function canDrawPunch() {
     return punchReady;
   }
+  const swordBody = new Image();
+  const blades = new Image();
+  swordBody.src = URL_BASE + 'myrren_sword_body_4dir.png';
+  blades.src = '/swords-forged-v1.png';
+  const bladeColumns = [2, 3, 4, 5, 7, 6, 8];
+  const rightSword = [[11,27,22],[20,26,-62],[25,26,-78],[25,26,-78],
+    [27,26,-88],[27,26,-88],[20,26,-70],[17,28,-68]];
+  const frontSword = [[10,27,15],[12,25,15],[13,27,165],[13,27,165],
+    [13,28,165],[13,28,165],[12,26,165],[10,29,15]];
+  const rearSword = [[26,28,-32],[26,24,-36],[25,24,-21],[25,24,-12],
+    [25,22,-5],[25,22,-5],[26,24,-17],[26,28,-32]];
+  function canDrawSword(o, now) {
+    const age = now - (o?.swingAt ?? -99999);
+    return o?.tool === 'sword' && age >= 0 && age < 320
+      && bladeColumns.includes(o.mat)
+      && swordBody.naturalWidth === 384 && swordBody.naturalHeight === 1008
+      && blades.naturalWidth === 224 && blades.naturalHeight === 32;
+  }
+  function drawSword(ctx, x, y, o, now, age) {
+    const {row, frame: step, moving} = pose(o, now);
+    const frame = movingPunchEnds.findIndex(end => age < end);
+    const sy = (moving ? 4 + row * 6 + step : row) * 36;
+    const sx = frame * 48;
+    const [gx, gy, angle] = (row === 0 ? frontSword : row === 3 ? rearSword : rightSword)[frame];
+    const hx = row === 1 ? 35 - gx : gx;
+    const bladeAngle = row === 1 ? -angle : angle;
+    const bladeX = bladeColumns.indexOf(o.mat) * 32;
+    const paintBlade = () => {
+      ctx.save();
+      ctx.translate(hx, gy);
+      ctx.rotate(bladeAngle * Math.PI / 180);
+      ctx.drawImage(blades, bladeX, 0, 32, 32, -16, -26, 32, 32);
+      ctx.restore();
+    };
+    ctx.save();
+    ctx.translate(Math.round(x) - 18, Math.round(y) - 34);
+    ctx.imageSmoothingEnabled = false;
+    if (row === 3) paintBlade();
+    ctx.drawImage(swordBody, sx, sy, 48, 36, 0, 0, 48, 36);
+    if (row !== 3) {
+      paintBlade();
+      ctx.drawImage(swordBody, sx + hx - 1, sy + gy - 1, 3, 3, hx - 1, gy - 1, 3, 3);
+    }
+    ctx.restore();
+    return true;
+  }
   let status = 'loading';
   let loaded = 0;
   function dispatch(eventName) {
@@ -72,6 +118,7 @@
   function draw(ctx, x, y, o = {}, now = 0) {
     if (status !== 'ready') return false;
     const attackAge = now - (o.swingAt ?? -99999);
+    if (o.tool === 'sword') return canDrawSword(o, now) && drawSword(ctx, x, y, o, now, attackAge);
     if (canDrawPunch(o) && attackAge >= 0 && attackAge < 320) {
       const moving = Boolean(o.moving) && movingPunchReady;
       const frame = moving
@@ -104,7 +151,7 @@
     get ready() { return status === 'ready'; },
     get failed() { return status === 'error'; },
     get dimensions() { return { cellWidth: CELL_W, cellHeight: CELL_H, frames: 6, directions: 4, millisecondsPerFrame: FRAME_MS, footRow: FOOT_ROW }; },
-    pose, draw, canDrawPunch,
+    pose, draw, canDrawPunch, canDrawSword,
   });
   for (const entry of Object.values(assets)) {
     entry.image.onload = () => onAssetLoaded(entry);

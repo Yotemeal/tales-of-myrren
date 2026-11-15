@@ -30,7 +30,7 @@
   function ineligibleReason(o, now) {
     if (!o || !Number.isFinite(now)) return 'invalid frame';
     // Multiplayer action code 0 means no held tool, represented as ''.
-    if (!(o.tool === 'fist' || (!o.isMe && o.tool === ''))) return 'tool: ' + String(o.tool);
+    if (!(o.tool === 'fist' || native.canDrawSword?.(o, now) || (!o.isMe && o.tool === ''))) return 'tool: ' + String(o.tool);
     if (!Array.isArray(o.g) || o.g.length !== 6) return 'unknown equipment state';
     if (o.g.some(v => v !== 0)) return 'equipped armour/shield';
     if (!owns(o, 'deathAt') || !owns(o, 'hurtAt')) return 'unresolved player state';
@@ -84,9 +84,12 @@
     get enabled() { return enabled; },
     setEnabled(value) { enabled = !forcedLegacy && Boolean(value); return enabled; },
     eligible,
+    drawsSword(o, now) {
+      return enabled && native.ready && Boolean(native.canDrawSword?.(o, now)) && eligible(o, now);
+    },
     drawsPunch(o, now) {
       const age = now - (o?.swingAt ?? -99999);
-      return enabled && native.ready && age >= 0 && age < 320
+      return o?.tool !== 'sword' && enabled && native.ready && age >= 0 && age < 320
         && Boolean(native.canDrawPunch?.(o)) && eligible(o, now);
     },
     get diagnostics() {
