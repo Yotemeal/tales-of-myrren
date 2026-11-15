@@ -3197,7 +3197,7 @@ function drawKezV2(x,y,o,now){
     ?(o.tool==='sword'?window.MyrrenKezV2SwordMotion.angle(age):swingAng(age))
     :-.35;
   const paintHeld=()=>{
-    if(!holding||deathAge>=0)return;
+    if(!holding||deathAge>=0||window.MyrrenV19BGameplayPreview?.drawsSword?.(state,now))return;
     drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6);
     // Two-pixel fingers cover the sword grip without showing a floating hilt.
     if(direction!=='back')R(hx-1,hy-1,2,2,handColor);
