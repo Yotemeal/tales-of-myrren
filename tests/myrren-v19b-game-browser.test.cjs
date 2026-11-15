@@ -32,7 +32,15 @@ const server=http.createServer((req,res)=>{
     ?route.continue():route.abort());
   await page.goto(base,{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>window.MyrrenV19BAtlas?.ready&&window.MyrrenKezV2Atlas?.ready,{timeout:15000});
-  assert.equal(await page.evaluate(()=>window.MyrrenBuild),94);
+  const build=await page.evaluate(()=>({
+    runtime:window.MyrrenBuild,
+    script:document.querySelector('script[src^="/myrren-game.js"]')?.getAttribute('src')
+  }));
+  assert(build.script,'game script must be present');
+  const requested=new URL(build.script,base).searchParams.get('v');
+  assert.match(requested||'',/^\d+$/,'numeric cache-busting build version required');
+  assert.equal(String(build.runtime),requested,'game runtime must match loaded bundle');
+  assert(Number(requested)>=94,'approved V19F baseline must not be rolled back');
   assert.equal(await page.evaluate(()=>window.MyrrenV19BGameplayPreview.enabled),true);
   // Four directions, six frame cadence, native 24x32 geometry and old fallback.
   const renderResult=await page.evaluate(()=>{

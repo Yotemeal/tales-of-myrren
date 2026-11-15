@@ -33,6 +33,10 @@ test('production V19F native artwork is guarded by existing Kez V2 fallback',()=
     runtime.indexOf('window.MyrrenV19BAtlas=window.MyrrenV19FAtlas;'));
   assert(runtime.indexOf('window.MyrrenV19BAtlas=window.MyrrenV19FAtlas;')<
     runtime.indexOf('/myrren-v19b-optin-game-bridge.js'));
+  // The approved bridge must run before the single, cache-versioned game bundle.
+  // Versions may advance for unrelated art updates; do not pin to build 94.
+  const matches=[...runtime.matchAll(/<script\s+src="(\/myrren-game\.js\?v=\d+)"\s*><\/script>/g)];
+  assert.equal(matches.length,1,'exactly one numeric-versioned game bundle');
   assert(runtime.indexOf('/myrren-v19b-optin-game-bridge.js')<
-    runtime.indexOf('/myrren-game.js?v=94'));
+    runtime.indexOf(matches[0][1]),'guarded bridge must load before the game');
 });
