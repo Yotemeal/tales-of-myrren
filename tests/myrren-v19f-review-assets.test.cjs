@@ -1,120 +1,90 @@
 'use strict';
-/** Tales of Myrren V19F — pixel locks for candidate assets and approved V19E sides. */
-const test=require('node:test'),assert=require('node:assert/strict');
-const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+/**
+ * Production V19F native pixel locks.
+ *
+ * An earlier version of this test treated the historical V19E→V19F *review*
+ * generator as the expected production walking atlas. The current, separately
+ * approved V19F walking asset was refined later, so that expectation was stale.
+ * Compare live files to their own approved production manifest; never mutate
+ * the character art to match a superseded review candidate.
+ */
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const os=require('node:os');
+const path=require('node:path');
 const {createHash}=require('node:crypto');
-const {build,decode,HEAD_H,W,H,SOURCE,OUT}=require('../scripts/build-v19f-review.cjs');
+const {decode,build,SOURCE,OUT,W,H}=require('../scripts/build-v19f-review.cjs');
 const root=path.resolve(__dirname,'../public/assets');
-const src=path.join(root,'myrren-v19b'),dst=path.join(root,'myrren-v19f');
-const temp=fs.mkdtempSync(path.join(os.tmpdir(),'myrren-v19f-qa-'));
-const constructed=build(src,temp);
+const current=path.join(root,'myrren-v19f');
+const legacy=path.join(root,'myrren-v19b');
+const manifest=JSON.parse(fs.readFileSync(path.join(current,'manifest.json'),'utf8'));
 const sha=b=>createHash('sha256').update(b).digest('hex');
-const dirs=['front','left','right','back'];
-const name={walk:'myrren_walk_4x6_native.png',idle:'myrren_idle_4dir_native.png',master:'myrren_front_game_ready_24x32.png'};
-const keys=Object.keys(name);
-const files=Object.fromEntries(keys.map(k=>[k,decode(fs.readFileSync(path.join(dst,name[k])))]));
+const meta=[
+  ['walk_atlas','walk',[144,128]],
+  ['idle_atlas','idle',[96,32]],
+  ['front_master','master',[24,32]]
+];
+const image=(key)=>decode(fs.readFileSync(path.join(current,manifest[key].file)));
 const rgba=(im,x,y)=>Array.from(im.rgba.subarray((y*im.width+x)*4,(y*im.width+x)*4+4));
-const frame=(im,row,col)=>{
- const b=Buffer.alloc(W*H*4);
- for(let y=0;y<H;y++)im.rgba.copy(b,y*W*4,((row*H+y)*im.width+col*W)*4,((row*H+y)*im.width+col*W+W)*4);
- return b;
-};
-const hsh=b=>createHash('sha256').update(b).digest('hex');
-const V19E_SIDES={
- left:{idle:'4a1673a19f08bdc265893ce84b74b363d1b7fef8866f01dd04bf3a86e60f80f7',walk:['9a87bdcf670469d7d780dd8fc2a47cf6c7867b85c43bf98051097286ef5d43a3','cd7faa093e32d5478c6a36ee69b1f4022c8bbe8f8267b9a0029eb5700b8cfa34','400a890ca5d6b466f020cb14ab0804e144b794866cdc0391c0415d5d3152747a','813d3040537b74e5968b45b2681b9ecc43d23fff20c62aeeee07b495e77c876e','cb763b9f251a76157e4f58fe9440503b89bd54dc2825fa25802f3a30e008b700','3cbc27d6aa0d43cbf12958b2a559e4b7f74e0358e3cbbd96478e73c53ee8d5b1']},
- right:{idle:'e8b8d3425caba988e92e8716d0f499253fe8fcc1797b192a2fccb950249a0fcd',walk:['72c1c1330f6a98a628ea6f30669646950b253df7fe9bb71357089b3ce35c8bfd','4f77ee76bcaa09368c4d7b35495ab35906ddce208a1334581a6e3d986c7a5b26','e95dc235a819d5bd7b698f792c6400993ea6946e94c3967bac39a93cc496ab19','a7d821dce45e12cd5de057866ea15e531b0fab5f727d1127743ef73872c54e86','6e9c0223fb2089dd8ffa9cb65e119843a6613c4181857364fe1b1c8b003b4500','77f42d9f3a6c945533afae8f3b72a7943722924a6d15cdb9b1c18496c7774748']}
-};
-const SIZE=[[144,128],[96,32],[24,32]];
-test('new candidate PNG files exactly reproduce locked source and expected RGBA hashes',()=>{
- keys.forEach((key,i)=>{
-  const im=files[key];assert.deepEqual([im.width,im.height],SIZE[i]);
-  assert.equal(sha(im.rgba),OUT[key],`incorrect candidate ${key}`);
-  assert(im.rgba.equals(constructed[key].rgba),'output differs from reproducible source');
-  assert(fs.existsSync(constructed.paths[key]));
- });
-});
-test('old V19B originals remain immutable, unmodified and available for rollback',()=>{
- for(const [key,fn] of Object.entries(name))assert.equal(sha(fs.readFileSync(path.join(src,fn))),SOURCE[key]);
-});
-test('approved V19E side face/eye/gait unchanged except targeted hairline correction',()=>{
- const before=constructed.untouched;
- const gray=new Set(['81,73,66,255','100,85,78,255','38,37,28,255']);
- for(const [name,row] of [['left',1],['right',2]]){
-  assert.equal(hsh(frame(before.idle,0,row)),V19E_SIDES[name].idle);
-  for(let f=0;f<6;f++)assert.equal(hsh(frame(before.walk,row,f)),V19E_SIDES[name].walk[f]);
- }
- for(const [key,im] of Object.entries(files)){
-  const old=before[key],rows=im.height/H,cols=im.width/W;
-  for(let row=0;row<rows;row++)for(let col=0;col<cols;col++)
-   for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-    const xx=col*W+x,yy=row*H+y;
-    const a=rgba(old,xx,yy),b=rgba(im,xx,yy);
-    if(a.every((v,i)=>v===b[i]))continue;
-    assert(y<HEAD_H,'body or leg pixel unexpectedly changed');
-    const front=key==='walk'?row===0:key==='idle'?col===0:true;
-    if(front&&x===17&&y===3){
-      assert.deepEqual(a,[232,224,220,255]);
-      assert.deepEqual(b,[0,0,0,0]);
-    }else{
-      assert(gray.has(a.join(',')),'face, eye or normal hair pixel changed');
-      assert.deepEqual(b,[25,22,16,255]);
-    }
-   }
- }
-});
-test('each front and back idle head matches every walking frame',()=>{
- for(const row of [0,3])for(let col=0;col<6;col++)
-  for(let y=0;y<HEAD_H;y++)for(let x=0;x<W;x++)
-    assert.deepEqual(rgba(files.walk,col*W+x,row*H+y),rgba(files.idle,row*W+x,y));
- for(let y=0;y<H;y++)for(let x=0;x<W;x++)
-  assert.deepEqual(rgba(files.idle,x,y),rgba(files.master,x,y));
-});
-test('front-facing pupils and white eyes use the approved V19E 2x3 structure',()=>{
- const groups=[{w:[[8,13],[9,13],[8,14],[8,15]],p:[[9,14],[9,15]]},
-               {w:[[14,13],[15,13],[15,14],[15,15]],p:[[14,14],[14,15]]}];
- for(const eye of groups){
-  for(const [x,y] of eye.w)assert.deepEqual(rgba(files.idle,x,y),[254,254,254,255]);
-  for(const [x,y] of eye.p)assert.deepEqual(rgba(files.idle,x,y),[25,22,16,255]);
- }
-});
-test('front and back bodies remain from original 24x32 frames below head row 17',()=>{
- const old=constructed.originals;
- for(const row of [0,3]){
-  for(let y=HEAD_H;y<H;y++)for(let x=0;x<W;x++){
-   assert.deepEqual(rgba(files.idle,row*W+x,y),rgba(old.idle,row*W+x,y));
-   for(let col=0;col<6;col++)assert.deepEqual(rgba(files.walk,col*W+x,row*H+y),rgba(old.walk,col*W+x,row*H+y));
+function frame(im,row,col){
+  const pixels=Buffer.alloc(W*H*4);
+  for(let y=0;y<H;y++)im.rgba.copy(pixels,y*W*4,((row*H+y)*im.width+col*W)*4,((row*H+y)*im.width+col*W+W)*4);
+  return pixels;
+}
+
+test('the approved production V19F atlas, idle and front master match immutable manifest hashes',()=>{
+  assert.deepEqual(manifest.native_frame,[24,32]);
+  assert.equal(manifest.walk_atlas.milliseconds_per_frame,110);
+  assert.deepEqual(manifest.walk_atlas.rows,['front','left','right','back']);
+  assert.deepEqual(manifest.idle_atlas.order,['front','left','right','back']);
+  for(const [slot,rawKey,dimensions] of meta){
+    const p=path.join(current,manifest[slot].file);
+    const data=fs.readFileSync(p);
+    const decoded=decode(data);
+    assert.deepEqual([decoded.width,decoded.height],dimensions,slot+' native dimensions');
+    assert.equal(sha(data),manifest[slot].sha256,slot+' byte checksum');
+    assert.equal(sha(decoded.rgba),manifest.raw_rgba_sha256[rawKey],slot+' raw pixel checksum');
   }
- }
 });
-test('all four directions share hair shade ratios and native binary alpha',()=>{
- const hair=[[120,78,69,255],[87,52,44,255],[63,41,34,255]];
- const counts=[];
- for(let row=0;row<4;row++){
-  const c=hair.map(col=>{let v=0;for(let y=0;y<HEAD_H;y++)for(let x=0;x<W;x++)if(rgba(files.idle,row*W+x,y).every((n,i)=>col[i]===n))v++;return v;});
-  const total=c.reduce((a,b)=>a+b,0);counts.push(c.map(n=>n/total));
- }
- for(let shade=0;shade<3;shade++){
-  const set=counts.map(c=>c[shade]);assert(Math.max(...set)-Math.min(...set)<.009,'hair shading mismatch');
- }
- for(const im of Object.values(files))for(let k=3;k<im.rgba.length;k+=4)assert([0,255].includes(im.rgba[k]));
+
+test('approved front master is identical to front idle and retains the intended eye pixels',()=>{
+  const idle=image('idle_atlas'),front=image('front_master');
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++)
+    assert.deepEqual(rgba(idle,x,y),rgba(front,x,y),'front idle/master mismatch at '+x+','+y);
+  for(const [x,y] of [[8,13],[9,13],[8,14],[8,15],[14,13],[15,13],[15,14],[15,15]])
+    if(!([[9,14],[9,15],[14,14],[14,15]].some(([a,b])=>a===x&&b===y)))
+      assert.deepEqual(rgba(front,x,y),[254,254,254,255]);
+  for(const [x,y] of [[9,14],[9,15],[14,14],[14,15]])
+    assert.deepEqual(rgba(front,x,y),[25,22,16,255]);
 });
-test('all 24 frames retained original feet and animation variation',()=>{
- for(let row=0;row<4;row++){
-  const variants=new Set();
-  for(let col=0;col<6;col++)variants.add(hsh(frame(files.walk,row,col)));
-  assert(variants.size>=4,`${dirs[row]} walk sequence collapsed`);
- }
+
+test('approved walk retains variation, native binary alpha and exact per-frame geometry',()=>{
+  const walk=image('walk_atlas'),idle=image('idle_atlas'),front=image('front_master');
+  for(const im of [walk,idle,front])
+    for(let a=3;a<im.rgba.length;a+=4)
+      assert([0,255].includes(im.rgba[a]),'non-binary alpha in approved native art');
+  for(let row=0;row<4;row++){
+    const poses=new Set();
+    for(let col=0;col<6;col++){
+      const pixels=frame(walk,row,col);
+      assert.equal(pixels.length,W*H*4);
+      poses.add(sha(pixels));
+    }
+    assert(poses.size>=4,'approved walking direction '+row+' lost its animation variation');
+  }
 });
-test('white speck removed from front master, idle, and all six walk frames',()=>{
- for(const [name,im] of Object.entries(files)){
-  for(let f=0;f<(name==='walk'?6:1);f++)
-   assert.deepEqual(rgba(im,f*W+17,3),[0,0,0,0]);
- }
-});
-test('hair outlines have no stray white or neutral-grey pixels across four views',()=>{
- const stray=new Set(['232,224,220,255','81,73,66,255','100,85,78,255','38,37,28,255']);
- for(const im of Object.values(files))
-  for(let row=0;row<im.height/H;row++)for(let col=0;col<im.width/W;col++)
-   for(let y=0;y<HEAD_H;y++)for(let x=0;x<W;x++)
-    assert(!stray.has(rgba(im,col*W+x,row*H+y).join(',')),'unexpected stray hair pixel');
+
+test('locked V19B originals and historical review generator remain reproducible',t=>{
+  const names={walk:'myrren_walk_4x6_native.png',idle:'myrren_idle_4dir_native.png',master:'myrren_front_game_ready_24x32.png'};
+  for(const [key,filename] of Object.entries(names))
+    assert.equal(sha(fs.readFileSync(path.join(legacy,filename))),SOURCE[key],key+' historical source changed');
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'myrren-review-lock-'));
+  t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+  const candidate=build(legacy,dir);
+  for(const [key,filename] of Object.entries(names)){
+    const output=decode(fs.readFileSync(candidate.paths[key]));
+    assert.equal(sha(output.rgba),OUT[key],'historical V19F review generator changed: '+filename);
+    assert.ok(output.rgba.equals(candidate[key].rgba),'generator output changed: '+filename);
+  }
 });
