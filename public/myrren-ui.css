@@ -3490,28 +3490,3 @@ input[type=range] {
   #modal[data-screen="forge"] .forge-set-content {padding:0 7px 8px}
   #modal[data-screen="forge"] .forge-set-line {font-size:15px;gap:7px}
 }
-
-/* Compact system row. The combat controls sit in their own action group. */
-#hud {
-  --hud-button-height: 30px;
-  height: 42px;
-  grid-template-columns: 30px minmax(0, 1fr);
-  background: rgba(22, 27, 22, .32);
-}
-#hudBottom { grid-template-columns: minmax(38px, 1fr) auto; }
-#hudBottom #hp { height: 9px; }
-#hudBottom #hp span { font-size: 9px; line-height: 8px; }
-#hud #hudR .ibtn { border-radius: 6px; background: rgba(53, 43, 31, .26); }
-#hud #hudR .ibtn[aria-pressed="true"] { background: rgba(110, 85, 56, .48); }
-.world-map {
-  display: block;
-  width: min(100%, 320px, 52vh);
-  height: auto;
-  margin: 0 auto;
-  border: 1px solid #9d825d;
-  image-rendering: pixelated;
-}
-.world-map-key { margin: 6px 0 0; text-align: center; color: #ffe19a; }
-@media (max-width: 380px) {
-  #hud { --hud-button-width: 27px; --hud-nav-gap: 3px; }
-}
