@@ -20,35 +20,61 @@
   let enabled = !forcedLegacy;
   let warned = false;
 
-  function eligible(o, now) {
-    if (!o || !Number.isFinite(now)) return false;
-    // Network presence encodes an unequipped/unarmed peer as action 0,
-    // decoded to the empty tool string. Local players use 'fist' instead.
-    // Neither case means a weapon should be hidden.
-    const barehanded = o.tool === 'fist' || (!o.isMe && o.tool === '');
-    if (!barehanded) return false;
-    if (!Array.isArray(o.g) || o.g.length !== 6 || o.g.some(v => v !== 0)) return false;
-    // Local death/hurt timestamps are resolved in drawKezV2 before this bridge.
-    // Old portraits and unrelated render calls lack that state, so stay legacy.
-    if (!owns(o, 'deathAt') || !owns(o, 'hurtAt')) return false;
-    if (o.dead || o.deathAt != null) return false;
-    // A live local player must explicitly have a null death timestamp.
-    // Remote peers legitimately have an undefined deathAt field.
-    if (o.isMe && o.deathAt !== null) return false;
+  // Render-path QA counts the *actual* game player, not isolated atlas calls.
+  // This never changes gameplay, storage, equipment or network state.
+  const local = {
+    nativeFrames: 0, legacyFrames: 0, lastRenderer: 'not rendered',
+    lastReason: 'not rendered', lastTool: '', lastGear: []
+  };
+  function ineligibleReason(o, now) {
+    if (!o || !Number.isFinite(now)) return 'invalid frame';
+    // Multiplayer action code 0 means no held tool, represented as ''.
+    if (!(o.tool === 'fist' || (!o.isMe && o.tool === ''))) return 'tool: ' + String(o.tool);
+    if (!Array.isArray(o.g) || o.g.length !== 6) return 'unknown equipment state';
+    if (o.g.some(v => v !== 0)) return 'equipped armour/shield';
+    if (!owns(o, 'deathAt') || !owns(o, 'hurtAt')) return 'unresolved player state';
+    if (o.dead || o.deathAt != null) return 'death state';
+    if (o.isMe && o.deathAt !== null) return 'local death state missing';
     const attackAge = now - (o.swingAt ?? -99999);
-    if (!Number.isFinite(attackAge) || (attackAge >= 0 && attackAge < 320)) return false;
+    if (!Number.isFinite(attackAge) || (attackAge >= 0 && attackAge < 320)) return 'attack animation';
     const hurtAge = now - o.hurtAt;
-    if (!Number.isFinite(hurtAge) || (hurtAge >= 0 && hurtAge < 220)) return false;
-    return true;
+    if (!Number.isFinite(hurtAge) || (hurtAge >= 0 && hurtAge < 220)) return 'hurt animation';
+    return '';
+  }
+  function eligible(o, now) {
+    return ineligibleReason(o, now) === '';
   }
   legacy.draw = function (ctx, x, y, o, now) {
-    if (enabled && eligible(o, now)) {
-      if (native.ready) return native.draw(ctx, x, y, o, now);
+    const isLocal = Boolean(o?.isMe);
+    let reason = !enabled ? 'legacy requested' : ineligibleReason(o, now);
+    if (!reason) {
+      if (native.ready) {
+        if (native.draw(ctx, x, y, o, now) === true) {
+          if (isLocal) {
+            local.nativeFrames++;
+            local.lastRenderer = 'V19B';
+            local.lastReason = 'native 24x32';
+            local.lastTool = String(o.tool);
+            local.lastGear = o.g.slice();
+          }
+          return true;
+        }
+        reason = 'V19B draw unsuccessful';
+      } else {
+        reason = native.failed ? 'V19B sprite load failed' : 'loading V19B sprites';
+      }
       if (native.failed && !warned) {
         warned = true;
         console.error('V19B artwork failed to load; retaining original character rendering');
         window.dispatchEvent?.(new Event('myrren-v19b-fallback'));
       }
+    }
+    if (isLocal) {
+      local.legacyFrames++;
+      local.lastRenderer = 'Legacy';
+      local.lastReason = reason;
+      local.lastTool = String(o.tool);
+      local.lastGear = Array.isArray(o.g) ? o.g.slice() : [];
     }
     return originalDraw(ctx, x, y, o, now);
   };
@@ -57,5 +83,42 @@
     get enabled() { return enabled; },
     setEnabled(value) { enabled = !forcedLegacy && Boolean(value); return enabled; },
     eligible,
+    get diagnostics() {
+      return {
+        nativeFrames: local.nativeFrames, legacyFrames: local.legacyFrames,
+        lastRenderer: local.lastRenderer, lastReason: local.lastReason,
+        lastTool: local.lastTool, lastGear: local.lastGear.slice()
+      };
+    },
   });
+
+  // An explicitly requested, temporary visual diagnostic for real phones.
+  // Example: ?utm_source=chatgpt.com&character_debug=1
+  if (/(?:^|[?&])character_debug=1(?:&|$)/.test(window.location?.search || '')
+      && typeof document !== 'undefined') {
+    const attach = () => {
+      if (document.getElementById('myrren-character-diagnostic')) return;
+      const box = document.createElement('div');
+      box.id = 'myrren-character-diagnostic';
+      box.setAttribute('role','status');
+      Object.assign(box.style, {
+        position:'fixed', top:'7px', left:'7px', zIndex:'99999',
+        padding:'5px 7px', borderRadius:'6px', background:'rgba(14,22,25,.90)',
+        color:'#fff', font:'11px/1.4 monospace', pointerEvents:'none',
+        maxWidth:'75vw', whiteSpace:'pre-wrap'
+      });
+      document.body.appendChild(box);
+      const update = () => {
+        const d = window.MyrrenV19BGameplayPreview.diagnostics;
+        box.textContent = 'CHARACTER: ' + d.lastRenderer + '  [' + d.lastReason + ']'
+          + '\nTool: ' + d.lastTool + '  Gear: ' + d.lastGear.join(',')
+          + '\nNative frames: ' + d.nativeFrames + ' / old: ' + d.legacyFrames;
+      };
+      update();
+      window.setInterval(update, 500);
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', attach, {once:true});
+    } else attach();
+  }
 })();

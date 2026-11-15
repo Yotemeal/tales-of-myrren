@@ -78,3 +78,12 @@ test('remote network peers without an equipped tool use the approved native body
   window.MyrrenKezV2Atlas.draw({},50,70,{...remote,swingAt:600},660);
   assert.deepEqual(calls.map(x=>x[0]),['v19b','legacy','legacy']);
 });
+
+
+test('native draw failure uses legacy so the character remains visible',()=>{
+  const {window,calls,native}=harness();
+  native.draw=()=>false;
+  window.MyrrenKezV2Atlas.draw({},50,70,base,660);
+  assert.deepEqual(calls.map(x=>x[0]),['legacy']);
+  assert.equal(window.MyrrenV19BGameplayPreview.diagnostics.lastReason,'V19B draw unsuccessful');
+});

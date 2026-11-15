@@ -68,6 +68,17 @@ const server=http.createServer((req,res)=>{
   await page.locator('#go').click();
   await page.waitForFunction(()=>document.querySelector('#intro').hidden,{timeout:7000});
   await page.waitForTimeout(400);
+  // This checks *actual gameplay composition*, not a manually drawn atlas.
+  // A past build passed atlas-only tests while the visible player stayed old.
+  await page.waitForFunction(
+    () => window.MyrrenV19BGameplayPreview?.diagnostics?.nativeFrames > 2,
+    {timeout:10000});
+  const localDraws = await page.evaluate(
+    () => window.MyrrenV19BGameplayPreview.diagnostics);
+  assert.equal(localDraws.lastRenderer, 'V19B',
+    'unequipped live player must use approved sprite, not Kez V2');
+  assert.deepEqual(localDraws.lastGear,[0,0,0,0,0,0]);
+  assert.equal(localDraws.lastTool,'fist');
   const scale=await page.locator('#cv').evaluate(c=>c.getBoundingClientRect().width/c.width);
   assert.equal(scale,2,'approved 2x camera not preserved');
   await page.keyboard.down('ArrowRight');await page.waitForTimeout(500);await page.keyboard.up('ArrowRight');

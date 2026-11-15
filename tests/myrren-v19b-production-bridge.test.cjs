@@ -72,3 +72,27 @@ test('remote empty tool does not override gear, combat or local uninitialized st
   for(const o of options)h.render(o);
   assert.deepEqual(h.calls.map(x=>x[0]),options.map(()=>'legacy'));
 });
+
+
+// Regression coverage for real-game routing telemetry.
+test('diagnostics prove real unarmed local player paints V19B frames',()=>{
+  const h=harness();
+  h.render({...h.input,isMe:1});
+  h.render({...h.input,isMe:1});
+  const d=h.window.MyrrenV19BGameplayPreview.diagnostics;
+  assert.equal(d.nativeFrames,2);
+  assert.equal(d.legacyFrames,0);
+  assert.equal(d.lastRenderer,'V19B');
+  assert.deepEqual(Array.from(d.lastGear),[0,0,0,0,0,0]);
+});
+test('diagnostics explain blocked local character without changing equipment',()=>{
+  const h=harness();
+  const input={...h.input,isMe:1,g:[0,0,0,0,2,0]};
+  h.render(input);
+  const d=h.window.MyrrenV19BGameplayPreview.diagnostics;
+  assert.equal(d.nativeFrames,0);
+  assert.equal(d.legacyFrames,1);
+  assert.equal(d.lastReason,'equipped armour/shield');
+  assert.deepEqual(Array.from(d.lastGear),[0,0,0,0,2,0]);
+  assert.deepEqual(input.g,[0,0,0,0,2,0]);
+});
