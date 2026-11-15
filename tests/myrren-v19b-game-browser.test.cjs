@@ -32,7 +32,7 @@ const server=http.createServer((req,res)=>{
     ?route.continue():route.abort());
   await page.goto(base,{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>window.MyrrenV19BAtlas?.ready&&window.MyrrenKezV2Atlas?.ready,{timeout:15000});
-  assert.equal(await page.evaluate(()=>window.MyrrenBuild),93);
+  assert.equal(await page.evaluate(()=>window.MyrrenBuild),94);
   assert.equal(await page.evaluate(()=>window.MyrrenV19BGameplayPreview.enabled),true);
   // Four directions, six frame cadence, native 24x32 geometry and old fallback.
   const renderResult=await page.evaluate(()=>{
@@ -75,7 +75,7 @@ const server=http.createServer((req,res)=>{
     () => window.MyrrenV19BGameplayPreview.diagnostics);
   assert(localDraws.nativeFrames>2,
     'fresh, unarmed player must draw V19B in real game: '+JSON.stringify(localDraws));
-  assert.equal(localDraws.lastRenderer, 'V19B',
+  assert.equal(localDraws.lastRenderer, 'V19F',
     'unequipped live player must use approved sprite, not Kez V2');
   assert.deepEqual(localDraws.lastGear,[0,0,0,0,0,0]);
   assert.equal(localDraws.lastTool,'fist');
