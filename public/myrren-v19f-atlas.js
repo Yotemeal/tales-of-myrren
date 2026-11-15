@@ -1,5 +1,5 @@
 /* Tales of Myrren — V19F isolated, native 24x32 character renderer.
- * Approved V19F walking/idle renderer; legacy combat and gear stay on Kez V2.
+ * Approved V19F walking/idle renderer; with the approved right-facing unarmed punch.
  * The approved PNGs are loaded unchanged; no bounding-box auto-recentering,
  * pixel editing, old Kez fallback, or game/save mutation.
  */
@@ -12,9 +12,17 @@
   const DIRECTIONS = ['front', 'left', 'right', 'back'];
   const URL_BASE = '/assets/myrren-v19f/';
   const assets = {
-    walk: { image: new Image(), width: 144, height: 128, path: URL_BASE + 'myrren_walk_4x6_native.png?rev=hairclean1' },
+    walk: { image: new Image(), width: 144, height: 128, path: URL_BASE + 'myrren_walk_4x6_native.png?rev=approved2' },
     idle: { image: new Image(), width: 96, height: 32, path: URL_BASE + 'myrren_idle_4dir_native.png?rev=hairclean1' },
   };
+  const punch = new Image();
+  let punchReady = false;
+  punch.onload = () => { punchReady = punch.naturalWidth === 336 && punch.naturalHeight === 36; };
+  punch.src = URL_BASE + 'myrren_punch_right_native.png';
+  const punchEnds = [55, 85, 120, 225, 270, 320];
+  function canDrawPunch(o) {
+    return punchReady && direction(o) === 'right';
+  }
   let status = 'loading';
   let loaded = 0;
   function dispatch(eventName) {
@@ -56,7 +64,17 @@
   }
   function draw(ctx, x, y, o = {}, now = 0) {
     if (status !== 'ready') return false;
-    const p = pose(o, now);
+    const attackAge = now - (o.swingAt ?? -99999);
+    if (canDrawPunch(o) && attackAge >= 0 && attackAge < 320) {
+      const frame = punchEnds.findIndex(end => attackAge < end) + 1;
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(punch, frame * 48, 0, 48, 36,
+        Math.round(x) - 18, Math.round(y) - 34, 48, 36);
+      ctx.restore();
+      return true;
+    }
+    const p = pose(attackAge >= 0 && attackAge < 320 ? {...o, moving: false} : o, now);
     const sprite = p.moving ? assets.walk.image : assets.idle.image;
     const sx = (p.moving ? p.frame : p.row) * CELL_W;
     const sy = p.moving ? p.row * CELL_H : 0;
@@ -74,7 +92,7 @@
     get ready() { return status === 'ready'; },
     get failed() { return status === 'error'; },
     get dimensions() { return { cellWidth: CELL_W, cellHeight: CELL_H, frames: 6, directions: 4, millisecondsPerFrame: FRAME_MS, footRow: FOOT_ROW }; },
-    pose, draw,
+    pose, draw, canDrawPunch,
   });
   for (const entry of Object.values(assets)) {
     entry.image.onload = () => onAssetLoaded(entry);

@@ -3178,6 +3178,7 @@ function drawKezV2(x,y,o,now){
   };
   const paintPunch=()=>{
     if(o.tool!=='fist'||!attacking||deathAge>=0)return;
+    if(window.MyrrenV19BGameplayPreview?.drawsPunch?.(state,now))return;
     const px=direction==='back'?x-4:direction==='side'?x+facing*6:x+4;
     R(Math.round(px)-1,Math.round(y-11),2,2,handColor);
   };

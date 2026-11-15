@@ -37,7 +37,7 @@
     if (o.dead || o.deathAt != null) return 'death state';
     if (o.isMe && o.deathAt !== null) return 'local death state missing';
     const attackAge = now - (o.swingAt ?? -99999);
-    if (!Number.isFinite(attackAge) || (attackAge >= 0 && attackAge < 320)) return 'attack animation';
+    if (!Number.isFinite(attackAge) || (attackAge >= 0 && attackAge < 320 && !native.canDrawPunch)) return 'attack animation';
     const hurtAge = now - o.hurtAt;
     if (!Number.isFinite(hurtAge) || (hurtAge >= 0 && hurtAge < 220)) return 'hurt animation';
     return '';
@@ -84,6 +84,11 @@
     get enabled() { return enabled; },
     setEnabled(value) { enabled = !forcedLegacy && Boolean(value); return enabled; },
     eligible,
+    drawsPunch(o, now) {
+      const age = now - (o?.swingAt ?? -99999);
+      return enabled && native.ready && age >= 0 && age < 320
+        && Boolean(native.canDrawPunch?.(o)) && eligible(o, now);
+    },
     get diagnostics() {
       return {
         nativeFrames: local.nativeFrames, legacyFrames: local.legacyFrames,

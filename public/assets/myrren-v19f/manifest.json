@@ -1,6 +1,6 @@
 {
   "version": "v19f",
-  "status": "V19F approved face + precise hairline clean-up: review candidate; production unchanged",
+  "status": "Approved walking and right-facing punch assets.",
   "project": "Tales of Myrren",
   "native_frame": [
     24,
@@ -18,7 +18,7 @@
       "back"
     ],
     "milliseconds_per_frame": 110,
-    "sha256": "4cfaf373e587a29dca93fd5e6efdfe331a5c95f86db4b5d870695676ed4d8e45"
+    "sha256": "b2394b1e73f64806ad90530f8963f1f923a3e3dd6f9774b4b446ad9eb12d2052"
   },
   "idle_atlas": {
     "file": "myrren_idle_4dir_native.png",
@@ -42,7 +42,7 @@
   "head_height": 17,
   "head_rgba_sha256": "c0d80c4bbc5e5a0ec2614bd71e186f2e9ea13da3d45fd0d5a0551d6f0cd1cfd0",
   "raw_rgba_sha256": {
-    "walk": "d128924818364558e3fd5654cf3d0b34210e6aaaf240344c7d57a417c1125011",
+    "walk": "3809299d1fddd4c780aba10d4bff3a83628c924588b84262d5d75ea01357145f",
     "idle": "ea501d6c3c8e14da151535b158e8c0bbbf790af0d5d212c16ac7fa7ad1a05252",
     "master": "71d77ec6fb0eab628331c93cfaf1e0f25fb374381a264a39619ee818b5d2a4b5"
   },
@@ -53,5 +53,33 @@
   },
   "face_standard": "V19E: each visible eye is 2x3 native pixels; 4 white and 2 pupil; keep directional facial outline.",
   "permissions": "user accepted V19F visual design; review hairline cleanup in PR before production integration",
-  "cleanup": "Removed 1 pale out-of-line front hair pixel per front frame, replaced 3 off-palette grey outline colours with #191610 in upper 17 native rows only; exact eyes, face, gait and brown shade ratios unchanged."
+  "cleanup": "Approved walking atlas with left cheek scar and hair and outline pixel cleanup.",
+  "punch_atlas": {
+    "file": "myrren_punch_right_native.png",
+    "cell": [
+      48,
+      36
+    ],
+    "frames": 7,
+    "anchor": [
+      18,
+      34
+    ],
+    "attack_frames": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "milliseconds": [
+      55,
+      30,
+      35,
+      105,
+      45,
+      50
+    ]
+  }
 }
