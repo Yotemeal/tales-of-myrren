@@ -1,0 +1,39 @@
+{
+  "project": "Tales of Myrren",
+  "version": "native-ore-v2",
+  "status": "Review-only draft PR #114; no production deployment",
+  "sprite_size": [
+    24,
+    20
+  ],
+  "world_render_size": [
+    24,
+    20
+  ],
+  "fixed_camera_scale": 2,
+  "planned_equipment_tiers": [
+    "Bronze",
+    "Iron",
+    "Steel",
+    "Black Iron",
+    "Chromium",
+    "Iridium",
+    "Myrrenite"
+  ],
+  "sprites": {
+    "copper": "07f78d7ff8a8786bd0f35b152b0918634932dfed7bc7465c58e2774bc13dab7b",
+    "tin": "44f3e7683b0324300394e12d0849652489a1cd01f06ea59f7dd858cf1044c4aa",
+    "iron": "04e6cb280705f86ebacb1ff246a10c9190002b265776258ca8d297bb36eab6c9",
+    "coal": "8717161e6b161b2b983d06da89fa679f74a255ad5e0a9d896124010a985658ea",
+    "black_iron": "55545e073f8bc1ff714459af2dacf4cb6a143756897c0b6191de630cc7f78c6d",
+    "chromium": "2635e0f9c521dc3e4fa3c76625beab817caaf55205252a7db98ede39ea172fc8",
+    "iridium": "8b8a32f67490c335f140ea3dd98078c26306dc21db0cbc62ce6cb7cfcd2e18fe",
+    "myrrenite": "e0ec50451786ad4a1cea1a4e336ae1451f1315b44ea8b38db13cb277896a5b01"
+  },
+  "legacy_names_unchanged": [
+    "Obsidianite",
+    "Meteorite",
+    "Starsteel"
+  ],
+  "note": "Old runtime names, item IDs, forge recipes, gear requirements, saved equipment, live camera and collision remain untouched. Chromium and Iridium names are artwork candidates, not implemented material migration."
+}
