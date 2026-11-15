@@ -89,7 +89,7 @@
     ]
   },
   "moving_punch_atlas": {
-    "file": "myrren_punch_moving_4dir_native.png",
+    "file": "myrren_punch_stride_4dir_native.png",
     "cell": [
       48,
       36
@@ -114,6 +114,7 @@
       270,
       320
     ],
-    "sha256": "aed0a78124023f1ce65017649dd8fd2d4cb04542b111874d2c4c2f29ff17f934"
+    "sha256": "4bbd2cf6a44db1125495084ddd2f6367b5fbbd384465893c6077bb232c2a3044",
+    "walk_phases_per_direction": 6
   }
 }

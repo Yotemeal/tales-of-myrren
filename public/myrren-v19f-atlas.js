@@ -23,9 +23,9 @@
   const movingPunch = new Image();
   let movingPunchReady = false;
   movingPunch.onload = () => {
-    movingPunchReady = movingPunch.naturalWidth === 384 && movingPunch.naturalHeight === 144;
+    movingPunchReady = movingPunch.naturalWidth === 384 && movingPunch.naturalHeight === 864;
   };
-  movingPunch.src = URL_BASE + 'myrren_punch_moving_4dir_native.png';
+  movingPunch.src = URL_BASE + 'myrren_punch_stride_4dir_native.png';
   const movingPunchEnds = [55, 85, 110, 120, 220, 225, 270, 320];
   function canDrawPunch() {
     return punchReady;
@@ -79,7 +79,9 @@
         : punchEnds.findIndex(end => attackAge < end) + 1;
       ctx.save();
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(moving ? movingPunch : punch, frame * 48, DIRECTIONS.indexOf(direction(o)) * 36, 48, 36,
+      const {row, frame: step} = pose(o, now);
+      const sourceRow = moving ? row * 6 + step : row;
+      ctx.drawImage(moving ? movingPunch : punch, frame * 48, sourceRow * 36, 48, 36,
         Math.round(x) - 18, Math.round(y) - 34, 48, 36);
       ctx.restore();
       return true;
