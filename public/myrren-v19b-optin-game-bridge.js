@@ -37,7 +37,7 @@
     if (o.dead || o.deathAt != null) return 'death state';
     if (o.isMe && o.deathAt !== null) return 'local death state missing';
     const attackAge = now - (o.swingAt ?? -99999);
-    if (!Number.isFinite(attackAge) || (attackAge >= 0 && attackAge < 320 && !native.canDrawPunch?.(o))) return 'attack animation';
+    if (!Number.isFinite(attackAge) || (attackAge >= 0 && attackAge < 320 && !native.canDrawPunch)) return 'attack animation';
     const hurtAge = now - o.hurtAt;
     if (!Number.isFinite(hurtAge) || (hurtAge >= 0 && hurtAge < 220)) return 'hurt animation';
     return '';

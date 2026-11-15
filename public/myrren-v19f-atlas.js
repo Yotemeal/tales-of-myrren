@@ -74,7 +74,7 @@
       ctx.restore();
       return true;
     }
-    const p = pose(o, now);
+    const p = pose(attackAge >= 0 && attackAge < 320 ? {...o, moving: false} : o, now);
     const sprite = p.moving ? assets.walk.image : assets.idle.image;
     const sx = (p.moving ? p.frame : p.row) * CELL_W;
     const sy = p.moving ? p.row * CELL_H : 0;
