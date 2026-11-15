@@ -3914,13 +3914,15 @@ let outdoorVignette=null,vignetteWidth=0,vignetteHeight=0;
 // One gameplay scale. Quantize the display footprint to whole device pixels
 // and let the viewport clip the final pixel instead of stretching the canvas.
 const GAMEPLAY_SCALE=2;
+const previewWideCamera=new URLSearchParams(window.location.search).get('camera')==='wide';
 let viewportWidth=0,viewportHeight=0,viewportDpr=0;
 function resizeGameplayCanvas(){
   const width=cv.parentElement.clientWidth,height=cv.parentElement.clientHeight;
   const dpr=window.devicePixelRatio||1;
   if(width===viewportWidth&&height===viewportHeight&&dpr===viewportDpr)return;
   viewportWidth=width;viewportHeight=height;viewportDpr=dpr;
-  const scale=Math.max(1,Math.round(GAMEPLAY_SCALE*dpr))/dpr;
+  const targetScale=previewWideCamera&&width>height?1.6:GAMEPLAY_SCALE;
+  const scale=Math.max(1,Math.round(targetScale*dpr))/dpr;
   cv.width=Math.max(1,Math.ceil(width/scale));
   cv.height=Math.max(1,Math.ceil(height/scale));
   cv.style.width=cv.width*scale+'px';
