@@ -41,21 +41,29 @@
     [13,28,165],[13,28,165],[12,26,165],[10,29,15]];
   const rearSword = [[26,28,-32],[26,24,-36],[25,24,-21],[25,24,-12],
     [25,22,-5],[25,22,-5],[26,24,-17],[26,28,-32]];
-  function canDrawSword(o, now) {
-    const age = now - (o?.swingAt ?? -99999);
-    return o?.tool === 'sword' && age >= 0 && age < 320
+  const swordGuards = [[[11,28,15],[11,28,15],[11,29,15],[11,29,15],[11,28,15],[11,28,15],[11,28,15]],[[17,28,68],[13,29,68],[12,27,68],[12,27,68],[12,27,68],[16,28,68],[14,28,68]],[[16,28,-68],[16,28,-68],[17,28,-68],[17,27,-68],[17,28,-68],[15,28,-68],[17,28,-68]],[[24,28,-32],[24,28,-32],[24,28,-32],[24,28,-32],[24,28,-32],[24,29,-32],[24,29,-32]]];
+  function canDrawSword(o) {
+    return o?.tool === 'sword'
       && bladeColumns.includes(o.mat)
       && swordBody.naturalWidth === 384 && swordBody.naturalHeight === 1008
       && blades.naturalWidth === 224 && blades.naturalHeight === 32;
   }
   function drawSword(ctx, x, y, o, now, age) {
     const {row, frame: step, moving} = pose(o, now);
-    const frame = movingPunchEnds.findIndex(end => age < end);
-    const sy = (moving ? 4 + row * 6 + step : row) * 36;
-    const sx = frame * 48;
-    const [gx, gy, angle] = (row === 0 ? frontSword : row === 3 ? rearSword : rightSword)[frame];
-    const hx = row === 1 ? 35 - gx : gx;
-    const bladeAngle = row === 1 ? -angle : angle;
+    const attacking = age >= 0 && age < 320;
+    const frame = attacking ? movingPunchEnds.findIndex(end => age < end) : 0;
+    const sy = attacking ? (moving ? 4 + row * 6 + step : row) * 36 : moving ? row * 32 : 0;
+    const sx = attacking ? frame * 48 : (moving ? step : row) * 24;
+    const [gx, gy, angle] = attacking
+      ? (row === 0 ? frontSword : row === 3 ? rearSword : rightSword)[frame]
+      : swordGuards[row][moving ? step + 1 : 0];
+    const hx = attacking && row === 1 ? 35 - gx : gx;
+    const bladeAngle = attacking && row === 1 ? -angle : angle;
+    const body = attacking ? swordBody : moving ? assets.walk.image : assets.idle.image;
+    const insetX = attacking ? 0 : 6;
+    const insetY = attacking ? 0 : 4;
+    const width = attacking ? 48 : 24;
+    const height = attacking ? 36 : 32;
     const bladeX = bladeColumns.indexOf(o.mat) * 32;
     const paintBlade = () => {
       ctx.save();
@@ -68,10 +76,10 @@
     ctx.translate(Math.round(x) - 18, Math.round(y) - 34);
     ctx.imageSmoothingEnabled = false;
     if (row === 3) paintBlade();
-    ctx.drawImage(swordBody, sx, sy, 48, 36, 0, 0, 48, 36);
+    ctx.drawImage(body, sx, sy, width, height, insetX, insetY, width, height);
     if (row !== 3) {
       paintBlade();
-      ctx.drawImage(swordBody, sx + hx - 1, sy + gy - 1, 3, 3, hx - 1, gy - 1, 3, 3);
+      ctx.drawImage(body, sx + hx - insetX - 1, sy + gy - insetY - 1, 3, 3, hx - 1, gy - 1, 3, 3);
     }
     ctx.restore();
     return true;

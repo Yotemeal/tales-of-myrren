@@ -629,19 +629,22 @@ function uiHud(){
   // Player name is kept in save data for chat; it is not shown in the HUD.
   uiCurrencies();
 }
-document.querySelectorAll('[data-i]').forEach(e=>{const k=e.dataset.i;e.innerHTML=ITEMS[k]?itemSvg(k,22):svg(k,22)});
+
 // Minimal Crater menu icons: single-weight gold outlines matching approved UI.
 // These affect HUD navigation only, never equipment or inventory item sprites.
 const HUD_LINE_ICONS={
+  map:'<path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6zM9 3v15M15 6v15"/>',
   helm:'<path d="M12 3 4.5 6.5V13c0 5 3.2 7.7 7.5 9 4.3-1.3 7.5-4 7.5-9V6.5L12 3Z"/>',
   pick:'<path d="M5 20v-5M12 20V9M19 20V4"/>',
   scroll:'<path d="M7 3h11a2 2 0 0 1 2 2v13H8a3 3 0 0 1-3-3V6a3 3 0 0 0-3-3h5Z"/><path d="M2 3a3 3 0 0 1 3 3v2h5V6a3 3 0 0 0-3-3M8 18v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2H8ZM10 8h7M10 12h7M10 16h4"/>',
   cog:'<path d="M10 2h4l.7 2.3 1.8.8 2.1-1.1 2.8 2.8-1.1 2.1.8 1.8L23 11v4l-2.3.7-.8 1.8 1.1 2.1-2.8 2.8-2.1-1.1-1.8.8L14 23h-4l-.7-2.3-1.8-.8-2.1 1.1-2.8-2.8 1.1-2.1-.8-1.8L1 15v-4l2.3-.7.8-1.8L3 6.4l2.8-2.8 2.1 1.1 1.8-.8L10 2Z"/><circle cx="12" cy="13" r="3"/>',
   bag:'<rect x="4" y="7" width="16" height="15" rx="3"/><path d="M9 7V5a3 3 0 0 1 6 0v2M8 13h8v6H8zM10 16h4"/>'
 };
-document.querySelectorAll('#hudR [data-i]').forEach(e=>{
-  const art=HUD_LINE_ICONS[e.dataset.i];
+document.querySelectorAll('[data-i]').forEach(e=>{
+  const k=e.dataset.i;
+  const art=e.closest('#hudR')?HUD_LINE_ICONS[k]:null;
   if(art)e.innerHTML='<svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="#dfbc86" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+art+'</svg>';
+  else e.innerHTML=ITEMS[k]?itemSvg(k,22):svg(k,22);
 });
 
 /* ---------- gear actions ---------- */
@@ -739,7 +742,7 @@ function addXp(skill,amt){
 /* ---------- modal ---------- */
 const modal=$('modal'),mBody=$('mBody');
 let modalReturnFocus=null;
-const TITLES={gear:'Equipment',pack:'Inventory',skills:'Skills',players:'Party',shop:'Shop',smelt:'Furnace · Smelting',forge:'Anvil · Forging',cook:'Campfire · Cooking',settings:'Settings',board:'Community Board',jobs:'Odd Jobs',odd:'Odd Shop',bank:'Storage Chest'};
+const TITLES={map:'World Map',gear:'Equipment',pack:'Inventory',skills:'Skills',players:'Party',shop:'Shop',smelt:'Furnace · Smelting',forge:'Anvil · Forging',cook:'Campfire · Cooking',settings:'Settings',board:'Community Board',jobs:'Odd Jobs',odd:'Odd Shop',bank:'Storage Chest'};
 function openModal(t){
   if(me.deathAt!=null)return;
   if(smithJob&&t!==(smithJob.type==='smelt'?'smelt':'forge'))stopSmithing('',false);
@@ -747,7 +750,7 @@ function openModal(t){
   closeItemMenu();
   if(!tab){gpIdx=-1;modalReturnFocus=document.activeElement}
   tab=t;
-  if(!['shop','smelt','forge','cook','settings','board','odd'].includes(t))lastTab=t;
+  if(!['shop','smelt','forge','cook','settings','board','odd','map'].includes(t))lastTab=t;
   sel=null;renderModal();
   if(!gpName||!cfg.pad)$('mClose').focus({preventScroll:true});
 }
@@ -766,9 +769,32 @@ function renderModal(){
   const st=mBody.scrollTop;
   $('mTitle').textContent=tab==='shop'&&curShop()?curShop().name:TITLES[tab];
   mBody.textContent='';
-  ({gear:rGear,pack:rPack,skills:rSkills,players:rPlayers,shop:rShop,smelt:rSmelt,forge:rForge,cook:rCook,settings:rSettings,board:rBoard,jobs:rJobs,odd:rOdd,bank:rBank})[tab]();
+  ({map:rWorldMap,gear:rGear,pack:rPack,skills:rSkills,players:rPlayers,shop:rShop,smelt:rSmelt,forge:rForge,cook:rCook,settings:rSettings,board:rBoard,jobs:rJobs,odd:rOdd,bank:rBank})[tab]();
   mBody.scrollTop=st;
   gpAfterRender();
+}
+function rWorldMap(){
+  const map=el('canvas','world-map');
+  const size=160;
+  map.width=map.height=size;
+  map.setAttribute('role','img');
+  map.setAttribute('aria-label','World map showing terrain, village buildings and your position');
+  const g=map.getContext('2d');
+  const sx=size/WW,sy=size/WH;
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+    const wx=(x+.5)/sx,wy=(y+.5)/sy;
+    g.fillStyle=VILLAGE.inWater(wx,wy)?'#527e89'
+      :VILLAGE.craterWall(wx,wy)?'#66695d'
+      :VILLAGE.pathKind(wx,wy)?'#a78656'
+      :VILLAGE.inVillage(wx,wy)?'#746a46':'#344c39';
+    g.fillRect(x,y,1,1);
+  }
+  g.fillStyle='#cfb389';
+  for(const b of BLD)g.fillRect(Math.round((b.x-b.w/2)*sx),Math.round((b.y-14)*sy),Math.max(1,Math.round(b.w*sx)),2);
+  const x=Math.round((inside?me.ox:me.x)*sx),y=Math.round((inside?me.oy:me.y)*sy);
+  g.fillStyle='#231b13';g.fillRect(x-2,y-2,5,5);
+  g.fillStyle='#ffe19a';g.fillRect(x-1,y-1,3,3);
+  mBody.append(map,el('p','world-map-key','Gold marker · You'));
 }
 function statLine(d){
   const p=[];
