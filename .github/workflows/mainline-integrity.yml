@@ -55,6 +55,19 @@ jobs:
             tests/myrren-v19b-production-bridge.test.cjs \
             tests/myrren-v19b-game-composition.test.cjs \
             tests/myrren-v19b-production-entry.test.cjs
+      - name: V19F native face and eye pixel integrity (review only)
+        run: |
+          node --check scripts/build-v19f-review.cjs
+          node --check public/myrren-v19f-atlas.js
+          node --test tests/myrren-v19f-review-assets.test.cjs
+      - name: Export exact V19F review PNGs
+        run: node scripts/build-v19f-review.cjs /tmp/myrren-v19f-native-review
+      - name: Archive V19F review-only sheets
+        uses: actions/upload-artifact@v4
+        with:
+          name: myrren-v19f-four-direction-native-review
+          path: /tmp/myrren-v19f-native-review/*.png
+          if-no-files-found: warn
       - name: Gameplay, economy and save integrity
         run: |
           node tests/forging-skill.test.cjs
