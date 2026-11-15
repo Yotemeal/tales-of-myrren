@@ -68,7 +68,8 @@
     const paintBlade = () => {
       ctx.save();
       ctx.translate(hx, gy);
-      ctx.rotate(bladeAngle * Math.PI / 180);
+      // Preview angles use the inverse transform convention.
+      ctx.rotate(-bladeAngle * Math.PI / 180);
       ctx.drawImage(blades, bladeX, 0, 32, 32, -16, -26, 32, 32);
       ctx.restore();
     };
