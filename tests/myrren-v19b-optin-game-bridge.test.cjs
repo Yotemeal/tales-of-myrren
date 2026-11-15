@@ -68,3 +68,22 @@ test('bridge is idempotent and does not mutate frozen render options',()=>{
   assert.equal(calls.length,1);
   assert.equal(calls[0][0],'v19b');
 });
+
+
+test('remote network peers without an equipped tool use the approved native body',()=>{
+  const {window,calls}=harness();
+  const remote={...base,tool:'',isMe:undefined,deathAt:undefined};
+  window.MyrrenKezV2Atlas.draw({},50,70,remote,660);
+  window.MyrrenKezV2Atlas.draw({},50,70,{...remote,g:[0,2,0,0,0,0]},660);
+  window.MyrrenKezV2Atlas.draw({},50,70,{...remote,swingAt:600},660);
+  assert.deepEqual(calls.map(x=>x[0]),['v19b','legacy','legacy']);
+});
+
+
+test('native draw failure uses legacy so the character remains visible',()=>{
+  const {window,calls,native}=harness();
+  native.draw=()=>false;
+  window.MyrrenKezV2Atlas.draw({},50,70,base,660);
+  assert.deepEqual(calls.map(x=>x[0]),['legacy']);
+  assert.equal(window.MyrrenV19BGameplayPreview.diagnostics.lastReason,'V19B draw unsuccessful');
+});

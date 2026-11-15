@@ -98,3 +98,26 @@ Local-player render options with deathAt=undefined are now treated as missing st
 
 ## Required V19B mainline CI guard (Nov 15 2026)
 The `Mainline game integrity` core workflow now includes a dedicated V19B step that executes all seven builtin-only tests: signed native sprite locks, atlas animation, exact RGBA pixel hashes, legacy compatibility, failover and rollback, real `drawKezV2` composition, and canonical entry checks. A separate mobile Chromium job remains responsible for full-game interaction and portrait/landscape captures. These checks must be green on PR #99 before merging.
+
+
+## Live player visibility diagnostic — V19B renderer QA
+On the main-game branch, the `MyrrenV19BGameplayPreview.diagnostics` object records actual local player base-render calls. An isolated atlas draw no longer counts as proof the game is using the approved sprite. The browser smoke test must start the **real game**, wait for multiple `nativeFrames`, verify `lastRenderer === 'V19B'`, `lastTool === 'fist'`, and all six equipment slots zero. The core test suite validates fallback reasons and ensures no game state mutation.
+
+For a real device where the character still looks old, visit:
+`https://tales-of-myrren.keznuts.workers.dev/?utm_source=chatgpt.com&character_debug=1`
+The debug-only overlay shows V19B vs Legacy, reason, tool, gear array and native/legacy frame counts. It does not edit saves, zoom, combat or artwork, and remains invisible on normal links. If the player reports equipment absent but the overlay lists nonzero gear or a different tool, investigate the save/equipment state rather than redrawing approved sprites.
+
+A zero action code from remote multiplayer presence maps to `tool:''`; the V19B bridge accepts this only for remote, unarmed peers. The local player's normal barehanded state must remain `tool:'fist'`. Combat, hurt/death, equipment and held tools still deliberately render with legacy sprites pending a complete 24×32 equipment/action animation suite.
+
+The exact 24×32 V19B front/back and V5 side frames remain locked. Next animation work must begin from these exact body pixels, not recreate the original body or force old 21×27 armour overlays onto the 24×32 art.
+
+## Empty equipment portrait corrected in game build 93
+The gear UI previously always called the old Kez V2 sprite renderer, even for a fully unequipped character. For zero fitted equipment and no active weapon, the portrait now draws the accepted 24×32 V19B front idle PNG directly, at a native foot anchor of (16,38), exactly fitting the portrait canvas at 4×. Equipped/weapon portraits and the `?character=legacy` rollback still draw legacy until dedicated native gear art is approved. The full-game Chromium test compares the actual empty portrait canvas against the native reference pixel-for-pixel. This change and the native-player draw telemetry are in a feature branch pending CI; no live art change is claimed until merged and deployed.
+
+
+## Root cause from strict full-game browser QA — fresh player initialization
+The stricter Chromium test exposed the actual reported bug: `const me={...}` had never initialized `deathAt`, which remained `undefined` on a fresh game. Legacy gameplay treats `null` and `undefined` alike as alive, but the defensive V19B bridge intentionally rejects missing local death state. Therefore an otherwise naked, unarmed local player could be **stuck permanently on old Kez V2 artwork** until death/respawn initialized `deathAt=null`. Earlier tests incorrectly supplied a synthetic `deathAt:null` and never exercised the constructor.
+
+**Correction:** explicitly initialize `me.deathAt=null` and `me.hurtAt=-99999` in the real game constructor. Retain the strict bridge guard. The composer test now verifies the actual constructor contains these safe defaults. The real browser smoke test asserts the true player's V19B frame count and includes the diagnostic state in any failure message.
+
+Do not change approved art, camera, saves or combat; fixing the constructor avoids all of that.

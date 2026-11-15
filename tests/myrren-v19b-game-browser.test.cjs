@@ -32,7 +32,7 @@ const server=http.createServer((req,res)=>{
     ?route.continue():route.abort());
   await page.goto(base,{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>window.MyrrenV19BAtlas?.ready&&window.MyrrenKezV2Atlas?.ready,{timeout:15000});
-  assert.equal(await page.evaluate(()=>window.MyrrenBuild),92);
+  assert.equal(await page.evaluate(()=>window.MyrrenBuild),93);
   assert.equal(await page.evaluate(()=>window.MyrrenV19BGameplayPreview.enabled),true);
   // Four directions, six frame cadence, native 24x32 geometry and old fallback.
   const renderResult=await page.evaluate(()=>{
@@ -68,10 +68,39 @@ const server=http.createServer((req,res)=>{
   await page.locator('#go').click();
   await page.waitForFunction(()=>document.querySelector('#intro').hidden,{timeout:7000});
   await page.waitForTimeout(400);
+  // This checks *actual gameplay composition*, not a manually drawn atlas.
+  // A past build passed atlas-only tests while the visible player stayed old.
+  await page.waitForTimeout(350);
+  const localDraws = await page.evaluate(
+    () => window.MyrrenV19BGameplayPreview.diagnostics);
+  assert(localDraws.nativeFrames>2,
+    'fresh, unarmed player must draw V19B in real game: '+JSON.stringify(localDraws));
+  assert.equal(localDraws.lastRenderer, 'V19B',
+    'unequipped live player must use approved sprite, not Kez V2');
+  assert.deepEqual(localDraws.lastGear,[0,0,0,0,0,0]);
+  assert.equal(localDraws.lastTool,'fist');
   const scale=await page.locator('#cv').evaluate(c=>c.getBoundingClientRect().width/c.width);
   assert.equal(scale,2,'approved 2x camera not preserved');
   await page.keyboard.down('ArrowRight');await page.waitForTimeout(500);await page.keyboard.up('ArrowRight');
   await page.waitForTimeout(160);
+  // Equipment tab must show the same native front/idle pixels when *empty*.
+  await page.locator('[data-ui-open="gear"]').click();
+  await page.waitForFunction(()=>!!document.querySelector('.character-portrait canvas'));
+  await page.waitForTimeout(180);
+  const matches = await page.evaluate(()=>{
+    const portrait=document.querySelector('.character-portrait canvas');
+    const expected=document.createElement('canvas');
+    expected.width=portrait.width;expected.height=portrait.height;
+    const g=expected.getContext('2d');g.imageSmoothingEnabled=false;
+    g.save();g.scale(4,4);
+    g.fillStyle='rgba(34,29,25,.18)';g.fillRect(10,38,12,2);
+    window.MyrrenV19BAtlas.draw(g,16,38,{dv:'d',f:1,moving:false},0);
+    g.restore();
+    return portrait.toDataURL()===expected.toDataURL();
+  });
+  assert(matches,'unequipped portrait must display exact V19B native idle');
+  await page.screenshot({path:'/tmp/myrren-v19b-unequipped-portrait.png'});
+  await page.locator('#mClose').click();
   await page.screenshot({path:'/tmp/myrren-v19b-landscape-game.png'});
   await page.setViewportSize({width:393,height:852});
   await page.waitForTimeout(450);

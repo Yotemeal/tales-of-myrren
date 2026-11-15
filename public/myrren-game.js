@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=92;
+window.MyrrenBuild=93;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -592,7 +592,7 @@ function canFitInventory(changes={},extraGear=0,noteChanges={}){
 }
 function refreshHeld(){const w=activeDef('weapon');me.tool=w?w.kind:'fist';me.mat=w?w.mat:2;if(w)me.hold=1e12;else if(me.hold>1e11)me.hold=0}
 const gearArr=()=>['head','body','legs','boots','shield','hands'].map(s=>{const d=eqDef(s);return d?d.mat:0});
-const me={x:clamp(save.x,EDGE+8,WW-EDGE-8),y:clamp(save.y,EDGE+8,WH-EDGE-8),face:1,hue:Math.floor(Math.random()*360),hp:0,moving:false,swing:-9999,swings:0,hold:0,tool:'',mat:2,wave:0};
+const me={x:clamp(save.x,EDGE+8,WW-EDGE-8),y:clamp(save.y,EDGE+8,WH-EDGE-8),face:1,hue:Math.floor(Math.random()*360),hp:0,moving:false,swing:-9999,swings:0,hold:0,tool:'',mat:2,wave:0,deathAt:null,hurtAt:-99999};
 me.hp=hpMax();me.fx=0;me.fy=1;me.pend=0;me.tgt=null;me.tgtUntil=0;me.catchFx=null;
 me.ox=me.x;me.oy=me.y;
 const cam={x:me.x-100,y:me.y-100};
@@ -1037,7 +1037,14 @@ function rGear(){
        c.fillStyle='rgba(34,29,25,.18)';c.fillRect(10,38,12,2);
        const equipped={...portraitPose,g:gearArr(),dye:save.dye,now};
        window.MyrrenKezV2Equipment?.draw(c,16,39,equipped,'under');
-       window.MyrrenKezV2Atlas.draw(c,16,39,equipped,now);
+       // The equipment screen bypasses the in-world renderer. Preserve the
+       // approved native base for a completely unequipped portrait as well.
+       const barePortrait=!equipped.g.some(Boolean)&&!eqDef('weapon')
+         &&window.MyrrenV19BGameplayPreview?.enabled&&window.MyrrenV19BAtlas?.ready;
+       if(barePortrait)
+         window.MyrrenV19BAtlas.draw(c,16,38,{dv:'d',f:1,moving:false},now);
+       else
+         window.MyrrenKezV2Atlas.draw(c,16,39,equipped,now);
        window.MyrrenKezV2Equipment?.draw(c,16,39,equipped,'over');
        c.restore();
      }

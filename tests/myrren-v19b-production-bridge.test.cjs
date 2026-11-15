@@ -50,3 +50,49 @@ test('attack, hurt, death, armour, and missing explicit render state use legacy'
   for(const o of variants)h.render(o);
   assert.deepEqual(h.calls.map(x=>x[0]),variants.map(()=>'legacy'));
 });
+
+test('real multiplayer action code 0 selects V19B for an unarmed peer',()=>{
+  const h=harness();
+  const peer={...h.input,tool:'',isMe:undefined,deathAt:undefined};
+  h.render(peer);
+  assert.deepEqual(h.calls.map(x=>x[0]),['v19b']);
+});
+test('remote empty tool does not override gear, combat or local uninitialized state',()=>{
+  const h=harness();
+  const barePeer={...h.input,tool:'',isMe:undefined,deathAt:undefined};
+  const options=[
+    {...barePeer,g:[2,0,0,0,0,0]},
+    {...barePeer,swingAt:600},
+    {...barePeer,hurtAt:600},
+    {...barePeer,dead:true},
+    {...barePeer,deathAt:500},
+    {...h.input,isMe:1,tool:''},
+    {...h.input,tool:undefined},
+  ];
+  for(const o of options)h.render(o);
+  assert.deepEqual(h.calls.map(x=>x[0]),options.map(()=>'legacy'));
+});
+
+
+// Regression coverage for real-game routing telemetry.
+test('diagnostics prove real unarmed local player paints V19B frames',()=>{
+  const h=harness();
+  h.render({...h.input,isMe:1});
+  h.render({...h.input,isMe:1});
+  const d=h.window.MyrrenV19BGameplayPreview.diagnostics;
+  assert.equal(d.nativeFrames,2);
+  assert.equal(d.legacyFrames,0);
+  assert.equal(d.lastRenderer,'V19B');
+  assert.deepEqual(Array.from(d.lastGear),[0,0,0,0,0,0]);
+});
+test('diagnostics explain blocked local character without changing equipment',()=>{
+  const h=harness();
+  const input={...h.input,isMe:1,g:[0,0,0,0,2,0]};
+  h.render(input);
+  const d=h.window.MyrrenV19BGameplayPreview.diagnostics;
+  assert.equal(d.nativeFrames,0);
+  assert.equal(d.legacyFrames,1);
+  assert.equal(d.lastReason,'equipped armour/shield');
+  assert.deepEqual(Array.from(d.lastGear),[0,0,0,0,2,0]);
+  assert.deepEqual(input.g,[0,0,0,0,2,0]);
+});
