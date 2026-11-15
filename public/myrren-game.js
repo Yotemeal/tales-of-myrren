@@ -2869,7 +2869,9 @@ function drawTree(n,x,y,now){
 function drawRock(n,x,y,now){
   const age=now-(n.mineHitAt??-99999),recent=age>=0&&age<360;
   const recoil=recent&&age<120?(Math.floor(age/35)%2?1:-1):0;
-  ctx.save();ctx.translate(x+recoil,y);ctx.scale(.72,.72);
+  // Preserve native pixels for the Black Iron pilot. Other ore sizes retain their old 0.72 scale.
+  const rockScale=(n.k==='cobalt'||n.k==='black_iron')?1:.72;
+  ctx.save();ctx.translate(x+recoil,y);ctx.scale(rockScale,rockScale);
   MyrrenEnvironment.rock(ctx,n,0,0,now);ctx.restore();
   if(recent){
     const colors=miningDustColors(n),p=age/360,fragments=n.mineSucceeded?5:3;

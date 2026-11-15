@@ -1,0 +1,31 @@
+{
+  "project": "Tales of Myrren",
+  "status": "draft-review-only",
+  "asset": "public/assets/resources/ore_black_iron.png",
+  "sha256": "233134aad27d1da028455959ebd0777f88210852098ee08f6abbfcb95e6f72f8",
+  "native": [
+    32,
+    24
+  ],
+  "world_draw": [
+    32,
+    24
+  ],
+  "old_world_width_approx": 17.28,
+  "camera_scale": 2,
+  "gameplay_internal_material": "cobalt",
+  "changed_resource_names": [
+    "Black Iron"
+  ],
+  "unchanged": [
+    "V19F character",
+    "camera",
+    "other ore art",
+    "other ore rendering",
+    "mining",
+    "forging",
+    "collision",
+    "save schema",
+    "world"
+  ]
+}

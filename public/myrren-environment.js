@@ -33,7 +33,8 @@
       img.src='/assets/resources/'+key+'.png';
     }
     if(!entry.ready)return false;
-    const w=isTree?144:24;
+    // Black Iron uses a 32px native pilot; all other resource footprints are unchanged.
+    const w=isTree?144:(name==='black_iron'?32:24);
     const h=isTree?Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth):Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth);
     const dx=Math.round(x-w/2),dy=Math.round(y-h+4);
     if(!isTree){ctx.drawImage(entry.img,dx,dy,w,h);return true;}
