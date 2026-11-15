@@ -629,7 +629,7 @@ function uiHud(){
   // Player name is kept in save data for chat; it is not shown in the HUD.
   uiCurrencies();
 }
-document.querySelectorAll('[data-i]').forEach(e=>{const k=e.dataset.i;e.innerHTML=ITEMS[k]?itemSvg(k,22):svg(k,22)});
+
 // Minimal Crater menu icons: single-weight gold outlines matching approved UI.
 // These affect HUD navigation only, never equipment or inventory item sprites.
 const HUD_LINE_ICONS={
@@ -640,9 +640,11 @@ const HUD_LINE_ICONS={
   cog:'<path d="M10 2h4l.7 2.3 1.8.8 2.1-1.1 2.8 2.8-1.1 2.1.8 1.8L23 11v4l-2.3.7-.8 1.8 1.1 2.1-2.8 2.8-2.1-1.1-1.8.8L14 23h-4l-.7-2.3-1.8-.8-2.1 1.1-2.8-2.8 1.1-2.1-.8-1.8L1 15v-4l2.3-.7.8-1.8L3 6.4l2.8-2.8 2.1 1.1 1.8-.8L10 2Z"/><circle cx="12" cy="13" r="3"/>',
   bag:'<rect x="4" y="7" width="16" height="15" rx="3"/><path d="M9 7V5a3 3 0 0 1 6 0v2M8 13h8v6H8zM10 16h4"/>'
 };
-document.querySelectorAll('#hudR [data-i]').forEach(e=>{
-  const art=HUD_LINE_ICONS[e.dataset.i];
+document.querySelectorAll('[data-i]').forEach(e=>{
+  const k=e.dataset.i;
+  const art=e.closest('#hudR')?HUD_LINE_ICONS[k]:null;
   if(art)e.innerHTML='<svg viewBox="0 0 24 24" width="27" height="27" fill="none" stroke="#dfbc86" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+art+'</svg>';
+  else e.innerHTML=ITEMS[k]?itemSvg(k,22):svg(k,22);
 });
 
 /* ---------- gear actions ---------- */
