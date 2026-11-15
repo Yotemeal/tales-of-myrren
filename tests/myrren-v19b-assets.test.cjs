@@ -28,5 +28,5 @@ test('main game uses locked V19B via opt-in safe renderer bridge with legacy bac
   assert(runtime.includes('/myrren-v19b-optin-game-bridge.js'),'guarded fallback bridge must be loaded');
   assert(runtime.indexOf('/kez-v2-atlas.js')<runtime.indexOf('/myrren-v19b-atlas.js'));
   assert(runtime.indexOf('/myrren-v19b-atlas.js')<runtime.indexOf('/myrren-v19b-optin-game-bridge.js'));
-  assert(runtime.indexOf('/myrren-v19b-optin-game-bridge.js')<runtime.indexOf('/myrren-game.js?v=92'));
+  assert(runtime.indexOf('/myrren-v19b-optin-game-bridge.js')<runtime.indexOf('/myrren-game.js?v=93'));
 });
