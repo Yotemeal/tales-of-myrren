@@ -18,7 +18,7 @@
       "back"
     ],
     "milliseconds_per_frame": 110,
-    "sha256": "b2394b1e73f64806ad90530f8963f1f923a3e3dd6f9774b4b446ad9eb12d2052"
+    "sha256": "b14294cbae0f67591eb887e6c9bda1c641f9f7cfd530e245e21ca0d5f25b59a3"
   },
   "idle_atlas": {
     "file": "myrren_idle_4dir_native.png",
@@ -42,7 +42,7 @@
   "head_height": 17,
   "head_rgba_sha256": "c0d80c4bbc5e5a0ec2614bd71e186f2e9ea13da3d45fd0d5a0551d6f0cd1cfd0",
   "raw_rgba_sha256": {
-    "walk": "3809299d1fddd4c780aba10d4bff3a83628c924588b84262d5d75ea01357145f",
+    "walk": "d4705b83fd9884ee2cc25040c7e10a9b99461e4025dbaa6d6dd8bf55431b95c5",
     "idle": "ea501d6c3c8e14da151535b158e8c0bbbf790af0d5d212c16ac7fa7ad1a05252",
     "master": "71d77ec6fb0eab628331c93cfaf1e0f25fb374381a264a39619ee818b5d2a4b5"
   },
@@ -87,5 +87,34 @@
       "right",
       "back"
     ]
+  },
+  "moving_punch_atlas": {
+    "file": "myrren_punch_stride_4dir_native.png",
+    "cell": [
+      48,
+      36
+    ],
+    "rows": [
+      "front",
+      "left",
+      "right",
+      "back"
+    ],
+    "anchor": [
+      18,
+      34
+    ],
+    "frame_end_ms": [
+      55,
+      85,
+      110,
+      120,
+      220,
+      225,
+      270,
+      320
+    ],
+    "sha256": "cee849adb7ed2d8f81f3c173fa986f91ac9cbd95962e25b540c075c01be0ed71",
+    "walk_phases_per_direction": 6
   }
 }

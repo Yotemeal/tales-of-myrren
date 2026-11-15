@@ -1,5 +1,5 @@
 /* Tales of Myrren — V19F isolated, native 24x32 character renderer.
- * Approved V19F walking/idle renderer; with the approved right-facing unarmed punch.
+ * Approved V19F walking, idle and unarmed punch renderer.
  * The approved PNGs are loaded unchanged; no bounding-box auto-recentering,
  * pixel editing, old Kez fallback, or game/save mutation.
  */
@@ -12,7 +12,7 @@
   const DIRECTIONS = ['front', 'left', 'right', 'back'];
   const URL_BASE = '/assets/myrren-v19f/';
   const assets = {
-    walk: { image: new Image(), width: 144, height: 128, path: URL_BASE + 'myrren_walk_4x6_native.png?rev=approved2' },
+    walk: { image: new Image(), width: 144, height: 128, path: URL_BASE + 'myrren_walk_4x6_native.png?rev=approved3' },
     idle: { image: new Image(), width: 96, height: 32, path: URL_BASE + 'myrren_idle_4dir_native.png?rev=hairclean1' },
   };
   const punch = new Image();
@@ -20,7 +20,14 @@
   punch.onload = () => { punchReady = punch.naturalWidth === 336 && punch.naturalHeight === 144; };
   punch.src = URL_BASE + 'myrren_punch_4dir_native.png';
   const punchEnds = [55, 85, 120, 225, 270, 320];
-  function canDrawPunch(o) {
+  const movingPunch = new Image();
+  let movingPunchReady = false;
+  movingPunch.onload = () => {
+    movingPunchReady = movingPunch.naturalWidth === 384 && movingPunch.naturalHeight === 864;
+  };
+  movingPunch.src = URL_BASE + 'myrren_punch_stride_4dir_native.png?rev=pants1';
+  const movingPunchEnds = [55, 85, 110, 120, 220, 225, 270, 320];
+  function canDrawPunch() {
     return punchReady;
   }
   let status = 'loading';
@@ -66,10 +73,15 @@
     if (status !== 'ready') return false;
     const attackAge = now - (o.swingAt ?? -99999);
     if (canDrawPunch(o) && attackAge >= 0 && attackAge < 320) {
-      const frame = punchEnds.findIndex(end => attackAge < end) + 1;
+      const moving = Boolean(o.moving) && movingPunchReady;
+      const frame = moving
+        ? movingPunchEnds.findIndex(end => attackAge < end)
+        : punchEnds.findIndex(end => attackAge < end) + 1;
       ctx.save();
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(punch, frame * 48, DIRECTIONS.indexOf(direction(o)) * 36, 48, 36,
+      const {row, frame: step} = pose(o, now);
+      const sourceRow = moving ? row * 6 + step : row;
+      ctx.drawImage(moving ? movingPunch : punch, frame * 48, sourceRow * 36, 48, 36,
         Math.round(x) - 18, Math.round(y) - 34, 48, 36);
       ctx.restore();
       return true;
