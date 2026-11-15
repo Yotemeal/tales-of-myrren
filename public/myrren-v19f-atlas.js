@@ -12,7 +12,7 @@
   const DIRECTIONS = ['front', 'left', 'right', 'back'];
   const URL_BASE = '/assets/myrren-v19f/';
   const assets = {
-    walk: { image: new Image(), width: 144, height: 128, path: URL_BASE + 'myrren_walk_4x6_native.png?rev=approved2' },
+    walk: { image: new Image(), width: 144, height: 128, path: URL_BASE + 'myrren_walk_4x6_native.png?rev=approved3' },
     idle: { image: new Image(), width: 96, height: 32, path: URL_BASE + 'myrren_idle_4dir_native.png?rev=hairclean1' },
   };
   const punch = new Image();
@@ -25,7 +25,7 @@
   movingPunch.onload = () => {
     movingPunchReady = movingPunch.naturalWidth === 384 && movingPunch.naturalHeight === 864;
   };
-  movingPunch.src = URL_BASE + 'myrren_punch_stride_4dir_native.png?rev=boots1';
+  movingPunch.src = URL_BASE + 'myrren_punch_stride_4dir_native.png?rev=hips1';
   const movingPunchEnds = [55, 85, 110, 120, 220, 225, 270, 320];
   function canDrawPunch() {
     return punchReady;

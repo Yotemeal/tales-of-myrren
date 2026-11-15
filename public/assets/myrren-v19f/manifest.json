@@ -18,7 +18,7 @@
       "back"
     ],
     "milliseconds_per_frame": 110,
-    "sha256": "b2394b1e73f64806ad90530f8963f1f923a3e3dd6f9774b4b446ad9eb12d2052"
+    "sha256": "b14294cbae0f67591eb887e6c9bda1c641f9f7cfd530e245e21ca0d5f25b59a3"
   },
   "idle_atlas": {
     "file": "myrren_idle_4dir_native.png",
@@ -42,7 +42,7 @@
   "head_height": 17,
   "head_rgba_sha256": "c0d80c4bbc5e5a0ec2614bd71e186f2e9ea13da3d45fd0d5a0551d6f0cd1cfd0",
   "raw_rgba_sha256": {
-    "walk": "3809299d1fddd4c780aba10d4bff3a83628c924588b84262d5d75ea01357145f",
+    "walk": "d4705b83fd9884ee2cc25040c7e10a9b99461e4025dbaa6d6dd8bf55431b95c5",
     "idle": "ea501d6c3c8e14da151535b158e8c0bbbf790af0d5d212c16ac7fa7ad1a05252",
     "master": "71d77ec6fb0eab628331c93cfaf1e0f25fb374381a264a39619ee818b5d2a4b5"
   },
@@ -114,7 +114,7 @@
       270,
       320
     ],
-    "sha256": "953ec42aefe253510582e00a24f1f8ef5c59aace837a56d43dc13b4dcb4e2631",
+    "sha256": "e13c0082ff663b53553c71d7872dc6cbc6b62d94d51bcae301770646faf7b6ef",
     "walk_phases_per_direction": 6
   }
 }
