@@ -25,7 +25,7 @@
   movingPunch.onload = () => {
     movingPunchReady = movingPunch.naturalWidth === 384 && movingPunch.naturalHeight === 864;
   };
-  movingPunch.src = URL_BASE + 'myrren_punch_stride_4dir_native.png';
+  movingPunch.src = URL_BASE + 'myrren_punch_stride_4dir_native.png?rev=boots1';
   const movingPunchEnds = [55, 85, 110, 120, 220, 225, 270, 320];
   function canDrawPunch() {
     return punchReady;
