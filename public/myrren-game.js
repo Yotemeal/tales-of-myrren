@@ -592,7 +592,7 @@ function canFitInventory(changes={},extraGear=0,noteChanges={}){
 }
 function refreshHeld(){const w=activeDef('weapon');me.tool=w?w.kind:'fist';me.mat=w?w.mat:2;if(w)me.hold=1e12;else if(me.hold>1e11)me.hold=0}
 const gearArr=()=>['head','body','legs','boots','shield','hands'].map(s=>{const d=eqDef(s);return d?d.mat:0});
-const me={x:clamp(save.x,EDGE+8,WW-EDGE-8),y:clamp(save.y,EDGE+8,WH-EDGE-8),face:1,hue:Math.floor(Math.random()*360),hp:0,moving:false,swing:-9999,swings:0,hold:0,tool:'',mat:2,wave:0};
+const me={x:clamp(save.x,EDGE+8,WW-EDGE-8),y:clamp(save.y,EDGE+8,WH-EDGE-8),face:1,hue:Math.floor(Math.random()*360),hp:0,moving:false,swing:-9999,swings:0,hold:0,tool:'',mat:2,wave:0,deathAt:null,hurtAt:-99999};
 me.hp=hpMax();me.fx=0;me.fy=1;me.pend=0;me.tgt=null;me.tgtUntil=0;me.catchFx=null;
 me.ox=me.x;me.oy=me.y;
 const cam={x:me.x-100,y:me.y-100};

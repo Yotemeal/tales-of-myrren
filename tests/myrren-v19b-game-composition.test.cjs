@@ -7,6 +7,12 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const src=fs.readFileSync('public/myrren-game.js','utf8');
 const bridge=fs.readFileSync('public/myrren-v19b-optin-game-bridge.js','utf8');
+const playerConstructor=src.match(/const me=\{[^;]+\};/)?.[0];
+assert(playerConstructor && playerConstructor.includes('deathAt:null'),
+  'fresh local players must start with an explicit null death timestamp');
+assert(playerConstructor.includes('hurtAt:-99999'),
+  'fresh local players must start without a hurt animation');
+
 const start=src.indexOf('function drawKezV2(');
 const end=src.indexOf('function drawPerson(',start);
 assert(start>=0&&end>start,'expected live player/peer composition function');
