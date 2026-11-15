@@ -3949,7 +3949,8 @@ function resizeGameplayCanvas(){
   const dpr=window.devicePixelRatio||1;
   if(width===viewportWidth&&height===viewportHeight&&dpr===viewportDpr)return;
   viewportWidth=width;viewportHeight=height;viewportDpr=dpr;
-  const targetScale=width>height?1.6:GAMEPLAY_SCALE;
+  // The approved camera is fixed 2x in both orientations; do not shrink in landscape.
+  const targetScale=GAMEPLAY_SCALE;
   const scale=Math.max(1,Math.round(targetScale*dpr))/dpr;
   cv.width=Math.max(1,Math.ceil(width/scale));
   cv.height=Math.max(1,Math.ceil(height/scale));
