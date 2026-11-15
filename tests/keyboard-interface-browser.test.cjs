@@ -58,9 +58,11 @@ const server=http.createServer((req,res)=>{
     const blurred=await position();await page.waitForTimeout(160);
     assert.deepEqual(await position(),blurred,'window blur releases held movement without needing keyup');
     await page.keyboard.up('d');
+    assert.equal(await page.locator('#bBag[aria-label="Inventory"]').count(),1,
+      'compact HUD must retain an accessible Inventory button');
     // Closing or rebuilding the pack must cancel long-press timers and drag
     // ghosts, even when no pointerup reaches the removed inventory button.
-    await page.getByRole('button',{name:'Backpack',exact:true}).click();
+    await page.locator('#bBag[aria-label="Inventory"]').click();
     let slot=page.locator('[data-item-key="s:logs"]');
     let rect=await slot.boundingBox();
     await page.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);
@@ -68,14 +70,14 @@ const server=http.createServer((req,res)=>{
     await page.waitForTimeout(550);
     assert.equal(await page.locator('.item-action-menu').count(),0,'closing a pack cancels pending long-press menus');
     await page.mouse.up();
-    await page.getByRole('button',{name:'Backpack',exact:true}).click();
+    await page.locator('#bBag[aria-label="Inventory"]').click();
     slot=page.locator('[data-item-key="s:logs"]');rect=await slot.boundingBox();
     await page.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);
     await page.mouse.down();await page.mouse.move(rect.x+rect.width/2+20,rect.y+rect.height/2+12);
     assert.equal(await page.locator('.inventory-drag-ghost').count(),1,'inventory drag begins before cancellation');
     await page.keyboard.press('Escape');await page.mouse.up();
     assert.equal(await page.locator('.inventory-drag-ghost').count(),0,'closing removes detached drag artwork');
-    await page.getByRole('button',{name:'Backpack',exact:true}).click();
+    await page.locator('#bBag[aria-label="Inventory"]').click();
     slot=page.locator('[data-item-key="s:logs"]');
     rect=await slot.boundingBox();
     await page.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);

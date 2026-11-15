@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=94;
+window.MyrrenBuild=95;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -2869,7 +2869,10 @@ function drawTree(n,x,y,now){
 function drawRock(n,x,y,now){
   const age=now-(n.mineHitAt??-99999),recent=age>=0&&age<360;
   const recoil=recent&&age<120?(Math.floor(age/35)%2?1:-1):0;
-  ctx.save();ctx.translate(x+recoil,y);ctx.scale(.72,.72);
+  // Approved V3.1 ore art uses native 40×28 world pixels. Depleted fallback keeps
+  // its legacy footprint; neither mining range nor collision geometry changes.
+  const oreDrawScale=now<n.back?0.72:1;
+  ctx.save();ctx.translate(x+recoil,y);ctx.scale(oreDrawScale,oreDrawScale);
   MyrrenEnvironment.rock(ctx,n,0,0,now);ctx.restore();
   if(recent){
     const colors=miningDustColors(n),p=age/360,fragments=n.mineSucceeded?5:3;
@@ -3946,7 +3949,8 @@ function resizeGameplayCanvas(){
   const dpr=window.devicePixelRatio||1;
   if(width===viewportWidth&&height===viewportHeight&&dpr===viewportDpr)return;
   viewportWidth=width;viewportHeight=height;viewportDpr=dpr;
-  const targetScale=width>height?1.6:GAMEPLAY_SCALE;
+  // The approved camera is fixed 2x in both orientations; do not shrink in landscape.
+  const targetScale=GAMEPLAY_SCALE;
   const scale=Math.max(1,Math.round(targetScale*dpr))/dpr;
   cv.width=Math.max(1,Math.ceil(width/scale));
   cv.height=Math.max(1,Math.ceil(height/scale));
