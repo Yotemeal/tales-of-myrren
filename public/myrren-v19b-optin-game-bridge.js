@@ -84,6 +84,11 @@
     get enabled() { return enabled; },
     setEnabled(value) { enabled = !forcedLegacy && Boolean(value); return enabled; },
     eligible,
+    drawsPunch(o, now) {
+      const age = now - (o?.swingAt ?? -99999);
+      return enabled && native.ready && age >= 0 && age < 320
+        && Boolean(native.canDrawPunch?.(o)) && eligible(o, now);
+    },
     get diagnostics() {
       return {
         nativeFrames: local.nativeFrames, legacyFrames: local.legacyFrames,
