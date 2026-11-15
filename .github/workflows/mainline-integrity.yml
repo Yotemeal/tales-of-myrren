@@ -56,6 +56,18 @@ jobs:
             tests/myrren-v19b-game-composition.test.cjs \
             tests/myrren-v19b-production-entry.test.cjs \
             tests/myrren-v19b-side-idle-candidate.test.cjs
+      - name: Build and verify native V19C review artwork (no game replacement)
+        run: |
+          node --check scripts/build-v19c-side-heads.cjs
+          node scripts/build-v19c-side-heads.cjs /tmp/v19c-head-review
+          node --test tests/myrren-v19c-head-consistency.test.cjs
+      - name: Export review-only V19C native sprite candidates
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v19c-side-head-review-candidates
+          path: /tmp/v19c-head-review/*.png
+          if-no-files-found: warn
       - name: Gameplay, economy and save integrity
         run: |
           node tests/forging-skill.test.cjs
