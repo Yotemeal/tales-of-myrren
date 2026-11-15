@@ -87,5 +87,33 @@
       "right",
       "back"
     ]
+  },
+  "moving_punch_atlas": {
+    "file": "myrren_punch_moving_4dir_native.png",
+    "cell": [
+      48,
+      36
+    ],
+    "rows": [
+      "front",
+      "left",
+      "right",
+      "back"
+    ],
+    "anchor": [
+      18,
+      34
+    ],
+    "frame_end_ms": [
+      55,
+      85,
+      110,
+      120,
+      220,
+      225,
+      270,
+      320
+    ],
+    "sha256": "aed0a78124023f1ce65017649dd8fd2d4cb04542b111874d2c4c2f29ff17f934"
   }
 }
