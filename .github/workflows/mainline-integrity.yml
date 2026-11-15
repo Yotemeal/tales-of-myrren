@@ -55,6 +55,18 @@ jobs:
             tests/myrren-v19b-production-bridge.test.cjs \
             tests/myrren-v19b-game-composition.test.cjs \
             tests/myrren-v19b-production-entry.test.cjs
+      - name: Build direction-preserving V19D review sprites and verify pixel locks
+        run: |
+          node --check scripts/build-v19d-direction-heads.cjs
+          node scripts/build-v19d-direction-heads.cjs /tmp/v19d-direction-preserving-review
+          node --test tests/myrren-v19d-direction-preserving.test.cjs
+      - name: Save V19D review-only sprite PNGs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v19d-direction-preserving-review
+          path: /tmp/v19d-direction-preserving-review/*.png
+          if-no-files-found: warn
       - name: Gameplay, economy and save integrity
         run: |
           node tests/forging-skill.test.cjs
