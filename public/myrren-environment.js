@@ -22,7 +22,8 @@
   const resourceNames={tree:'bramblewood',oak:'alder',maple:'ironbark',elder:'elderthorn',myrren:'starroot'};
   function resourceSprite(ctx,n,x,y,now,isTree){
     if(now<n.back)return false; // preserve harvested stump / depleted rock visuals
-    const name=isTree?(n.previewTree||resourceNames[n.k]):({cobalt:'black_iron',aether:'myrrenite'}[n.k]||n.k);
+    // Legacy resource IDs remain save-compatible; approved V3.1 art names are visual aliases.
+    const name=isTree?(n.previewTree||resourceNames[n.k]):({cobalt:'black_iron',aether:'myrrenite',obsidianite:'chromium',meteorite:'iridium'}[n.k]||n.k);
     if(!name)return false;
     const key=(isTree?'tree_':'ore_')+name;
     let entry=resourceImages.get(key);
@@ -30,10 +31,11 @@
       const img=new Image();entry={img,ready:false,failed:false};resourceImages.set(key,entry);
       img.onload=()=>{entry.ready=img.naturalWidth>0};
       img.onerror=()=>{entry.failed=true};
-      img.src='/assets/resources/'+key+'.png';
+      img.src=isTree?'/assets/resources/'+key+'.png':'/assets/resources/v31/'+key+'.png';
     }
     if(!entry.ready)return false;
-    const w=isTree?144:24;
+    // Native 40px ore sources draw at world 1:1; tree rendering remains unchanged.
+    const w=isTree?144:40;
     const h=isTree?Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth):Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth);
     const dx=Math.round(x-w/2),dy=Math.round(y-h+4);
     if(!isTree){ctx.drawImage(entry.img,dx,dy,w,h);return true;}
