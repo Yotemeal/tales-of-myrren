@@ -31,7 +31,7 @@
       const img=new Image();entry={img,ready:false,failed:false};resourceImages.set(key,entry);
       img.onload=()=>{entry.ready=img.naturalWidth>0};
       img.onerror=()=>{entry.failed=true};
-      img.src=isTree?'/assets/resources/'+key+'.png':'/assets/resources/v31/'+key+'.png';
+      img.src=isTree?'/assets/resources/'+key+'.png':'/assets/resources/v32/'+key+'.png';
     }
     if(!entry.ready)return false;
     // Native 40px ore sources draw at world 1:1; tree rendering remains unchanged.

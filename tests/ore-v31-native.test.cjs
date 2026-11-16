@@ -19,7 +19,7 @@ test('all eight original V3.1 ore PNGs are dimensionally exact and checksum-lock
  assert.equal(hashes.size,8);
  assert.equal(hash(path.join(root,'public/assets/myrren-v19f/myrren_front_game_ready_24x32.png')),m.hero_sha256);
 });
-test('resource renderer resolves eight old world IDs onto approved art; preserves tree URLs and pixel sizes',()=>{
+test('legacy V3.1 pixel locks and current V3.2 runtime aliases; preserves tree URLs and pixel sizes',()=>{
  const src=fs.readFileSync(path.join(root,'public/myrren-environment.js'),'utf8'),sources=[];
  class Img{
   constructor(){this.naturalWidth=40;this.naturalHeight=28;}
@@ -31,7 +31,7 @@ test('resource renderer resolves eight old world IDs onto approved art; preserve
  for(const [k,name] of Object.entries(mapping)){
   ctx.calls=[];
   w.MyrrenEnvironment.rock(ctx,{k,back:0,x:100,y:120},100,120,1000);
-  assert.ok(sources.includes('/assets/resources/v31/ore_'+name+'.png'),k+' source');
+  assert.ok(sources.includes('/assets/resources/v32/ore_'+name+'.png'),k+' source');
   assert.equal(ctx.calls.length,1,k+' draw calls');
   assert.deepEqual(Array.from(ctx.calls[0].slice(1)),[80,96,40,28],k+' anchor and size');
  }
@@ -53,6 +53,6 @@ test('the running game paints live ores at native 1x and keeps depleted fallback
  assert.deepEqual(draw(1200),[[.72,.72]]);
  const html=fs.readFileSync(path.join(root,'public/index.html'),'utf8');
  assert.ok(html.includes('/myrren-game.js?v=95'));
- assert.ok(html.includes('/myrren-environment.js?v=14'));
+ assert.ok(html.includes('/myrren-environment.js?v=15'));
  assert.ok(game.includes('window.MyrrenBuild=95;'));
 });
