@@ -112,7 +112,7 @@ const createGame=require('./game-runtime.cjs');
    inspect(copper,3000,'Copper rock (Lv 1)');
    inspect(copper,17500,'Copper rock (Lv 1)');
    inspect(copper,18000,'Copper rock (Lv 1)');
-   inspect({k:'tree',back:99999},4000,'Tree (Lv 1)');
+   inspect({k:'tree',x:0,y:0,back:99999},4000,'Pine tree (Lv 1)');
    inspect({k:'spot1',back:99999},4000,'Shallow fishing spot (Lv 1)');
    assert(!JSON.stringify(g.snap()).includes('mineHitAt'),'short-lived mining effects must not enter saves');
    assert(!JSON.stringify(g.snap()).includes('mineSucceeded'),'visual success state must not enter saves');

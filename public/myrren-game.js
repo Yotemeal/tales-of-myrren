@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=97;
+window.MyrrenBuild=98;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -52,8 +52,8 @@ const ITEMS={
   logs:{art:'log',name:'Logs'},
   oak:{art:'log',pal:{B:'#c19a5b',b:'#7a5230',d:'#7a5230'},name:'Oak logs'},
   maple:{art:'log',pal:{B:'#c4642c',b:'#7a2a14',d:'#7a2a14'},name:'Maple logs'},
-  elder:{art:'log',pal:{B:'#3a9aa0',b:'#1a4a52',d:'#1a4a52'},name:'Elderwood logs'},
-  myrren:{art:'log',pal:{B:'#8a5ad0',b:'#3a1a6a',d:'#3a1a6a'},name:'Myrrenwood logs'},
+  elder:{art:'log',pal:{B:'#3a9aa0',b:'#1a4a52',d:'#1a4a52'},name:'Willow logs'},
+  myrren:{art:'log',pal:{B:'#8a5ad0',b:'#3a1a6a',d:'#3a1a6a'},name:'Ironbark logs'},
   copper:{art:'ore',pal:{o:'#e0803a'},name:'Copper Chunk'},
   tin:{art:'ore',pal:{o:'#d4dce4'},name:'Tin Chunk'},
   iron:{art:'ore',pal:{o:'#8c4a2a'},name:'Iron Chunk'},
@@ -196,8 +196,8 @@ const NT={
   tree:{name:'Tree',skill:'woodcutting',tool:'axe',req:1,xp:25,item:'logs',base:.34,dep:.5,rt:[10,16],verb:'cut'},
   oak:{name:'Oak tree',skill:'woodcutting',tool:'axe',req:10,xp:55,item:'oak',base:.22,dep:.65,rt:[14,22],verb:'cut'},
   maple:{name:'Maple tree',skill:'woodcutting',tool:'axe',req:30,xp:120,item:'maple',base:.2,dep:.7,rt:[18,27],verb:'cut'},
-  elder:{name:'Elderwood tree',skill:'woodcutting',tool:'axe',req:60,xp:520,item:'elder',base:.15,dep:.75,rt:[22,34],verb:'cut'},
-  myrren:{name:'Myrrenwood tree',skill:'woodcutting',tool:'axe',req:85,xp:1900,item:'myrren',base:.1,dep:.8,rt:[28,42],verb:'cut'},
+  elder:{name:'Willow tree',skill:'woodcutting',tool:'axe',req:60,xp:520,item:'elder',base:.15,dep:.75,rt:[22,34],verb:'cut'},
+  myrren:{name:'Ironbark tree',skill:'woodcutting',tool:'axe',req:85,xp:1900,item:'myrren',base:.1,dep:.8,rt:[28,42],verb:'cut'},
   // Ore veins hold several successful gathers before depletion. Early Delving
   // also has a gentler success chance so starter mining is not mostly misses.
   // Every success still awards exactly one ore and the original XP amount.
@@ -2063,8 +2063,9 @@ cv.addEventListener('pointerdown',e=>{
   for(const k in SPOTS){const sp=SPOTS[k];if(Math.abs(wx-sp.x)<20&&wy>sp.y-42&&wy<sp.y+5){if(nearSpot()===k)useAction();else say('Walk closer first.');return}}
   let best=null;
   for(const n of nodes){
-    const sp=n.k.startsWith('spot'),big=TREEK.includes(n.k)&&n.k!=='tree';
-    const hw=(sp?16:TREEK.includes(n.k)?(big?27:21):15),top=sp?18:TREEK.includes(n.k)?(big?60:50):17,bot=sp?10:6;
+    const sp=n.k.startsWith('spot'),treeSize=TREEK.includes(n.k)?MyrrenEnvironment.approvedTreeSize(n,now):null;
+    const hw=treeSize?Math.ceil(treeSize.width/2):sp?16:15;
+    const top=treeSize?treeSize.height-4:sp?18:17,bot=sp?10:6;
     if(wx>=n.x-hw&&wx<=n.x+hw&&wy>=n.y-top&&wy<=n.y+bot&&(!best||n.y>best.y))best=n;
   }
   if(best){best.tipAt=now;return}
@@ -2815,7 +2816,9 @@ function nodeTip(n,x,y,now){
   const nt=NT[n.k];ctx.globalAlpha=age<1800?1:1-(age-1800)/800;
   // Tapping any tree, fishing spot or ore deposit ONLY identifies the
   // resource and required level, even while a vein is depleted.
-  label(nt.name+' (Lv '+nt.req+')',x,y-(TREEK.includes(n.k)?(n.k==='tree'?42:52):n.k.startsWith('spot')?12:20),'#ffffff');
+  const treeSize=TREEK.includes(n.k)?MyrrenEnvironment.approvedTreeSize(n,now):null;
+  const name=n.k==='tree'?(MyrrenEnvironment.approvedTreeSpecies(n)==='birch'?'Birch tree':'Pine tree'):nt.name;
+  label(name+' (Lv '+nt.req+')',x,y-(treeSize?treeSize.height-6:n.k.startsWith('spot')?12:20),'#ffffff');
   ctx.globalAlpha=1;
 }
 // Monumental, non-harvestable ancient rainforest trees. Native-pixel art, not scaled resource trees.
@@ -3790,11 +3793,11 @@ function drawOutdoor(cx,cy,now){
   // rainforest. Keep the existing world-edge collision and saved coordinates;
   // these are scenery only, not harvestable resource nodes.
   const forestEdge=[];
-  const forestStep=27;
+  const forestStep=44;
   for(let side=0;side<4;side++){
     for(let i=0;i<=Math.ceil(WW/forestStep);i++){
       const t=i*forestStep;
-      for(let layer=0;layer<3;layer++){
+      for(let layer=0;layer<2;layer++){
         const wobble=((i*37+side*19+layer*13)%13)-6;
         const inset=22+layer*28+wobble;
         let fx,fy;
@@ -3809,7 +3812,7 @@ function drawOutdoor(cx,cy,now){
   }
   // Uneven forest crown on the crater's outer shoulder. Keep entrances and
   // the central settlement unobstructed; these trees are purely visual.
-  const rimKinds=['bramblewood','alder','ironbark','redleaf','duskwillow','elderthorn','starroot'];
+  const rimKinds=['pine','birch','oak','willow','maple','ironbark'];
   for(let i=0;i<24;i++){
     const a=(i+.32)*Math.PI*2/24;
     const radius=725+((i*37)%40);
@@ -3897,9 +3900,9 @@ function drawOutdoor(cx,cy,now){
   }
   // Decorative showcase: all seven tree appearances around the village outskirts.
   // Scenery only: no new gatherable nodes, collision, XP or save changes.
-  const showcaseTrees=['bramblewood','alder','ironbark','redleaf','duskwillow','elderthorn','starroot'];
+  const showcaseTrees=['pine','birch','oak','willow','maple','ironbark'];
   for(let i=0;i<showcaseTrees.length;i++){
-    const a=(i/7)*Math.PI*2+.36,rad=690+(i%2)*45;
+    const a=(i/showcaseTrees.length)*Math.PI*2+.36,rad=690+(i%2)*45;
     const gx=CX+Math.cos(a)*rad,gy=CY+Math.sin(a)*rad*.82;
     if(!vis(gx,gy)||!VILLAGE.dryFootprint(gx,gy,72,110,3,10))continue;
     const tree={x:gx,y:gy,k:'tree',previewTree:showcaseTrees[i],back:0};

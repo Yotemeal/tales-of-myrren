@@ -97,12 +97,12 @@ const createGame=require('./game-runtime.cjs');
 
     const labelBefore=renderedText.length;
     tree.tipAt=4000;g.nodeTip(tree,45,55,4100);
-    assert.deepEqual(renderedText.slice(labelBefore),Array(5).fill('Tree (Lv 1)'),
+    assert.deepEqual(renderedText.slice(labelBefore),Array(5).fill('Pine tree (Lv 1)'),
       'tapping a depleted tree still only shows its name and level');
     const other={k:'elder',back:24000,tipAt:5000};
     const otherBefore=renderedText.length;
     g.nodeTip(other,45,55,5100);
-    assert.deepEqual(renderedText.slice(otherBefore),Array(5).fill('Elderwood tree (Lv 60)'));
+    assert.deepEqual(renderedText.slice(otherBefore),Array(5).fill('Willow tree (Lv 60)'));
     assert.equal(g.getAct(),null,'inspection cannot start woodcutting');
 
     const source=fs.readFileSync('public/myrren-game.js','utf8');
