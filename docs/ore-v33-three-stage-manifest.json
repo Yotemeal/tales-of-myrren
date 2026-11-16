@@ -1,0 +1,96 @@
+{
+  "project": "Tales of Myrren",
+  "version": "v33-three-stage-native-ore",
+  "date": "2026-11-16",
+  "approved_reference": "tales_of_myrren_ore_review_board.png",
+  "native_size": [
+    40,
+    28
+  ],
+  "camera_zoom": 2,
+  "full_manifest": "docs/ore-v32-final-manifest.json",
+  "depleted_manifest": "docs/ore-v32-depleted-manifest.json",
+  "stages": {
+    "full": "initial, respawned, or > floor(vein/2) charges",
+    "middle": "1 <= remaining <= floor(vein/2) charges",
+    "depleted": "now < back (existing respawn timer)"
+  },
+  "thresholds_by_visual_name": {
+    "copper": 3,
+    "tin": 3,
+    "iron": 2,
+    "coal": 2,
+    "black_iron": 2,
+    "chromium": 1,
+    "iridium": 1,
+    "myrrenite": 1
+  },
+  "assets": {
+    "copper": {
+      "path": "public/assets/resources/v32/ore_copper_mid.png",
+      "sha256": "b3acae93fb27245c002dce9b91ab897531b14a99b8fceb28c3795c2660991008"
+    },
+    "tin": {
+      "path": "public/assets/resources/v32/ore_tin_mid.png",
+      "sha256": "b6f0ce451ba25db49bee56ce35a2aee58211a50d99e0ed02600ff40107a16785"
+    },
+    "iron": {
+      "path": "public/assets/resources/v32/ore_iron_mid.png",
+      "sha256": "71ad876576ff374e856fa3345cf93fa62e60317ffec6536e2390dec144aa1e7d"
+    },
+    "coal": {
+      "path": "public/assets/resources/v32/ore_coal_mid.png",
+      "sha256": "fd8d965e769f9ce52eae4d9cd2931acac46208693d0e9e3c357f5738f067a770"
+    },
+    "black_iron": {
+      "path": "public/assets/resources/v32/ore_black_iron_mid.png",
+      "sha256": "ca6a7e9580fadd820bdc6475d3d8a3074b2cae32ac02c54a4defec2587c47605"
+    },
+    "chromium": {
+      "path": "public/assets/resources/v32/ore_chromium_mid.png",
+      "sha256": "fab259d908652fc1cd83928f9e76bac4956022dea64522d13ac9b04cdbaf9950"
+    },
+    "iridium": {
+      "path": "public/assets/resources/v32/ore_iridium_mid.png",
+      "sha256": "a3d89ed4e4d3a8a7a6b89d9b45eb563f9847052e1cd6669c5b67a3b6eaa058f5"
+    },
+    "myrrenite": {
+      "path": "public/assets/resources/v32/ore_myrrenite_mid.png",
+      "sha256": "a47473c29692968a9e4155498b4df30626240296029124d1b39f7ccd49af47a8"
+    }
+  },
+  "full_sha256": {
+    "copper": "8423c5b716fc7ac8ad8ceabdb80aae3e02f8b0e59f9120a91e581ea211715f90",
+    "tin": "716ef1777651089fdbfbaffa01296a9897278a7a960fe9e5cdf205c81dfb9686",
+    "iron": "0d7410a0fcf64f014f9242a18c835d0649068aaaac83b366d91417fdc2187968",
+    "coal": "8fc08ca6a27b0e35bf3c5a825a960d280900915362fc8569b8be4874943f029a",
+    "black_iron": "ff303abab687eea0160a559b343ccd2b9f9fa0b1552138e17ac3ebe1bc2d31fc",
+    "chromium": "33e482fea1ba69719f9b2bd0767c34dfb590417c77266ef81fd11fe1f3bb5ad0",
+    "iridium": "69e9c83fc45f65b20f83f4e4610fc5513f8bcce144e275ac7c6deb3f2072657b",
+    "myrrenite": "5dd7b5539392f81b53c3105a2ca6cf0140c8ca0ed6e255d78b77ea41ba56ca39"
+  },
+  "depleted_sha256": {
+    "copper": "f4fae4c18a11cfc90cef76c9c0fe18e4309cc711d43bb2df816f954508980a12",
+    "tin": "00e937082b36b7bd21754a1efcae45dd647e82d4702997ec5862176b9aee816c",
+    "iron": "85829469a37768fc5ebd6d260bf1a9b87b0444b678c42b1581c795b4f144544b",
+    "coal": "7740d52f86881e1b6141931911e23f13a12dbea9fd0e8b32a4e7763cf33a43db",
+    "black_iron": "c89ce3f220407449c56cd462ade140cd31b022d43465e92cf51def6c428de6aa",
+    "chromium": "472b16e5a2d1d93973ce31596692b95bacaccf36209be4079bff3c9dd264352d",
+    "iridium": "f06af9b595cdcb8d55aa31af7b5f0e383d336b6650dfe87fb730c9a3f753322f",
+    "myrrenite": "7331d902c4c2841c97942402ecb7157688332ee3391de6dcae87bfef8391dbce"
+  },
+  "hero_sha256": "748ad641d103dc91228327c91abbc058bf685fad21011f809076ed47028c69a2",
+  "unchanged": [
+    "original full V3.2 PNGs",
+    "original depleted V3.2 PNGs",
+    "mining XP and yield",
+    "vein capacities",
+    "respawn times",
+    "world node positions",
+    "forging",
+    "save data",
+    "V19F player",
+    "2x camera",
+    "trees"
+  ]
+}
