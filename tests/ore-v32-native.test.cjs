@@ -39,7 +39,7 @@ test('renderer maps all stable legacy ore IDs onto final V3.2 assets at 1x world
  }
  assert.match(src,/img.src=isTree\?'\/assets\/resources\/'\+key/,'tree asset mapping must remain untouched');
  const html=from('public/index.html').toString();
- assert.ok(html.includes('/myrren-environment.js?v=18'),'environment file is cache-busted');
+ assert.ok(html.includes('/myrren-environment.js?v=19'),'environment file is cache-busted');
  assert.ok(html.includes('/myrren-game.js?v=98'),'gameplay build remains unchanged');
  const game=from('public/myrren-game.js').toString();
  assert.ok(game.includes('const GAMEPLAY_SCALE=2;'));
