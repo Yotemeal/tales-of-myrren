@@ -20,6 +20,7 @@
   /* Approved resource sprites: trees retain their stump fallback; ores use three native states. */
   const resourceImages=new Map();
   const resourceNames={tree:'bramblewood',oak:'alder',maple:'ironbark',elder:'elderthorn',myrren:'starroot'};
+  const oreSpriteUrl=key=>'/assets/resources/v32/'+key+'.png'+(key.endsWith('_depleted')?'?v=2':'');
   function resourceSprite(ctx,n,x,y,now,isTree,oreStage){
     if(isTree&&now<n.back)return false; // tree stumps retain their existing procedural art
     // Respawn state wins over stale charges or requested drawing state.
@@ -33,7 +34,7 @@
       const img=new Image();entry={img,ready:false,failed:false};resourceImages.set(key,entry);
       img.onload=()=>{entry.ready=img.naturalWidth>0};
       img.onerror=()=>{entry.failed=true};
-      img.src=isTree?'/assets/resources/'+key+'.png':'/assets/resources/v32/'+key+'.png';
+      img.src=isTree?'/assets/resources/'+key+'.png':oreSpriteUrl(key);
     }
     if(!isTree){
       // Preload the full, middle and depleted sprites for seamless mining.
@@ -44,7 +45,7 @@
         resourceImages.set(partnerKey,pair);
         partner.onload=()=>{pair.ready=partner.naturalWidth>0};
         partner.onerror=()=>{pair.failed=true};
-        partner.src='/assets/resources/v32/'+partnerKey+'.png';
+        partner.src=oreSpriteUrl(partnerKey);
       }
     }
     if(!entry.ready)return false;
@@ -226,11 +227,27 @@
     for(let i=0;i<3;i++){const t=(now/2200+i/3)%1;ctx.globalAlpha=(1-t)*.24;ctx.fillStyle='#adb9ac';ctx.fillRect(Math.round(tx+Math.sin(t*5+i)*3),Math.round(peak-4-t*23),3+i,3+i)}ctx.globalAlpha=1;
   }
   const terrainAtlas=new Image();
-  terrainAtlas.src='/assets/terrain/starter_terrain_v1.png?v=2';
+  terrainAtlas.src='/assets/terrain/starter_terrain_v1.png?v=3';
   const nativeTerrainReady=()=>terrainAtlas.complete&&terrainAtlas.naturalWidth===128&&terrainAtlas.naturalHeight===112;
   function drawTerrainTile(ctx,index,x,y){
     ctx.drawImage(terrainAtlas,(index%8)*16,Math.floor(index/8)*16,16,16,
       Math.round(x),Math.round(y),16,16);
+  }
+  const trailColors=['#95855d','#a47959','#96917b','#8a8c7d','#838676','#97998a'];
+  function drawTrail(ctx,world,tx,ty,x,y){
+    sprite(ctx,`trail:${tx}:${ty}`,16,16,0,0,x,y,({r})=>{
+      for(let py=0;py<16;py++)for(let px=0;px<16;px++){
+        const wx=tx*16+px+.5,wy=ty*16+py+.5;
+        const variation=Math.sin(wx*.23+wy*.12)*.85+Math.sin(wx*.57-wy*.46)*.45;
+        const distance=world.pathDistance(wx,wy)+variation;
+        if(distance>=16||world.waterDistance(wx,wy)<24)continue;
+        const grain=(hash(wx,wy)>>>12)%17;
+        const color=distance>=15?(grain<7?0:-1)
+          :distance>=13?(grain<4?0:1)
+          :distance>=11?(grain<5?2:1):distance>=10?2:grain<2?4:grain===3?5:3;
+        if(color>=0)r(px,py,1,1,trailColors[color]);
+      }
+    });
   }
   function terrain(ctx,tx,ty,x,y,kind,now,edge=0,ground=kind){
     const {r}=kit(ctx),h=hash(tx,ty),v=h%97;
@@ -238,15 +255,37 @@
       // Existing edges are N/S/W/E. Atlas connections are N/E/S/W.
       const connected=15^((edge&1)|((edge&2)<<1)|((edge&4)<<1)|((edge&8)>>2));
       const variant=(h>>>8)%8;
+      const world=window.MyrrenWorld;
+      const continuousTrail=world?.pathDistance&&(kind==='path'||kind==='grass');
       const index=kind==='water'?16+variant%4
-        :kind==='path'?24+connected
-        :kind==='plaza'||ground==='dirt'?8+variant%4
+        :kind==='path'&&!continuousTrail?24+connected
+        :kind==='plaza'||ground==='dirt'||(kind==='path'&&world?.inVillage(tx*16+8,ty*16+8))?8+variant%4
         :ground==='gravel'?22+variant%2
         :ground==='stone'?12+variant%4
         // Corrupted tiles are biome data, not a hard coordinate cutoff.
         // A cutoff creates a rectangular purple patch beside the lake.
         :ground==='corrupted'?20+variant%2:variant;
       drawTerrainTile(ctx,index,x,y);
+      if(kind==='grass'&&ground==='grass'){
+        const detail=(h>>>16)%41;
+        if(detail<4){
+          const fx=x+3+(h>>>10)%8,fy=y+5+(h>>>6)%7;
+          const petal=['#e4ddbe','#d0a3aa','#b3a3c1','#dbc478'][detail];
+          r(fx,fy+1,1,3,'#577941');
+          r(fx+1,fy+2,1,1,'#648540');
+          r(fx-1,fy,3,1,petal);
+          r(fx,fy-1,1,1,petal);
+        }else if(detail===4){
+          const sx=x+4+(h>>>10)%6,sy=y+6+(h>>>6)%6;
+          r(sx,sy+1,4,1,'#60684f');
+          r(sx,sy,3,1,'#8a8b77');
+          r(sx+1,sy-1,2,1,'#aeac94');
+        }
+      }
+      if(continuousTrail&&world.pathDistance(tx*16+8,ty*16+8)<29
+        &&world.waterDistance(tx*16+8,ty*16+8)>12){
+        drawTrail(ctx,world,tx,ty,x,y);
+      }
       return true;
     }
     if(kind==='grass'||kind==='boundary'){
@@ -425,7 +464,7 @@
         let start=0,prev=null;
         for(let xx=0;xx<=16;xx++){
           const d=xx<16?W.waterDistance(tx*16+xx+.5,ty*16+yy+.5):100;
-          const col=xx===16?null:d<-3&&native?null:d<-13?'#315d61':d<-3?'#3d6e6a':d<0?'#6b9380':d<2?'#52684b':null;
+          const col=xx===16?null:d<-3&&native?null:d<-13?'#315d61':d<-3?'#4c9cab':d<0?'#75a899':d<2?'#819253':null;
           if(col!==prev){if(prev)r(start,yy,xx-start,1,prev);prev=col;start=xx}
         }
       }
