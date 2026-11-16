@@ -24,35 +24,35 @@
   "assets": {
     "copper": {
       "path": "public/assets/resources/v32/ore_copper_depleted.png",
-      "sha256": "c9eda1b333ee9f112a8357ec5c219a90bd9220a2b7a98c25bac80f479a926a70"
+      "sha256": "0e53a29a099d1673710dbec021bd46f692be5feb450c0dacf4f1e3ccedc9ff57"
     },
     "tin": {
       "path": "public/assets/resources/v32/ore_tin_depleted.png",
-      "sha256": "fb28805ea0126686ffc3e2a7b1f2b72b0e1afff1a05c5846864f13e3f14ee74d"
+      "sha256": "8f241c5089c06e3eb6adb4af4c58b0e12e2859ae4eae67152499ff747694df70"
     },
     "iron": {
       "path": "public/assets/resources/v32/ore_iron_depleted.png",
-      "sha256": "45a305c6acb5ff73d629a4facaefecd7f32880b453217cede073fc99cbb6e905"
+      "sha256": "e229220c5bf47eda4e6f2c30be28e1c277ce9c85f94746d09b7fbe734b8fe81d"
     },
     "coal": {
       "path": "public/assets/resources/v32/ore_coal_depleted.png",
-      "sha256": "7b6445d2a6926fb68ec2f9bdd102895f7dd28a709e5193a3130c26357b7a30fe"
+      "sha256": "133699eb2894b2e89e1a2af76e1ce96d67530c9a54699ac6e6a5f6519d059f35"
     },
     "black_iron": {
       "path": "public/assets/resources/v32/ore_black_iron_depleted.png",
-      "sha256": "d96144c954f8975505cf51256369c7548236d79d553ca76d5bdc9ca6612f0528"
+      "sha256": "17c086034b08af88e91b18b884a988bc5cce1cbc87dc6862a42a74fc666126ca"
     },
     "chromium": {
       "path": "public/assets/resources/v32/ore_chromium_depleted.png",
-      "sha256": "bc0fda1c59812199e3c597f0bf949ecdcbe45ce5c0e028c2535778c19f130256"
+      "sha256": "495ceab8cc354bff7a22dac02bf2f65b4cab109af44f47b97b0febd8c9074dc8"
     },
     "iridium": {
       "path": "public/assets/resources/v32/ore_iridium_depleted.png",
-      "sha256": "66b9c9dc76de98edd2f3dca7803b5670ae2ecf98bf91239553f4a44ce161f8a6"
+      "sha256": "d477df81690d452ec996758b5c6fded30c5bee621dbfaad2afd7abf70fcd01ca"
     },
     "myrrenite": {
       "path": "public/assets/resources/v32/ore_myrrenite_depleted.png",
-      "sha256": "fc636e84365ca21a6255ecd4958f530bd6aeb815814547fd77a5a46b47f026f7"
+      "sha256": "d0abc811cbc1dd077378eacba074d91f2df8c7f41d7c6d952a957b5adff5fa53"
     }
   }
 }

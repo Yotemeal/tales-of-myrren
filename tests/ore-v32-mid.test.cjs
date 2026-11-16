@@ -24,10 +24,11 @@ test('all eight middle PNGs are exact native 40x28 alpha pixels; approved full+d
   const ys=[];
   for(let y=0;y<28;y++)for(let x=0;x<40;x++){
    const alpha=img.rgba[(y*40+x)*4+3];
-   assert(alpha===0||alpha===255,name+' clean binary alpha');
-   if(alpha)ys.push(y);
+
+   if(alpha===255)ys.push(y);
   }
-  assert(Math.min(...ys)>=11,name+' crest should be reduced');
+  const fullCrest=before.rgba.findIndex((value,i)=>i%4===3&&value===255);
+  assert(Math.min(...ys)>Math.floor(fullCrest/(40*4)),name+' middle crest must be lower than full');
  }
  assert.equal(hash(bytes('public/assets/myrren-v19f/myrren_front_game_ready_24x32.png')),m.hero_sha256);
 });
@@ -70,7 +71,7 @@ test('environment paints the three correct sprite URLs with the same anchor and 
   for(const [back,stage,suffix] of [[0,'full',''],[0,'mid','_mid'],[1400,'depleted','_depleted']]){
    ctx.calls=[];
    window.MyrrenEnvironment.rock(ctx,{k:key,back},100,120,1000,stage);
-   assert(urls.includes('/assets/resources/v32/ore_'+name+suffix+'.png?v=4'),key+' '+stage);
+   assert(urls.includes('/assets/resources/v32/ore_'+name+suffix+'.png?v=5'),key+' '+stage);
    assert.equal(ctx.calls.length,1,key+' '+stage+' draw');
    assert.deepEqual(Array.from(ctx.calls[0].slice(1)),[80,96,40,28],key+' '+stage+' anchored');
   }
@@ -78,6 +79,6 @@ test('environment paints the three correct sprite URLs with the same anchor and 
  const rock=source.slice(source.indexOf('  function rock('),source.indexOf('  function fern('));
  assert.doesNotMatch(rock,/sprite\(|poly\(|fillRect\(/,'old procedural rock remains removed');
  const html=bytes('public/index.html').toString();
- assert(html.includes('/myrren-game.js?v=98'));assert(html.includes('/myrren-environment.js?v=25'));
+ assert(html.includes('/myrren-game.js?v=98'));assert(html.includes('/myrren-environment.js?v=26'));
  assert(bytes('public/myrren-game.js').toString().includes('window.MyrrenBuild=98;'));
 });

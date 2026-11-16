@@ -20,7 +20,7 @@
   /* Approved resource sprites: trees retain their stump fallback; ores use three native states. */
   const resourceImages=new Map();
   const resourceNames={tree:'bramblewood',oak:'alder',maple:'ironbark',elder:'elderthorn',myrren:'starroot'};
-  const oreSpriteUrl=key=>'/assets/resources/v32/'+key+'.png?v=4';
+  const oreSpriteUrl=key=>'/assets/resources/v32/'+key+'.png?v=5';
   function resourceSprite(ctx,n,x,y,now,isTree,oreStage){
     if(isTree&&now<n.back)return false; // tree stumps retain their existing procedural art
     // Respawn state wins over stale charges or requested drawing state.
@@ -53,21 +53,7 @@
     const w=isTree?144:40;
     const h=isTree?Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth):Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth);
     const dx=Math.round(x-w/2),dy=Math.round(y-h+4);
-    if(!isTree){
-      // The broad penumbra tapers into a darker contact patch under the rock.
-      const radius=stage==='depleted'?13:stage==='mid'?16:19;
-      const cx=dx+20,base=dy+h-2;
-      ctx.fillStyle='rgba(10, 16, 11, 0.20)';
-      ctx.fillRect(cx-radius+2,base-2,(radius-2)*2,1);
-      ctx.fillRect(cx-radius,base-1,radius*2,2);
-      ctx.fillRect(cx-radius+2,base+1,(radius-2)*2,1);
-      ctx.fillRect(cx-radius+6,base+2,(radius-6)*2,1);
-      ctx.fillStyle='rgba(9, 12, 9, 0.40)';
-      ctx.fillRect(cx-radius+4,base-1,(radius-4)*2,2);
-      ctx.fillRect(cx-radius+7,base+1,(radius-7)*2,1);
-      ctx.drawImage(entry.img,dx,dy,w,h);
-      return true;
-    }
+    if(!isTree){ctx.drawImage(entry.img,dx,dy,w,h);return true;}
     // Short staggered gusts. A gradual bend avoids cutting the trunk in half.
     const seed=hash(n.x,n.y),cycle=10500+(seed%4500),t=(now+seed%9000)%cycle;
     const gust=t<2100?Math.pow(Math.sin(Math.PI*t/2100),2):0;
