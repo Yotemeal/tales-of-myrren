@@ -1,0 +1,34 @@
+name: Tree Native A/B Real Game Preview (Review Only)
+on:
+  pull_request:
+    paths:
+      - 'public/tree-native-review.html'
+      - 'public/myrren-tree-native-review.js'
+      - 'public/assets/resources/tree-preview-v1/**'
+      - 'tests/tree-native-real-game-browser.cjs'
+      - '.github/workflows/tree-native-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-game-tree-review:
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium for real-game screenshot QA
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install chromium
+      - name: Capture A/B tree variants and stumps in actual game
+        run: node tests/tree-native-real-game-browser.cjs
+      - name: Upload staged real-game evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tree-native-ab-real-game-review-only
+          path: /tmp/myrren-tree-real-game-review/
+          if-no-files-found: warn
