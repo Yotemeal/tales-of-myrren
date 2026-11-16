@@ -62,5 +62,9 @@
       "sha256": "5dd7b5539392f81b53c3105a2ca6cf0140c8ca0ed6e255d78b77ea41ba56ca39",
       "unchanged_from_v31": true
     }
-  }
+  },
+  "depleted_art": "public/assets/resources/v32/ore_{material}_depleted.png",
+  "old_ore_assets_removed": true,
+  "old_ore_fallback_removed": true,
+  "regrowth_logic_unchanged": true
 }

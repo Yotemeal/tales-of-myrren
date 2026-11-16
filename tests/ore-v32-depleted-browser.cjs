@@ -9,18 +9,19 @@ const server=http.createServer((req,res)=>{
  fs.createReadStream(target).pipe(res);}catch(e){res.writeHead(404);res.end('missing');}
 });
 (async()=>{
- await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let browser;
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let b;
  try{
-  browser=await chromium.launch({headless:true});
-  const page=await browser.newPage({viewport:{width:844,height:390},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  b=await chromium.launch({headless:true});
+  const page=await b.newPage({viewport:{width:844,height:390},deviceScaleFactor:2,isMobile:true,hasTouch:true});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto('http://127.0.0.1:'+server.address().port+'/ore-v31-native-review.html',{waitUntil:'domcontentloaded'});
+  await page.goto('http://127.0.0.1:'+server.address().port+'/ore-v32-native-review.html',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>Array.from(document.images).every(i=>i.complete&&i.naturalWidth>0),null,{timeout:15000});
   const meta=await page.evaluate(()=>Array.from(document.images).map(i=>({src:i.getAttribute('src'),w:i.naturalWidth,h:i.naturalHeight})));
-  assert.equal(meta.length,17,'8 large, 8 scaled, 1 hero');
-  for(const item of meta){if(item.src.includes('myrren_front'))assert.deepEqual([item.w,item.h],[24,32]);else assert.deepEqual([item.w,item.h],[40,28]);}
+  assert.equal(meta.length,25,'eight full, eight depleted, eight comparison, one V19F');
+  assert.equal(meta.filter(m=>m.src.includes('_depleted.png')).length,8,'all exhausted ore variants loaded');
+  for(const m of meta){if(m.src.includes('myrren_front'))assert.deepEqual([m.w,m.h],[24,32]);else assert.deepEqual([m.w,m.h],[40,28]);}
   assert.deepEqual(errors,[]);
-  await page.screenshot({path:'/tmp/myrren-ore-v31-2x-preview.png',fullPage:true});
-  console.log('PASS: all eight V3.1 PNGs loaded, native dimensions preserved at 2×, no browser errors');
- }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}
+  await page.screenshot({path:'/tmp/myrren-ore-v32-depleted-2x.png',fullPage:true});
+  console.log('PASS: live/depleted V3.2 ore PNGs load at native geometry with no browser errors');
+ }finally{await b?.close();await new Promise(r=>server.close(r));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

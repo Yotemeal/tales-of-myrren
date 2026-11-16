@@ -39,8 +39,8 @@ jobs:
           node --check public/myrren-world.js
           node --check public/myrren-environment.js
           node --check src/worker.js
-          node --test tests/ore-v31-native.test.cjs
           node --test tests/ore-v32-native.test.cjs
+          node --test tests/ore-v32-depleted.test.cjs
           node tests/mainline-asset-contract.test.cjs
           node tests/vignette-cache.test.cjs
           node tests/minimap-removal.test.cjs
@@ -104,6 +104,8 @@ jobs:
           npx playwright install chromium
       - name: Verify final V3.2 mining sprites in real Chromium (fixed 2x)
         run: node tests/ore-v32-browser.cjs
+      - name: Verify native depleted ore states in Chromium
+        run: node tests/ore-v32-depleted-browser.cjs
       - name: Validate live public entry in portrait and landscape
         run: |
           node tests/mainline-mobile-hud.test.cjs
@@ -115,6 +117,7 @@ jobs:
           name: myrren-mobile-hud-qa
           path: |
             /tmp/myrren-ore-v32-2x-preview.png
+            /tmp/myrren-ore-v32-depleted-2x.png
             /tmp/myrren-portrait-hud.png
             /tmp/myrren-portrait-equipment.png
             /tmp/myrren-landscape-hud.png

@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=95;
+window.MyrrenBuild=96;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -2869,10 +2869,9 @@ function drawTree(n,x,y,now){
 function drawRock(n,x,y,now){
   const age=now-(n.mineHitAt??-99999),recent=age>=0&&age<360;
   const recoil=recent&&age<120?(Math.floor(age/35)%2?1:-1):0;
-  // Approved V3.1 ore art uses native 40×28 world pixels. Depleted fallback keeps
-  // its legacy footprint; neither mining range nor collision geometry changes.
-  const oreDrawScale=now<n.back?0.72:1;
-  ctx.save();ctx.translate(x+recoil,y);ctx.scale(oreDrawScale,oreDrawScale);
+  // Live rocks and their small broken-down variants share the same pixel anchor.
+  // The depletion art has its own reduced silhouette, not a scaled legacy rock.
+  ctx.save();ctx.translate(x+recoil,y);
   MyrrenEnvironment.rock(ctx,n,0,0,now);ctx.restore();
   if(recent){
     const colors=miningDustColors(n),p=age/360,fragments=n.mineSucceeded?5:3;
