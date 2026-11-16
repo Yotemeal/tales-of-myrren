@@ -1,0 +1,401 @@
+{
+  "source_reference": "D0810579-8FA6-482E-A83C-C5CCAD7C3BEA.jpeg",
+  "art_policy": "DO NOT EDIT APPROVED PIXELS",
+  "fixed_camera_zoom": 2,
+  "format": "unaltered native RGBA PNG",
+  "assets": {
+    "pine": {
+      "a": {
+        "tree": {
+          "path": "tree_pine_a.png",
+          "size": [
+            66,
+            93
+          ],
+          "sha256": "61761d51f66ccda063abbf17802923337ec905ecbe91d8af71b7c18b906cd64d"
+        },
+        "stump": {
+          "path": "tree_pine_a_stump.png",
+          "size": [
+            34,
+            23
+          ],
+          "sha256": "687a03bfd981760f5824c818d6b4331933afd017e0e53389a93b507c1e9e3945"
+        },
+        "source_tree_bbox": [
+          110,
+          202,
+          253,
+          410
+        ],
+        "source_stump_bbox": [
+          126,
+          458,
+          246,
+          530
+        ]
+      },
+      "b": {
+        "tree": {
+          "path": "tree_pine_b.png",
+          "size": [
+            67,
+            93
+          ],
+          "sha256": "8fcc9dd01574ac12bbb5b866fc1cefe604d6b7ed1418336c0a9a5737e7678649"
+        },
+        "stump": {
+          "path": "tree_pine_b_stump.png",
+          "size": [
+            34,
+            23
+          ],
+          "sha256": "c61929f324f0a39b164be6b9d026e14081a2d1c2a788d79c5713df4e34d43e30"
+        },
+        "source_tree_bbox": [
+          297,
+          203,
+          455,
+          410
+        ],
+        "source_stump_bbox": [
+          317,
+          459,
+          450,
+          530
+        ]
+      }
+    },
+    "birch": {
+      "a": {
+        "tree": {
+          "path": "tree_birch_a.png",
+          "size": [
+            67,
+            90
+          ],
+          "sha256": "09ea77247ddf25555ea1af2d123893f080bbdc14932458d98809ec7a8fc7d2ad"
+        },
+        "stump": {
+          "path": "tree_birch_a_stump.png",
+          "size": [
+            33,
+            23
+          ],
+          "sha256": "8f7e700e48cda15815e62b597edc99d0e42caf7713f6238bdfd07d52ebe3361e"
+        },
+        "source_tree_bbox": [
+          539,
+          205,
+          714,
+          411
+        ],
+        "source_stump_bbox": [
+          559,
+          457,
+          703,
+          529
+        ]
+      },
+      "b": {
+        "tree": {
+          "path": "tree_birch_b.png",
+          "size": [
+            68,
+            90
+          ],
+          "sha256": "da32355f06a9a838466ee7b53f5d3838326fa08b6d0d633446acba682c24ad5f"
+        },
+        "stump": {
+          "path": "tree_birch_b_stump.png",
+          "size": [
+            33,
+            23
+          ],
+          "sha256": "09c15f24cb54e84c51bd5aae61a2a8c3b16f5d1b027d279c1056b3752ac73f73"
+        },
+        "source_tree_bbox": [
+          735,
+          205,
+          895,
+          411
+        ],
+        "source_stump_bbox": [
+          748,
+          459,
+          880,
+          530
+        ]
+      }
+    },
+    "oak": {
+      "a": {
+        "tree": {
+          "path": "tree_oak_a.png",
+          "size": [
+            79,
+            88
+          ],
+          "sha256": "3c73f81ca6a41964501a33b60846cb183d6e0fdde99e42b57974adfce9b4fc38"
+        },
+        "stump": {
+          "path": "tree_oak_a_stump.png",
+          "size": [
+            46,
+            28
+          ],
+          "sha256": "ac4c520fe5e764ecf8e5ac705ad6a437c24cab6929c4c7576985cc829e581b48"
+        },
+        "source_tree_bbox": [
+          945,
+          213,
+          1163,
+          411
+        ],
+        "source_stump_bbox": [
+          976,
+          455,
+          1144,
+          534
+        ]
+      },
+      "b": {
+        "tree": {
+          "path": "tree_oak_b.png",
+          "size": [
+            85,
+            88
+          ],
+          "sha256": "2546535d5fb10c9a252e2a998ecf7e99d7e6ad0bd78a5caf34cb1308756509d8"
+        },
+        "stump": {
+          "path": "tree_oak_b_stump.png",
+          "size": [
+            48,
+            30
+          ],
+          "sha256": "454b6edb693e434f9ae42929aa2a39c55943a06646ea78fe446a895bb97f7979"
+        },
+        "source_tree_bbox": [
+          1149,
+          212,
+          1372,
+          410
+        ],
+        "source_stump_bbox": [
+          1173,
+          454,
+          1354,
+          535
+        ]
+      }
+    },
+    "willow": {
+      "a": {
+        "tree": {
+          "path": "tree_willow_a.png",
+          "size": [
+            86,
+            94
+          ],
+          "sha256": "01a52ea4a55efc0ddc385c39d7253ae5178f1d79522e075655ac1b2922ba9c7b"
+        },
+        "stump": {
+          "path": "tree_willow_a_stump.png",
+          "size": [
+            37,
+            24
+          ],
+          "sha256": "35d61407cfc3edc3b5d818ab69db2c5803a95ca686e04600d7626f80a0e955f0"
+        },
+        "source_tree_bbox": [
+          89,
+          621,
+          283,
+          836
+        ],
+        "source_stump_bbox": [
+          118,
+          871,
+          259,
+          953
+        ]
+      },
+      "b": {
+        "tree": {
+          "path": "tree_willow_b.png",
+          "size": [
+            85,
+            94
+          ],
+          "sha256": "1909900a1476b6374cc80ffd509253c88ab2e8b72e41e8c794eb38b96bc121a8"
+        },
+        "stump": {
+          "path": "tree_willow_b_stump.png",
+          "size": [
+            37,
+            24
+          ],
+          "sha256": "2cbcb42dd70e6cb3d196421a9f668f8dda66e228f2252216352ae128bcb81f24"
+        },
+        "source_tree_bbox": [
+          296,
+          621,
+          483,
+          838
+        ],
+        "source_stump_bbox": [
+          316,
+          869,
+          473,
+          953
+        ]
+      }
+    },
+    "maple": {
+      "a": {
+        "tree": {
+          "path": "tree_maple_a.png",
+          "size": [
+            79,
+            91
+          ],
+          "sha256": "dd67f1d217ae96be36cbc84b6ff836c6a966f487ed48e8a44b1a6e51416f5b6a"
+        },
+        "stump": {
+          "path": "tree_maple_a_stump.png",
+          "size": [
+            36,
+            23
+          ],
+          "sha256": "83bb48c718d29ee81a146cd55975732c1aa6467ada6bb8014d935cf69bf6d506"
+        },
+        "source_tree_bbox": [
+          517,
+          623,
+          722,
+          841
+        ],
+        "source_stump_bbox": [
+          562,
+          866,
+          710,
+          957
+        ]
+      },
+      "b": {
+        "tree": {
+          "path": "tree_maple_b.png",
+          "size": [
+            87,
+            91
+          ],
+          "sha256": "54acb33b6a6a20f529c5ad61347f960b2fd9b99e47aecf3b8c478a5856a03935"
+        },
+        "stump": {
+          "path": "tree_maple_b_stump.png",
+          "size": [
+            36,
+            23
+          ],
+          "sha256": "4d49aec86b0464cf14b06e195f8dc0210fa554d869afcfc3483b72c150abc321"
+        },
+        "source_tree_bbox": [
+          722,
+          621,
+          924,
+          839
+        ],
+        "source_stump_bbox": [
+          743,
+          866,
+          911,
+          955
+        ]
+      }
+    },
+    "ironbark": {
+      "a": {
+        "tree": {
+          "path": "tree_ironbark_a.png",
+          "size": [
+            96,
+            96
+          ],
+          "sha256": "617429e3fa5a16cfdd35bfd46464a027e28b6e84b8978f7fdc503cd50b515789"
+        },
+        "stump": {
+          "path": "tree_ironbark_a_stump.png",
+          "size": [
+            53,
+            30
+          ],
+          "sha256": "34147a80a6681b1f70ad20320904210770f1afc93a260b8963d271bb5f708b13"
+        },
+        "source_tree_bbox": [
+          940,
+          620,
+          1173,
+          841
+        ],
+        "source_stump_bbox": [
+          967,
+          868,
+          1154,
+          961
+        ]
+      },
+      "b": {
+        "tree": {
+          "path": "tree_ironbark_b.png",
+          "size": [
+            91,
+            95
+          ],
+          "sha256": "fb9babd34845ea5eeabb82b69d337413bd11517bd182cfded9dc144fa5b7921e"
+        },
+        "stump": {
+          "path": "tree_ironbark_b_stump.png",
+          "size": [
+            55,
+            33
+          ],
+          "sha256": "1456dc1b7332f3ef8e6260af6f5ef72bc0163f59e36da166c23c75a037e00113"
+        },
+        "source_tree_bbox": [
+          1151,
+          623,
+          1387,
+          840
+        ],
+        "source_stump_bbox": [
+          1166,
+          868,
+          1365,
+          959
+        ]
+      }
+    }
+  },
+  "internal_species_keys": {
+    "tree": "pine",
+    "birch": "birch",
+    "oak": "oak",
+    "maple": "maple",
+    "elder": "willow",
+    "myrren": "ironbark"
+  },
+  "variant_b_percent": 30,
+  "unchanged": [
+    "tree nodes coordinates",
+    "woodcutting XP",
+    "drop/item IDs",
+    "success chance",
+    "respawn times",
+    "item prices",
+    "save format",
+    "forging",
+    "mining",
+    "hero"
+  ]
+}
