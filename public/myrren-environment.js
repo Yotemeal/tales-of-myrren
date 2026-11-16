@@ -226,7 +226,7 @@
     for(let i=0;i<3;i++){const t=(now/2200+i/3)%1;ctx.globalAlpha=(1-t)*.24;ctx.fillStyle='#adb9ac';ctx.fillRect(Math.round(tx+Math.sin(t*5+i)*3),Math.round(peak-4-t*23),3+i,3+i)}ctx.globalAlpha=1;
   }
   const terrainAtlas=new Image();
-  terrainAtlas.src='/assets/terrain/starter_terrain_v1.png?v=2';
+  terrainAtlas.src='/assets/terrain/starter_terrain_v1.png?v=3';
   const nativeTerrainReady=()=>terrainAtlas.complete&&terrainAtlas.naturalWidth===128&&terrainAtlas.naturalHeight===112;
   function drawTerrainTile(ctx,index,x,y){
     ctx.drawImage(terrainAtlas,(index%8)*16,Math.floor(index/8)*16,16,16,
@@ -247,6 +247,22 @@
         // A cutoff creates a rectangular purple patch beside the lake.
         :ground==='corrupted'?20+variant%2:variant;
       drawTerrainTile(ctx,index,x,y);
+      if(kind==='grass'&&ground==='grass'){
+        const detail=(h>>>16)%41;
+        if(detail<4){
+          const fx=x+3+(h>>>10)%8,fy=y+5+(h>>>6)%7;
+          const petal=['#e4ddbe','#d0a3aa','#b3a3c1','#dbc478'][detail];
+          r(fx,fy+1,1,3,'#577941');
+          r(fx+1,fy+2,1,1,'#648540');
+          r(fx-1,fy,3,1,petal);
+          r(fx,fy-1,1,1,petal);
+        }else if(detail===4){
+          const sx=x+4+(h>>>10)%6,sy=y+6+(h>>>6)%6;
+          r(sx,sy+1,4,1,'#60684f');
+          r(sx,sy,3,1,'#8a8b77');
+          r(sx+1,sy-1,2,1,'#aeac94');
+        }
+      }
       return true;
     }
     if(kind==='grass'||kind==='boundary'){
@@ -425,7 +441,7 @@
         let start=0,prev=null;
         for(let xx=0;xx<=16;xx++){
           const d=xx<16?W.waterDistance(tx*16+xx+.5,ty*16+yy+.5):100;
-          const col=xx===16?null:d<-3&&native?null:d<-13?'#315d61':d<-3?'#3d6e6a':d<0?'#6b9380':d<2?'#52684b':null;
+          const col=xx===16?null:d<-3&&native?null:d<-13?'#315d61':d<-3?'#4c9cab':d<0?'#75a899':d<2?'#819253':null;
           if(col!==prev){if(prev)r(start,yy,xx-start,1,prev);prev=col;start=xx}
         }
       }
