@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=97;
+window.MyrrenBuild=98;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -52,8 +52,8 @@ const ITEMS={
   logs:{art:'log',name:'Logs'},
   oak:{art:'log',pal:{B:'#c19a5b',b:'#7a5230',d:'#7a5230'},name:'Oak logs'},
   maple:{art:'log',pal:{B:'#c4642c',b:'#7a2a14',d:'#7a2a14'},name:'Maple logs'},
-  elder:{art:'log',pal:{B:'#3a9aa0',b:'#1a4a52',d:'#1a4a52'},name:'Elderwood logs'},
-  myrren:{art:'log',pal:{B:'#8a5ad0',b:'#3a1a6a',d:'#3a1a6a'},name:'Myrrenwood logs'},
+  elder:{art:'log',pal:{B:'#3a9aa0',b:'#1a4a52',d:'#1a4a52'},name:'Willow logs'},
+  myrren:{art:'log',pal:{B:'#8a5ad0',b:'#3a1a6a',d:'#3a1a6a'},name:'Ironbark logs'},
   copper:{art:'ore',pal:{o:'#e0803a'},name:'Copper Chunk'},
   tin:{art:'ore',pal:{o:'#d4dce4'},name:'Tin Chunk'},
   iron:{art:'ore',pal:{o:'#8c4a2a'},name:'Iron Chunk'},
@@ -193,11 +193,12 @@ const CODE_KIND=['','axe','pick','sword','fist','net','rod'];
 const NT={
   // Small cuts to tree regrowth downtime; rarity, logs per gather, XP and
   // depletion odds remain unchanged. Mature and rare trees stay slower.
-  tree:{name:'Tree',skill:'woodcutting',tool:'axe',req:1,xp:25,item:'logs',base:.34,dep:.5,rt:[10,16],verb:'cut'},
+  tree:{name:'Pine tree',skill:'woodcutting',tool:'axe',req:1,xp:25,item:'logs',base:.34,dep:.5,rt:[10,16],verb:'cut'},
+  birch:{name:'Birch tree',skill:'woodcutting',tool:'axe',req:1,xp:25,item:'logs',base:.34,dep:.5,rt:[10,16],verb:'cut'},
   oak:{name:'Oak tree',skill:'woodcutting',tool:'axe',req:10,xp:55,item:'oak',base:.22,dep:.65,rt:[14,22],verb:'cut'},
   maple:{name:'Maple tree',skill:'woodcutting',tool:'axe',req:30,xp:120,item:'maple',base:.2,dep:.7,rt:[18,27],verb:'cut'},
-  elder:{name:'Elderwood tree',skill:'woodcutting',tool:'axe',req:60,xp:520,item:'elder',base:.15,dep:.75,rt:[22,34],verb:'cut'},
-  myrren:{name:'Myrrenwood tree',skill:'woodcutting',tool:'axe',req:85,xp:1900,item:'myrren',base:.1,dep:.8,rt:[28,42],verb:'cut'},
+  elder:{name:'Willow tree',skill:'woodcutting',tool:'axe',req:60,xp:520,item:'elder',base:.15,dep:.75,rt:[22,34],verb:'cut'},
+  myrren:{name:'Ironbark tree',skill:'woodcutting',tool:'axe',req:85,xp:1900,item:'myrren',base:.1,dep:.8,rt:[28,42],verb:'cut'},
   // Ore veins hold several successful gathers before depletion. Early Delving
   // also has a gentler success chance so starter mining is not mostly misses.
   // Every success still awards exactly one ore and the original XP amount.
@@ -209,7 +210,7 @@ const NT={
   aether:{name:'Myrrenite rock',skill:'mining',tool:'pick',req:55,xp:650,item:'aether',base:.1,dep:1,vein:3,rt:[22,33],verb:'mine'}
 };
 Object.assign(NT,{obsidianite:{name:'Obsidianite rock',skill:'mining',tool:'pick',req:40,xp:300,item:'obsidianite',base:.12,dep:1,vein:3,rt:[19,29],verb:'mine',msg:'You swing your pickaxe at the rock.'},meteorite:{name:'Meteorite deposit',skill:'mining',tool:'pick',req:70,xp:900,item:'meteorite',base:.08,dep:1,vein:2,rt:[28,42],verb:'mine',msg:'You swing your pickaxe at the meteorite.'}});
-const TREEK=['tree','oak','maple','elder','myrren'];
+const TREEK=['tree','birch','oak','maple','elder','myrren'];
 const TOOLNAME={axe:'a hatchet',pick:'a pickaxe',net:'a net',rod:'a fishing rod'};
 Object.assign(NT,{
   spot1:{name:'Shallow fishing spot',skill:'fishing',tool:'net',req:1,xp:28,item:'rshrimp',base:.38,dep:.2,rt:[8,14],verb:'fish',reach:22},
@@ -299,6 +300,9 @@ function addNodes(k,n,minCamp){for(let i=0;i<n;i++){
   if(s)nodes.push({k,x:s[0],y:s[1],back:0});
 }}
 addNodes('tree',90,90);addNodes('oak',26,260);addNodes('copper',22,120);addNodes('iron',15,330);
+// Convert ~30% of starter trees to Birch IN PLACE: same coordinates, total
+// node count and RNG stream as build 97; standard logs, XP and respawn rules.
+for(const n of nodes)if(n.k==='tree'&&((Math.imul(n.x|0,31)+Math.imul(n.y|0,17))>>>0)%10<3)n.k='birch';
 (function(){const ks=['spot1','spot1','spot2','spot1','spot3','spot2','spot1','spot4','spot2','spot3','spot1','spot5','spot2','spot3','spot4','spot5'];ks.forEach((k,i)=>{const a=i/ks.length*6.2832+.3,p=VILLAGE.fishingPosition(a);nodes.push({k,x:p.x,y:p.y,back:0})})})();
 function addMons(k,n,minCamp){for(let i=0;i<n;i++){const s=spot(minCamp,30,BOX[0],BOX[1],BOX[2],BOX[3]);if(s)mons.push({t:k,x:s[0],y:s[1],hx:s[0],hy:s[1],hp:MT[k].hp,state:'idle',back:0,cd:0,w:rnd()*3,wx:s[0],wy:s[1],face:1,lunge:-9999})}}
 addMons('slime',16,110);addMons('goblin',12,260);addMons('boar',10,190);addMons('wolf',9,460);addMons('bear',5,560);
@@ -2063,8 +2067,8 @@ cv.addEventListener('pointerdown',e=>{
   for(const k in SPOTS){const sp=SPOTS[k];if(Math.abs(wx-sp.x)<20&&wy>sp.y-42&&wy<sp.y+5){if(nearSpot()===k)useAction();else say('Walk closer first.');return}}
   let best=null;
   for(const n of nodes){
-    const sp=n.k.startsWith('spot'),big=TREEK.includes(n.k)&&n.k!=='tree';
-    const hw=(sp?16:TREEK.includes(n.k)?(big?27:21):15),top=sp?18:TREEK.includes(n.k)?(big?60:50):17,bot=sp?10:6;
+    const sp=n.k.startsWith('spot'),treeType=TREEK.includes(n.k),bounds=treeType?MyrrenEnvironment.treeBounds(n):null;
+    const hw=sp?16:bounds?Math.round(bounds.w/2):15,top=sp?18:bounds?bounds.h:17,bot=sp?10:6;
     if(wx>=n.x-hw&&wx<=n.x+hw&&wy>=n.y-top&&wy<=n.y+bot&&(!best||n.y>best.y))best=n;
   }
   if(best){best.tipAt=now;return}
@@ -2106,11 +2110,12 @@ function recordForestryHit(n,now,success){
   n.chopSucceeded=!!success;
 }
 const FORESTRY_PALETTES={
-  tree:{bark:['#8e6d51','#d5a17c'],leaf:['#8ba75b','#c9d88c']},
-  oak:{bark:['#735841','#ac8960'],leaf:['#9da95c','#d5cd78']},
-  maple:{bark:['#795247','#ce9060'],leaf:['#b97843','#e5b46e']},
-  elder:{bark:['#4c6261','#89a79d'],leaf:['#7d9b54','#abc7a0']},
-  myrren:{bark:['#655a74','#ac8cb1'],leaf:['#83b9c2','#b2e0dc']}
+  tree:{bark:['#8e6d51','#d5a17c'],leaf:['#658f44','#a5c976']},
+  birch:{bark:['#d1d0bc','#fff7d2'],leaf:['#72aa3a','#b6e76a']},
+  oak:{bark:['#735841','#ac8960'],leaf:['#559c43','#9cd866']},
+  maple:{bark:['#795247','#ce9060'],leaf:['#db6c32','#f1a64a']},
+  elder:{bark:['#775737','#b38a51'],leaf:['#7dae41','#c0df67']},
+  myrren:{bark:['#50463b','#987d60'],leaf:['#4b9477','#8bc7a0']}
 };
 function forestryHitPalette(n){return FORESTRY_PALETTES[n.k]||FORESTRY_PALETTES.tree}
 function recordMiningHit(n,now,success){
@@ -2815,7 +2820,7 @@ function nodeTip(n,x,y,now){
   const nt=NT[n.k];ctx.globalAlpha=age<1800?1:1-(age-1800)/800;
   // Tapping any tree, fishing spot or ore deposit ONLY identifies the
   // resource and required level, even while a vein is depleted.
-  label(nt.name+' (Lv '+nt.req+')',x,y-(TREEK.includes(n.k)?(n.k==='tree'?42:52):n.k.startsWith('spot')?12:20),'#ffffff');
+  label(nt.name+' (Lv '+nt.req+')',x,y-(TREEK.includes(n.k)?Math.min(90,Math.max(42,(MyrrenEnvironment.treeBounds?.(n)?.h||62)-10)):n.k.startsWith('spot')?12:20),'#ffffff');
   ctx.globalAlpha=1;
 }
 // Monumental, non-harvestable ancient rainforest trees. Native-pixel art, not scaled resource trees.
@@ -3809,7 +3814,7 @@ function drawOutdoor(cx,cy,now){
   }
   // Uneven forest crown on the crater's outer shoulder. Keep entrances and
   // the central settlement unobstructed; these trees are purely visual.
-  const rimKinds=['bramblewood','alder','ironbark','redleaf','duskwillow','elderthorn','starroot'];
+  const rimKinds=['pine','birch','oak','willow','maple','ironbark'];
   for(let i=0;i<24;i++){
     const a=(i+.32)*Math.PI*2/24;
     const radius=725+((i*37)%40);
@@ -3895,11 +3900,11 @@ function drawOutdoor(cx,cy,now){
       R(x-12,y-9,4,2,'#6d8b5c');R(x+5,y-13,5,2,'#66865b');
     }});
   }
-  // Decorative showcase: all seven tree appearances around the village outskirts.
+  // Decorative showcase: all six approved species around the village outskirts.
   // Scenery only: no new gatherable nodes, collision, XP or save changes.
-  const showcaseTrees=['bramblewood','alder','ironbark','redleaf','duskwillow','elderthorn','starroot'];
+  const showcaseTrees=['pine','birch','oak','willow','maple','ironbark'];
   for(let i=0;i<showcaseTrees.length;i++){
-    const a=(i/7)*Math.PI*2+.36,rad=690+(i%2)*45;
+    const a=(i/showcaseTrees.length)*Math.PI*2+.36,rad=690+(i%2)*45;
     const gx=CX+Math.cos(a)*rad,gy=CY+Math.sin(a)*rad*.82;
     if(!vis(gx,gy)||!VILLAGE.dryFootprint(gx,gy,72,110,3,10))continue;
     const tree={x:gx,y:gy,k:'tree',previewTree:showcaseTrees[i],back:0};

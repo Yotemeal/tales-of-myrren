@@ -16,6 +16,9 @@ const createGame=require('./game-runtime.cjs');
     myrren:{old:[30,45],next:[28,42],xp:1900,req:85,base:.1,dep:.8}
   };
   const leafColors=new Set();
+  const birch=g.NT.birch;
+  assert.deepEqual([birch.req,birch.xp,birch.item,birch.base,birch.dep],
+    [1,25,'logs',.34,.5],'Birch is a cosmetic starter-tree subtype with identical economics');
   for(const [k,e] of Object.entries(trees)){
     const n=g.NT[k],p=g.forestryHitPalette({k});
     assert.equal(n.skill,'woodcutting');
@@ -97,18 +100,18 @@ const createGame=require('./game-runtime.cjs');
 
     const labelBefore=renderedText.length;
     tree.tipAt=4000;g.nodeTip(tree,45,55,4100);
-    assert.deepEqual(renderedText.slice(labelBefore),Array(5).fill('Tree (Lv 1)'),
+    assert.deepEqual(renderedText.slice(labelBefore),Array(5).fill('Pine tree (Lv 1)'),
       'tapping a depleted tree still only shows its name and level');
     const other={k:'elder',back:24000,tipAt:5000};
     const otherBefore=renderedText.length;
     g.nodeTip(other,45,55,5100);
-    assert.deepEqual(renderedText.slice(otherBefore),Array(5).fill('Elderwood tree (Lv 60)'));
+    assert.deepEqual(renderedText.slice(otherBefore),Array(5).fill('Willow tree (Lv 60)'));
     assert.equal(g.getAct(),null,'inspection cannot start woodcutting');
 
     const source=fs.readFileSync('public/myrren-game.js','utf8');
     assert(source.includes('if(best){best.tipAt=now;return}'),'resource tapping is still inspect-only');
     assert(!source.includes('tapMineRock')&&!source.includes('tapChopTree'),
       'no tap-to-gather shortcut was introduced');
-    console.log('PASS: five tree tiers, modest regrowth, axe contact, failed/successful chops, fall leaves, expiry, exact XP/logs, saves and inspect-only taps.');
+    console.log('PASS: five original Forestry tiers plus alternate Birch, modest regrowth, axe contact, failed/successful chops, fall leaves, expiry, exact XP/logs, saves and inspect-only taps.');
   }finally{Math.random=random}
 })().catch(e=>{console.error(e);process.exitCode=1});

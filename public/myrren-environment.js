@@ -85,8 +85,46 @@
     }
     return true;
   }
+  // Exact user-approved A/B tree artwork. Runtime never recolours, animates,
+  // crops or scales these PNG pixels; only chop feedback may move briefly.
+  const TREE_SPECIES=Object.freeze({tree:'pine',birch:'birch',oak:'oak',maple:'maple',elder:'willow',myrren:'ironbark'});
+  const TREE_DIMENSIONS=Object.freeze({"pine":{"a":[66,93],"b":[67,93]},"birch":{"a":[67,90],"b":[68,90]},"oak":{"a":[79,88],"b":[85,88]},"willow":{"a":[86,94],"b":[85,94]},"maple":{"a":[79,91],"b":[87,91]},"ironbark":{"a":[96,96],"b":[91,95]}});
+  const approvedTreeImages=new Map();
+  function treeIdentity(n){
+    const species=n.previewTree||TREE_SPECIES[n.k];
+    if(!Object.hasOwn(TREE_DIMENSIONS,species))return null;
+    // Coordinates, not frame/time or RNG: identical appearance after regrowth.
+    const variant=hash(n.x,n.y)%10<3?'b':'a';
+    return {species,variant};
+  }
+  function treeBounds(n){
+    const id=treeIdentity(n);if(!id)return null;
+    const [w,h]=TREE_DIMENSIONS[id.species][id.variant];return {w,h};
+  }
+  function loadApprovedTreeImage(key){
+    if(approvedTreeImages.has(key))return approvedTreeImages.get(key);
+    const img=new Image(),entry={img,ready:false,failed:false};
+    approvedTreeImages.set(key,entry);
+    img.onload=()=>{entry.ready=img.naturalWidth>0};
+    img.onerror=()=>{entry.failed=true};
+    img.src='/assets/resources/trees-v1/'+key+'.png';
+    return entry;
+  }
+  function drawApprovedTree(ctx,n,x,y,now){
+    const id=treeIdentity(n);if(!id)return false;
+    const stem='tree_'+id.species+'_'+id.variant;
+    // Preload the other state on first encounter; changes require no network
+    // round-trip when the player chops a tree or a stump regrows.
+    const full=loadApprovedTreeImage(stem);
+    const stump=loadApprovedTreeImage(stem+'_stump');
+    const entry=now<n.back?stump:full;
+    if(!entry.ready)return !entry.failed; // no flash of old artwork while loading
+    const {img}=entry;
+    ctx.drawImage(img,Math.round(x-img.naturalWidth/2),Math.round(y-img.naturalHeight+4));
+    return true;
+  }
   function tree(ctx,n,x,y,now,ancient=false){
-    if(!ancient&&resourceSprite(ctx,n,x,y,now,true))return;
+    if(!ancient&&drawApprovedTree(ctx,n,x,y,now))return;
     const variant=hash(n.x,n.y)%4,k=n.k,stump=now<n.back,tainted=n.x>1130&&n.y>1160;
     const big=ancient,scale=big?1.65:k==='tree'?1:1.18;
     sprite(ctx,`tree:${k}:${variant}:${stump}:${big}:${tainted}`,big?180:100,big?185:108,big?90:50,big?177:101,x,y,({r,poly,crown,shadow})=>{
@@ -397,5 +435,5 @@
     if(Math.sin(phase*1.4)>.88){r(x+2,y-7,3,2,'#c8d7b7');r(x+3,y-8,1,1,'#e0e6c4');r(x-4,y-5,2,1,'#c0d4bd')}
   }
 
-  window.MyrrenEnvironment=Object.freeze({tree,rock,fern,building,terrain,nativeTerrainReady,prop,square,brook,bridge,smithyFloor,smithyPart,waterTile,fishing,cacheSize:()=>cache.size});
+  window.MyrrenEnvironment=Object.freeze({tree,treeBounds,rock,fern,building,terrain,nativeTerrainReady,prop,square,brook,bridge,smithyFloor,smithyPart,waterTile,fishing,cacheSize:()=>cache.size});
 })();
