@@ -1,0 +1,66 @@
+{
+  "project": "Tales of Myrren",
+  "version": "v3.2-final-approved-ores",
+  "source_approved_sheet": "tales_of_myrren_iron_refinement.png",
+  "source_sha256": "b5dca062c0053c4c9a11e442638f5b61b838cbb562dc84f14f44832af397ef94",
+  "source_note": "Final approval sheet was a rendered picture. Runtime uses native 40x28 PNGs; seven retain previously approved pixels, Iron receives the last targeted pixel edit.",
+  "native_size": [
+    40,
+    28
+  ],
+  "camera_scale": 2,
+  "iron_modified_pixels": 37,
+  "hero_sha256": "748ad641d103dc91228327c91abbc058bf685fad21011f809076ed47028c69a2",
+  "runtime_aliases": {
+    "cobalt": "black_iron",
+    "aether": "myrrenite",
+    "obsidianite": "chromium",
+    "meteorite": "iridium"
+  },
+  "saves_untouched": true,
+  "mining_untouched": true,
+  "forging_untouched": true,
+  "tree_art_untouched": true,
+  "assets": {
+    "copper": {
+      "path": "public/assets/resources/v32/ore_copper.png",
+      "sha256": "8423c5b716fc7ac8ad8ceabdb80aae3e02f8b0e59f9120a91e581ea211715f90",
+      "unchanged_from_v31": true
+    },
+    "tin": {
+      "path": "public/assets/resources/v32/ore_tin.png",
+      "sha256": "716ef1777651089fdbfbaffa01296a9897278a7a960fe9e5cdf205c81dfb9686",
+      "unchanged_from_v31": true
+    },
+    "iron": {
+      "path": "public/assets/resources/v32/ore_iron.png",
+      "sha256": "0d7410a0fcf64f014f9242a18c835d0649068aaaac83b366d91417fdc2187968",
+      "unchanged_from_v31": false
+    },
+    "coal": {
+      "path": "public/assets/resources/v32/ore_coal.png",
+      "sha256": "8fc08ca6a27b0e35bf3c5a825a960d280900915362fc8569b8be4874943f029a",
+      "unchanged_from_v31": true
+    },
+    "black_iron": {
+      "path": "public/assets/resources/v32/ore_black_iron.png",
+      "sha256": "ff303abab687eea0160a559b343ccd2b9f9fa0b1552138e17ac3ebe1bc2d31fc",
+      "unchanged_from_v31": true
+    },
+    "chromium": {
+      "path": "public/assets/resources/v32/ore_chromium.png",
+      "sha256": "33e482fea1ba69719f9b2bd0767c34dfb590417c77266ef81fd11fe1f3bb5ad0",
+      "unchanged_from_v31": true
+    },
+    "iridium": {
+      "path": "public/assets/resources/v32/ore_iridium.png",
+      "sha256": "69e9c83fc45f65b20f83f4e4610fc5513f8bcce144e275ac7c6deb3f2072657b",
+      "unchanged_from_v31": true
+    },
+    "myrrenite": {
+      "path": "public/assets/resources/v32/ore_myrrenite.png",
+      "sha256": "5dd7b5539392f81b53c3105a2ca6cf0140c8ca0ed6e255d78b77ea41ba56ca39",
+      "unchanged_from_v31": true
+    }
+  }
+}
