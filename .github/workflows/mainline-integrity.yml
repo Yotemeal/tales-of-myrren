@@ -42,6 +42,8 @@ jobs:
           node --test tests/ore-v32-native.test.cjs
           node --test tests/ore-v32-depleted.test.cjs
           node --test tests/ore-v32-mid.test.cjs
+          node --test tests/approved-trees-ab.test.cjs
+          node tests/forestry-feedback-regrowth.test.cjs
           node tests/mainline-asset-contract.test.cjs
           node tests/vignette-cache.test.cjs
           node tests/minimap-removal.test.cjs
