@@ -1,0 +1,270 @@
+{
+  "title": "Tales of Myrren \u2014 approved 12-tree A/B artwork and 12 matched stumps",
+  "reference": "User's final approved six-species two-variant sheet, 16 Nov 2026",
+  "art": "Approved native pixel sprites, no recolouring or resizing",
+  "atlas_path": "public/assets/resources/v34/myrren_trees_ab_600x276.png",
+  "atlas_sha256": "67d2f9546c4bec84fa73ec06e1854a85d69b077a5579a1068413f20682ff3a8d",
+  "atlas_size": [
+    600,
+    276
+  ],
+  "native_world_scale": 1,
+  "camera_scale": 2,
+  "species": [
+    "pine",
+    "birch",
+    "oak",
+    "willow",
+    "maple",
+    "ironbark"
+  ],
+  "sprites": {
+    "tree_pine_a": {
+      "rect": [
+        17,
+        2,
+        66,
+        93
+      ],
+      "rgba_sha256": "a24e9dd1df725d53462a8f7fc93a563659d953e84896283596bed4be68412b70",
+      "png_sha256": "61761d51f66ccda063abbf17802923337ec905ecbe91d8af71b7c18b906cd64d"
+    },
+    "tree_pine_a_stump": {
+      "rect": [
+        33,
+        104,
+        34,
+        23
+      ],
+      "rgba_sha256": "127786573f067e5ebf9e20ca7f3be9e82916a90f351338d953062e70fd59a873",
+      "png_sha256": "687a03bfd981760f5824c818d6b4331933afd017e0e53389a93b507c1e9e3945"
+    },
+    "tree_birch_a": {
+      "rect": [
+        116,
+        2,
+        67,
+        90
+      ],
+      "rgba_sha256": "58d9d1de370a3008b92b766b1b2843b20ef596a28de4d43c84f94a437164c492",
+      "png_sha256": "09ea77247ddf25555ea1af2d123893f080bbdc14932458d98809ec7a8fc7d2ad"
+    },
+    "tree_birch_a_stump": {
+      "rect": [
+        133,
+        104,
+        33,
+        23
+      ],
+      "rgba_sha256": "c77e8faa63fadf185f8e22649d4daf9afec485b8dc90cc51329ad6a2ebd862b5",
+      "png_sha256": "8f7e700e48cda15815e62b597edc99d0e42caf7713f6238bdfd07d52ebe3361e"
+    },
+    "tree_oak_a": {
+      "rect": [
+        210,
+        2,
+        79,
+        88
+      ],
+      "rgba_sha256": "49d10a045b5c203163afd9a1f0c1bdee1026714f4da9f2c79fdba98ee471bbda",
+      "png_sha256": "3c73f81ca6a41964501a33b60846cb183d6e0fdde99e42b57974adfce9b4fc38"
+    },
+    "tree_oak_a_stump": {
+      "rect": [
+        227,
+        104,
+        46,
+        28
+      ],
+      "rgba_sha256": "1932e16862c74237509620ad8e8ddc59c44dbce80521984b09ea88f34228280b",
+      "png_sha256": "ac4c520fe5e764ecf8e5ac705ad6a437c24cab6929c4c7576985cc829e581b48"
+    },
+    "tree_willow_a": {
+      "rect": [
+        307,
+        2,
+        86,
+        94
+      ],
+      "rgba_sha256": "46921b9550cec0f0158599e659885f8cbd091b232ed2c350ae8582053e65aa4a",
+      "png_sha256": "01a52ea4a55efc0ddc385c39d7253ae5178f1d79522e075655ac1b2922ba9c7b"
+    },
+    "tree_willow_a_stump": {
+      "rect": [
+        331,
+        104,
+        37,
+        24
+      ],
+      "rgba_sha256": "3498654ca91965ef55d17904fbc9617d0acfb691e46f74fabbe65f311db7db63",
+      "png_sha256": "35d61407cfc3edc3b5d818ab69db2c5803a95ca686e04600d7626f80a0e955f0"
+    },
+    "tree_maple_a": {
+      "rect": [
+        410,
+        2,
+        79,
+        91
+      ],
+      "rgba_sha256": "01afba711bee218e1628f1f3b02b8942f0f0bd56b26f6ac161fe14fdfae8bb85",
+      "png_sha256": "dd67f1d217ae96be36cbc84b6ff836c6a966f487ed48e8a44b1a6e51416f5b6a"
+    },
+    "tree_maple_a_stump": {
+      "rect": [
+        432,
+        104,
+        36,
+        23
+      ],
+      "rgba_sha256": "ba100b0a12869abd5b0cab4d991862fd8f913288275882269ce69f04ca6fd1f7",
+      "png_sha256": "83bb48c718d29ee81a146cd55975732c1aa6467ada6bb8014d935cf69bf6d506"
+    },
+    "tree_ironbark_a": {
+      "rect": [
+        502,
+        2,
+        96,
+        96
+      ],
+      "rgba_sha256": "0b000fb1aed8b12430e6b54d7de23bd1836dbc87ae3790f2c33676c20cdca965",
+      "png_sha256": "617429e3fa5a16cfdd35bfd46464a027e28b6e84b8978f7fdc503cd50b515789"
+    },
+    "tree_ironbark_a_stump": {
+      "rect": [
+        523,
+        104,
+        53,
+        30
+      ],
+      "rgba_sha256": "9071739b1e6dc1e6ec394ff9a308d13275174fe98edd138c4b41a364736c7ffe",
+      "png_sha256": "34147a80a6681b1f70ad20320904210770f1afc93a260b8963d271bb5f708b13"
+    },
+    "tree_pine_b": {
+      "rect": [
+        16,
+        140,
+        67,
+        93
+      ],
+      "rgba_sha256": "03af56becb3767cfb714ec1a6b925a1e471fc81b36a3713bae2d856f9c384a3e",
+      "png_sha256": "8fcc9dd01574ac12bbb5b866fc1cefe604d6b7ed1418336c0a9a5737e7678649"
+    },
+    "tree_pine_b_stump": {
+      "rect": [
+        33,
+        242,
+        34,
+        23
+      ],
+      "rgba_sha256": "b22065cf07828e0ff62d058514caf73b58b70aac6ed54ec18823d924fce98dae",
+      "png_sha256": "c61929f324f0a39b164be6b9d026e14081a2d1c2a788d79c5713df4e34d43e30"
+    },
+    "tree_birch_b": {
+      "rect": [
+        116,
+        140,
+        68,
+        90
+      ],
+      "rgba_sha256": "8bde43aa72e905644ab3438a5466d9b530f36c85292e0ef01c9ca4e4468c6db3",
+      "png_sha256": "da32355f06a9a838466ee7b53f5d3838326fa08b6d0d633446acba682c24ad5f"
+    },
+    "tree_birch_b_stump": {
+      "rect": [
+        133,
+        242,
+        33,
+        23
+      ],
+      "rgba_sha256": "177e8b5dae423c9e40affc2fac53d5f7878abcc892fecf66d6ba3be6ae8cdcd5",
+      "png_sha256": "09c15f24cb54e84c51bd5aae61a2a8c3b16f5d1b027d279c1056b3752ac73f73"
+    },
+    "tree_oak_b": {
+      "rect": [
+        207,
+        140,
+        85,
+        88
+      ],
+      "rgba_sha256": "63703d0d343fbd0158220f7aa5005ee0ab20f7ba60d735c41d06628d0f8c0304",
+      "png_sha256": "2546535d5fb10c9a252e2a998ecf7e99d7e6ad0bd78a5caf34cb1308756509d8"
+    },
+    "tree_oak_b_stump": {
+      "rect": [
+        226,
+        242,
+        48,
+        30
+      ],
+      "rgba_sha256": "5aded93f0825696d378196d0c51916666bb14e00a0c037db9df8e6be5820f5d2",
+      "png_sha256": "454b6edb693e434f9ae42929aa2a39c55943a06646ea78fe446a895bb97f7979"
+    },
+    "tree_willow_b": {
+      "rect": [
+        307,
+        140,
+        85,
+        94
+      ],
+      "rgba_sha256": "fb08a143c38b866aa3cea8666a80edbc33e81e1e07981ca46f05151a9a08731d",
+      "png_sha256": "1909900a1476b6374cc80ffd509253c88ab2e8b72e41e8c794eb38b96bc121a8"
+    },
+    "tree_willow_b_stump": {
+      "rect": [
+        331,
+        242,
+        37,
+        24
+      ],
+      "rgba_sha256": "181fc1539ae85dac790ca308c6ae9b886a7117c513fdf7842042b3c32c3dff1f",
+      "png_sha256": "2cbcb42dd70e6cb3d196421a9f668f8dda66e228f2252216352ae128bcb81f24"
+    },
+    "tree_maple_b": {
+      "rect": [
+        406,
+        140,
+        87,
+        91
+      ],
+      "rgba_sha256": "f9629e55de8178c6682e2b63122c6f2424eff40f7ffbe989aadefb096c38ad33",
+      "png_sha256": "54acb33b6a6a20f529c5ad61347f960b2fd9b99e47aecf3b8c478a5856a03935"
+    },
+    "tree_maple_b_stump": {
+      "rect": [
+        432,
+        242,
+        36,
+        23
+      ],
+      "rgba_sha256": "db2acf5d04104578005ffaf6ee4293c85e1a6bf69d5832231955d1651b69202f",
+      "png_sha256": "4d49aec86b0464cf14b06e195f8dc0210fa554d869afcfc3483b72c150abc321"
+    },
+    "tree_ironbark_b": {
+      "rect": [
+        504,
+        140,
+        91,
+        95
+      ],
+      "rgba_sha256": "aff11728a2fe03e8433ad0928affd9ba3e7a599e92d1456714656c72eba2d2d1",
+      "png_sha256": "fb9babd34845ea5eeabb82b69d337413bd11517bd182cfded9dc144fa5b7921e"
+    },
+    "tree_ironbark_b_stump": {
+      "rect": [
+        522,
+        242,
+        55,
+        33
+      ],
+      "rgba_sha256": "6feb7665f56c1c5e6e5637780301ea6bdc13184cfaa3c4cd09cf656d1c453f8a",
+      "png_sha256": "1456dc1b7332f3ef8e6260af6f5ef72bc0163f59e36da166c23c75a037e00113"
+    }
+  },
+  "gameplay_ids": {
+    "tree": "Pine or Birch (starter Logs)",
+    "oak": "Oak",
+    "maple": "Maple",
+    "elder": "Willow (legacy key and item preserved)",
+    "myrren": "Ironbark (legacy key and item preserved)"
+  }
+}

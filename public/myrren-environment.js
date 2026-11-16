@@ -85,8 +85,61 @@
     }
     return true;
   }
+  // Approved six-species woodland: the exact 12 native sprites and 12 matched
+  // stumps are packed losslessly in a single 600x276 transparent atlas.
+  // Every sprite is rendered at 1 native pixel per world unit (fixed camera 2x).
+  const approvedTreeAtlas=new Image();
+  approvedTreeAtlas.src='/assets/resources/v34/myrren_trees_ab_600x276.png?v=1';
+  const approvedTreeKinds=['pine','birch','oak','willow','maple','ironbark'];
+  // Each variant: tree width/height, matching stump width/height. Atlas cells
+  // are 100px wide, with tree rows at y=2/140 and stump rows at y=104/242.
+  const approvedTreeSizes={
+    pine:[[66,93,34,23],[67,93,34,23]],
+    birch:[[67,90,33,23],[68,90,33,23]],
+    oak:[[79,88,46,28],[85,88,48,30]],
+    willow:[[86,94,37,24],[85,94,37,24]],
+    maple:[[79,91,36,23],[87,91,36,23]],
+    ironbark:[[96,96,53,30],[91,95,55,33]]
+  };
+  const scenicTreeAliases={bramblewood:'pine',alder:'birch',redleaf:'maple',
+    duskwillow:'willow',elderthorn:'oak',starroot:'ironbark'};
+  function approvedTreeSpecies(n){
+    if(n.previewTree)return approvedTreeSizes[n.previewTree]?n.previewTree:scenicTreeAliases[n.previewTree]||null;
+    if(n.k==='tree')return hash(Math.round(n.x)+17,Math.round(n.y)+23)%2?'birch':'pine';
+    if(n.k==='forest')return approvedTreeKinds[hash(Math.round(n.x),Math.round(n.y))%approvedTreeKinds.length];
+    return ({oak:'oak',maple:'maple',elder:'willow',myrren:'ironbark'})[n.k]||null;
+  }
+  function approvedTreeVariant(n){
+    if(n.previewVariant==='a')return 0;
+    if(n.previewVariant==='b')return 1;
+    // 70% A, 30% B. Stable for each world coordinate, including regrowth.
+    return hash(Math.round(n.x)+53,Math.round(n.y)+97)%10<3?1:0;
+  }
+  function approvedTreeSize(n,now=0){
+    const species=approvedTreeSpecies(n);
+    if(!species)return null;
+    const size=approvedTreeSizes[species][approvedTreeVariant(n)];
+    const stump=now<n.back;
+    return {width:size[stump?2:0],height:size[stump?3:1]};
+  }
+  function drawApprovedTree(ctx,n,x,y,now){
+    const species=approvedTreeSpecies(n);
+    if(!species)return false;
+    // The approved art is static. No wind distortion, trunk slicing or idle
+    // leaf storms; chopping particles are handled separately by the game.
+    if(approvedTreeAtlas.naturalWidth!==600||approvedTreeAtlas.naturalHeight!==276)return true;
+    const variant=approvedTreeVariant(n),dims=approvedTreeSizes[species][variant];
+    const stump=now<n.back,offset=stump?2:0;
+    const w=dims[offset],h=dims[offset+1];
+    const col=approvedTreeKinds.indexOf(species);
+    const sx=col*100+Math.floor((100-w)/2);
+    const sy=variant*138+(stump?104:2);
+    ctx.drawImage(approvedTreeAtlas,sx,sy,w,h,
+      Math.round(x-w/2),Math.round(y-h+4),w,h);
+    return true;
+  }
   function tree(ctx,n,x,y,now,ancient=false){
-    if(!ancient&&resourceSprite(ctx,n,x,y,now,true))return;
+    if(!ancient&&drawApprovedTree(ctx,n,x,y,now))return;
     const variant=hash(n.x,n.y)%4,k=n.k,stump=now<n.back,tainted=n.x>1130&&n.y>1160;
     const big=ancient,scale=big?1.65:k==='tree'?1:1.18;
     sprite(ctx,`tree:${k}:${variant}:${stump}:${big}:${tainted}`,big?180:100,big?185:108,big?90:50,big?177:101,x,y,({r,poly,crown,shadow})=>{
@@ -397,5 +450,5 @@
     if(Math.sin(phase*1.4)>.88){r(x+2,y-7,3,2,'#c8d7b7');r(x+3,y-8,1,1,'#e0e6c4');r(x-4,y-5,2,1,'#c0d4bd')}
   }
 
-  window.MyrrenEnvironment=Object.freeze({tree,rock,fern,building,terrain,nativeTerrainReady,prop,square,brook,bridge,smithyFloor,smithyPart,waterTile,fishing,cacheSize:()=>cache.size});
+  window.MyrrenEnvironment=Object.freeze({tree,approvedTreeSpecies,approvedTreeVariant,approvedTreeSize,rock,fern,building,terrain,nativeTerrainReady,prop,square,brook,bridge,smithyFloor,smithyPart,waterTile,fishing,cacheSize:()=>cache.size});
 })();
