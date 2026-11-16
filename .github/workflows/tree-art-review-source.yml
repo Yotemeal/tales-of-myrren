@@ -1,0 +1,20 @@
+name: Tree artwork QA source export
+on:
+  push:
+    branches:
+      - feature/approved-trees-12-real-game-review
+  workflow_dispatch:
+jobs:
+  capture-source:
+    runs-on: [self-hosted, linux, x64]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package exact checked-out game files for offline native-scale QA
+        run: tar -czf /tmp/myrren-actual-source.tar.gz public/ package.json package-lock.json tests/starter-terrain-v1-browser.test.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: myrren-tree-review-game-source
+          path: /tmp/myrren-actual-source.tar.gz
+          retention-days: 2
