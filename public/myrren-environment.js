@@ -20,6 +20,7 @@
   /* Approved resource sprites: trees retain their stump fallback; ores use three native states. */
   const resourceImages=new Map();
   const resourceNames={tree:'bramblewood',oak:'alder',maple:'ironbark',elder:'elderthorn',myrren:'starroot'};
+  const oreSpriteUrl=key=>'/assets/resources/v32/'+key+'.png'+(key.endsWith('_depleted')?'?v=2':'');
   function resourceSprite(ctx,n,x,y,now,isTree,oreStage){
     if(isTree&&now<n.back)return false; // tree stumps retain their existing procedural art
     // Respawn state wins over stale charges or requested drawing state.
@@ -33,7 +34,7 @@
       const img=new Image();entry={img,ready:false,failed:false};resourceImages.set(key,entry);
       img.onload=()=>{entry.ready=img.naturalWidth>0};
       img.onerror=()=>{entry.failed=true};
-      img.src=isTree?'/assets/resources/'+key+'.png':'/assets/resources/v32/'+key+'.png';
+      img.src=isTree?'/assets/resources/'+key+'.png':oreSpriteUrl(key);
     }
     if(!isTree){
       // Preload the full, middle and depleted sprites for seamless mining.
@@ -44,7 +45,7 @@
         resourceImages.set(partnerKey,pair);
         partner.onload=()=>{pair.ready=partner.naturalWidth>0};
         partner.onerror=()=>{pair.failed=true};
-        partner.src='/assets/resources/v32/'+partnerKey+'.png';
+        partner.src=oreSpriteUrl(partnerKey);
       }
     }
     if(!entry.ready)return false;
@@ -241,8 +242,9 @@
         const distance=world.pathDistance(wx,wy)+variation;
         if(distance>=16||world.waterDistance(wx,wy)<24)continue;
         const grain=(hash(wx,wy)>>>12)%17;
-        const color=distance>=15?(grain<8?0:-1)
-          :distance>=12?1:distance>=10?2:grain<2?4:grain===3?5:3;
+        const color=distance>=15?(grain<7?0:-1)
+          :distance>=13?(grain<4?0:1)
+          :distance>=11?(grain<5?2:1):distance>=10?2:grain<2?4:grain===3?5:3;
         if(color>=0)r(px,py,1,1,trailColors[color]);
       }
     });
