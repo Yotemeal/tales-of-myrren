@@ -43,10 +43,15 @@ function dryFootprint(x,y,halfWidth,top,bottom=3,margin=8){
  for(let yy=y-top;yy<=y+bottom;yy+=6)for(let xx=x-halfWidth;xx<=x+halfWidth;xx+=6)if(waterDistance(xx,yy)<margin)return false;
  return true;
 }
+function pathDistance(x,y){
+ let distance=Infinity;
+ for(const [start,end] of paths)distance=Math.min(distance,segmentDistance(x,y,start,end));
+ return distance;
+}
 function pathKind(x,y){
  if(waterDistance(x,y)<24)return 'grass';
  if(inVillage(x,y)&&((x-800)**2/(185*185)+(y-830)**2/(66*66)<1))return 'plaza';
- return paths.some(p=>segmentDistance(x,y,p[0],p[1])<13)?'path':'grass';
+ return pathDistance(x,y)<13?'path':'grass';
 }
 function safePosition(x,y,blocked=()=>false){
  if(!inWater(x,y)&&!blocked(x,y))return {x,y};
@@ -62,5 +67,5 @@ function fishingPosition(a){
  return {x:sx+dx*(offset-12),y:sy+dy*(offset-12)};
 }
 
-window.MyrrenWorld=Object.freeze({lake,buildings,bridge,bridges,river,stations,lakeF,lakeR,riverF,riverHalfWidth,riverDistance,waterDistance,onBridge,inWater,craterWall,inVillage,pathKind,bridgeApproach,dryFootprint,safePosition,fishingPosition,segmentDistance});
+window.MyrrenWorld=Object.freeze({lake,buildings,bridge,bridges,river,stations,lakeF,lakeR,riverF,riverHalfWidth,riverDistance,waterDistance,onBridge,inWater,craterWall,inVillage,pathKind,pathDistance,bridgeApproach,dryFootprint,safePosition,fishingPosition,segmentDistance});
 })();

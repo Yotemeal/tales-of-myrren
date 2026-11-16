@@ -232,15 +232,32 @@
     ctx.drawImage(terrainAtlas,(index%8)*16,Math.floor(index/8)*16,16,16,
       Math.round(x),Math.round(y),16,16);
   }
+  const trailColors=['#95855d','#a47959','#96917b','#8a8c7d','#838676','#97998a'];
+  function drawTrail(ctx,world,tx,ty,x,y){
+    sprite(ctx,`trail:${tx}:${ty}`,16,16,0,0,x,y,({r})=>{
+      for(let py=0;py<16;py++)for(let px=0;px<16;px++){
+        const wx=tx*16+px+.5,wy=ty*16+py+.5;
+        const variation=Math.sin(wx*.23+wy*.12)*.85+Math.sin(wx*.57-wy*.46)*.45;
+        const distance=world.pathDistance(wx,wy)+variation;
+        if(distance>=16||world.waterDistance(wx,wy)<24)continue;
+        const grain=(hash(wx,wy)>>>12)%17;
+        const color=distance>=15?(grain<8?0:-1)
+          :distance>=12?1:distance>=10?2:grain<2?4:grain===3?5:3;
+        if(color>=0)r(px,py,1,1,trailColors[color]);
+      }
+    });
+  }
   function terrain(ctx,tx,ty,x,y,kind,now,edge=0,ground=kind){
     const {r}=kit(ctx),h=hash(tx,ty),v=h%97;
     if(nativeTerrainReady()&&kind!=='boundary'){
       // Existing edges are N/S/W/E. Atlas connections are N/E/S/W.
       const connected=15^((edge&1)|((edge&2)<<1)|((edge&4)<<1)|((edge&8)>>2));
       const variant=(h>>>8)%8;
+      const world=window.MyrrenWorld;
+      const continuousTrail=world?.pathDistance&&(kind==='path'||kind==='grass');
       const index=kind==='water'?16+variant%4
-        :kind==='path'?24+connected
-        :kind==='plaza'||ground==='dirt'?8+variant%4
+        :kind==='path'&&!continuousTrail?24+connected
+        :kind==='plaza'||ground==='dirt'||(kind==='path'&&world?.inVillage(tx*16+8,ty*16+8))?8+variant%4
         :ground==='gravel'?22+variant%2
         :ground==='stone'?12+variant%4
         // Corrupted tiles are biome data, not a hard coordinate cutoff.
@@ -262,6 +279,10 @@
           r(sx,sy,3,1,'#8a8b77');
           r(sx+1,sy-1,2,1,'#aeac94');
         }
+      }
+      if(continuousTrail&&world.pathDistance(tx*16+8,ty*16+8)<29
+        &&world.waterDistance(tx*16+8,ty*16+8)>12){
+        drawTrail(ctx,world,tx,ty,x,y);
       }
       return true;
     }
