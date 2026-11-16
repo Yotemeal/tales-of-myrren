@@ -1,15 +1,14 @@
 {
   "project": "Tales of Myrren",
   "version": "v3.2-final-approved-ores",
-  "source_approved_sheet": "tales_of_myrren_iron_refinement.png",
-  "source_sha256": "b5dca062c0053c4c9a11e442638f5b61b838cbb562dc84f14f44832af397ef94",
-  "source_note": "Final approval sheet was a rendered picture. Runtime uses native 40x28 PNGs; seven retain previously approved pixels, Iron receives the last targeted pixel edit.",
+  "source_approved_sheet": "ABA6115A-903D-42C5-B113-1EA952FF6B8B(2).jpeg",
+  "source_sha256": "8f07434f155cf84c1bceb6936d7ee47e5795d1cbad74edaa861433495813290a",
+  "source_note": "All three stages sampled from the supplied final board at a common scale; board unchanged.",
   "native_size": [
     40,
     28
   ],
   "camera_scale": 2,
-  "iron_modified_pixels": 37,
   "hero_sha256": "748ad641d103dc91228327c91abbc058bf685fad21011f809076ed47028c69a2",
   "runtime_aliases": {
     "cobalt": "black_iron",
@@ -24,43 +23,35 @@
   "assets": {
     "copper": {
       "path": "public/assets/resources/v32/ore_copper.png",
-      "sha256": "8423c5b716fc7ac8ad8ceabdb80aae3e02f8b0e59f9120a91e581ea211715f90",
-      "unchanged_from_v31": true
+      "sha256": "e39412c9967e13d92f5bab8269cbca91e7f8352bd28783405b4fa625591188d5"
     },
     "tin": {
       "path": "public/assets/resources/v32/ore_tin.png",
-      "sha256": "716ef1777651089fdbfbaffa01296a9897278a7a960fe9e5cdf205c81dfb9686",
-      "unchanged_from_v31": true
+      "sha256": "0359da82eeafd3b771e8719f48236e4766e6ea1944a6a921d849c3885afa7895"
     },
     "iron": {
       "path": "public/assets/resources/v32/ore_iron.png",
-      "sha256": "0d7410a0fcf64f014f9242a18c835d0649068aaaac83b366d91417fdc2187968",
-      "unchanged_from_v31": false
+      "sha256": "bb67c2b7bfe8bb09ef615e61ce75f29071cf4d90cd5b86185fc1946ad9d8f2ad"
     },
     "coal": {
       "path": "public/assets/resources/v32/ore_coal.png",
-      "sha256": "8fc08ca6a27b0e35bf3c5a825a960d280900915362fc8569b8be4874943f029a",
-      "unchanged_from_v31": true
+      "sha256": "939cbeb5b522718d6d6d90e8d0b604aeef2faa9cf14890c892dd6df647c8d2ca"
     },
     "black_iron": {
       "path": "public/assets/resources/v32/ore_black_iron.png",
-      "sha256": "ff303abab687eea0160a559b343ccd2b9f9fa0b1552138e17ac3ebe1bc2d31fc",
-      "unchanged_from_v31": true
+      "sha256": "6ae18786d266fcdca2a2515604fe772de5a9b5d917e266a38a269fac9361c7f7"
     },
     "chromium": {
       "path": "public/assets/resources/v32/ore_chromium.png",
-      "sha256": "33e482fea1ba69719f9b2bd0767c34dfb590417c77266ef81fd11fe1f3bb5ad0",
-      "unchanged_from_v31": true
+      "sha256": "3d3bee759b6dd7f24975f0e2f2ba37dcaa5337984b4fd3c5b0e4c7d8fc53c5a6"
     },
     "iridium": {
       "path": "public/assets/resources/v32/ore_iridium.png",
-      "sha256": "69e9c83fc45f65b20f83f4e4610fc5513f8bcce144e275ac7c6deb3f2072657b",
-      "unchanged_from_v31": true
+      "sha256": "1bf32df05bf316d3e0418125476ae090b7716369e128d3e27246b7a8fb56608b"
     },
     "myrrenite": {
       "path": "public/assets/resources/v32/ore_myrrenite.png",
-      "sha256": "5dd7b5539392f81b53c3105a2ca6cf0140c8ca0ed6e255d78b77ea41ba56ca39",
-      "unchanged_from_v31": true
+      "sha256": "d02345b4bf7ebe2636106038fe92da45a58f09502521be2e5a5f98c30a5e15da"
     }
   },
   "depleted_art": "public/assets/resources/v32/ore_{material}_depleted.png",

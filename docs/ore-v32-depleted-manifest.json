@@ -24,35 +24,35 @@
   "assets": {
     "copper": {
       "path": "public/assets/resources/v32/ore_copper_depleted.png",
-      "sha256": "f4fae4c18a11cfc90cef76c9c0fe18e4309cc711d43bb2df816f954508980a12"
+      "sha256": "70db02b8377ed6f9eae466ac303ec585fd90d8b416acc9d18952034e211d26e6"
     },
     "tin": {
       "path": "public/assets/resources/v32/ore_tin_depleted.png",
-      "sha256": "00e937082b36b7bd21754a1efcae45dd647e82d4702997ec5862176b9aee816c"
+      "sha256": "edcd74adc69c1934ff026d1e206e0f440947c37ef7b9eed54fd940897a4ee187"
     },
     "iron": {
       "path": "public/assets/resources/v32/ore_iron_depleted.png",
-      "sha256": "85829469a37768fc5ebd6d260bf1a9b87b0444b678c42b1581c795b4f144544b"
+      "sha256": "d77bb92877d5f5d34d2e3ad6e8e66c2ee67ab8603c08f0366bb37ef3029987c3"
     },
     "coal": {
       "path": "public/assets/resources/v32/ore_coal_depleted.png",
-      "sha256": "7740d52f86881e1b6141931911e23f13a12dbea9fd0e8b32a4e7763cf33a43db"
+      "sha256": "33d2d1bb3713776c4ec1227b1d48636fb9138882fee650055caa5992c2af4a65"
     },
     "black_iron": {
       "path": "public/assets/resources/v32/ore_black_iron_depleted.png",
-      "sha256": "c89ce3f220407449c56cd462ade140cd31b022d43465e92cf51def6c428de6aa"
+      "sha256": "5e9fafaf6991bec30522f939857d3ae406a1a9289ae2ca2d6e85b673a6d918b7"
     },
     "chromium": {
       "path": "public/assets/resources/v32/ore_chromium_depleted.png",
-      "sha256": "472b16e5a2d1d93973ce31596692b95bacaccf36209be4079bff3c9dd264352d"
+      "sha256": "4a40c91b016ca22bc3fd41b52777571bd80b5a7197ad4ed761795605fbb89e07"
     },
     "iridium": {
       "path": "public/assets/resources/v32/ore_iridium_depleted.png",
-      "sha256": "f06af9b595cdcb8d55aa31af7b5f0e383d336b6650dfe87fb730c9a3f753322f"
+      "sha256": "6580c463fd59c86c24802fc4b8d388fe84b5db830055357a029036c6844fec1a"
     },
     "myrrenite": {
       "path": "public/assets/resources/v32/ore_myrrenite_depleted.png",
-      "sha256": "7331d902c4c2841c97942402ecb7157688332ee3391de6dcae87bfef8391dbce"
+      "sha256": "19b776e1eb036c2afb535e739bc3a2c594cd1587af0992dbcb1c96f34f16b3d2"
     }
   }
 }
