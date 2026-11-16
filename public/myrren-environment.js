@@ -20,7 +20,7 @@
   /* Approved resource sprites: trees retain their stump fallback; ores use three native states. */
   const resourceImages=new Map();
   const resourceNames={tree:'bramblewood',oak:'alder',maple:'ironbark',elder:'elderthorn',myrren:'starroot'};
-  const oreSpriteUrl=key=>'/assets/resources/v32/'+key+'.png'+(key.endsWith('_depleted')?'?v=2':'');
+  const oreSpriteUrl=key=>'/assets/resources/v32/'+key+'.png'+(key.endsWith('_depleted')?'?v=3':'');
   function resourceSprite(ctx,n,x,y,now,isTree,oreStage){
     if(isTree&&now<n.back)return false; // tree stumps retain their existing procedural art
     // Respawn state wins over stale charges or requested drawing state.

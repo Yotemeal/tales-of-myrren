@@ -24,35 +24,35 @@
   "assets": {
     "copper": {
       "path": "public/assets/resources/v32/ore_copper_depleted.png",
-      "sha256": "0fe86b6817812b6093d153d85b891e7de52cbe5121eef4b883f01d25b3b20ba6"
+      "sha256": "7a40fe0deb78bd2a3a44e047aab4696b82c796d4aef854ddd888e00fdf113e59"
     },
     "tin": {
       "path": "public/assets/resources/v32/ore_tin_depleted.png",
-      "sha256": "b449c78e157e5092f4e328fdb3f24796f71de08342054c02bae16423096c87db"
+      "sha256": "34d52273210752ea3e8cb89793c57881d7d79c6bc517ebebf5449ca724e330e0"
     },
     "iron": {
       "path": "public/assets/resources/v32/ore_iron_depleted.png",
-      "sha256": "ff044a070c5766ac4e60316ebe9b20617a5445a254e55d3551236c8be42b8623"
+      "sha256": "ee7124bed51342a0022e009df254a402e24e534d1503ff456bd1764b7c003805"
     },
     "coal": {
       "path": "public/assets/resources/v32/ore_coal_depleted.png",
-      "sha256": "a89e9d269e01b5f7aa25463e5fb745bfd5b8ca310f8176bd8f5ed25b5d146041"
+      "sha256": "6a1ab4560f63d991ab4366a759603b14c3bee309e833df20695c955644b01218"
     },
     "black_iron": {
       "path": "public/assets/resources/v32/ore_black_iron_depleted.png",
-      "sha256": "bdacdf0f44ec1237d4bfb6481fcae32175339c4a7c8978fc307a59a55c28f479"
+      "sha256": "3b742c9acb43dc184b581b1e5d89beb1ed020b62d80c1b820caaa88769165a2f"
     },
     "chromium": {
       "path": "public/assets/resources/v32/ore_chromium_depleted.png",
-      "sha256": "12a7afc2cd6e0700bf9a481f623e1a6f6e472efb15211f9eb3646553c934a9ed"
+      "sha256": "20af7fc9229813cf67a685eabaa1dfe33507f84e4395660a2a15615d6cfb9986"
     },
     "iridium": {
       "path": "public/assets/resources/v32/ore_iridium_depleted.png",
-      "sha256": "b134a3ef8e5360dc3d3afcfed94a90d75a0b49f75d6f45be331217fc826e181d"
+      "sha256": "040cfc465adaae97d7074107549eba42597f516fdf5bc95c38bc78a8fc03d140"
     },
     "myrrenite": {
       "path": "public/assets/resources/v32/ore_myrrenite_depleted.png",
-      "sha256": "f13abd4d02e331a7dcc2047ea7ac4ad36967b4c54c89b9833fbe27d888f22d14"
+      "sha256": "179d3e15c39ad35c04cd3e564edee6c35a17bc754c47a4fe2f8a5e1c38a8ae04"
     }
   }
 }
