@@ -17,16 +17,17 @@
     const shadow=(x,y,w)=>{r(x-w/2,y-1,w,3,'#203631');r(x-w*.35,y+2,w*.7,1,'#263c34')};
     return {r,poly,crown,shadow,c};
   }
-  /* Approved resource sprites. Trees retain their existing stump behaviour; ores use native live + rubble assets only. */
+  /* Approved resource sprites: trees retain their stump fallback; ores use three native states. */
   const resourceImages=new Map();
   const resourceNames={tree:'bramblewood',oak:'alder',maple:'ironbark',elder:'elderthorn',myrren:'starroot'};
-  function resourceSprite(ctx,n,x,y,now,isTree){
+  function resourceSprite(ctx,n,x,y,now,isTree,oreStage){
     if(isTree&&now<n.back)return false; // tree stumps retain their existing procedural art
-    const depleted=!isTree&&now<n.back;
-    // Legacy resource IDs remain save-compatible; approved V3.1 art names are visual aliases.
+    // Respawn state wins over stale charges or requested drawing state.
+    const stage=isTree?'tree':now<n.back?'depleted':oreStage==='mid'?'mid':'full';
+    // Internal resource IDs stay save-compatible; these aliases affect only art.
     const name=isTree?(n.previewTree||resourceNames[n.k]):({cobalt:'black_iron',aether:'myrrenite',obsidianite:'chromium',meteorite:'iridium'}[n.k]||n.k);
     if(!name)return false;
-    const key=(isTree?'tree_':'ore_')+name+(depleted?'_depleted':'');
+    const key=(isTree?'tree_':'ore_')+name+(stage==='depleted'?'_depleted':stage==='mid'?'_mid':'');
     let entry=resourceImages.get(key);
     if(!entry){
       const img=new Image();entry={img,ready:false,failed:false};resourceImages.set(key,entry);
@@ -35,10 +36,10 @@
       img.src=isTree?'/assets/resources/'+key+'.png':'/assets/resources/v32/'+key+'.png';
     }
     if(!isTree){
-      // Preload both ore states. Harvested nodes show small, broken fragments of the
-      // very same material rather than the removed procedural rock or old PNGs.
-      const partnerKey='ore_'+name+(depleted?'':'_depleted');
-      if(!resourceImages.has(partnerKey)){
+      // Preload the full, middle and depleted sprites for seamless mining.
+      for(const suffix of ['','_mid','_depleted']){
+        const partnerKey='ore_'+name+suffix;
+        if(resourceImages.has(partnerKey))continue;
         const partner=new Image(),pair={img:partner,ready:false,failed:false};
         resourceImages.set(partnerKey,pair);
         partner.onload=()=>{pair.ready=partner.naturalWidth>0};
@@ -47,7 +48,7 @@
       }
     }
     if(!entry.ready)return false;
-    // Both live and collapsed ores use an unscaled 40×28 transparent canvas; the depleted artwork occupies a small lower portion.
+    // All three native ore sprites share the unscaled 40×28 ground anchor.
     const w=isTree?144:40;
     const h=isTree?Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth):Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth);
     const dx=Math.round(x-w/2),dy=Math.round(y-h+4);
@@ -117,10 +118,9 @@
       if(tainted){r(X-2,Y-20,1,14,'#8ca66a');r(X-1,Y-7,5,1,'#adc67d');for(let j=0;j<5;j++)r(X-20+j*9,Y+1-(j%2),3,1,'#a19460')}
     });
   }
-  function rock(ctx,n,x,y,now){
-    // The native V3.2 full ore and small matching depleted rubble are the only
-    // render sources. Missing images never re-enable rejected procedural rocks.
-    resourceSprite(ctx,n,x,y,now,false);
+  function rock(ctx,n,x,y,now,stage){
+    // Use approved original, partially broken, or depleted rubble. No old fallback.
+    resourceSprite(ctx,n,x,y,now,false,stage);
   }
   function fern(ctx,x,y,seed=0){
     sprite(ctx,'fern:'+seed%4,28,20,14,18,x,y,({r,poly})=>{r(13,7,1,11,P.deep);for(let i=0;i<5;i++)for(const d of [-1,1]){const yy=8+i*2,xx=13+d*(3+i);poly([[13,yy+2],[xx,yy-3],[xx+d*4,yy-2],[xx,yy+1]],i%2?P.leaf:P.lit)}r(13,4,2,6,P.tip)});

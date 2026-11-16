@@ -17,7 +17,7 @@ const server=http.createServer((req,res)=>{
   await page.goto('http://127.0.0.1:'+server.address().port+'/ore-v32-native-review.html',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>Array.from(document.images).every(i=>i.complete&&i.naturalWidth>0),null,{timeout:15000});
   const meta=await page.evaluate(()=>Array.from(document.images).map(i=>({src:i.getAttribute('src'),w:i.naturalWidth,h:i.naturalHeight})));
-  assert.equal(meta.length,25,'8 large, 8 depleted, 8 scaled, 1 hero');
+  assert.equal(meta.length,33,'8 large, 8 mid, 8 depleted, 8 scaled, 1 hero');
   for(const item of meta){if(item.src.includes('myrren_front'))assert.deepEqual([item.w,item.h],[24,32]);else assert.deepEqual([item.w,item.h],[40,28]);}
   assert.deepEqual(errors,[]);
   await page.screenshot({path:'/tmp/myrren-ore-v32-2x-preview.png',fullPage:true});

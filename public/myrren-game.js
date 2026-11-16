@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=96;
+window.MyrrenBuild=97;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -2863,6 +2863,16 @@ function drawTree(n,x,y,now){
   drawForestryImpact(n,x,y,now);
   ctx.restore();
 }
+// Visual-only three-stage mining. Existing successful gathers, XP, saves and
+// per-tier respawn times are unchanged.
+function oreVisualStage(n,now){
+  if(now<n.back)return 'depleted';
+  const vein=NT[n.k]?.vein;
+  if(Number.isInteger(vein)&&vein>1&&Number.isInteger(n.oreLeft)&&
+     n.oreLeft>0&&n.oreLeft<=Math.floor(vein/2))return 'mid';
+  // After respawn oreLeft=0 until the first successful hit: show FULL.
+  return 'full';
+}
 // Ore nodes sit below character height; preserve their ground anchor and mining reach.
 // Short 1px recoil and tiny fragments make contact feel tangible, with no hitbox,
 // mining timer, reward or saved-position changes.
@@ -2872,7 +2882,7 @@ function drawRock(n,x,y,now){
   // Live rocks and their small broken-down variants share the same pixel anchor.
   // The depletion art has its own reduced silhouette, not a scaled legacy rock.
   ctx.save();ctx.translate(x+recoil,y);
-  MyrrenEnvironment.rock(ctx,n,0,0,now);ctx.restore();
+  MyrrenEnvironment.rock(ctx,n,0,0,now,oreVisualStage(n,now));ctx.restore();
   if(recent){
     const colors=miningDustColors(n),p=age/360,fragments=n.mineSucceeded?5:3;
     for(let i=0;i<fragments;i++){

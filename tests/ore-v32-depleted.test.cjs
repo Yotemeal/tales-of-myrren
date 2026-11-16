@@ -47,26 +47,26 @@ test('ore renderer uses exclusively V3.2 live+depleted sprites, never old proced
   }
  }
  const rock=src.slice(src.indexOf('  function rock(ctx,'),src.indexOf('  function fern('));
- assert.match(rock,/resourceSprite\(ctx,n,x,y,now,false\)/);
+ assert.match(rock,/resourceSprite\(ctx,n,x,y,now,false,stage\)/,'three-state renderer must pass the visual stage');
  assert.doesNotMatch(rock,/sprite\(|poly\(|fillRect\(/,'old procedural rock artwork must not return');
  assert.doesNotMatch(src,/assets\/resources\/v31\/|img\.src=['"]\/assets\/resources\/ore_/);
 });
 test('depleted ore size comes from PNG not the old fractional renderer and old files are gone',()=>{
  const game=bytes('public/myrren-game.js').toString();
- const start=game.indexOf('function drawRock('),stop=game.indexOf('function parts(',start);
+ const start=game.indexOf('function oreVisualStage('),stop=game.indexOf('function parts(',start);
  assert(start>0&&stop>start);
  const code=game.slice(start,stop),scales=[],calls=[];
  const ctx={save(){},translate(){},scale(v){scales.push(v)},restore(){}};
  for(const back of [0,1200]){
   vm.runInNewContext(code+'\n drawRock({k:"iron",back:'+back+'},0,0,1000);',
-   {ctx,MyrrenEnvironment:{rock(_ctx,n){calls.push(n.back)}},R(){}},{timeout:1000});
+   {ctx,NT:{iron:{vein:5,skill:'mining'}},MyrrenEnvironment:{rock(_ctx,n){calls.push(n.back)}},R(){}},{timeout:1000});
  }
  assert.deepEqual(scales,[],'no fractional scale for live or depleted ore');
  assert.deepEqual(calls,[0,1200]);
- assert(game.includes('window.MyrrenBuild=96;'));
+ assert(game.includes('window.MyrrenBuild=97;'))
  const html=bytes('public/index.html').toString();
- assert(html.includes('/myrren-game.js?v=96'));
- assert(html.includes('/myrren-environment.js?v=16'));
+ assert(html.includes('/myrren-game.js?v=97'));
+ assert(html.includes('/myrren-environment.js?v=17'));
  for(const name of ['copper','tin','iron','coal','black_iron','myrrenite','obsidianite','meteorite'])
   assert(!fs.existsSync(path.join(root,'public/assets/resources/ore_'+name+'.png')),'obsolete '+name+' PNG remains');
  assert(!fs.existsSync(path.join(root,'public/assets/resources/v31')),'old v31 directory must be removed');

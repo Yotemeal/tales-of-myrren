@@ -17,8 +17,9 @@ const server=http.createServer((req,res)=>{
   await page.goto('http://127.0.0.1:'+server.address().port+'/ore-v32-native-review.html',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>Array.from(document.images).every(i=>i.complete&&i.naturalWidth>0),null,{timeout:15000});
   const meta=await page.evaluate(()=>Array.from(document.images).map(i=>({src:i.getAttribute('src'),w:i.naturalWidth,h:i.naturalHeight})));
-  assert.equal(meta.length,25,'eight full, eight depleted, eight comparison, one V19F');
+  assert.equal(meta.length,33,'eight full, eight mid, eight depleted, eight comparison, one V19F');
   assert.equal(meta.filter(m=>m.src.includes('_depleted.png')).length,8,'all exhausted ore variants loaded');
+  assert.equal(meta.filter(m=>m.src.includes('_mid.png')).length,8,'all middle-stage variants loaded');
   for(const m of meta){if(m.src.includes('myrren_front'))assert.deepEqual([m.w,m.h],[24,32]);else assert.deepEqual([m.w,m.h],[40,28]);}
   assert.deepEqual(errors,[]);
   await page.screenshot({path:'/tmp/myrren-ore-v32-depleted-2x.png',fullPage:true});
