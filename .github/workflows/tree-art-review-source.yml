@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Package exact checked-out game files for offline native-scale QA
-        run: tar -czf /tmp/myrren-actual-source.tar.gz public/ package.json package-lock.json tests/starter-terrain-v1-browser.test.cjs
+        run: tar -czf /tmp/myrren-actual-source.tar.gz public/ tests/ scripts/
       - uses: actions/upload-artifact@v4
         with:
           name: myrren-tree-review-game-source
