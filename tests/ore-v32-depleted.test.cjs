@@ -35,7 +35,7 @@ test('ore renderer uses exclusively V3.2 live+depleted sprites, never old proced
   set src(v){urls.push(v);this.onload?.();}
  }
  const window={};vm.runInNewContext(src,{window,Image:Img,document:{}},{timeout:1000});
- const ctx={calls:[],drawImage(...a){this.calls.push(a)}};
+ const ctx={calls:[],fillRect(){},drawImage(...a){this.calls.push(a)}};
  const aliases={copper:'copper',tin:'tin',iron:'iron',coal:'coal',cobalt:'black_iron',obsidianite:'chromium',meteorite:'iridium',aether:'myrrenite'};
  for(const [id,name] of Object.entries(aliases)){
   for(const [back,suffix] of [[0,''],[1500,'_depleted']]){
@@ -66,7 +66,7 @@ test('depleted ore size comes from PNG not the old fractional renderer and old f
  assert(game.includes('window.MyrrenBuild=98;'))
  const html=bytes('public/index.html').toString();
  assert(html.includes('/myrren-game.js?v=98'));
- assert(html.includes('/myrren-environment.js?v=23'));
+ assert(html.includes('/myrren-environment.js?v=24'));
  for(const name of ['copper','tin','iron','coal','black_iron','myrrenite','obsidianite','meteorite'])
   assert(!fs.existsSync(path.join(root,'public/assets/resources/ore_'+name+'.png')),'obsolete '+name+' PNG remains');
  assert(!fs.existsSync(path.join(root,'public/assets/resources/v31')),'old v31 directory must be removed');

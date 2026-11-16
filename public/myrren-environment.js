@@ -53,7 +53,18 @@
     const w=isTree?144:40;
     const h=isTree?Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth):Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth);
     const dx=Math.round(x-w/2),dy=Math.round(y-h+4);
-    if(!isTree){ctx.drawImage(entry.img,dx,dy,w,h);return true;}
+    if(!isTree){
+      // A low, stepped contact shadow follows the footprint of each stage.
+      const half=stage==='depleted'?13:stage==='mid'?16:19;
+      const cx=dx+20,base=dy+h-1;
+      ctx.fillStyle='rgba(16, 20, 15, 0.25)';
+      ctx.fillRect(cx-half,base-2,half*2,3);
+      ctx.fillRect(cx-half+3,base+1,half*2-6,1);
+      ctx.fillStyle='rgba(12, 14, 11, 0.48)';
+      ctx.fillRect(cx-half+2,base-2,half*2-4,2);
+      ctx.drawImage(entry.img,dx,dy,w,h);
+      return true;
+    }
     // Short staggered gusts. A gradual bend avoids cutting the trunk in half.
     const seed=hash(n.x,n.y),cycle=10500+(seed%4500),t=(now+seed%9000)%cycle;
     const gust=t<2100?Math.pow(Math.sin(Math.PI*t/2100),2):0;

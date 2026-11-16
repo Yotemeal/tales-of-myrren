@@ -65,7 +65,7 @@ test('environment paints the three correct sprite URLs with the same anchor and 
  const source=bytes('public/myrren-environment.js').toString(),urls=[];
  class Img{constructor(){this.naturalWidth=40;this.naturalHeight=28}set src(s){urls.push(s);this.onload?.();}}
  const window={};vm.runInNewContext(source,{window,Image:Img,document:{}},{timeout:1000});
- const ctx={calls:[],drawImage(...a){this.calls.push(a)}};
+ const ctx={calls:[],fillRect(){},drawImage(...a){this.calls.push(a)}};
  for(const [key,[name]] of Object.entries(mapping)){
   for(const [back,stage,suffix] of [[0,'full',''],[0,'mid','_mid'],[1400,'depleted','_depleted']]){
    ctx.calls=[];
@@ -78,6 +78,6 @@ test('environment paints the three correct sprite URLs with the same anchor and 
  const rock=source.slice(source.indexOf('  function rock('),source.indexOf('  function fern('));
  assert.doesNotMatch(rock,/sprite\(|poly\(|fillRect\(/,'old procedural rock remains removed');
  const html=bytes('public/index.html').toString();
- assert(html.includes('/myrren-game.js?v=98'));assert(html.includes('/myrren-environment.js?v=23'));
+ assert(html.includes('/myrren-game.js?v=98'));assert(html.includes('/myrren-environment.js?v=24'));
  assert(bytes('public/myrren-game.js').toString().includes('window.MyrrenBuild=98;'));
 });

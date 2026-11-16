@@ -29,7 +29,7 @@ test('renderer maps all stable legacy ore IDs onto final V3.2 assets at 1x world
  class Img{constructor(){this.naturalWidth=40;this.naturalHeight=28}
   set src(s){seen.push(s);this.onload?.();}}
  const window={};vm.runInNewContext(src,{window,Image:Img,document:{}},{timeout:1000});
- const ctx={drawImage(...args){this.calls.push(args)},calls:[]};
+ const ctx={fillRect(){},drawImage(...args){this.calls.push(args)},calls:[]};
  const keys={copper:'copper',tin:'tin',iron:'iron',coal:'coal',cobalt:'black_iron',obsidianite:'chromium',meteorite:'iridium',aether:'myrrenite'};
  for(const [key,file] of Object.entries(keys)){
   ctx.calls=[];window.MyrrenEnvironment.rock(ctx,{k:key,back:0,x:100,y:120},100,120,1000);
@@ -39,7 +39,7 @@ test('renderer maps all stable legacy ore IDs onto final V3.2 assets at 1x world
  }
  assert.match(src,/img.src=isTree\?'\/assets\/resources\/'\+key/,'tree asset mapping must remain untouched');
  const html=from('public/index.html').toString();
- assert.ok(html.includes('/myrren-environment.js?v=23'),'environment file is cache-busted');
+ assert.ok(html.includes('/myrren-environment.js?v=24'),'environment file is cache-busted');
  assert.ok(html.includes('/myrren-game.js?v=98'),'gameplay build remains unchanged');
  const game=from('public/myrren-game.js').toString();
  assert.ok(game.includes('const GAMEPLAY_SCALE=2;'));
