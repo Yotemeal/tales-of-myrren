@@ -28,56 +28,56 @@
   "assets": {
     "copper": {
       "path": "public/assets/resources/v32/ore_copper_mid.png",
-      "sha256": "03b220aa2d1d3347174795f9f8abd324ecd4d26b8ad26f7e58beafe5eadd3034"
+      "sha256": "3eb2b128c96b00024f2bfcfd5c20946e88e63b0fb62d9af08e3fe5a64b19f7af"
     },
     "tin": {
       "path": "public/assets/resources/v32/ore_tin_mid.png",
-      "sha256": "2fd4946b14e0b4236d7e6caa809429bed090130a782afeeb2a05e6bc756c1f01"
+      "sha256": "ba8a3877ac0571628c923f8d2ba7f5000324b1446264ca1fc385b3a4363a3019"
     },
     "iron": {
       "path": "public/assets/resources/v32/ore_iron_mid.png",
-      "sha256": "aed2ba03bb1aca9bbc56614bbec26748c5744c1d7128a5c5a2191078c822a1b7"
+      "sha256": "5443a85cafc563dfc9023828195cdc923b2b191304a9e5eb52a7183efec6664a"
     },
     "coal": {
       "path": "public/assets/resources/v32/ore_coal_mid.png",
-      "sha256": "cf613d039acd7cef90eb1591e6cc1482d4e0ab4f32456672f93f7781269db977"
+      "sha256": "b8e79efe178e7489e8e2057661a96fe6ed3ce5920e053b3862536f93705704c7"
     },
     "black_iron": {
       "path": "public/assets/resources/v32/ore_black_iron_mid.png",
-      "sha256": "0c01528d11a0742257ba56283af7a48adc496896e0df5269265f66cac2089f70"
+      "sha256": "ff6ae5e404576b1deeb5f7dc5c45e743ad4bfda26e41c8dd1bb0cc2504d51960"
     },
     "chromium": {
       "path": "public/assets/resources/v32/ore_chromium_mid.png",
-      "sha256": "1a762e0f57f69f5087a88e162e44719c16623a5b740c37bbb4b975dbbb0b452e"
+      "sha256": "3ff0c386811d8d173c90d3311f82799430ced9b8ad3943d1a897bbb9efb1c67f"
     },
     "iridium": {
       "path": "public/assets/resources/v32/ore_iridium_mid.png",
-      "sha256": "7b6ec6464cea644eb5cb33bad9e98d700f64ee246d53a3a361a103c4c196320a"
+      "sha256": "fa58b85c33badf0d4c8b68d3e2c88f1cb206c009ee9c08501c2efb6c830bb1d9"
     },
     "myrrenite": {
       "path": "public/assets/resources/v32/ore_myrrenite_mid.png",
-      "sha256": "0df186a45737dbd01b49cb5e72de6efe1ad56303b37c050f4853bfb7306243f8"
+      "sha256": "84a361496998c599c2c551e68733a765504331db5d87d8262da5fc76c75defc8"
     }
   },
   "full_sha256": {
-    "copper": "e39412c9967e13d92f5bab8269cbca91e7f8352bd28783405b4fa625591188d5",
-    "tin": "0359da82eeafd3b771e8719f48236e4766e6ea1944a6a921d849c3885afa7895",
-    "iron": "bb67c2b7bfe8bb09ef615e61ce75f29071cf4d90cd5b86185fc1946ad9d8f2ad",
-    "coal": "939cbeb5b522718d6d6d90e8d0b604aeef2faa9cf14890c892dd6df647c8d2ca",
-    "black_iron": "6ae18786d266fcdca2a2515604fe772de5a9b5d917e266a38a269fac9361c7f7",
-    "chromium": "3d3bee759b6dd7f24975f0e2f2ba37dcaa5337984b4fd3c5b0e4c7d8fc53c5a6",
-    "iridium": "1bf32df05bf316d3e0418125476ae090b7716369e128d3e27246b7a8fb56608b",
-    "myrrenite": "b61bd7271a9b226835291f742157dcf512ec40b26f97084fcafc05145d20f619"
+    "copper": "e11f178788ffd49949b30b243a06825bf769ef60049d0e0d033f743ca4061ed4",
+    "tin": "85c11e4670d5d77888df8de38da7f728ca03b24126d4945994acf863e5429f9b",
+    "iron": "194c44260effcb1d8b2893197c40ef3ba29cb44844b66cff5c9b9a0354eaab1e",
+    "coal": "a0345486bcbfdcdab1891ba2ac547c3fb9b4dcfc27b77400b2b9373d6ec792ce",
+    "black_iron": "2b377a507bfaf8d96828ca849f7517799bde3ec9dacc7c588f708d58671aed97",
+    "chromium": "84f8106b516a0fd5b6b7bec397d91da419e49cef21d0624e9dca34924eddc807",
+    "iridium": "471dcab79a0c4ae19f334d056eb9ef01bc52d02b4a114cc75dcb5dacc95a8189",
+    "myrrenite": "b40fc7ebd65e99662d3ad9b39e008c50b4d4388d884e5d5930eb130530bef1d0"
   },
   "depleted_sha256": {
-    "copper": "70db02b8377ed6f9eae466ac303ec585fd90d8b416acc9d18952034e211d26e6",
-    "tin": "edcd74adc69c1934ff026d1e206e0f440947c37ef7b9eed54fd940897a4ee187",
-    "iron": "d77bb92877d5f5d34d2e3ad6e8e66c2ee67ab8603c08f0366bb37ef3029987c3",
-    "coal": "33d2d1bb3713776c4ec1227b1d48636fb9138882fee650055caa5992c2af4a65",
-    "black_iron": "5e9fafaf6991bec30522f939857d3ae406a1a9289ae2ca2d6e85b673a6d918b7",
-    "chromium": "4a40c91b016ca22bc3fd41b52777571bd80b5a7197ad4ed761795605fbb89e07",
-    "iridium": "6580c463fd59c86c24802fc4b8d388fe84b5db830055357a029036c6844fec1a",
-    "myrrenite": "145b3cc0b6b3cfc8e77858cec110d856be2bcca2aae8f91eae3a03fb099af5ae"
+    "copper": "c9eda1b333ee9f112a8357ec5c219a90bd9220a2b7a98c25bac80f479a926a70",
+    "tin": "fb28805ea0126686ffc3e2a7b1f2b72b0e1afff1a05c5846864f13e3f14ee74d",
+    "iron": "45a305c6acb5ff73d629a4facaefecd7f32880b453217cede073fc99cbb6e905",
+    "coal": "7b6445d2a6926fb68ec2f9bdd102895f7dd28a709e5193a3130c26357b7a30fe",
+    "black_iron": "d96144c954f8975505cf51256369c7548236d79d553ca76d5bdc9ca6612f0528",
+    "chromium": "bc0fda1c59812199e3c597f0bf949ecdcbe45ce5c0e028c2535778c19f130256",
+    "iridium": "66b9c9dc76de98edd2f3dca7803b5670ae2ecf98bf91239553f4a44ce161f8a6",
+    "myrrenite": "fc636e84365ca21a6255ecd4958f530bd6aeb815814547fd77a5a46b47f026f7"
   },
   "hero_sha256": "748ad641d103dc91228327c91abbc058bf685fad21011f809076ed47028c69a2",
   "unchanged": [
