@@ -54,14 +54,17 @@
     const h=isTree?Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth):Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth);
     const dx=Math.round(x-w/2),dy=Math.round(y-h+4);
     if(!isTree){
-      // A low, stepped contact shadow follows the footprint of each stage.
-      const half=stage==='depleted'?13:stage==='mid'?16:19;
-      const cx=dx+20,base=dy+h-1;
-      ctx.fillStyle='rgba(16, 20, 15, 0.25)';
-      ctx.fillRect(cx-half,base-2,half*2,3);
-      ctx.fillRect(cx-half+3,base+1,half*2-6,1);
-      ctx.fillStyle='rgba(12, 14, 11, 0.48)';
-      ctx.fillRect(cx-half+2,base-2,half*2-4,2);
+      // The broad penumbra tapers into a darker contact patch under the rock.
+      const radius=stage==='depleted'?13:stage==='mid'?16:19;
+      const cx=dx+20,base=dy+h-2;
+      ctx.fillStyle='rgba(10, 16, 11, 0.20)';
+      ctx.fillRect(cx-radius+2,base-2,(radius-2)*2,1);
+      ctx.fillRect(cx-radius,base-1,radius*2,2);
+      ctx.fillRect(cx-radius+2,base+1,(radius-2)*2,1);
+      ctx.fillRect(cx-radius+6,base+2,(radius-6)*2,1);
+      ctx.fillStyle='rgba(9, 12, 9, 0.40)';
+      ctx.fillRect(cx-radius+4,base-1,(radius-4)*2,2);
+      ctx.fillRect(cx-radius+7,base+1,(radius-7)*2,1);
       ctx.drawImage(entry.img,dx,dy,w,h);
       return true;
     }
