@@ -1,0 +1,58 @@
+{
+  "version": "v32-native-collapsed-ore-state",
+  "approved_full_ores": "docs/ore-v32-final-manifest.json",
+  "size": [
+    40,
+    28
+  ],
+  "camera_zoom": 2,
+  "render_strategy": "native transparent full 40x28; depleted composition only occupies lower 13-15 pixels",
+  "legacy_ore_png_sets_removed": true,
+  "legacy_procedural_ore_fallback_removed": true,
+  "does_not_change": [
+    "mining attempts",
+    "resource respawn timestamps",
+    "collisions",
+    "world placement",
+    "skills and XP",
+    "save formats",
+    "fixed 2x camera",
+    "trees",
+    "character",
+    "equipment"
+  ],
+  "assets": {
+    "copper": {
+      "path": "public/assets/resources/v32/ore_copper_depleted.png",
+      "sha256": "f4fae4c18a11cfc90cef76c9c0fe18e4309cc711d43bb2df816f954508980a12"
+    },
+    "tin": {
+      "path": "public/assets/resources/v32/ore_tin_depleted.png",
+      "sha256": "00e937082b36b7bd21754a1efcae45dd647e82d4702997ec5862176b9aee816c"
+    },
+    "iron": {
+      "path": "public/assets/resources/v32/ore_iron_depleted.png",
+      "sha256": "85829469a37768fc5ebd6d260bf1a9b87b0444b678c42b1581c795b4f144544b"
+    },
+    "coal": {
+      "path": "public/assets/resources/v32/ore_coal_depleted.png",
+      "sha256": "7740d52f86881e1b6141931911e23f13a12dbea9fd0e8b32a4e7763cf33a43db"
+    },
+    "black_iron": {
+      "path": "public/assets/resources/v32/ore_black_iron_depleted.png",
+      "sha256": "c89ce3f220407449c56cd462ade140cd31b022d43465e92cf51def6c428de6aa"
+    },
+    "chromium": {
+      "path": "public/assets/resources/v32/ore_chromium_depleted.png",
+      "sha256": "472b16e5a2d1d93973ce31596692b95bacaccf36209be4079bff3c9dd264352d"
+    },
+    "iridium": {
+      "path": "public/assets/resources/v32/ore_iridium_depleted.png",
+      "sha256": "f06af9b595cdcb8d55aa31af7b5f0e383d336b6650dfe87fb730c9a3f753322f"
+    },
+    "myrrenite": {
+      "path": "public/assets/resources/v32/ore_myrrenite_depleted.png",
+      "sha256": "7331d902c4c2841c97942402ecb7157688332ee3391de6dcae87bfef8391dbce"
+    }
+  }
+}

@@ -17,15 +17,16 @@
     const shadow=(x,y,w)=>{r(x-w/2,y-1,w,3,'#203631');r(x-w*.35,y+2,w*.7,1,'#263c34')};
     return {r,poly,crown,shadow,c};
   }
-  /* Optional approved resource sprites. Missing images safely retain procedural art. */
+  /* Approved resource sprites. Trees retain their existing stump behaviour; ores use native live + rubble assets only. */
   const resourceImages=new Map();
   const resourceNames={tree:'bramblewood',oak:'alder',maple:'ironbark',elder:'elderthorn',myrren:'starroot'};
   function resourceSprite(ctx,n,x,y,now,isTree){
-    if(now<n.back)return false; // preserve harvested stump / depleted rock visuals
+    if(isTree&&now<n.back)return false; // tree stumps retain their existing procedural art
+    const depleted=!isTree&&now<n.back;
     // Legacy resource IDs remain save-compatible; approved V3.1 art names are visual aliases.
     const name=isTree?(n.previewTree||resourceNames[n.k]):({cobalt:'black_iron',aether:'myrrenite',obsidianite:'chromium',meteorite:'iridium'}[n.k]||n.k);
     if(!name)return false;
-    const key=(isTree?'tree_':'ore_')+name;
+    const key=(isTree?'tree_':'ore_')+name+(depleted?'_depleted':'');
     let entry=resourceImages.get(key);
     if(!entry){
       const img=new Image();entry={img,ready:false,failed:false};resourceImages.set(key,entry);
@@ -33,8 +34,20 @@
       img.onerror=()=>{entry.failed=true};
       img.src=isTree?'/assets/resources/'+key+'.png':'/assets/resources/v32/'+key+'.png';
     }
+    if(!isTree){
+      // Preload both ore states. Harvested nodes show small, broken fragments of the
+      // very same material rather than the removed procedural rock or old PNGs.
+      const partnerKey='ore_'+name+(depleted?'':'_depleted');
+      if(!resourceImages.has(partnerKey)){
+        const partner=new Image(),pair={img:partner,ready:false,failed:false};
+        resourceImages.set(partnerKey,pair);
+        partner.onload=()=>{pair.ready=partner.naturalWidth>0};
+        partner.onerror=()=>{pair.failed=true};
+        partner.src='/assets/resources/v32/'+partnerKey+'.png';
+      }
+    }
     if(!entry.ready)return false;
-    // Native 40px ore sources draw at world 1:1; tree rendering remains unchanged.
+    // Both live and collapsed ores use an unscaled 40×28 transparent canvas; the depleted artwork occupies a small lower portion.
     const w=isTree?144:40;
     const h=isTree?Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth):Math.round(entry.img.naturalHeight*w/entry.img.naturalWidth);
     const dx=Math.round(x-w/2),dy=Math.round(y-h+4);
@@ -105,15 +118,9 @@
     });
   }
   function rock(ctx,n,x,y,now){
-    if(resourceSprite(ctx,n,x,y,now,false))return;
-    const live=now>=n.back;
-    sprite(ctx,`rock:${n.k}:${live}:${hash(n.x,n.y)%3}`,42,30,21,26,x,y,({r,poly,shadow})=>{
-      shadow(22,27,34);poly([[4,23],[4,15],[9,7],[19,3],[30,7],[37,17],[37,25],[12,27]],P.ink);
-      poly([[6,22],[9,13],[18,6],[27,7],[34,16],[35,24],[14,25]],P.stone);
-      poly([[9,13],[18,6],[27,7],[22,14],[12,18]],P.stoneL);poly([[22,14],[27,7],[34,16],[35,24],[26,23]],'#495a55');r(18,15,2,7,P.deep);r(20,14,5,2,P.deep);
-      r(6,21,9,3,P.leaf);r(8,20,5,2,P.lit);r(29,23,7,2,P.shade);
-      if(live){const pal={copper:['#9c694d','#d8aa76'],tin:['#8fa4a2','#c6d0b8'],iron:['#657888','#a3b2b3'],coal:['#30343f','#67717c'],cobalt:['#476b95','#8bb5cc'],aether:['#7958a7','#c2a0f1'],obsidianite:['#642b3f','#f06465'],meteorite:['#6c9abd','#a8efff']}[n.k]||['#657888','#a3b2b3'];for(const [xx,yy] of [[13,13],[25,11],[26,20]]){poly([[xx-2,yy],[xx+2,yy-3],[xx+5,yy],[xx+3,yy+4],[xx-2,yy+3]],P.ink);r(xx-1,yy,5,3,pal[0]);r(xx,yy-1,3,2,pal[1])}}
-    });
+    // The native V3.2 full ore and small matching depleted rubble are the only
+    // render sources. Missing images never re-enable rejected procedural rocks.
+    resourceSprite(ctx,n,x,y,now,false);
   }
   function fern(ctx,x,y,seed=0){
     sprite(ctx,'fern:'+seed%4,28,20,14,18,x,y,({r,poly})=>{r(13,7,1,11,P.deep);for(let i=0;i<5;i++)for(const d of [-1,1]){const yy=8+i*2,xx=13+d*(3+i);poly([[13,yy+2],[xx,yy-3],[xx+d*4,yy-2],[xx,yy+1]],i%2?P.leaf:P.lit)}r(13,4,2,6,P.tip)});

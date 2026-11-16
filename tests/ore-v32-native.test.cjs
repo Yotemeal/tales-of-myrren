@@ -18,22 +18,11 @@ test('all eight V3.2 native PNGs have exact approved checksums and 40x28 RGBA ge
  }
  assert.equal(hash(from('public/assets/myrren-v19f/myrren_front_game_ready_24x32.png')),info.hero_sha256);
 });
-test('seven originals retain their exact pixels; only Iron gets the 37-pixel shadow blend',()=>{
- for(const [name,asset] of Object.entries(info.assets)){
-  const previous=from('public/assets/resources/v31/ore_'+name+'.png'),current=from(asset.path);
-  if(name!=='iron'){assert(previous.equals(current),name+' must remain byte-identical');continue;}
-  const a=decode(previous).rgba,b=decode(current).rgba;
-  let changed=0;
-  for(let y=0;y<28;y++)for(let x=0;x<40;x++){
-   const p=(y*40+x)*4;
-   assert.equal(a[p+3],b[p+3],'Iron silhouette/alpha changed at '+x+','+y);
-   if(a[p]!==b[p]||a[p+1]!==b[p+1]||a[p+2]!==b[p+2]){
-    changed++;
-    assert(y>=23&&y<=27&&x>=3&&x<20,'Iron edit exceeded approved lower-left shadow');
-   }
-  }
-  assert.equal(changed,37,'unexpected number of Iron polish pixels');
- }
+test('obsolete V3.1 and pre-V3.1 ore sprite sets have been retired',()=>{
+ for(const name of ['copper','tin','iron','coal','black_iron','chromium','iridium','myrrenite'])
+  assert(!fs.existsSync(path.join(root,'public/assets/resources/v31/ore_'+name+'.png')),name+' historical V3.1 asset should be gone');
+ for(const name of ['copper','tin','iron','coal','black_iron','myrrenite','obsidianite','meteorite'])
+  assert(!fs.existsSync(path.join(root,'public/assets/resources/ore_'+name+'.png')),name+' old root ore should be gone');
 });
 test('renderer maps all stable legacy ore IDs onto final V3.2 assets at 1x world size',()=>{
  const src=from('public/myrren-environment.js').toString('utf8'),seen=[];
@@ -50,9 +39,9 @@ test('renderer maps all stable legacy ore IDs onto final V3.2 assets at 1x world
  }
  assert.match(src,/img.src=isTree\?'\/assets\/resources\/'\+key/,'tree asset mapping must remain untouched');
  const html=from('public/index.html').toString();
- assert.ok(html.includes('/myrren-environment.js?v=15'),'environment file is cache-busted');
- assert.ok(html.includes('/myrren-game.js?v=95'),'gameplay build remains unchanged');
+ assert.ok(html.includes('/myrren-environment.js?v=16'),'environment file is cache-busted');
+ assert.ok(html.includes('/myrren-game.js?v=96'),'gameplay build remains unchanged');
  const game=from('public/myrren-game.js').toString();
  assert.ok(game.includes('const GAMEPLAY_SCALE=2;'));
- assert.ok(game.includes('const oreDrawScale=now<n.back?0.72:1;'));
+ assert.doesNotMatch(game,/oreDrawScale|ctx\.scale\(\.72,\.72\)/,'deprecated ore scaling must remain absent');
 });
