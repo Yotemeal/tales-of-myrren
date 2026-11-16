@@ -51,7 +51,7 @@
     },
     "myrrenite": {
       "path": "public/assets/resources/v32/ore_myrrenite.png",
-      "sha256": "d02345b4bf7ebe2636106038fe92da45a58f09502521be2e5a5f98c30a5e15da"
+      "sha256": "b61bd7271a9b226835291f742157dcf512ec40b26f97084fcafc05145d20f619"
     }
   },
   "depleted_art": "public/assets/resources/v32/ore_{material}_depleted.png",

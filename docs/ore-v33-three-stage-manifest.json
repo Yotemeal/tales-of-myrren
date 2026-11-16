@@ -56,7 +56,7 @@
     },
     "myrrenite": {
       "path": "public/assets/resources/v32/ore_myrrenite_mid.png",
-      "sha256": "4264c756adb02a280c02bbfd0d053954a2c319a66716d9b98fa79c4291bb904e"
+      "sha256": "0df186a45737dbd01b49cb5e72de6efe1ad56303b37c050f4853bfb7306243f8"
     }
   },
   "full_sha256": {
@@ -67,7 +67,7 @@
     "black_iron": "6ae18786d266fcdca2a2515604fe772de5a9b5d917e266a38a269fac9361c7f7",
     "chromium": "3d3bee759b6dd7f24975f0e2f2ba37dcaa5337984b4fd3c5b0e4c7d8fc53c5a6",
     "iridium": "1bf32df05bf316d3e0418125476ae090b7716369e128d3e27246b7a8fb56608b",
-    "myrrenite": "d02345b4bf7ebe2636106038fe92da45a58f09502521be2e5a5f98c30a5e15da"
+    "myrrenite": "b61bd7271a9b226835291f742157dcf512ec40b26f97084fcafc05145d20f619"
   },
   "depleted_sha256": {
     "copper": "70db02b8377ed6f9eae466ac303ec585fd90d8b416acc9d18952034e211d26e6",
@@ -77,7 +77,7 @@
     "black_iron": "5e9fafaf6991bec30522f939857d3ae406a1a9289ae2ca2d6e85b673a6d918b7",
     "chromium": "4a40c91b016ca22bc3fd41b52777571bd80b5a7197ad4ed761795605fbb89e07",
     "iridium": "6580c463fd59c86c24802fc4b8d388fe84b5db830055357a029036c6844fec1a",
-    "myrrenite": "19b776e1eb036c2afb535e739bc3a2c594cd1587af0992dbcb1c96f34f16b3d2"
+    "myrrenite": "145b3cc0b6b3cfc8e77858cec110d856be2bcca2aae8f91eae3a03fb099af5ae"
   },
   "hero_sha256": "748ad641d103dc91228327c91abbc058bf685fad21011f809076ed47028c69a2",
   "unchanged": [
