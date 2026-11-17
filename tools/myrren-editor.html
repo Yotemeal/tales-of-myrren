@@ -7,8 +7,9 @@
 #playtestPanel[open]{position:fixed;inset:0;margin:0;width:100%;height:100%;max-width:none;max-height:none;padding:0;border:0;background:#151d19;color:inherit;display:grid;grid-template-rows:auto minmax(0,1fr);z-index:20}#playtestFrame{width:100%;height:100%;border:0}#mapIssues{display:grid;gap:4px;max-height:250px;overflow:auto}#mapIssues button{text-align:left}#regionSettings label,#spriteShortcuts label{display:flex;margin:5px 0}#checkpointComparison{max-width:100%}
 .playtestViewport{min-width:0;min-height:0;overflow:auto;display:flex;justify-content:safe center;align-items:safe center}#playtestFrame{flex:none;background:#141b17}#playtestFrame[data-mode="portrait"]{width:393px;height:852px}#playtestFrame[data-mode="landscape"]{width:852px;height:393px}#playtestPanel[open]{grid-template-rows:auto auto minmax(0,1fr)}#inspectDetails{padding:0 14px 8px;margin:0;white-space:pre-wrap;color:#ded9c8}#treeArtwork label,#stampPanel label{display:flex;margin:5px 0}#resourcePreview{display:flex;gap:4px;margin:6px 0;flex-wrap:wrap}#resourcePreview figure{margin:0;text-align:center}#resourcePreview canvas{width:65px;height:auto;background:#384635}#releasePanel{padding:16px}#releasePanel nav{padding:0 0 12px}#releasePanel figure{margin:0;min-width:0}#releasePanel canvas{max-width:100%;height:auto;background:#303a31;image-rendering:pixelated}#releasePanel figcaption{margin:6px 0}.reviewGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .quickStart{margin:10px 12px 0;padding:12px 16px;background:#243329;border:1px solid #425746;border-radius:8px}.quickStart summary{font-weight:650;cursor:pointer}.quickStart ol{margin:8px 0;padding-left:24px}.quickStart li+li{margin-top:5px}.quickStart small{display:block}#gameAssets{margin:10px 12px;padding:12px 16px;background:#243329;border:1px solid #425746;border-radius:8px}#gameAssets nav{padding:8px 0}#assetChanges{max-height:160px;overflow:auto;padding-left:22px}#assetImage{display:block;max-width:min(100%,480px);max-height:260px;object-fit:contain;image-rendering:pixelated;background:#19251e}#gameAssets p{margin:6px 0}#presetSettings{border:1px solid #415746;border-radius:7px;padding:8px}#presetSettings label{display:flex;margin-block:5px}.primaryAction{background:#c4dda8;color:#19271b;border-color:#c4dda8;font-weight:650}
+#spritePanel .sprite-workspace{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}#spritePanel .sprite-workspace figure{min-width:0}.referencePanel{grid-column:2;grid-row:1 / span 2;min-width:0}.referencePanel nav{padding:6px 0;gap:6px}.pixelViewport,#referenceViewport{overflow:auto;max-height:60vh;border:1px solid #526556;background:#1b251f}#pixelCanvasWrap,#referenceInner{position:relative;width:max-content;line-height:0}#pixels,#referenceImage{display:block;max-width:none!important;image-rendering:pixelated;background:repeating-conic-gradient(#364238 0% 25%,#263128 0% 50%) 0 0/16px 16px}#referenceMarker{position:absolute;outline:2px solid #fff;box-shadow:0 0 0 3px #212f23;pointer-events:none}#referenceSwatch{width:24px;height:24px;display:inline-block;border:1px solid #869888;border-radius:3px}#referenceCode{width:8ch}#recoveryStatus{color:#c5d7ba}#spritePanel .previewFigure{grid-column:1;grid-row:2}
 </style>
-<header><h1>Myrren Editor</h1><button id="mapTab" aria-pressed="true">World map</button><button id="spriteTab" aria-pressed="false">Character</button><button id="undo">Undo</button><button id="redo">Redo</button><button id="checkAppUpdate" hidden type="button">Check for upgrade</button><button id="installAppUpdate" hidden type="button">Upgrade from GitHub</button><small id="appUpdateStatus" role="status"></small><button id="releaseTab" aria-pressed="false">Release review</button><button id="saveLocal" hidden>Save to local game</button><a id="playLocal" href="/" target="myrren-playtest" hidden style="color:#dbc186">Open local game</a></header>
+<header><h1>Myrren Editor</h1><button id="mapTab" aria-pressed="true">World map</button><button id="spriteTab" aria-pressed="false">Character</button><button id="undo">Undo</button><button id="redo">Redo</button><button id="checkAppUpdate" hidden type="button">Check for upgrade</button><button id="installAppUpdate" hidden type="button">Upgrade from GitHub</button><small id="appUpdateStatus" role="status"></small><button id="recoverDraft" hidden type="button">Restore recovery draft</button><small id="recoveryStatus" role="status"></small><button id="releaseTab" aria-pressed="false">Release review</button><button id="saveLocal" hidden>Save to local game</button><a id="playLocal" href="/" target="myrren-playtest" hidden style="color:#dbc186">Open local game</a></header>
 <dialog id="playtestPanel"><nav>
 <button id="exitPlaytest" type="button">Return to editor</button>
 <label>Viewport <select id="devicePreview"><option value="desktop">Desktop</option><option value="portrait">iPhone portrait · 393 × 852</option><option value="landscape">iPhone landscape · 852 × 393</option></select></label>
@@ -90,8 +91,15 @@
 <details><summary>Playtest exported map</summary><p>In a checkout of the editor branch, run <code>node tools/preview-myrren.mjs</code> and open the editor address it prints. Select <strong>Playtest from here</strong> and click the map to try the current draft. Use <strong>Save to local game</strong> when you want to keep it. Keep one of each service building for the playtest.</p></details></aside></main></section>
 <section id="spritePanel" hidden><main>
 <div class="sprite-workspace">
-<figure><figcaption>Pixel editor</figcaption><canvas width="24" height="32" id="pixels" aria-label="Character pixel canvas"></canvas></figure>
-<figure><figcaption>Live preview</figcaption><canvas width="96" height="128" id="preview" aria-label="Character animation preview"></canvas>
+<figure><figcaption>Pixel editor</figcaption><label>Magnify <select id="editorZoom">
+<option value="auto">Auto</option><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option><option value="12">12×</option><option value="16">16×</option><option value="32">32×</option></select></label><div class="pixelViewport"><div id="pixelCanvasWrap"><canvas width="24" height="32" id="pixels" aria-label="Editable pixels"></canvas></div></div></figure>
+<figure class="referencePanel"><figcaption>Reference image</figcaption>
+<nav><button id="openReference" type="button">Open reference image</button><label>Magnify <select id="referenceZoom" disabled>
+<option value="fit">Fit</option><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option><option value="16">16×</option><option value="32">32×</option></select></label></nav>
+<div id="referenceViewport" hidden><div id="referenceInner"><canvas id="referenceImage" aria-label="Click a reference pixel to sample its colour"></canvas><span id="referenceMarker" hidden></span></div></div>
+<nav><span id="referenceSwatch" aria-hidden="true"></span><label>Hex <input id="referenceCode" type="text" readonly></label><button id="copyReferenceCode" type="button" disabled>Copy</button></nav>
+<small id="referencePoint" role="status">Open an image, zoom in, then click a pixel to set the brush colour.</small></figure>
+<figure class="previewFigure"><figcaption>Live preview</figcaption><canvas width="96" height="128" id="preview" aria-label="Character animation preview"></canvas>
 <figcaption>Gameplay scale (2×)</figcaption><canvas id="gameScale" width="48" height="64" aria-label="Actual gameplay scale preview"></canvas>
 <div class="preview-controls">
 <button id="playback" type="button">Pause</button>
@@ -101,7 +109,7 @@
 <output id="previewFrame"></output>
 </div></figure>
 </div>
-<aside><label>Sheet <select id="sheet"><option value="0">Idle</option><option value="1">Walk</option><option value="2">Standing punch</option><option value="3">Running punch</option><option value="4">Sword</option></select></label>
+<aside><label>Sheet <select id="sheet"><option value="0">Idle</option><option value="1">Walk</option><option value="2">Standing punch</option><option value="3">Running punch</option><option value="4">Sword</option><option id="assetSheet" value="5" hidden disabled>Asset PNG</option></select></label>
 <label id="swordMode" hidden><input id="runningSword" type="checkbox"> Running sword</label>
 <label id="strideControl" hidden>Stride pose <select id="stride"></select></label>
 <label><input id="onion" type="checkbox"> Onion skin</label>
@@ -117,7 +125,7 @@
 <button id="nudgeDown" type="button" aria-label="Nudge down">↓</button>
 <button id="nudgeRight" type="button" aria-label="Nudge right">→</button>
 <button id="clearPixels" type="button">Clear selection</button></details>
-<button id="importPng">Import sheet PNG</button><button id="exportPng">Export sheet PNG</button><button id="saveSprite">Export project</button>
+<button id="openAssetPng" type="button">Open asset PNG</button><button id="importPng">Import sheet PNG</button><button id="exportPng">Export sheet PNG</button><button id="saveSprite">Export project</button>
 <small>Replace colour by clicking the original pixel after setting the new colour. PNG exports preserve the native frame layout.</small><small id="spriteMessage" role="status"></small></aside></main></section>
 <section id="releasePanel" hidden>
 <nav><label>Compare with <select id="reviewReference"></select></label>
@@ -131,6 +139,7 @@
 <figure><figcaption>Sprites before</figcaption><canvas id="reviewSpriteBefore" aria-label="Sprite sheet before changes"></canvas></figure>
 <figure><figcaption>Sprites after</figcaption><canvas id="reviewSpriteAfter" aria-label="Sprite sheet after changes"></canvas></figure>
 </div></section>
+<input type="file" id="referenceFile" accept="image/*" hidden><input type="file" id="assetPngFile" accept="image/png" hidden>
 <input type="file" id="file" accept=".json,application/json" hidden><input type="file" id="png" accept="image/png" hidden>
 <script>
 /* Shared village geometry: rendering and collision use the same water field. */
@@ -1250,14 +1259,17 @@ q('deleteCheckpoint').onclick=()=>{
 function project(withCheckpoints=true){
  const data=structuredClone({format:'myrren-editor-1',objects,tiles,bounds,regions});
  data.sheets=atlases.map(c=>c.toDataURL('image/png'));
+ if(assetName)data.editableAsset={name:assetName,png:assetCanvas.toDataURL('image/png')};
  if(withCheckpoints){data.checkpoints=checkpoints;data.stamps=stamps;data.playtestPresets=playtestPresets;}
  if(withCheckpoints&&releaseBaseline)data.releaseBaseline=releaseBaseline;
  return data;
 }
 function snapshot(){return JSON.stringify(project())}
 function record(before){
- if(snapshot()===before)return;
+ const current=snapshot();
+ if(current===before)return;
  past.push(before);if(past.length>35)past.shift();future.length=0;
+ queueRecovery(current);
 }
 async function sheetImage(url,canvas){
  const image=new Image();image.src=url;await image.decode();
@@ -1270,18 +1282,24 @@ function applyImage(canvas,image){
 async function restore(data){
  const sheets=initialSheets.map((source,index)=>data.sheets[index]||source);
  const images=await Promise.all(sheets.map((source,index)=>sheetImage(source,atlases[index])));
+ let editable=null;
+ if(data.editableAsset){
+  editable=new Image();editable.src=data.editableAsset.png;await editable.decode();
+  if(editable.width>512||editable.height>512)throw Error('Editable asset PNG dimensions are too large.');
+ }
+ setEditableAsset(editable,data.editableAsset?.name);
  images.forEach((image,i)=>applyImage(atlases[i],image));
  objects=data.objects;tiles=data.tiles;bounds={...defaults,...data.bounds};selected=-1;
  regions=structuredClone(data.regions?.rules?.length?data.regions:{tiles:{},rules:regionDefaults});
  checkpoints=data.checkpoints||[];stamps=data.stamps||[];releaseBaseline=data.releaseBaseline||null;
  playtestPresets=data.playtestPresets||[];lastPlaytestPoint=null;syncPlaytestPresets();
  stampSelection=null;validationMarker=null;pixelSelection=null;
- terrainDirty=true;syncBounds();syncRegionFields();syncCheckpoints();syncStamps();drawMap();drawSprite();
+ terrainDirty=true;syncBounds();syncRegionFields();syncCheckpoints();syncStamps();drawMap();updateFrames();
 }
 async function history(from,to){
  if(busy||gesture||spriteGesture||!from.length)return;
  busy=true;
- try{const current=snapshot();await restore(JSON.parse(from.at(-1)));from.pop();to.push(current)}
+ try{const current=snapshot();await restore(JSON.parse(from.at(-1)));from.pop();to.push(current);queueRecovery()}
  catch(error){status(error.message)}
  finally{busy=false}
 }
@@ -1475,9 +1493,10 @@ const timings=[[110],[110,110,110,110,110,110],[55,30,35,105,45,50],[55,30,25,10
 let playing=true,previewIndex=0,frameElapsed=0,strideElapsed=0,previousTick=null,previewRequest=null;
 const sheetIndex=()=>Number(q('sheet').value);
 const running=()=>sheetIndex()===3||(sheetIndex()===4&&q('runningSword').checked);
-const frameCount=()=>timings[sheetIndex()].length;
+const frameCount=()=>timings[sheetIndex()]?.length??1;
 function spriteRegion(frame,stride=q('stride').selectedIndex){
  const sheet=sheetIndex(),direction=q('direction').selectedIndex;
+ if(sheet===5)return {canvas:assetCanvas,x:0,y:0,w:assetCanvas.width,h:assetCanvas.height};
  const canvas=atlases[sheet];
  if(sheet===0)return {canvas,x:direction*24,y:0,w:24,h:32,footX:12,footY:30};
  if(sheet===1)return {canvas,x:frame*24,y:direction*32,w:24,h:32,footX:12,footY:30};
@@ -1523,14 +1542,16 @@ function drawPreview(){
   context.save();context.translate(margin*scale,margin*scale);
   drawCell(context,previewIndex,scale,true,1,stride);context.restore();
  }
- const label=frameCount()>1?'Frame '+(previewIndex+1)+' / '+frameCount():'Idle pose';
+ const label=frameCount()>1?'Frame '+(previewIndex+1)+' / '+frameCount():sheetIndex()===5?'Still image':'Idle pose';
  if(q('previewFrame').textContent!==label)q('previewFrame').textContent=label;
 }
 function drawSprite(){
  const frame=Math.max(0,q('frame').selectedIndex),count=frameCount();
  const {w,h,footX,footY}=spriteRegion(frame);
  fitCanvas(pixelCtx,w,h);
- pixels.style.width=w*12+'px';
+ const zoom=q('editorZoom').value;
+ const autoScale=sheetIndex()===5?Math.max(1,Math.min(12,Math.floor(360/w))):12;
+ pixels.style.width=w*(zoom==='auto'?autoScale:Number(zoom))+'px';
  if(q('onion').checked&&count>1){
   drawCell(pixelCtx,(frame+count-1)%count,1,false,.24);
   drawCell(pixelCtx,(frame+1)%count,1,false,.14);
@@ -1540,7 +1561,7 @@ function drawSprite(){
   const {x,y,w,h}=pixelSelection;
   pixelCtx.fillStyle='#7acbff55';pixelCtx.fillRect(x,y,w,h);
  }
- if(q('guides').checked){
+ if(q('guides').checked&&sheetIndex()!==5){
   pixelCtx.fillStyle='#ffe594';pixelCtx.fillRect(footX-3,footY,7,1);
   pixelCtx.fillRect(footX,footY-2,1,5);
   const hand=grip(frame);
@@ -1604,6 +1625,8 @@ function stepFrame(offset){
 function updateFrames(){
  stopPreviewClock();
  q('frame').replaceChildren(...Array.from({length:frameCount()},(_,i)=>new Option(String(i+1))));
+ q('importPng').disabled=sheetIndex()===5;
+ q('direction').disabled=sheetIndex()===5;
  q('swordMode').hidden=sheetIndex()!==4;q('strideControl').hidden=!running();
  for(const id of ['playback','playbackSpeed','previousFrame','nextFrame'])q(id).disabled=frameCount()<=1;
  resetPreviewFrame();schedulePreview();
@@ -1670,7 +1693,7 @@ function paintPixel(event){
  const sample=g.getImageData(sx,sy,1,1).data;
  if(!sample[3])return;
  if(mode==='Sample'){q('ink').value='#'+Array.from(sample.slice(0,3),v=>v.toString(16).padStart(2,'0')).join('');return}
- for(const sheet of mode==='Replace colour in all sheets'?atlases:[canvas]){
+ for(const sheet of mode==='Replace colour in all sheets'&&sheetIndex()!==5?atlases:[canvas]){
   const context=sheet.getContext('2d'),image=context.getImageData(0,0,sheet.width,sheet.height);
   for(let i=0;i<image.data.length;i+=4){
    if(sample.every((value,channel)=>image.data[i+channel]===value))image.data.set(rgb,i);
@@ -1702,7 +1725,10 @@ q('save').onclick=q('saveSprite').onclick=exportProject;
 q('exportPng').onclick=()=>{
  if(busy)return;
  const index=+q('sheet').value;
- atlases[index].toBlob(blob=>{if(blob)download(blob,['myrren_idle_4dir_native.png','myrren_walk_4x6_native.png','myrren_punch_4dir_native.png','myrren_punch_stride_4dir_native.png','myrren_sword_body_4dir.png'][index])});
+ const canvas=index===5?assetCanvas:atlases[index];
+ const name=index===5?assetName.replace(/\.png$/i,'')+'-edited.png':
+  ['myrren_idle_4dir_native.png','myrren_walk_4x6_native.png','myrren_punch_4dir_native.png','myrren_punch_stride_4dir_native.png','myrren_sword_body_4dir.png'][index];
+ canvas.toBlob(blob=>{if(blob)download(blob,name)},'image/png');
 };
 q('importPng').onclick=()=>q('png').click();
 q('png').onchange=async()=>{
@@ -1713,6 +1739,102 @@ q('png').onchange=async()=>{
  catch(error){status(error.message)}
  finally{URL.revokeObjectURL(url);busy=false}
 };
+const referenceCanvas=q('referenceImage');
+const referenceCtx=referenceCanvas.getContext('2d',{willReadFrequently:true});
+let referenceSample=null,referenceLoaded=false;
+function scaleReference(){
+ const zoom=q('referenceZoom').value;
+ q('referenceInner').style.width=zoom==='fit'?'100%':referenceCanvas.width*Number(zoom)+'px';
+ referenceCanvas.style.width='100%';
+}
+q('referenceZoom').onchange=scaleReference;
+q('editorZoom').onchange=drawSprite;
+q('openReference').onclick=()=>q('referenceFile').click();
+async function decodeLocalImage(file){
+ const url=URL.createObjectURL(file);
+ try{
+  const image=new Image();
+  image.src=url;await image.decode();
+  return image;
+ }finally{URL.revokeObjectURL(url)}
+}
+q('referenceFile').onchange=async()=>{
+ const input=q('referenceFile'),file=input.files[0];
+ input.value='';
+ if(!file)return;
+ try{
+  const image=await decodeLocalImage(file);
+  if(image.width*image.height>24000000||image.width>8192||image.height>8192)
+   throw Error('Use a reference under 24 megapixels and 8,192 pixels per side.');
+  referenceCanvas.width=image.width;referenceCanvas.height=image.height;
+  referenceCtx.drawImage(image,0,0);
+  referenceLoaded=true;referenceSample=null;
+  q('referenceViewport').hidden=false;q('referenceMarker').hidden=true;
+  q('referenceZoom').disabled=false;q('referenceZoom').value='fit';scaleReference();
+  q('referenceCode').value='';q('copyReferenceCode').disabled=true;
+  q('referenceSwatch').style.backgroundColor='transparent';
+  q('referencePoint').textContent=image.width+' × '+image.height+' px. Click the image to sample.';
+ }catch(error){q('referencePoint').textContent=error.message||'Could not open the reference image.'}
+};
+function hexColour(rgb){
+ return '#'+Array.from(rgb,value=>value.toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+function sampleReference(event){
+ if(!referenceLoaded)return;
+ const [u,v]=position(event,referenceCanvas);
+ if(u<0||v<0||u>=1||v>=1)return;
+ const {width,height}=referenceCanvas,x=Math.floor(u*width),y=Math.floor(v*height);
+ const rgba=referenceCtx.getImageData(x,y,1,1).data;
+ referenceSample=rgba[3]?hexColour(rgba.slice(0,3)):null;
+ const marker=q('referenceMarker');
+ Object.assign(marker.style,{left:x/width*100+'%',top:y/height*100+'%',width:100/width+'%',height:100/height+'%'});
+ marker.hidden=false;
+ q('referenceCode').value=referenceSample||'';
+ q('copyReferenceCode').disabled=!referenceSample;
+ q('referenceSwatch').style.backgroundColor=referenceSample||'transparent';
+ q('referencePoint').textContent='Pixel '+x+', '+y+(referenceSample?' · alpha '+rgba[3]+'/255 · brush colour set':' · transparent');
+ if(referenceSample){
+  q('ink').value=referenceSample;
+  if(!q('brush').value.startsWith('Replace'))q('brush').value='Paint';
+ }
+}
+referenceCanvas.onclick=sampleReference;
+q('copyReferenceCode').onclick=async()=>{
+ if(!referenceSample)return;
+ const field=q('referenceCode');
+ field.focus();field.select();
+ try{await navigator.clipboard.writeText(referenceSample)}
+ catch{document.execCommand('copy')}
+};
+const assetCanvas=document.createElement('canvas');
+let assetName=null;
+function setEditableAsset(image,name){
+ assetName=name;
+ if(image){
+  assetCanvas.width=image.width;assetCanvas.height=image.height;
+  assetCanvas.getContext('2d').drawImage(image,0,0);
+ }
+ q('assetSheet').hidden=!image;q('assetSheet').disabled=!image;
+ q('assetSheet').textContent=name||'Asset PNG';
+ if(!image&&sheetIndex()===5)q('sheet').value='0';
+}
+q('openAssetPng').onclick=()=>q('assetPngFile').click();
+q('assetPngFile').onchange=async()=>{
+ const input=q('assetPngFile'),file=input.files[0];
+ input.value='';
+ if(!file||busy||spriteGesture)return;
+ busy=true;
+ try{
+  const image=await decodeLocalImage(file);
+  if(image.width>512||image.height>512)throw Error('Editable asset PNGs can be up to 512 × 512 pixels.');
+  const before=snapshot();
+  setEditableAsset(image,file.name);
+  q('sheet').value='5';updateFrames();record(before);
+  status('Editing a copy of '+file.name);
+ }catch(error){status(error.message||'Could not open the asset PNG.')}
+ finally{busy=false}
+};
+
 q('open').onclick=()=>q('file').click();
 q('file').onchange=async()=>{
  const file=q('file').files[0];q('file').value='';if(!file||busy)return;
@@ -1741,6 +1863,10 @@ function checkProject(data,allowCheckpoints=true){
     throw Error('Invalid region data.');
   }
   if(data?.format!=='myrren-editor-1'||!Array.isArray(data.objects)||!data.objects.every(validObject)||!data.tiles||Array.isArray(data.tiles)||typeof data.tiles!=='object'||!Object.entries(data.tiles).every(validTile)||!Array.isArray(data.sheets)||![2,5].includes(data.sheets.length)||!data.sheets.every(s=>typeof s==='string'&&s.startsWith('data:image/png;base64,')))throw Error('Choose a valid Myrren editor project.');
+ if(data.editableAsset!==undefined&&(!data.editableAsset||typeof data.editableAsset.name!=='string'||
+  !data.editableAsset.name||data.editableAsset.name.length>255||
+  typeof data.editableAsset.png!=='string'||!data.editableAsset.png.startsWith('data:image/png;base64,')))
+  throw Error('Invalid editable asset PNG.');
  const presets=data.playtestPresets;
  if(presets!==undefined&&(!allowCheckpoints||!Array.isArray(presets)||presets.length>12||!presets.every(preset=>
   preset&&typeof preset.name==='string'&&preset.name.trim()&&preset.name.length<=40&&playtestKits.includes(preset.kit)&&
@@ -1773,6 +1899,65 @@ function checkProject(data,allowCheckpoints=true){
 }
 const localEditor=location.protocol==='http:'&&location.hostname==='127.0.0.1'&&location.pathname==='/editor';
 const localProject='/editor/project.json';
+const recoveryUrl='/editor/recovery';
+let recoveryTimer=null,recoveryInFlight=null,pendingRecovery=null;
+let savedProjectSnapshot=null;
+function queueRecovery(text=snapshot()){
+ if(!localEditor)return;
+ pendingRecovery=text;
+ clearTimeout(recoveryTimer);
+ recoveryTimer=setTimeout(flushRecovery,800);
+}
+function flushRecovery(){
+ if(!localEditor||!pendingRecovery||recoveryInFlight)return recoveryInFlight;
+ clearTimeout(recoveryTimer);
+ const text=pendingRecovery;
+ pendingRecovery=null;
+ recoveryInFlight=(async()=>{
+  try{
+   const response=await fetch(recoveryUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:text});
+   if(!response.ok)throw Error(await response.text()||'Recovery write failed.');
+   q('recoveryStatus').textContent='Recovery draft saved';
+   q('recoverDraft').hidden=text===savedProjectSnapshot;
+  }catch(error){
+   if(!pendingRecovery)pendingRecovery=text;
+   q('recoveryStatus').textContent='Recovery could not be saved: '+error.message;
+   return false;
+  }
+  return true;
+ })();
+ recoveryInFlight.then(ok=>{
+  recoveryInFlight=null;
+  if(ok&&pendingRecovery)flushRecovery();
+ });
+ return recoveryInFlight;
+}
+async function checkRecovery(){
+ try{
+  const response=await fetch(recoveryUrl);
+  q('recoverDraft').hidden=response.status!==200;
+  if(!response.ok)throw Error(await response.text());
+  if(response.status===200)q('recoveryStatus').textContent='Recovery draft available';
+ }catch(error){q('recoveryStatus').textContent=error.message}
+}
+q('recoverDraft').onclick=async()=>{
+ if(busy||gesture||spriteGesture)return;
+ busy=true;
+ try{
+  const response=await fetch(recoveryUrl);
+  if(response.status===204){q('recoverDraft').hidden=true;return}
+  if(!response.ok)throw Error(await response.text());
+  const draft=await response.json();
+  checkProject(draft);
+  const before=snapshot();
+  await restore(draft);record(before);
+  if(assetName){tab(true);q('sheet').value='5';updateFrames()}
+  q('recoveryStatus').textContent='Draft restored. Save explicitly when ready.';
+ }catch(error){q('recoveryStatus').textContent=error.message}
+ finally{busy=false}
+};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flushRecovery()});
+
 async function appUpdate(action){
  const check=q('checkAppUpdate'),install=q('installAppUpdate'),output=q('appUpdateStatus');
  check.disabled=install.disabled=true;
@@ -2027,8 +2212,16 @@ q('saveLocal').onclick=async()=>{
  if(busy||gesture||spriteGesture)return;
  busy=true;q('saveLocal').disabled=true;
  try{
-  const response=await fetch(localProject,{method:'POST',headers:{'Content-Type':'application/json'},body:snapshot()});
+  const text=snapshot();
+  if(pendingRecovery||recoveryInFlight){
+   pendingRecovery=text;
+   while(pendingRecovery||recoveryInFlight){
+    if(await flushRecovery()===false)break;
+   }
+  }
+  const response=await fetch(localProject,{method:'POST',headers:{'Content-Type':'application/json'},body:text});
   if(!response.ok)throw Error(await response.text());
+  savedProjectSnapshot=text;q('recoverDraft').hidden=true;
   const issues=mapIssues().length;
   status(issues?'Saved to local game. Validate map to review '+issues+' potential issues.':'Saved to local game. Open or reload the game tab.');
  }catch(error){status(error.message)}
@@ -2049,6 +2242,7 @@ async function loadEditor(){
  }else q('mapArt').querySelector('[value="game"]').disabled=true;
  await restore(data);
  if(localEditor){
+  savedProjectSnapshot=snapshot();checkRecovery();
   const stage=map.parentElement;
   stage.scrollTo({left:Math.max(0,bounds.spawnX-stage.clientWidth/2),top:Math.max(0,bounds.spawnY-stage.clientHeight/2)});
  }

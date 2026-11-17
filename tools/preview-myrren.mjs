@@ -3,8 +3,8 @@
 import { spawn } from 'node:child_process';
 import { appUpdatesEnabled,checkAppUpdate,installAppUpdate } from './app-updates.mjs';
 import { createServer } from 'node:http';
-import { readFile, readdir, realpath, rename, unlink, writeFile } from 'node:fs/promises';
-import { resolve, extname, sep } from 'node:path';
+import { mkdir, readFile, readdir, realpath, rename, unlink, writeFile } from 'node:fs/promises';
+import { resolve, extname, sep, basename, dirname, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
@@ -28,7 +28,7 @@ const security = {
   'X-Content-Type-Options': 'nosniff'
 };
 
-function validate(data) {
+function validate(data,{allowIncomplete=false}={}) {
   if (data?.format !== 'myrren-editor-1' || !Array.isArray(data.objects) || data.objects.length > 10000 ||
       !data.tiles || typeof data.tiles !== 'object' || Array.isArray(data.tiles) ||
       !Array.isArray(data.sheets) || ![2, 5].includes(data.sheets.length)) {
@@ -49,7 +49,7 @@ function validate(data) {
        (previewVariant!==undefined&&(layer!=='Trees'||!['a','b'].includes(previewVariant))))throw Error('Invalid tree artwork selection.');
     return {layer,k,x,y,previewTree,previewVariant};
   });
-  for (const kind of types.Buildings) {
+  for (const kind of allowIncomplete?[]:types.Buildings) {
     if (objects.filter(item => item.layer === 'Buildings' && item.k === kind).length !== 1) {
       throw Error('The game preview requires exactly one of each service building. Check: ' + kind);
     }
@@ -91,6 +91,8 @@ function validate(data) {
 }
 
 const projectPath = resolve(process.argv[2] || 'myrren-project.json');
+const recoveryFolder=join(dirname(projectPath),'recovery');
+const recoveryPath=join(recoveryFolder,basename(projectPath));
 const editorSource = await readFile(new URL('./myrren-editor.html', import.meta.url), 'utf8');
 function editorDefaults() {
   const extract = name => {
@@ -195,21 +197,23 @@ function buildPreview(project,editorOrigin=null,kit='fresh',mapRender=false) {
 }
 let overrides = buildPreview(validate(JSON.parse(projectText)));
 let saving = false;
+let recovering=false;
 let renderConfig=null;
 
 async function saveProject(request, response, mode) {
-  const playtest=mode==='playtest',render=mode==='render';
+  const playtest=mode==='playtest',render=mode==='render',recovery=mode==='recovery';
   if (request.headers.origin !== 'http://' + request.headers.host ||
       request.headers['content-type'] !== 'application/json') {
     response.writeHead(403, security).end('Open the local editor to save.');
     return;
   }
-  if (saving) {
+  if (recovery?recovering:saving) {
     response.writeHead(409, security).end('A save is already in progress.');
     return;
   }
-  saving = true;
-  const temporary = projectPath + '.' + process.pid + '.tmp';
+  if(recovery)recovering=true;else saving=true;
+  const destination=recovery?recoveryPath:projectPath;
+  const temporary=destination+'.'+process.pid+'.tmp';
   let created = false;
   try {
     let size = 0;
@@ -226,12 +230,16 @@ async function saveProject(request, response, mode) {
     let next;
     try {
       const data=JSON.parse(text);
-      if(playtest||render){
-        const {issues}=await gameAssets();
-        if(issues.length)throw Error(issues.join(' '));
+      if(recovery){
+        validate(data,{allowIncomplete:true});
+      }else{
+        if(playtest||render){
+          const {issues}=await gameAssets();
+          if(issues.length)throw Error(issues.join(' '));
+        }
+        if(playtest)data.bounds={...(data.bounds??defaultBounds),spawnX:data.playtestX,spawnY:data.playtestY};
+        next=buildPreview(validate(data),playtest||render?request.headers.origin:null,playtest?data.playtestKit??'fresh':'fresh',render);
       }
-      if(playtest)data.bounds={...(data.bounds??defaultBounds),spawnX:data.playtestX,spawnY:data.playtestY};
-      next=buildPreview(validate(data),playtest||render?request.headers.origin:null,playtest?data.playtestKit??'fresh':'fresh',render);
     }
     catch (error) {
       response.writeHead(422, security).end(error.message);
@@ -247,19 +255,22 @@ async function saveProject(request, response, mode) {
       response.writeHead(200,{...security,'Content-Type':'text/plain'}).end('http://127.0.0.1:'+draftServer.address().port+'/');
       return;
     }
+    if(recovery)await mkdir(recoveryFolder,{recursive:true});
     await writeFile(temporary, text, { flag: 'wx' });
     created = true;
-    await rename(temporary, projectPath);
-    created = false;
-    projectText = text;
-    overrides = next;
+    await rename(temporary,destination);
+    created=false;
+    if(!recovery){
+      projectText=text;
+      overrides=next;
+    }
     response.writeHead(204, security).end();
   } catch (error) {
     console.error(error.message);
-    response.writeHead(500, security).end('Could not write the local project file.');
+    response.writeHead(500, security).end(recovery?'Could not write the recovery draft.':'Could not write the local project file.');
   } finally {
     if (created) await unlink(temporary).catch(() => {});
-    saving = false;
+    if(recovery)recovering=false;else saving=false;
   }
 }
 
@@ -296,7 +307,7 @@ const server = createServer(async (request, response) => {
     return;
   }
   const parsed = new URL(request.url, 'http://localhost');
-  if (request.method === 'POST' && ['/editor/project.json','/editor/playtest','/editor/render'].includes(parsed.pathname)) {
+  if (request.method === 'POST' && ['/editor/project.json','/editor/playtest','/editor/render','/editor/recovery'].includes(parsed.pathname)) {
     await saveProject(request,response,parsed.pathname.split('/').pop());
     return;
   }
@@ -327,6 +338,17 @@ const server = createServer(async (request, response) => {
   if(parsed.pathname==='/editor/render-config.js'){
     if(!renderConfig){response.writeHead(404,security).end();return}
     response.writeHead(200,{...security,'Content-Type':mime['.js']}).end(renderConfig);
+    return;
+  }
+  if(parsed.pathname==='/editor/recovery'){
+    try{
+      const draft=await readFile(recoveryPath,'utf8');
+      if(draft===projectText){response.writeHead(204,security).end();return}
+      response.writeHead(200,{...security,'Content-Type':'application/json'}).end(draft);
+    }catch(error){
+      if(error.code==='ENOENT')response.writeHead(204,security).end();
+      else response.writeHead(500,security).end('Could not read the recovery draft.');
+    }
     return;
   }
   if (parsed.pathname === '/editor/project.json') {
