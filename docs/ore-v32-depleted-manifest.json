@@ -1,5 +1,5 @@
 {
-  "version": "v32-native-reference-matched-depleted-state",
+  "version": "v32-native-collapsed-ore-state",
   "approved_full_ores": "docs/ore-v32-final-manifest.json",
   "size": [
     40,
@@ -24,35 +24,35 @@
   "assets": {
     "copper": {
       "path": "public/assets/resources/v32/ore_copper_depleted.png",
-      "sha256": "0fe86b6817812b6093d153d85b891e7de52cbe5121eef4b883f01d25b3b20ba6"
+      "sha256": "f766dfbae416775860ccd6044b6b4e154f4c846f0b49572dcf051a7a3f10cb08"
     },
     "tin": {
       "path": "public/assets/resources/v32/ore_tin_depleted.png",
-      "sha256": "b449c78e157e5092f4e328fdb3f24796f71de08342054c02bae16423096c87db"
+      "sha256": "94e209cdc762f23a4def14082f0d718908d08dc930fdff9e64595b89480918d3"
     },
     "iron": {
       "path": "public/assets/resources/v32/ore_iron_depleted.png",
-      "sha256": "ff044a070c5766ac4e60316ebe9b20617a5445a254e55d3551236c8be42b8623"
+      "sha256": "8975b28f2a1be62919c50b087a21c81b1aab6b7461367f502e90ff38c88a71aa"
     },
     "coal": {
       "path": "public/assets/resources/v32/ore_coal_depleted.png",
-      "sha256": "a89e9d269e01b5f7aa25463e5fb745bfd5b8ca310f8176bd8f5ed25b5d146041"
+      "sha256": "6f44f3b25a9e79ecd37b127bc87a5bde84085f78677a35f30114427561dc1911"
     },
     "black_iron": {
       "path": "public/assets/resources/v32/ore_black_iron_depleted.png",
-      "sha256": "bdacdf0f44ec1237d4bfb6481fcae32175339c4a7c8978fc307a59a55c28f479"
+      "sha256": "6a381e933402baa19ab13e51a669dfe924d255e5ccdf1ea2de01a48a21b3e5e9"
     },
     "chromium": {
       "path": "public/assets/resources/v32/ore_chromium_depleted.png",
-      "sha256": "12a7afc2cd6e0700bf9a481f623e1a6f6e472efb15211f9eb3646553c934a9ed"
+      "sha256": "ed14e5b0a0625a0562343025b2b09a4319f2eb6e4cee94ad4f7e2d2b484d1b2b"
     },
     "iridium": {
       "path": "public/assets/resources/v32/ore_iridium_depleted.png",
-      "sha256": "b134a3ef8e5360dc3d3afcfed94a90d75a0b49f75d6f45be331217fc826e181d"
+      "sha256": "8588ce9856a6802f71129ee8d8f60aba0e96be0a9331e4213c51e7c01727f82d"
     },
     "myrrenite": {
       "path": "public/assets/resources/v32/ore_myrrenite_depleted.png",
-      "sha256": "f13abd4d02e331a7dcc2047ea7ac4ad36967b4c54c89b9833fbe27d888f22d14"
+      "sha256": "1f110da93e5ce2480bde538da84a088fee4fbef89d0677faaba737813a24ea43"
     }
   }
 }

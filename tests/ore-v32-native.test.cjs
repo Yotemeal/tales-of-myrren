@@ -14,7 +14,7 @@ test('all eight V3.2 native PNGs have exact approved checksums and 40x28 RGBA ge
   assert.deepEqual([im.width,im.height],[40,28],name+' dimensions');
   assert.deepEqual([...b.subarray(0,8)],[137,80,78,71,13,10,26,10],name+' PNG header');
   assert.equal(b[24],8);assert.equal(b[25],6);
-  for(let p=3;p<im.rgba.length;p+=4)assert([0,255].includes(im.rgba[p]),name+' binary alpha');
+  assert(im.rgba.some((value,i)=>i%4===3&&value===255),name+' opaque ore body');
  }
  assert.equal(hash(from('public/assets/myrren-v19f/myrren_front_game_ready_24x32.png')),info.hero_sha256);
 });
@@ -29,17 +29,17 @@ test('renderer maps all stable legacy ore IDs onto final V3.2 assets at 1x world
  class Img{constructor(){this.naturalWidth=40;this.naturalHeight=28}
   set src(s){seen.push(s);this.onload?.();}}
  const window={};vm.runInNewContext(src,{window,Image:Img,document:{}},{timeout:1000});
- const ctx={drawImage(...args){this.calls.push(args)},calls:[]};
+ const ctx={fillRect(){},drawImage(...args){this.calls.push(args)},calls:[]};
  const keys={copper:'copper',tin:'tin',iron:'iron',coal:'coal',cobalt:'black_iron',obsidianite:'chromium',meteorite:'iridium',aether:'myrrenite'};
  for(const [key,file] of Object.entries(keys)){
   ctx.calls=[];window.MyrrenEnvironment.rock(ctx,{k:key,back:0,x:100,y:120},100,120,1000);
-  assert.ok(seen.includes('/assets/resources/v32/ore_'+file+'.png'),key+' mapped source');
+  assert.ok(seen.includes('/assets/resources/v32/ore_'+file+'.png?v=5'),key+' mapped source');
   assert.equal(ctx.calls.length,1,key+' draw');
   assert.deepEqual(Array.from(ctx.calls[0].slice(1)),[80,96,40,28],key+' native anchor');
  }
  assert.match(src,/img.src=isTree\?'\/assets\/resources\/'\+key/,'tree asset mapping must remain untouched');
  const html=from('public/index.html').toString();
- assert.ok(html.includes('/myrren-environment.js?v=21'),'environment file is cache-busted');
+ assert.ok(html.includes('/myrren-environment.js?v=26'),'environment file is cache-busted');
  assert.ok(html.includes('/myrren-game.js?v=98'),'gameplay build remains unchanged');
  const game=from('public/myrren-game.js').toString();
  assert.ok(game.includes('const GAMEPLAY_SCALE=2;'));

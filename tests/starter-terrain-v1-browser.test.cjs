@@ -28,6 +28,11 @@ const qaHook=[
  '  inside=null;act=null;marker=null;snapCam=true;',
  '  cam.x=me.x-cv.width/2;cam.y=me.y-cv.height*.47;',
  '  return {x:me.x,y:me.y};',
+ '};',
+ 'window.__terrainQaOre=(stage)=>{',
+ '  const {x,y}=window.__terrainQaPlace(560,1190);',
+ '  const kinds=["copper","tin","iron","coal","cobalt","obsidianite","meteorite","aether"];',
+ '  nodes.splice(0,nodes.length,...kinds.map((k,i)=>({k,x:x+(i%2?44:-44),y:y-90+Math.floor(i/2)*60,back:stage==="depleted"?Number.MAX_SAFE_INTEGER:0,oreLeft:stage==="mid"?1:undefined})));',
  '};'
 ].join('\n');
 (async()=>{
@@ -46,6 +51,7 @@ const qaHook=[
     window.__terrainQaEnabled=false;window.__terrainQaDrawCount=0;window.__terrainQaCorruptedCount=0;
     const draw=CanvasRenderingContext2D.prototype.drawImage;
     CanvasRenderingContext2D.prototype.drawImage=function(image,...args){
+     if(image?.src?.includes('/resources/v32/ore_'))window.__oreSources?.add(image.src);
      if(image?.src?.includes('starter_terrain_v1.png')){
       window.__terrainQaDrawCount++;
       // Atlas cells 20/21 are corrupted. They must not leak into the starter lake.
@@ -100,6 +106,18 @@ const qaHook=[
       before:oldShot,after:newShot,renderMethod:'production 16px PNG terrain renderer',
       gameSourceModified:true});
     await page.evaluate(()=>window.__terrainQaEnabled=false);
+   }
+   if(device.mobile){
+    for(const stage of ["full","mid","depleted"]){
+     await page.evaluate(stage=>{
+      window.__terrainQaEnabled=true;
+      window.__oreSources=new Set();
+      window.__terrainQaOre(stage);
+     },stage);
+     await page.waitForFunction(stage=>Array.from(window.__oreSources)
+      .filter(url=>(url.includes('_depleted.png')?'depleted':url.includes('_mid.png')?'mid':'full')===stage).length===8,stage,{timeout:10000});
+     await page.locator('#cv').screenshot({path:path.join(OUT,'mobile-ores-'+stage+'.png')});
+    }
    }
    assert.deepEqual(errors,[],'uncaught runtime exceptions on '+device.name);
    await context.close();
