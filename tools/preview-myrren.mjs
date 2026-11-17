@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // From a checkout of the editor branch: node tools/preview-myrren.mjs myrren-project.json
 import { createServer } from 'node:http';
-import { readFile, realpath } from 'node:fs/promises';
+import { readFile, realpath, rename, unlink, writeFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -18,7 +18,7 @@ const tileTypes = ['grass', 'path', 'plaza', 'water', 'rock', 'flowers'];
 const assetFolder = '/assets/myrren-v19f/';
 const atlasPaths = ['myrren_idle_4dir_native.png', 'myrren_walk_4x6_native.png'].map(name => assetFolder + name);
 const security = {
-  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; frame-ancestors 'none'; form-action 'none'; base-uri 'none'",
+  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; form-action 'none'; base-uri 'none'",
   'Cache-Control': 'no-store',
   'X-Content-Type-Options': 'nosniff'
 };
@@ -136,29 +136,108 @@ function drawOutdoor(cx,cy,now){`);
   for(const station of VILLAGE.stations)list.push`);
 }
 
-const projectArg = process.argv[2];
-if (!projectArg) {
-  console.error('Usage: node tools/preview-myrren.mjs path/to/myrren-project.json');
-  process.exit(1);
+const projectPath = resolve(process.argv[2] || 'myrren-project.json');
+const editorSource = await readFile(new URL('./myrren-editor.html', import.meta.url), 'utf8');
+function editorDefaults() {
+  const extract = name => {
+    const match = editorSource.match(new RegExp('^const ' + name + '=(.*);$', 'm'));
+    if (!match) throw Error('Embedded editor defaults are missing: ' + name);
+    return JSON.parse(match[1]);
+  };
+  return { format: 'myrren-editor-1', objects: extract('initialObjects'), tiles: {}, sheets: extract('initialSheets') };
 }
-const project = validate(JSON.parse(await readFile(projectArg, 'utf8')));
+let projectText;
+try {
+  projectText = await readFile(projectPath, 'utf8');
+} catch (error) {
+  if (error.code !== 'ENOENT') throw error;
+  projectText = JSON.stringify(editorDefaults());
+}
 const source = name => readFile(resolve(publicFolder, name), 'utf8');
 const [worldSource, gameSource, indexSource, environmentSource] = await Promise.all([
   source('myrren-world.js'), source('myrren-game.js'), source('index.html'), source('myrren-environment.js')
 ]);
-const overrides = new Map([
-  ['/myrren-environment.js', replaceOnce(environmentSource, "const continuousTrail=world?.pathDistance&&(kind==='path'||kind==='grass');", "const continuousTrail=world?.pathDistance&&!world.previewTile?.(tx*16+8,ty*16+8)&&(kind==='path'||kind==='grass');")],
-  ['/myrren-world.js', patchWorld(worldSource, project)],
-  ['/myrren-game.js', patchGame(gameSource, project)],
-  ['/index.html', replaceOnce(indexSource, '<title>Tales of Myrren</title>', '<title>Myrren Project Preview</title>')],
-  ...atlasPaths.map((path, index) => [path, project.sheets[index]])
-]);
+function buildPreview(project) {
+  return new Map([
+    ['/myrren-environment.js', replaceOnce(environmentSource, "const continuousTrail=world?.pathDistance&&(kind==='path'||kind==='grass');", "const continuousTrail=world?.pathDistance&&!world.previewTile?.(tx*16+8,ty*16+8)&&(kind==='path'||kind==='grass');")],
+    ['/myrren-world.js', patchWorld(worldSource, project)],
+    ['/myrren-game.js', patchGame(gameSource, project)],
+    ['/index.html', replaceOnce(indexSource, '<title>Tales of Myrren</title>', '<title>Myrren Project Preview</title>')],
+    ...atlasPaths.map((path, index) => [path, project.sheets[index]])
+  ]);
+}
+let overrides = buildPreview(validate(JSON.parse(projectText)));
+let saving = false;
+
+async function saveProject(request, response) {
+  if (request.headers.origin !== 'http://' + request.headers.host ||
+      request.headers['content-type'] !== 'application/json') {
+    response.writeHead(403, security).end('Open the local editor to save.');
+    return;
+  }
+  if (saving) {
+    response.writeHead(409, security).end('A save is already in progress.');
+    return;
+  }
+  saving = true;
+  const temporary = projectPath + '.' + process.pid + '.tmp';
+  let created = false;
+  try {
+    let size = 0;
+    const chunks = [];
+    for await (const chunk of request) {
+      size += chunk.length;
+      if (size > 4 * 1024 * 1024) {
+        response.writeHead(413, security).end('Project exceeds 4 MB.');
+        return;
+      }
+      chunks.push(chunk);
+    }
+    const text = Buffer.concat(chunks).toString('utf8');
+    let next;
+    try { next = buildPreview(validate(JSON.parse(text))); }
+    catch (error) {
+      response.writeHead(422, security).end(error.message);
+      return;
+    }
+    await writeFile(temporary, text, { flag: 'wx' });
+    created = true;
+    await rename(temporary, projectPath);
+    created = false;
+    projectText = text;
+    overrides = next;
+    response.writeHead(204, security).end();
+  } catch (error) {
+    console.error(error.message);
+    response.writeHead(500, security).end('Could not write the local project file.');
+  } finally {
+    if (created) await unlink(temporary).catch(() => {});
+    saving = false;
+  }
+}
+
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.webp': 'image/webp', '.svg': 'image/svg+xml' };
 const server = createServer(async (request, response) => {
   try {
-    if (request.method !== 'GET') { response.writeHead(405, security).end(); return; }
+    if (request.headers.host !== '127.0.0.1:' + server.address().port) {
+      response.writeHead(403, security).end();
+      return;
+    }
     const parsed = new URL(request.url, 'http://localhost');
+    if (request.method === 'POST' && parsed.pathname === '/editor/project.json') {
+      await saveProject(request, response);
+      return;
+    }
+    if (request.method !== 'GET') { response.writeHead(405, security).end(); return; }
+    if (parsed.pathname === '/editor') {
+      response.writeHead(200, { ...security, 'Content-Type': mime['.html'] }).end(editorSource);
+      return;
+    }
+    if (parsed.pathname === '/editor/project.json') {
+      response.writeHead(200, { ...security, 'Content-Type': 'application/json' }).end(projectText);
+      return;
+    }
     const path = decodeURIComponent(parsed.pathname === '/' ? '/index.html' : parsed.pathname);
     let body = overrides.get(path);
     if (body === undefined) {
@@ -173,6 +252,6 @@ const server = createServer(async (request, response) => {
   }
 });
 server.listen(0, '127.0.0.1', () => {
-  console.log('Open http://127.0.0.1:' + server.address().port + '/ for the local preview.');
-  console.log('Export again and restart this command to load new edits. Press Ctrl+C to stop.');
+  console.log('Open http://127.0.0.1:' + server.address().port + '/editor for the editor and local game.');
+  console.log('Saves go to ' + projectPath + '. Press Ctrl+C to stop.');
 });
