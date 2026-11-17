@@ -12,7 +12,8 @@
 <label>Layer <select id="layer"></select></label><label>Asset <select id="asset"></select></label><label>Terrain <select id="tile"><option>grass</option><option>path</option><option>plaza</option><option>water</option><option>rock</option><option>flowers</option></select></label>
 <label><input id="snap" type="checkbox"> Snap to 16 px</label><fieldset id="visibility"><legend>Visible layers</legend></fieldset>
 <div id="selection"></div><label>X <input id="coordX" type="number" min="0" max="1599"></label><label>Y <input id="coordY" type="number" min="0" max="1599"></label>
-<button id="remove">Delete selected</button><small>Drag a marker to move it. Terrain tools paint 16 px tiles. Export your project to keep edits.</small></aside></main></section>
+<button id="remove">Delete selected</button><small>Drag a marker to move it. Terrain tools paint 16 px tiles. Export your project to keep edits.</small>
+<details><summary>Playtest exported map</summary><p>In a checkout of the editor branch, run <code>node tools/preview-myrren.mjs /path/to/myrren-project.json</code> and open the address it prints. Keep one of each service building for the playtest. Restart the command after exporting an updated project.</p></details></aside></main></section>
 <section id="spritePanel" hidden><main><div><canvas width="24" height="32" id="pixels" aria-label="Character pixel canvas"></canvas><canvas width="96" height="128" id="preview" aria-label="Character animation preview"></canvas></div>
 <aside><label>Sheet <select id="sheet"><option value="0">Idle</option><option value="1">Walk</option></select></label>
 <label>Direction <select id="direction"><option>Front</option><option>Left</option><option>Right</option><option>Back</option></select></label>
