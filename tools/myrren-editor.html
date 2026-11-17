@@ -4,7 +4,7 @@
 <style>
 *{box-sizing:border-box}body{margin:0;background:#151d19;color:#eee9da;font:15px system-ui}header,nav,aside{padding:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}header{border-bottom:1px solid #344638}h1{font-size:19px;margin:0 auto 0 0}button,select,input{font:inherit;color:inherit;background:#26382c;border:1px solid #526556;border-radius:6px;padding:7px}button{cursor:pointer}button[aria-pressed=true]{background:#dbc186;color:#17241c}main{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:12px;padding:12px}aside{align-content:start;background:#202c24;border-radius:8px}aside>*{max-width:100%}.stage{overflow:auto;max-height:78vh;background:#101712;border:1px solid #344638}canvas{display:block;image-rendering:pixelated;touch-action:none}#map{width:100%;min-width:320px}#pixels{width:min(100%,288px);height:auto;background:repeating-conic-gradient(#555 0% 25%,#333 0% 50%) 0 0/24px 24px}small{color:#cad5c7}label{display:inline-flex;align-items:center;gap:5px}fieldset{border:1px solid #526556;border-radius:6px}input[type=number]{width:74px}[hidden]{display:none!important}@media(max-width:700px){main{grid-template-columns:1fr}}
 </style>
-<header><h1>Myrren Editor</h1><button id="mapTab" aria-pressed="true">World map</button><button id="spriteTab" aria-pressed="false">Character</button><button id="undo">Undo</button><button id="redo">Redo</button></header>
+<header><h1>Myrren Editor</h1><button id="mapTab" aria-pressed="true">World map</button><button id="spriteTab" aria-pressed="false">Character</button><button id="undo">Undo</button><button id="redo">Redo</button><button id="saveLocal" hidden>Save to local game</button><a id="playLocal" href="/" target="myrren-playtest" hidden style="color:#dbc186">Open local game</a></header>
 <section id="worldPanel">
 <nav><button id="open">Open project</button><button id="save">Export project</button><label>Zoom <select id="zoom"><option>100%</option><option>150%</option><option>200%</option><option>300%</option></select></label><small id="message" role="status"></small></nav>
 <main><div class="stage"><canvas width="800" height="800" id="map" aria-label="Myrren world map"></canvas></div>
@@ -13,7 +13,7 @@
 <label><input id="snap" type="checkbox"> Snap to 16 px</label><fieldset id="visibility"><legend>Visible layers</legend></fieldset>
 <div id="selection"></div><label>X <input id="coordX" type="number" min="0" max="1599"></label><label>Y <input id="coordY" type="number" min="0" max="1599"></label>
 <button id="remove">Delete selected</button><small>Drag a marker to move it. Terrain tools paint 16 px tiles. Export your project to keep edits.</small>
-<details><summary>Playtest exported map</summary><p>In a checkout of the editor branch, run <code>node tools/preview-myrren.mjs /path/to/myrren-project.json</code> and open the address it prints. Keep one of each service building for the playtest. Restart the command after exporting an updated project.</p></details></aside></main></section>
+<details><summary>Playtest exported map</summary><p>In a checkout of the editor branch, run <code>node tools/preview-myrren.mjs</code> and open the editor address it prints. Select <strong>Save to local game</strong> to apply changes, then open or reload the game tab. Keep one of each service building for the playtest.</p></details></aside></main></section>
 <section id="spritePanel" hidden><main><div><canvas width="24" height="32" id="pixels" aria-label="Character pixel canvas"></canvas><canvas width="96" height="128" id="preview" aria-label="Character animation preview"></canvas></div>
 <aside><label>Sheet <select id="sheet"><option value="0">Idle</option><option value="1">Walk</option></select></label>
 <label>Direction <select id="direction"><option>Front</option><option>Left</option><option>Right</option><option>Back</option></select></label>
@@ -328,8 +328,29 @@ q('file').onchange=async()=>{
  }catch(error){status(error.message)}
  finally{busy=false}
 };
-drawMap();updateFrames();
-Promise.all(initialSheets.map((src,i)=>sheetImage(src,atlases[i]))).then(images=>{
- images.forEach((image,i)=>applyImage(atlases[i],image));busy=false;drawSprite();status('World loaded');
-}).catch(error=>status(error.message));
+const localEditor=location.protocol==='http:'&&location.hostname==='127.0.0.1'&&location.pathname==='/editor';
+const localProject='/editor/project.json';
+q('saveLocal').onclick=async()=>{
+ if(busy||gesture||spriteGesture)return;
+ busy=true;q('saveLocal').disabled=true;
+ try{
+  const response=await fetch(localProject,{method:'POST',headers:{'Content-Type':'application/json'},body:snapshot()});
+  if(!response.ok)throw Error(await response.text());
+  status('Saved to local game. Open or reload the game tab.');
+ }catch(error){status(error.message)}
+ finally{busy=false;q('saveLocal').disabled=false}
+};
+async function loadEditor(){
+ drawMap();updateFrames();
+ let data={objects:structuredClone(initialObjects),tiles:{},sheets:initialSheets};
+ if(localEditor){
+  const response=await fetch(localProject);
+  if(!response.ok)throw Error('Could not load the local game project.');
+  data=await response.json();
+ }
+ await restore(data);
+ q('saveLocal').hidden=q('playLocal').hidden=!localEditor;
+ busy=false;status('World loaded');
+}
+loadEditor().catch(error=>status(error.message));
 </script></html>
