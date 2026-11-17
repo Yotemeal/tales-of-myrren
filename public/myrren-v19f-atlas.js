@@ -128,7 +128,8 @@
     if (status !== 'ready') return false;
     const attackAge = now - (o.swingAt ?? -99999);
     if (o.tool === 'sword') return canDrawSword(o, now) && drawSword(ctx, x, y, o, now, attackAge);
-    if (canDrawPunch(o) && attackAge >= 0 && attackAge < 320) {
+    const gathering=o.tool==='axe'||o.tool==='pick';
+    if (!gathering && canDrawPunch(o) && attackAge >= 0 && attackAge < 320) {
       const moving = Boolean(o.moving) && movingPunchReady;
       const frame = moving
         ? movingPunchEnds.findIndex(end => attackAge < end)
@@ -142,7 +143,7 @@
       ctx.restore();
       return true;
     }
-    const p = pose(attackAge >= 0 && attackAge < 320 ? {...o, moving: false} : o, now);
+    const p = pose(!gathering && attackAge >= 0 && attackAge < 320 ? {...o, moving: false} : o, now);
     const sprite = p.moving ? assets.walk.image : assets.idle.image;
     const sx = (p.moving ? p.frame : p.row) * CELL_W;
     const sy = p.moving ? p.row * CELL_H : 0;

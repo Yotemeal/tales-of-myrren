@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=98;
+window.MyrrenBuild=99;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -2787,6 +2787,18 @@ function swingAng(age){
   if(age<200)return lerp(-1.5,1.0,(age-90)/110);
   return lerp(1.0,-.35,(age-200)/120);
 }
+// [milliseconds, forward reach, hand lift, tool angle]. Contact matches
+// the existing gather tick, 200 ms after the swing starts.
+const gatheringPoses={
+  axe:[[0,0,0,-.35],[85,-2,3,-1.05],[143,-1,2,-.8],[200,3,-2,1.4],[235,2,-2,1.5],[320,0,0,-.35]],
+  pick:[[0,0,0,-.35],[100,-1,4,-.85],[155,0,3,-.55],[200,2,-3,1.68],[224,2,-3,1.68],[320,0,0,-.35]]
+};
+function gatheringPose(tool,age){
+  const poses=gatheringPoses[tool];
+  const end=poses.findIndex(p=>p[0]>age),a=poses[end-1],b=poses[end];
+  const t=(age-a[0])/(b[0]-a[0]);
+  return {reach:lerp(a[1],b[1],t),lift:lerp(a[2],b[2],t),angle:lerp(a[3],b[3],t)};
+}
 function drawTool(kind,mat,hx,hy,f,ang,size=1){
   if(kind==='sword'&&window.MyrrenSwords?.draw(ctx,mat,hx,hy,f,ang,size))return;
   const a=ART[kind],pal=Object.assign({},a.p,{S:MATS[mat].H}),s=1.7*size,ca=Math.cos(ang),sa=Math.sin(ang);
@@ -3213,6 +3225,20 @@ function drawKezV2(x,y,o,now){
     :-.35;
   const paintHeld=()=>{
     if(!holding||deathAge>=0||window.MyrrenV19BGameplayPreview?.drawsSword?.(state,now))return;
+    if(attacking&&(o.tool==='axe'||o.tool==='pick')){
+      const pose=gatheringPose(o.tool,age);
+      const handSide=direction==='back'?-1:direction==='front'?1:facing;
+      const gx=Math.round(hx+handSide*pose.reach),gy=Math.round(hy-pose.lift);
+      const sleeve=o.g?.[1]&&gear?.colorsFor?.(o.g[1],o.dye)?.[1]||'#62603d';
+      const armX=Math.round(hx-handSide*2),armY=hy-2;
+      const steps=Math.max(1,Math.abs(gx-armX),Math.abs(gy-armY));
+      for(let i=0;i<steps;i++){
+        R(Math.round(lerp(armX,gx,i/steps))-1,Math.round(lerp(armY,gy,i/steps))-1,2,2,sleeve);
+      }
+      drawTool(o.tool,o.mat,gx,gy,handSide,pose.angle,.6);
+      R(gx-1,gy-1,2,2,handColor);
+      return;
+    }
     drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6);
     // Two-pixel fingers cover the sword grip without showing a floating hilt.
     if(direction!=='back')R(hx-1,hy-1,2,2,handColor);

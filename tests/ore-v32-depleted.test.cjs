@@ -63,9 +63,9 @@ test('depleted ore size comes from PNG not the old fractional renderer and old f
  }
  assert.deepEqual(scales,[],'no fractional scale for live or depleted ore');
  assert.deepEqual(calls,[0,1200]);
- assert(game.includes('window.MyrrenBuild=98;'))
+ assert(game.includes('window.MyrrenBuild=99;'))
  const html=bytes('public/index.html').toString();
- assert(html.includes('/myrren-game.js?v=98'));
+ assert(html.includes('/myrren-game.js?v=99'));
  assert(html.includes('/myrren-environment.js?v=26'));
  for(const name of ['copper','tin','iron','coal','black_iron','myrrenite','obsidianite','meteorite'])
   assert(!fs.existsSync(path.join(root,'public/assets/resources/ore_'+name+'.png')),'obsolete '+name+' PNG remains');
