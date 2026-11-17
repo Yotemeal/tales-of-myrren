@@ -3,6 +3,7 @@
 <title>Myrren Editor</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#151d19;color:#eee9da;font:15px system-ui}header,nav,aside{padding:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}header{border-bottom:1px solid #344638}h1{font-size:19px;margin:0 auto 0 0}button,select,input{font:inherit;color:inherit;background:#26382c;border:1px solid #526556;border-radius:6px;padding:7px}button{cursor:pointer}button[aria-pressed=true]{background:#dbc186;color:#17241c}main{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:12px;padding:12px}aside{align-content:start;background:#202c24;border-radius:8px}aside>*{max-width:100%}.stage{overflow:auto;max-height:78vh;background:#101712;border:1px solid #344638}canvas{display:block;image-rendering:pixelated;touch-action:none}#map{width:100%;min-width:320px}#pixels{width:min(100%,288px);height:auto;background:repeating-conic-gradient(#555 0% 25%,#333 0% 50%) 0 0/24px 24px}small{color:#cad5c7}label{display:inline-flex;align-items:center;gap:5px}fieldset{border:1px solid #526556;border-radius:6px}input[type=number]{width:74px}[hidden]{display:none!important}@media(max-width:700px){main{grid-template-columns:1fr}}
+.sprite-workspace{display:grid;grid-template-columns:minmax(0,288px) minmax(0,1fr);gap:16px;align-items:start}.sprite-workspace figure{margin:0;min-width:0}.sprite-workspace figcaption{margin:0 0 8px;color:#cad5c7}.preview-controls{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:10px 0}.preview-controls output{display:block;width:100%;color:#cad5c7}#preview{width:min(100%,192px);height:auto;background:repeating-conic-gradient(#414941 0% 25%,#303831 0% 50%) 0 0/16px 16px}.preview-controls button:disabled,.preview-controls select:disabled{opacity:.5}
 </style>
 <header><h1>Myrren Editor</h1><button id="mapTab" aria-pressed="true">World map</button><button id="spriteTab" aria-pressed="false">Character</button><button id="undo">Undo</button><button id="redo">Redo</button><button id="saveLocal" hidden>Save to local game</button><a id="playLocal" href="/" target="myrren-playtest" hidden style="color:#dbc186">Open local game</a></header>
 <section id="worldPanel">
@@ -14,7 +15,18 @@
 <div id="selection"></div><label>X <input id="coordX" type="number" min="0" max="1599"></label><label>Y <input id="coordY" type="number" min="0" max="1599"></label>
 <button id="remove">Delete selected</button><small>Drag a marker to move it. Terrain tools paint 16 px tiles. Export your project to keep edits.</small>
 <details><summary>Playtest exported map</summary><p>In a checkout of the editor branch, run <code>node tools/preview-myrren.mjs</code> and open the editor address it prints. Select <strong>Save to local game</strong> to apply changes, then open or reload the game tab. Keep one of each service building for the playtest.</p></details></aside></main></section>
-<section id="spritePanel" hidden><main><div><canvas width="24" height="32" id="pixels" aria-label="Character pixel canvas"></canvas><canvas width="96" height="128" id="preview" aria-label="Character animation preview"></canvas></div>
+<section id="spritePanel" hidden><main>
+<div class="sprite-workspace">
+<figure><figcaption>Pixel editor</figcaption><canvas width="24" height="32" id="pixels" aria-label="Character pixel canvas"></canvas></figure>
+<figure><figcaption>Live preview</figcaption><canvas width="96" height="128" id="preview" aria-label="Character animation preview"></canvas>
+<div class="preview-controls">
+<button id="playback" type="button">Pause</button>
+<button id="previousFrame" type="button" aria-label="Previous frame">◀</button>
+<button id="nextFrame" type="button" aria-label="Next frame">▶</button>
+<label>Speed <select id="playbackSpeed"><option value="0.1">10%</option><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option></select></label>
+<output id="previewFrame"></output>
+</div></figure>
+</div>
 <aside><label>Sheet <select id="sheet"><option value="0">Idle</option><option value="1">Walk</option></select></label>
 <label>Direction <select id="direction"><option>Front</option><option>Left</option><option>Right</option><option>Back</option></select></label>
 <label>Frame <select id="frame"></select></label><label>Colour <input id="ink" type="color" value="#77834d"></label>
@@ -248,28 +260,82 @@ for(const [id,key] of [['coordX','x'],['coordY','y']])q(id).onchange=()=>{
 function tab(sprite){
  q('spritePanel').hidden=!sprite;q('worldPanel').hidden=sprite;
  q('mapTab').setAttribute('aria-pressed',String(!sprite));q('spriteTab').setAttribute('aria-pressed',String(sprite));
+ if(sprite){drawSprite();schedulePreview()}else stopPreviewClock();
 }
 q('mapTab').onclick=()=>tab(false);q('spriteTab').onclick=()=>tab(true);
-function spriteRegion(animated){
+const walkFrameMs=110;
+let playing=true, previewIndex=0, frameElapsed=0, previousTick=null, previewRequest=null;
+const isWalk=()=>q('sheet').value==='1';
+function spriteRegion(frame){
  const sheet=+q('sheet').value,direction=q('direction').selectedIndex;
- const frame=animated?Math.floor(performance.now()/110)%6:q('frame').selectedIndex;
  return {canvas:atlases[sheet],x:sheet?frame*24:direction*24,y:sheet?direction*32:0};
 }
-function renderRegion(context,animated,scale){
- const {canvas,x,y}=spriteRegion(animated);
+function renderRegion(context,frame,scale){
+ const {canvas,x,y}=spriteRegion(frame);
  context.clearRect(0,0,24*scale,32*scale);context.imageSmoothingEnabled=false;
  context.drawImage(canvas,x,y,24,32,0,0,24*scale,32*scale);
 }
-function drawSprite(){renderRegion(pixelCtx,false,1)}
-function updateFrames(){
- q('frame').replaceChildren(...Array.from({length:+q('sheet').value?6:1},(_,i)=>new Option(String(i+1))));drawSprite();
+function drawPreview(){
+ renderRegion(preview,previewIndex,4);
+ const label=isWalk()?'Frame '+(previewIndex+1)+' / 6':'Idle pose';
+ if(q('previewFrame').textContent!==label)q('previewFrame').textContent=label;
 }
-q('sheet').onchange=updateFrames;q('direction').onchange=q('frame').onchange=drawSprite;
-setInterval(()=>{if(!q('spritePanel').hidden)renderRegion(preview,true,4)},110);
+function drawSprite(){
+ renderRegion(pixelCtx,q('frame').selectedIndex,1);drawPreview();
+}
+function resetPreviewFrame(){
+ previewIndex=q('frame').selectedIndex;
+ frameElapsed=0;previousTick=null;drawSprite();
+}
+function stopPreviewClock(){
+ if(previewRequest!==null)cancelAnimationFrame(previewRequest);
+ previewRequest=null;previousTick=null;
+}
+function schedulePreview(){
+ if(previewRequest===null&&playing&&isWalk()&&!q('spritePanel').hidden){
+  previewRequest=requestAnimationFrame(tickPreview);
+ }
+}
+function tickPreview(now){
+ previewRequest=null;
+ if(previousTick!==null){
+  frameElapsed+=(now-previousTick)*Number(q('playbackSpeed').value);
+  const steps=Math.floor(frameElapsed/walkFrameMs);
+  if(steps){
+   frameElapsed%=walkFrameMs;
+   previewIndex=(previewIndex+steps)%6;
+   drawPreview();
+  }
+ }
+ previousTick=now;schedulePreview();
+}
+function setPlaying(next){
+ playing=next;
+ q('playback').textContent=playing?'Pause':'Play';
+ if(playing)schedulePreview();else stopPreviewClock();
+}
+function stepFrame(offset){
+ if(!isWalk()||busy||spriteGesture)return;
+ setPlaying(false);
+ q('frame').selectedIndex=(previewIndex+offset+6)%6;
+ resetPreviewFrame();
+}
+function updateFrames(){
+ stopPreviewClock();
+ q('frame').replaceChildren(...Array.from({length:isWalk()?6:1},(_,i)=>new Option(String(i+1))));
+ for(const id of ['playback','playbackSpeed','previousFrame','nextFrame'])q(id).disabled=!isWalk();
+ resetPreviewFrame();schedulePreview();
+}
+q('sheet').onchange=updateFrames;
+q('direction').onchange=q('frame').onchange=resetPreviewFrame;
+q('playback').onclick=()=>setPlaying(!playing);
+q('previousFrame').onclick=()=>stepFrame(-1);
+q('nextFrame').onclick=()=>stepFrame(1);
+q('playbackSpeed').onchange=()=>{previousTick=null};
 function paintPixel(event){
  const [px,py]=position(event,pixels), mode=q('brush').value;
  if(px<0||py<0||px>=1||py>=1)return;
- const {canvas,x,y}=spriteRegion(false);
+ const {canvas,x,y}=spriteRegion(q('frame').selectedIndex);
  const g=canvas.getContext('2d'), sx=x+Math.floor(px*24),sy=y+Math.floor(py*32);
  if(mode==='Erase'){g.clearRect(sx,sy,1,1);return}
  const rgb=q('ink').value.match(/[\da-f]{2}/gi).map(value=>parseInt(value,16));
