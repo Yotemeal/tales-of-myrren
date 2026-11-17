@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Myrren Editor</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#151d19;color:#eee9da;font:15px system-ui}header,nav,aside{padding:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}header{border-bottom:1px solid #344638}h1{font-size:19px;margin:0 auto 0 0}button,select,input{font:inherit;color:inherit;background:#26382c;border:1px solid #526556;border-radius:6px;padding:7px}button{cursor:pointer}button[aria-pressed=true]{background:#dbc186;color:#17241c}main{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:12px;padding:12px}aside{align-content:start;background:#202c24;border-radius:8px}aside>*{max-width:100%}.stage{overflow:auto;max-height:78vh;background:#101712;border:1px solid #344638}canvas{display:block;image-rendering:pixelated;touch-action:none}#map{width:100%;min-width:320px}#pixels{width:min(100%,288px);height:auto;background:repeating-conic-gradient(#555 0% 25%,#333 0% 50%) 0 0/24px 24px}small{color:#cad5c7}label{display:inline-flex;align-items:center;gap:5px}fieldset{border:1px solid #526556;border-radius:6px}input[type=number]{width:74px}[hidden]{display:none!important}@media(max-width:700px){main{grid-template-columns:1fr}}
+</style>
+<header><h1>Myrren Editor</h1><button id="mapTab" aria-pressed="true">World map</button><button id="spriteTab" aria-pressed="false">Character</button><button id="undo">Undo</button><button id="redo">Redo</button></header>
+<section id="worldPanel">
+<nav><button id="open">Open project</button><button id="save">Export project</button><label>Zoom <select id="zoom"><option>100%</option><option>150%</option><option>200%</option><option>300%</option></select></label><small id="message" role="status"></small></nav>
+<main><div class="stage"><canvas width="800" height="800" id="map" aria-label="Myrren world map"></canvas></div>
+<aside><label>Tool <select id="tool"><option>Move</option><option>Place</option><option>Terrain</option><option>Clear terrain</option></select></label>
+<label>Layer <select id="layer"></select></label><label>Asset <select id="asset"></select></label><label>Terrain <select id="tile"><option>grass</option><option>path</option><option>plaza</option><option>water</option><option>rock</option><option>flowers</option></select></label>
+<label><input id="snap" type="checkbox"> Snap to 16 px</label><fieldset id="visibility"><legend>Visible layers</legend></fieldset>
+<div id="selection"></div><label>X <input id="coordX" type="number" min="0" max="1599"></label><label>Y <input id="coordY" type="number" min="0" max="1599"></label>
+<button id="remove">Delete selected</button><small>Drag a marker to move it. Terrain tools paint 16 px tiles. Export your project to keep edits.</small></aside></main></section>
+<section id="spritePanel" hidden><main><div><canvas width="24" height="32" id="pixels" aria-label="Character pixel canvas"></canvas><canvas width="96" height="128" id="preview" aria-label="Character animation preview"></canvas></div>
+<aside><label>Sheet <select id="sheet"><option value="0">Idle</option><option value="1">Walk</option></select></label>
+<label>Direction <select id="direction"><option>Front</option><option>Left</option><option>Right</option><option>Back</option></select></label>
+<label>Frame <select id="frame"></select></label><label>Colour <input id="ink" type="color" value="#77834d"></label>
+<label>Tool <select id="brush"><option>Paint</option><option>Erase</option><option>Sample</option><option>Replace colour</option></select></label>
+<button id="importPng">Import sheet PNG</button><button id="exportPng">Export sheet PNG</button><button id="saveSprite">Export project</button>
+<small>Colour replacement applies across the current sheet. PNG exports preserve the native frame layout.</small><small id="spriteMessage" role="status"></small></aside></main></section>
+<input type="file" id="file" accept=".json,application/json" hidden><input type="file" id="png" accept="image/png" hidden>
+<script>
+/* Shared village geometry: rendering and collision use the same water field. */
+(() => {
+'use strict';
+const CX=800,CY=800;
+const lake={x:1250,y:1055,rx:161,ry:108};
+const buildings=[
+{id:'axe',x:660,y:712,w:56},
+{id:'pick',x:620,y:820,w:56},
+{id:'arms',x:915,y:725,w:88,open:true},
+{id:'food',x:700,y:926,w:56},
+{id:'fish',x:1000,y:875,w:54}
+];
+const bridges=[]; // the Camp has a single dry passage through the fallen crater rocks
+const bridge=null;
+const river={rx:400,ry:285}; // legacy geometry retained for compatibility
+const stations=[{kind:'furnace',x:941,y:720},{kind:'anvil',x:890,y:735},{kind:'trade',x:916,y:697}];
+const segmentDistance=(x,y,a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy||1)));return Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy)};
+const streamAngle=.55,streamF=riverF(streamAngle);
+const stream=[[CX+400*Math.cos(streamAngle)*streamF,CY+285*Math.sin(streamAngle)*streamF],[1200,987],[1193,1010]];
+function lakeF(a){return 1+.12*Math.sin(2*a+.65)+.065*Math.sin(3*a-1.1)+.035*Math.cos(5*a+.4)}
+function lakeR(x,y){const nx=(x-lake.x)/lake.rx,ny=(y-lake.y)/lake.ry;return {r:Math.hypot(nx,ny),f:lakeF(Math.atan2(ny,nx))}}
+function riverF(a){return 1+.13*Math.sin(3*a)+.055*Math.sin(5*a)+.022*Math.sin(9*a)+.006*Math.sin(17*a)+.045*(Math.sin(2*a+.7)-Math.sin(.7))+.035*(Math.cos(4*a+.9)-Math.cos(.9))}
+function riverHalfWidth(a){return 16+4*Math.sin(4*a+.6)+2*Math.sin(7*a-.3)}
+function riverDistance(x,y){const nx=(x-CX)/river.rx,ny=(y-CY)/river.ry,r=Math.hypot(nx,ny),a=Math.atan2(ny,nx),fp=.39*Math.cos(3*a)+.275*Math.cos(5*a)+.198*Math.cos(9*a)+.102*Math.cos(17*a)+.09*Math.cos(2*a+.7)-.14*Math.sin(4*a+.9),q=fp/Math.max(.2,r),g=Math.hypot((Math.cos(a)+q*Math.sin(a))/river.rx,(Math.sin(a)-q*Math.cos(a))/river.ry);return Math.abs(r-riverF(a))/g-riverHalfWidth(a)}
+function waterDistance(x,y){const l=lakeR(x,y);return (l.r-l.f)*108}
+function onBridge(x,y){return false}
+// Rockfall ring surrounding the Camp, with one clear opening to the south.
+function craterWall(x,y){
+ const r=Math.hypot((x-CX)/305,(y-CY)/235);
+ // A collapsed section of the southern rim forms the sole entrance.
+ const southGate=Math.abs(x-CX)<55&&y>CY+172;
+ return !southGate&&r>.895&&r<1.085;
+}
+function inWater(x,y){return waterDistance(x,y)<0||craterWall(x,y)}
+function inVillage(x,y){return Math.hypot((x-CX)/305,(y-CY)/235)<.895}
+const paths=buildings.map(b=>[[800,830],[b.x,b.y+7]]);
+paths.push([[800,830],[800,1180]],[[800,1180],[800,1450]]);
+// A narrow fork off the existing southern Camp route leads towards the outer
+// western mines. Terrain-only: no new collision, fast travel or bank access.
+paths.push([[800,1350],[620,1430]],[[620,1430],[520,1470]]);
+function bridgeApproach(x,y){return false}
+function dryFootprint(x,y,halfWidth,top,bottom=3,margin=8){
+ for(let yy=y-top;yy<=y+bottom;yy+=6)for(let xx=x-halfWidth;xx<=x+halfWidth;xx+=6)if(waterDistance(xx,yy)<margin)return false;
+ return true;
+}
+function pathDistance(x,y){
+ let distance=Infinity;
+ for(const [start,end] of paths)distance=Math.min(distance,segmentDistance(x,y,start,end));
+ return distance;
+}
+function pathKind(x,y){
+ if(waterDistance(x,y)<24)return 'grass';
+ if(inVillage(x,y)&&((x-800)**2/(185*185)+(y-830)**2/(66*66)<1))return 'plaza';
+ return pathDistance(x,y)<13?'path':'grass';
+}
+function safePosition(x,y,blocked=()=>false){
+ if(!inWater(x,y)&&!blocked(x,y))return {x,y};
+ for(let r=4;r<=160;r+=4)for(let i=0;i<32;i++){const a=i*Math.PI/16,nx=x+Math.cos(a)*r,ny=y+Math.sin(a)*r;if(nx>108&&nx<1492&&ny>108&&ny<1492&&!inWater(nx,ny)&&!blocked(nx,ny))return {x:nx,y:ny}}
+ return {x:800,y:840};
+}
+function fishingPosition(a){
+ const f=lakeF(a),sx=lake.x+Math.cos(a)*lake.rx*f,sy=lake.y+Math.sin(a)*lake.ry*f;
+ const nx=Math.cos(a)/lake.rx,ny=Math.sin(a)/lake.ry,mag=Math.hypot(nx,ny),dx=nx/mag,dy=ny/mag;
+ // Use the actual connected shoreline, including the river mouth.
+ let offset=2;
+ while(offset<300&&waterDistance(sx+dx*offset,sy+dy*offset)<1)offset+=2;
+ return {x:sx+dx*(offset-12),y:sy+dy*(offset-12)};
+}
+
+window.MyrrenWorld=Object.freeze({lake,buildings,bridge,bridges,river,stations,lakeF,lakeR,riverF,riverHalfWidth,riverDistance,waterDistance,onBridge,inWater,craterWall,inVillage,pathKind,pathDistance,bridgeApproach,dryFootprint,safePosition,fishingPosition,segmentDistance});
+})();
+
+const initialObjects=[{"id":"axe","x":660,"y":712,"w":56,"k":"axe","layer":"Buildings"},{"id":"pick","x":620,"y":820,"w":56,"k":"pick","layer":"Buildings"},{"id":"arms","x":915,"y":725,"w":88,"open":true,"k":"arms","layer":"Buildings"},{"id":"food","x":700,"y":926,"w":56,"k":"food","layer":"Buildings"},{"id":"fish","x":1000,"y":875,"w":54,"k":"fish","layer":"Buildings"},{"k":"tree","x":771.0440174676478,"y":245.60342747252434,"back":0,"layer":"Trees"},{"k":"tree","x":1371.8744248244911,"y":345.2145117521286,"back":0,"layer":"Trees"},{"k":"tree","x":135.76286597643048,"y":911.3424689555541,"back":0,"layer":"Trees"},{"k":"tree","x":1469.4456160953268,"y":1345.6654750648886,"back":0,"layer":"Trees"},{"k":"tree","x":510.15127409249544,"y":1332.1332648722455,"back":0,"layer":"Trees"},{"k":"tree","x":147.21622614655644,"y":599.0178976068273,"back":0,"layer":"Trees"},{"k":"tree","x":1392.6676682801917,"y":285.4360378952697,"back":0,"layer":"Trees"},{"k":"tree","x":1207.3548252880573,"y":285.8371077850461,"back":0,"layer":"Trees"},{"k":"tree","x":1322.9362382180989,"y":1419.0206536930054,"back":0,"layer":"Trees"},{"k":"tree","x":1035.3828930063173,"y":136.84973592869937,"back":0,"layer":"Trees"},{"k":"tree","x":886.6256500408053,"y":1364.5838985452428,"back":0,"layer":"Trees"},{"k":"tree","x":1422.3798914207146,"y":350.4777442384511,"back":0,"layer":"Trees"},{"k":"tree","x":1357.769215037115,"y":291.8181608058512,"back":0,"layer":"Trees"},{"k":"tree","x":535.3776347730309,"y":246.41288411337882,"back":0,"layer":"Trees"},{"k":"tree","x":789.3294419674203,"y":178.95435627084225,"back":0,"layer":"Trees"},{"k":"tree","x":1247.4294019304216,"y":180.19423729274422,"back":0,"layer":"Trees"},{"k":"tree","x":247.42557022720575,"y":1336.4761187601835,"back":0,"layer":"Trees"},{"k":"tree","x":152.79387307353318,"y":476.74534043762833,"back":0,"layer":"Trees"},{"k":"tree","x":907.5508331786841,"y":164.47797956876457,"back":0,"layer":"Trees"},{"k":"tree","x":146.9709340808913,"y":540.0333443842828,"back":0,"layer":"Trees"},{"k":"tree","x":277.44624281302094,"y":1126.1919616162777,"back":0,"layer":"Trees"},{"k":"tree","x":358.36752370465547,"y":1448.6199013376608,"back":0,"layer":"Trees"},{"k":"tree","x":863.3919665869325,"y":1433.8547812961042,"back":0,"layer":"Trees"},{"k":"tree","x":920.4600743437186,"y":1429.8334924178198,"back":0,"layer":"Trees"},{"k":"tree","x":162.71101590711623,"y":300.85564793553203,"back":0,"layer":"Trees"},{"k":"tree","x":863.6016455804929,"y":1327.6704577635974,"back":0,"layer":"Trees"},{"k":"tree","x":1394.7210771404207,"y":1453.680638470687,"back":0,"layer":"Trees"},{"k":"tree","x":656.5722618391737,"y":1302.610282995738,"back":0,"layer":"Trees"},{"k":"tree","x":168.73460980597883,"y":183.24792087078094,"back":0,"layer":"Trees"},{"k":"tree","x":270.49130188766867,"y":374.5610490720719,"back":0,"layer":"Trees"},{"k":"tree","x":1465.708006285131,"y":1430.613304413855,"back":0,"layer":"Trees"},{"k":"tree","x":181.58410117961466,"y":492.0204000361264,"back":0,"layer":"Trees"},{"k":"tree","x":1434.6557114785537,"y":515.837560435757,"back":0,"layer":"Trees"},{"k":"tree","x":231.24986278358847,"y":1021.0667400294915,"back":0,"layer":"Trees"},{"k":"tree","x":191.22818674892187,"y":141.96434271987528,"back":0,"layer":"Trees"},{"k":"tree","x":1380.3823761129752,"y":1254.4351059990004,"back":0,"layer":"Trees"},{"k":"tree","x":234.75810184609145,"y":1050.067973099649,"back":0,"layer":"Trees"},{"k":"tree","x":1300.2584009803832,"y":1286.23039574828,"back":0,"layer":"Trees"},{"k":"tree","x":1329.7613107832149,"y":504.8908005608246,"back":0,"layer":"Trees"},{"k":"tree","x":1022.5471995258704,"y":301.9867001613602,"back":0,"layer":"Trees"},{"k":"tree","x":1391.9551547477022,"y":1352.0159250637516,"back":0,"layer":"Trees"},{"k":"tree","x":1315.1633350970224,"y":1314.456942868419,"back":0,"layer":"Trees"},{"k":"tree","x":219.94175067171454,"y":1074.696212192066,"back":0,"layer":"Trees"},{"k":"tree","x":145.447714375332,"y":1388.209725455381,"back":0,"layer":"Trees"},{"k":"tree","x":205.9468064084649,"y":1412.2375260991976,"back":0,"layer":"Trees"},{"k":"tree","x":553.3196684764698,"y":1396.9271969329566,"back":0,"layer":"Trees"},{"k":"tree","x":146.77558180876076,"y":571.1223177192733,"back":0,"layer":"Trees"},{"k":"tree","x":741.8214524630457,"y":250.94144095201045,"back":0,"layer":"Trees"},{"k":"tree","x":1448.5904838237911,"y":470.72834831196815,"back":0,"layer":"Trees"},{"k":"tree","x":181.77399700507522,"y":1130.9266850305721,"back":0,"layer":"Trees"},{"k":"tree","x":482.39599966909736,"y":1367.5043988367543,"back":0,"layer":"Trees"},{"k":"tree","x":1334.8938219202682,"y":1460.6234210263938,"back":0,"layer":"Trees"},{"k":"tree","x":345.77911062166095,"y":239.5729266712442,"back":0,"layer":"Trees"},{"k":"tree","x":243.24292852077633,"y":247.39426172338426,"back":0,"layer":"Trees"},{"k":"tree","x":441.7137747304514,"y":1432.2239221120253,"back":0,"layer":"Trees"},{"k":"tree","x":1225.960769308731,"y":1351.41523078084,"back":0,"layer":"Trees"},{"k":"tree","x":903.8620471628383,"y":1465.0484900781885,"back":0,"layer":"Trees"},{"k":"tree","x":742.885834267363,"y":1389.1980907740071,"back":0,"layer":"Trees"},{"k":"tree","x":417.134492341429,"y":155.10479383170605,"back":0,"layer":"Trees"},{"k":"tree","x":386.320775821805,"y":178.48703746218234,"back":0,"layer":"Trees"},{"k":"tree","x":1351.7758311145008,"y":1408.0071794055402,"back":0,"layer":"Trees"},{"k":"tree","x":1428.617699444294,"y":269.2162152566016,"back":0,"layer":"Trees"},{"k":"tree","x":714.7029561921954,"y":193.85563476476818,"back":0,"layer":"Trees"},{"k":"tree","x":390.3467664355412,"y":1305.7548682484776,"back":0,"layer":"Trees"},{"k":"tree","x":587.6914917817339,"y":1391.8638633936644,"back":0,"layer":"Trees"},{"k":"tree","x":301.2536269100383,"y":373.5350614460185,"back":0,"layer":"Trees"},{"k":"tree","x":847.184542552568,"y":156.7921814788133,"back":0,"layer":"Trees"},{"k":"tree","x":547.4377815145999,"y":1364.5935079315677,"back":0,"layer":"Trees"},{"k":"tree","x":1279.3377723172307,"y":1356.9264815282077,"back":0,"layer":"Trees"},{"k":"tree","x":1073.1509392568842,"y":211.6632865043357,"back":0,"layer":"Trees"},{"k":"tree","x":375.9709563292563,"y":238.16272270865738,"back":0,"layer":"Trees"},{"k":"tree","x":318.324172263965,"y":1405.3415874298662,"back":0,"layer":"Trees"},{"k":"tree","x":1072.2694181464612,"y":1343.9582502748817,"back":0,"layer":"Trees"},{"k":"tree","x":428.9819169091061,"y":258.887952612713,"back":0,"layer":"Trees"},{"k":"tree","x":230.14700630679727,"y":156.65374578908086,"back":0,"layer":"Trees"},{"k":"tree","x":321.2090619793162,"y":255.41558214463294,"back":0,"layer":"Trees"},{"k":"tree","x":296.11315682996064,"y":1331.3080756692216,"back":0,"layer":"Trees"},{"k":"tree","x":1224.9594110390171,"y":254.813189371489,"back":0,"layer":"Trees"},{"k":"tree","x":1156.1871621524915,"y":1450.1836152467877,"back":0,"layer":"Trees"},{"k":"tree","x":487.51605978701264,"y":275.69929444231093,"back":0,"layer":"Trees"},{"k":"tree","x":710.6786946440116,"y":224.49319344945252,"back":0,"layer":"Trees"},{"k":"tree","x":977.7197090256959,"y":1303.809342845343,"back":0,"layer":"Trees"},{"k":"tree","x":1469.8233276885003,"y":843.8731130817905,"back":0,"layer":"Trees"},{"k":"tree","x":1134.5115012302995,"y":269.18398013338447,"back":0,"layer":"Trees"},{"k":"tree","x":352.5395809672773,"y":1369.9216009676456,"back":0,"layer":"Trees"},{"k":"tree","x":564.8557763826102,"y":1319.7296749195084,"back":0,"layer":"Trees"},{"k":"tree","x":631.4996416680515,"y":231.86678850557655,"back":0,"layer":"Trees"},{"k":"tree","x":1308.5911759641021,"y":1248.3761002635583,"back":0,"layer":"Trees"},{"k":"tree","x":165.14323676005006,"y":956.105976854451,"back":0,"layer":"Trees"},{"k":"tree","x":1371.2568738684058,"y":431.6525787720457,"back":0,"layer":"Trees"},{"k":"oak","x":177.46417195070535,"y":376.73352322075516,"back":0,"layer":"Trees"},{"k":"oak","x":1393.678239393048,"y":1308.963757767342,"back":0,"layer":"Trees"},{"k":"oak","x":240.8670629747212,"y":406.50640935637057,"back":0,"layer":"Trees"},{"k":"oak","x":1190.643325606361,"y":137.33112156856805,"back":0,"layer":"Trees"},{"k":"oak","x":733.0279947631061,"y":1462.3509821482003,"back":0,"layer":"Trees"},{"k":"oak","x":475.2528255293146,"y":225.73544405866414,"back":0,"layer":"Trees"},{"k":"oak","x":1435.2226003771648,"y":1262.9903654195368,"back":0,"layer":"Trees"},{"k":"oak","x":1300.3274484770373,"y":407.25194205064327,"back":0,"layer":"Trees"},{"k":"oak","x":1034.2613678006455,"y":219.39939815551043,"back":0,"layer":"Trees"},{"k":"oak","x":876.7953663878143,"y":236.09435721300542,"back":0,"layer":"Trees"},{"k":"oak","x":206.6860933136195,"y":429.15078721009195,"back":0,"layer":"Trees"},{"k":"oak","x":163.5683166841045,"y":1174.961107261479,"back":0,"layer":"Trees"},{"k":"oak","x":1396.282387143001,"y":327.72924462798983,"back":0,"layer":"Trees"},{"k":"oak","x":1434.1471999138594,"y":658.0970745813102,"back":0,"layer":"Trees"},{"k":"oak","x":473.64027597010136,"y":185.75877458322793,"back":0,"layer":"Trees"},{"k":"oak","x":131.08038548845798,"y":984.3469920288771,"back":0,"layer":"Trees"},{"k":"oak","x":166.73958233557642,"y":714.162434451282,"back":0,"layer":"Trees"},{"k":"oak","x":1374.177217851393,"y":547.9235840402544,"back":0,"layer":"Trees"},{"k":"oak","x":213.35683289449662,"y":1144.803769858554,"back":0,"layer":"Trees"},{"k":"oak","x":218.57754353433847,"y":1216.2427395116538,"back":0,"layer":"Trees"},{"k":"oak","x":360.60079687740654,"y":149.9149623932317,"back":0,"layer":"Trees"},{"k":"oak","x":166.0508941533044,"y":422.3827061057091,"back":0,"layer":"Trees"},{"k":"oak","x":729.7998165851459,"y":1413.656559777446,"back":0,"layer":"Trees"},{"k":"oak","x":399.46918182075024,"y":285.15070931985974,"back":0,"layer":"Trees"},{"k":"oak","x":1021.3411195203662,"y":1434.8217413946986,"back":0,"layer":"Trees"},{"k":"oak","x":950.5607469426468,"y":1440.910302544944,"back":0,"layer":"Trees"},{"k":"copper","x":1305.8869477035478,"y":588.520251433365,"back":0,"layer":"Ores"},{"k":"copper","x":838.9752085600048,"y":1309.735571197234,"back":0,"layer":"Ores"},{"k":"copper","x":1345.2615270391107,"y":452.164785428904,"back":0,"layer":"Ores"},{"k":"copper","x":1074.1311715403572,"y":1450.273906039074,"back":0,"layer":"Ores"},{"k":"copper","x":1254.8764716647565,"y":575.2036755578592,"back":0,"layer":"Ores"},{"k":"copper","x":366.1162133561447,"y":391.9501352868974,"back":0,"layer":"Ores"},{"k":"copper","x":1169.473958290182,"y":298.06903353892267,"back":0,"layer":"Ores"},{"k":"copper","x":520.1511512463912,"y":553.9407359063625,"back":0,"layer":"Ores"},{"k":"copper","x":157.89386954158545,"y":209.81358665041625,"back":0,"layer":"Ores"},{"k":"copper","x":604.8126801615581,"y":1444.1205367539078,"back":0,"layer":"Ores"},{"k":"copper","x":693.5528931347653,"y":308.59272458124906,"back":0,"layer":"Ores"},{"k":"copper","x":938.0796629050747,"y":1132.832115269266,"back":0,"layer":"Ores"},{"k":"copper","x":1149.0861797705293,"y":492.1257373178378,"back":0,"layer":"Ores"},{"k":"copper","x":688.300824072212,"y":541.6241545788944,"back":0,"layer":"Ores"},{"k":"copper","x":524.4782429328188,"y":213.28409763984382,"back":0,"layer":"Ores"},{"k":"copper","x":1462.8934900369495,"y":168.1445872457698,"back":0,"layer":"Ores"},{"k":"copper","x":1180.42929766234,"y":1303.7428193725646,"back":0,"layer":"Ores"},{"k":"copper","x":418.15756033640355,"y":617.484774151817,"back":0,"layer":"Ores"},{"k":"copper","x":427.9933104198426,"y":561.6021688980982,"back":0,"layer":"Ores"},{"k":"copper","x":924.3387371534482,"y":1092.467613457702,"back":0,"layer":"Ores"},{"k":"copper","x":319.8258965834975,"y":1083.8771365722641,"back":0,"layer":"Ores"},{"k":"copper","x":958.4977693343535,"y":136.25188671052456,"back":0,"layer":"Ores"},{"k":"iron","x":553.8540979288518,"y":335.64441377762705,"back":0,"layer":"Ores"},{"k":"iron","x":1315.6658214516938,"y":640.9537034947425,"back":0,"layer":"Ores"},{"k":"iron","x":1196.937164152041,"y":347.5470598693937,"back":0,"layer":"Ores"},{"k":"iron","x":1086.579590528272,"y":1207.7061778353527,"back":0,"layer":"Ores"},{"k":"iron","x":459.1969608608633,"y":1083.0338651873171,"back":0,"layer":"Ores"},{"k":"iron","x":881.2900276761502,"y":395.82403926644474,"back":0,"layer":"Ores"},{"k":"iron","x":744.6623698761687,"y":1327.3573543177918,"back":0,"layer":"Ores"},{"k":"iron","x":309.88436338026077,"y":345.0254614278674,"back":0,"layer":"Ores"},{"k":"iron","x":1406.6601518541574,"y":234.5286069251597,"back":0,"layer":"Ores"},{"k":"iron","x":967.0733894221485,"y":1184.4327860884368,"back":0,"layer":"Ores"},{"k":"iron","x":441.55955312773585,"y":712.3534709075466,"back":0,"layer":"Ores"},{"k":"iron","x":495.1270519243553,"y":1217.7171376068145,"back":0,"layer":"Ores"},{"k":"iron","x":1335.826806910336,"y":383.157991389744,"back":0,"layer":"Ores"},{"k":"iron","x":377.59157902095467,"y":1052.6160282408819,"back":0,"layer":"Ores"},{"k":"iron","x":481.7634792858735,"y":1442.6695056911558,"back":0,"layer":"Ores"},{"k":"spot1","x":1408.5171227563853,"y":1085.5898528376601,"back":0,"layer":"Fishing"},{"k":"spot1","x":1384.3233864570107,"y":1125.4994216165996,"back":0,"layer":"Fishing"},{"k":"spot2","x":1331.0522370567815,"y":1152.88891134709,"back":0,"layer":"Fishing"},{"k":"spot1","x":1263.3266242829798,"y":1145.673732724918,"back":0,"layer":"Fishing"},{"k":"spot3","x":1214.4775908798033,"y":1126.6452482385982,"back":0,"layer":"Fishing"},{"k":"spot2","x":1164.431534987517,"y":1119.3599277258252,"back":0,"layer":"Fishing"},{"k":"spot1","x":1113.5357467480349,"y":1099.8867757842238,"back":0,"layer":"Fishing"},{"k":"spot4","x":1086.3491300829517,"y":1064.4498908468697,"back":0,"layer":"Fishing"},{"k":"spot2","x":1084.0300022739946,"y":1022.8627911335301,"back":0,"layer":"Fishing"},{"k":"spot3","x":1122.5275713868025,"y":988.313425410994,"back":0,"layer":"Fishing"},{"k":"spot1","x":1181.8083232378108,"y":973.4643172060686,"back":0,"layer":"Fishing"},{"k":"spot5","x":1236.369578773409,"y":962.1262681170716,"back":0,"layer":"Fishing"},{"k":"spot2","x":1294.737149042798,"y":963.3750153772941,"back":0,"layer":"Fishing"},{"k":"spot3","x":1338.2792237815474,"y":988.4499959393823,"back":0,"layer":"Fishing"},{"k":"spot4","x":1371.8448878539123,"y":1015.2868780401841,"back":0,"layer":"Fishing"},{"k":"spot5","x":1404.3959649601936,"y":1046.1279313571797,"back":0,"layer":"Fishing"},{"k":"tin","x":318.15119395032525,"y":317.43270637467504,"back":0,"layer":"Ores"},{"k":"tin","x":1183.4301804704592,"y":825.5472193378955,"back":0,"layer":"Ores"},{"k":"tin","x":709.4543973635882,"y":1313.6922806315124,"back":0,"layer":"Ores"},{"k":"tin","x":1324.3050843803212,"y":839.0730137052014,"back":0,"layer":"Ores"},{"k":"tin","x":361.8954342417419,"y":842.6865600980818,"back":0,"layer":"Ores"},{"k":"tin","x":413.99917328264564,"y":1101.4641883131117,"back":0,"layer":"Ores"},{"k":"tin","x":486.9312771502882,"y":655.177753623575,"back":0,"layer":"Ores"},{"k":"tin","x":249.66451106593013,"y":1116.9334142981097,"back":0,"layer":"Ores"},{"k":"tin","x":934.080493398942,"y":187.84835030324757,"back":0,"layer":"Ores"},{"k":"tin","x":967.3368762992322,"y":1385.4164521908388,"back":0,"layer":"Ores"},{"k":"tin","x":1151.6883385647088,"y":1261.8649977073073,"back":0,"layer":"Ores"},{"k":"tin","x":778.3556940685958,"y":507.19964999705553,"back":0,"layer":"Ores"},{"k":"tin","x":1444.966010497883,"y":838.9059301884845,"back":0,"layer":"Ores"},{"k":"tin","x":800.6347467657179,"y":347.256001541391,"back":0,"layer":"Ores"},{"k":"tin","x":336.3591618044302,"y":1339.65716695413,"back":0,"layer":"Ores"},{"k":"tin","x":487.40809209179133,"y":556.7315048025921,"back":0,"layer":"Ores"},{"k":"tin","x":431.458433913067,"y":754.5538363046944,"back":0,"layer":"Ores"},{"k":"tin","x":825.6470443261787,"y":546.1691400362179,"back":0,"layer":"Ores"},{"k":"tin","x":512.8146855486557,"y":1271.4068777812645,"back":0,"layer":"Ores"},{"k":"tin","x":585.7700890582055,"y":1034.4336718972772,"back":0,"layer":"Ores"},{"k":"maple","x":290.9561055665836,"y":1355.4542483529076,"back":0,"layer":"Trees"},{"k":"maple","x":1218.9147859998047,"y":170.84087621886283,"back":0,"layer":"Trees"},{"k":"maple","x":177.8459322778508,"y":1306.7404914600775,"back":0,"layer":"Trees"},{"k":"maple","x":577.2290084743872,"y":194.61546890903264,"back":0,"layer":"Trees"},{"k":"maple","x":218.7980383913964,"y":493.74205481726676,"back":0,"layer":"Trees"},{"k":"maple","x":396.1511764721945,"y":1458.4186284523457,"back":0,"layer":"Trees"},{"k":"maple","x":143.15736363176256,"y":1038.1807042099535,"back":0,"layer":"Trees"},{"k":"maple","x":250.97286894917488,"y":204.07067294232547,"back":0,"layer":"Trees"},{"k":"maple","x":205.90422216337174,"y":995.2328705135733,"back":0,"layer":"Trees"},{"k":"maple","x":137.32520742807537,"y":1364.2002880992368,"back":0,"layer":"Trees"},{"k":"maple","x":951.3159242784604,"y":1343.3387387543917,"back":0,"layer":"Trees"},{"k":"maple","x":1467.7704769838601,"y":714.4469087896869,"back":0,"layer":"Trees"},{"k":"maple","x":216.1505232937634,"y":1459.7976574441418,"back":0,"layer":"Trees"},{"k":"maple","x":175.7744259480387,"y":541.5432650735602,"back":0,"layer":"Trees"},{"k":"maple","x":1062.0123629271984,"y":178.39743523858488,"back":0,"layer":"Trees"},{"k":"maple","x":687.6091404445469,"y":1414.344813041389,"back":0,"layer":"Trees"},{"k":"maple","x":1185.142945945263,"y":239.20673261396587,"back":0,"layer":"Trees"},{"k":"maple","x":209.70551069360226,"y":1108.3781495736912,"back":0,"layer":"Trees"},{"k":"maple","x":882.6901654945686,"y":1392.9754251008853,"back":0,"layer":"Trees"},{"k":"maple","x":157.4861364159733,"y":504.54876787029207,"back":0,"layer":"Trees"},{"k":"maple","x":221.68088424019516,"y":338.54434904642403,"back":0,"layer":"Trees"},{"k":"maple","x":1302.969665308483,"y":441.2125004688278,"back":0,"layer":"Trees"},{"k":"coal","x":900.918488400057,"y":199.30406383704394,"back":0,"layer":"Ores"},{"k":"coal","x":426.65517404675484,"y":655.0044330535457,"back":0,"layer":"Ores"},{"k":"coal","x":849.8188556637615,"y":1067.614551228471,"back":0,"layer":"Ores"},{"k":"coal","x":205.84301380440593,"y":401.3879191875458,"back":0,"layer":"Ores"},{"k":"coal","x":174.25907533150166,"y":1399.0950810397044,"back":0,"layer":"Ores"},{"k":"coal","x":1001.9643685594201,"y":1371.5771216433495,"back":0,"layer":"Ores"},{"k":"coal","x":245.84957720711827,"y":361.29041854292154,"back":0,"layer":"Ores"},{"k":"coal","x":1361.7216077353805,"y":214.40232663881034,"back":0,"layer":"Ores"},{"k":"coal","x":640.3777511976659,"y":1246.4039718359709,"back":0,"layer":"Ores"},{"k":"coal","x":268.0985940201208,"y":596.5995251899585,"back":0,"layer":"Ores"},{"k":"coal","x":750.8639695448801,"y":504.15099730715156,"back":0,"layer":"Ores"},{"k":"coal","x":1114.386842683889,"y":380.3570268722251,"back":0,"layer":"Ores"},{"k":"coal","x":1389.3076864490286,"y":689.2038028175011,"back":0,"layer":"Ores"},{"k":"coal","x":523.1260406645015,"y":1410.7121193222702,"back":0,"layer":"Ores"},{"k":"coal","x":977.7323481766507,"y":231.05078843422234,"back":0,"layer":"Ores"},{"k":"coal","x":687.9776610340923,"y":479.03328197076917,"back":0,"layer":"Ores"},{"k":"cobalt","x":1298.730528834276,"y":757.343796514906,"back":0,"layer":"Ores"},{"k":"cobalt","x":424.25858467351645,"y":1290.1097967335954,"back":0,"layer":"Ores"},{"k":"cobalt","x":412.0479827094823,"y":1071.8621954414994,"back":0,"layer":"Ores"},{"k":"cobalt","x":277.6375778624788,"y":1414.6004417492077,"back":0,"layer":"Ores"},{"k":"cobalt","x":820.8144889352843,"y":223.01492476835847,"back":0,"layer":"Ores"},{"k":"cobalt","x":569.1374375112355,"y":422.74931916967034,"back":0,"layer":"Ores"},{"k":"cobalt","x":1370.0499496096745,"y":1468.4422236308455,"back":0,"layer":"Ores"},{"k":"cobalt","x":467.710246918723,"y":1122.9546495294198,"back":0,"layer":"Ores"},{"k":"cobalt","x":1352.8773875162005,"y":185.0324372621253,"back":0,"layer":"Ores"},{"k":"cobalt","x":187.1657054265961,"y":467.80582037754357,"back":0,"layer":"Ores"},{"k":"cobalt","x":424.78207814507186,"y":205.13986630365252,"back":0,"layer":"Ores"},{"k":"cobalt","x":1210.4103377694264,"y":372.3114234069362,"back":0,"layer":"Ores"},{"k":"elder","x":236.8412901321426,"y":1180.9625062858686,"back":0,"layer":"Trees"},{"k":"elder","x":839.3482982879505,"y":1358.5738264257088,"back":0,"layer":"Trees"},{"k":"elder","x":1169.856535103172,"y":164.8559916112572,"back":0,"layer":"Trees"},{"k":"elder","x":188.58963146805763,"y":307.3610917199403,"back":0,"layer":"Trees"},{"k":"elder","x":264.68547633849084,"y":1158.0372604215518,"back":0,"layer":"Trees"},{"k":"elder","x":137.4359958525747,"y":1202.2894678497687,"back":0,"layer":"Trees"},{"k":"elder","x":544.8468650784343,"y":276.431684428826,"back":0,"layer":"Trees"},{"k":"elder","x":812.5717401737347,"y":1369.4832241954282,"back":0,"layer":"Trees"},{"k":"elder","x":427.60318774264306,"y":1364.259911221452,"back":0,"layer":"Trees"},{"k":"elder","x":881.5908819623291,"y":153.68606091476977,"back":0,"layer":"Trees"},{"k":"elder","x":561.6466010781005,"y":236.39362751040608,"back":0,"layer":"Trees"},{"k":"elder","x":1057.8817482478917,"y":1386.0697937430814,"back":0,"layer":"Trees"},{"k":"aether","x":197.43516642600298,"y":746.2738196598366,"back":0,"layer":"Ores"},{"k":"aether","x":316.644408791326,"y":1196.2000533984974,"back":0,"layer":"Ores"},{"k":"aether","x":198.41925743967295,"y":699.7043405426666,"back":0,"layer":"Ores"},{"k":"aether","x":1404.4926246674731,"y":608.0148880369961,"back":0,"layer":"Ores"},{"k":"aether","x":1110.8676582807675,"y":243.19757689721882,"back":0,"layer":"Ores"},{"k":"aether","x":279.5201081223786,"y":291.26431009732187,"back":0,"layer":"Ores"},{"k":"aether","x":1357.094080769457,"y":140.29527093749493,"back":0,"layer":"Ores"},{"k":"myrren","x":554.6971524786204,"y":1441.9316096510738,"back":0,"layer":"Trees"},{"k":"myrren","x":382.23999080248177,"y":1380.5384918255731,"back":0,"layer":"Trees"},{"k":"myrren","x":1371.4197376789525,"y":468.4041612967849,"back":0,"layer":"Trees"},{"k":"myrren","x":442.601759089157,"y":1326.4967233268544,"back":0,"layer":"Trees"},{"k":"myrren","x":852.7936524199322,"y":228.82001370191574,"back":0,"layer":"Trees"},{"k":"myrren","x":1467.8810897562653,"y":252.12363539263606,"back":0,"layer":"Trees"},{"k":"obsidianite","x":591.9264818681404,"y":1351.2671164423227,"back":0,"layer":"Ores"},{"k":"obsidianite","x":1456.723835337907,"y":339.0630468726158,"back":0,"layer":"Ores"},{"k":"obsidianite","x":1326.5446158219129,"y":680.8744990685955,"back":0,"layer":"Ores"},{"k":"obsidianite","x":219.2509272089228,"y":291.33866022806615,"back":0,"layer":"Ores"},{"k":"obsidianite","x":1229.0331634227186,"y":339.75981349125504,"back":0,"layer":"Ores"},{"k":"obsidianite","x":788.1804332928732,"y":1457.7693961607292,"back":0,"layer":"Ores"},{"k":"obsidianite","x":1382.2617343394086,"y":849.1348782647401,"back":0,"layer":"Ores"},{"k":"obsidianite","x":403.4842798206955,"y":318.98395584896207,"back":0,"layer":"Ores"},{"k":"meteorite","x":1326.8223033752292,"y":326.03486178442836,"back":0,"layer":"Ores"},{"k":"meteorite","x":1454.0722674503922,"y":400.35279078874737,"back":0,"layer":"Ores"},{"k":"meteorite","x":520,"y":1470,"back":0,"layer":"Ores"},{"k":"meteorite","x":1297.4037901917472,"y":1399.9493320845068,"back":0,"layer":"Ores"},{"x":1434.0901217190549,"y":731.2609562231228,"k":"slime","layer":"Enemies"},{"x":925.6964401714504,"y":338.3080904278904,"k":"slime","layer":"Enemies"},{"x":376.0594690730795,"y":348.3161311922595,"k":"slime","layer":"Enemies"},{"x":1463.6263189977035,"y":365.4316481621936,"k":"slime","layer":"Enemies"},{"x":1255.9419950516894,"y":1433.135385508649,"k":"slime","layer":"Enemies"},{"x":375.1995447464287,"y":494.8911786172539,"k":"slime","layer":"Enemies"},{"x":246.22476040851325,"y":673.4507074486464,"k":"slime","layer":"Enemies"},{"x":662.7062136121094,"y":1441.513264393434,"k":"slime","layer":"Enemies"},{"x":1283.6699235951528,"y":368.3745573554188,"k":"slime","layer":"Enemies"},{"x":486.30115505773574,"y":148.98439690936357,"k":"slime","layer":"Enemies"},{"x":1099.7945181280375,"y":146.2929223012179,"k":"slime","layer":"Enemies"},{"x":722.9586507938802,"y":503.2161687500775,"k":"slime","layer":"Enemies"},{"x":326.5618105791509,"y":927.2525629773736,"k":"slime","layer":"Enemies"},{"x":209.72038683481514,"y":1255.922897956334,"k":"slime","layer":"Enemies"},{"x":352.003063345328,"y":545.9941699588671,"k":"slime","layer":"Enemies"},{"x":1237.9449260840192,"y":466.04941986501217,"k":"slime","layer":"Enemies"},{"x":757.8383092628792,"y":540.525939934887,"k":"goblin","layer":"Enemies"},{"x":344.27086907904595,"y":454.7901980020106,"k":"goblin","layer":"Enemies"},{"x":993.8109409157187,"y":155.78372879885137,"k":"goblin","layer":"Enemies"},{"x":577.4734868621454,"y":390.3802220756188,"k":"goblin","layer":"Enemies"},{"x":795.8146483218297,"y":295.7787370821461,"k":"goblin","layer":"Enemies"},{"x":350.75678459368646,"y":811.7790899751708,"k":"goblin","layer":"Enemies"},{"x":1052.6504675950855,"y":1265.67292669788,"k":"goblin","layer":"Enemies"},{"x":1306.8745520710945,"y":289.60650126449764,"k":"goblin","layer":"Enemies"},{"x":362.22646044101566,"y":878.19237023592,"k":"goblin","layer":"Enemies"},{"x":1426.75388939213,"y":878.2259718887508,"k":"goblin","layer":"Enemies"},{"x":1078.7863120762631,"y":373.12295511364937,"k":"goblin","layer":"Enemies"},{"x":1422.2387828864157,"y":176.25191448256373,"k":"goblin","layer":"Enemies"},{"x":1376.658443454653,"y":497.466312260367,"k":"boar","layer":"Enemies"},{"x":889.6614224091172,"y":1175.2169007016346,"k":"boar","layer":"Enemies"},{"x":1469.9294218653813,"y":1195.5216063885018,"k":"boar","layer":"Enemies"},{"x":1415.8710884070024,"y":449.0688804537058,"k":"boar","layer":"Enemies"},{"x":299.8916227556765,"y":170.2165428455919,"k":"boar","layer":"Enemies"},{"x":841.0831120004877,"y":1187.0358986454085,"k":"boar","layer":"Enemies"},{"x":1040.012307530269,"y":267.7931066369638,"k":"boar","layer":"Enemies"},{"x":1158.0145332869142,"y":542.8787838248536,"k":"boar","layer":"Enemies"},{"x":1388.5378239117563,"y":138.24710730463266,"k":"boar","layer":"Enemies"},{"x":678.2644605776295,"y":1343.5724359098822,"k":"boar","layer":"Enemies"},{"x":190.37752986419946,"y":635.4566521756351,"k":"wolf","layer":"Enemies"},{"x":259.2426715651527,"y":436.6707229241729,"k":"wolf","layer":"Enemies"},{"x":137.09981459192932,"y":1300.6571543216705,"k":"wolf","layer":"Enemies"},{"x":1089.712521592155,"y":1249.183311178349,"k":"wolf","layer":"Enemies"},{"x":279.07204053364694,"y":906.5967618254945,"k":"wolf","layer":"Enemies"},{"x":1330.390722779557,"y":351.8211838696152,"k":"wolf","layer":"Enemies"},{"x":468.20375005714595,"y":471.53511089272797,"k":"wolf","layer":"Enemies"},{"x":707.3577565606683,"y":1275.3925542114303,"k":"wolf","layer":"Enemies"},{"x":1102.2552454750985,"y":405.7213546289131,"k":"wolf","layer":"Enemies"},{"x":1289.8567831516266,"y":164.09532725345343,"k":"bear","layer":"Enemies"},{"x":139.40593533683568,"y":264.8077305080369,"k":"bear","layer":"Enemies"},{"x":256.23967157211155,"y":322.70587833598256,"k":"bear","layer":"Enemies"},{"x":1385.6462497450411,"y":793.0529893143103,"k":"bear","layer":"Enemies"},{"x":283.0287206405774,"y":1450.6490177940577,"k":"bear","layer":"Enemies"},{"x":132.1089682728052,"y":1459.2508952179924,"k":"cave","layer":"Enemies"},{"x":1145.891458792612,"y":131.88632503151894,"k":"cave","layer":"Enemies"},{"x":1266.3267827266827,"y":281.4235153980553,"k":"cave","layer":"Enemies"},{"x":1140.6012282986194,"y":1367.5595501624048,"k":"cave","layer":"Enemies"},{"x":630.6763652944937,"y":198.7044827453792,"k":"cave","layer":"Enemies"},{"x":392.56570789497346,"y":1343.8556940993294,"k":"cave","layer":"Enemies"},{"x":1421.0386198293418,"y":400.7447114819661,"k":"abear","layer":"Enemies"},{"x":278.63774026278406,"y":1298.3622912224382,"k":"abear","layer":"Enemies"},{"x":131.67076122481376,"y":154.75644889753312,"k":"abear","layer":"Enemies"}];
+const initialSheets=["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAAAgCAYAAADtwH1UAAAExklEQVR42u1aPWsVURDNHxCsBMFKUREsLGwk+IGQQsGAhdiIEJCIhYrYiEWsooLBQksrmxSmVbBKb6Nga28piH2enIWznExm7s69uw8U8mB47+3be2bmnLlz9+7bhYX917/9Onzo4Kxk88T/3+MfjQ+Ai6eO9nbz7OldNsYJ8Dj+yfLSHuNvOG8Kciz+2PgV34ufOYyJf6EEriSNrZoSditBHAuih+JvIWko/uYcdBACAxCr3zrg8RpHFttWpfVTS5LGYrF09moONT4svsdL1ClSQtjAvRZUUjxLvifAFCKQUK9QrLW0i6h4sjlUVaaSX+MkcqRTVknJ4A8lEFW+Fk+mnQ7FnhEgEqXow6sam0Rpqg3NBNsvvXHqI4tbwo9mrRUo42NoPckaZ+jkAthqLeEPtR/Fqrni0r5cIqvFR2vlpwXA6+HdlZBse9zrqUwi2/+j6vSOcWxJBP5uyc0KnRE4sxZG/orxe4ujBvp1/VZagIwIxAFuRJJtJ9keXcKBfX/7aPbz3YOqdUZjj8gfmnVhDtFGBeTQ/myu9w6YBH+rWQcsvkeEt/hnZlh05WMx4LNGgKjyM7PXK1jmFhJDA+nWvOM16wB94dydnZ3OlAwNsHV22fF6jOTTN2MuXYba6/5onbHH010CX9D/8f5q5dIukhkovwNYE/i9vdkTqFUEvFIyGIN3CqAiwI+XcMs+gxVvqx9+cS5mcnZtqRXBWnHTxx9slTNQW/UkDwLomOzVigqgMwnHrQDZnWS0BgAPuGx5KgDjqNnBe7MzEkBnX3Ed08pkz88I8OP9WvedyWWJUiySwjUlFXByJ0wS6MOzGgFwfiSCJd5rf8V82IZUgCH7vHqtF6DUerwZoORTAK20lptZdsdKHK1+FR4tKIvvzYJorfEslcudG8uzxWMHOsuSD3Ccj7E1RFnyz50/2dtUt4pPHD+yy6wAtXdCPYG9aofBX1MhMVgsyEMiIAme30ISxq3eW9xjU/yhEWHj+Bh8LRDmAAHIgyUdhjEp8PVnTzuQtedXO9Oq9AwJ4TyMebPxoiohBPpr+3aPo8Yk5yEAfbYUzfUrl7uxyFkFheE4K1/5YT4Ymwqa4Hz/9PpC12IsURSJVpsQCAa2DXYKAZSIaBa0CKCiRtiRpfzRgVY/K8ZWvZ0lLQJ8eHl/9m1rYw/+WBEwzgrKGOGzBZfVb2MsCaF5wXc4C7CAavVzANYBfAZJCBxm25CKhs/ZxRgkABemlaWfxwqgBAGX/mpxLdHadqLi0XNsUYcC6AqOtsMKVdNjUNSOywqA8ymqBstFa8x/zkqUrX7Y0O43EoBXiJy93gymkStyyTbuCgAidYNEQugkMgqnG7SsAPD55eNWT4ZiTNF+eLWjG66aWxvRRoxYXnF6Zse5fq0A9g4gDMTCvHs0LQLgXFx1PV460+8UgcHNUesjHXr9r8njO3zBasUdErNkdlwxL3v9yoBhqFaYHqv+19/xp6RM9VCTtjMvl7GPu1i8klXnxHspWQdjE5oKy6vYeeDXkN/k0woQPXY3RVLRPZMpH630qnEemJPxY++j8LNdL/Qey5gZ4AmQ2jWOwG/ZhA09D2pvujW31MzgqR5EneeDuSX8qQXQgmGBziun/deEr78S3KGInQXoswAAAABJRU5ErkJggg==","data:image/png;base64,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"];
+const types={
+ Buildings:['axe','pick','arms','food','fish'],
+ Trees:['tree','oak','maple','elder','myrren'],
+ Ores:['copper','tin','iron','coal','cobalt','aether','obsidianite','meteorite'],
+ Fishing:['spot1','spot2','spot3','spot4','spot5'],
+ Enemies:['slime','goblin','boar','wolf','bear','cave','abear'],
+ Props:['flowers','rock','fence','lamp']
+};
+const colors={Buildings:'#f4ce83',Trees:'#98da86',Ores:'#c3c2e7',Fishing:'#72dbed',Enemies:'#ff9584',Props:'#f7a5d8'};
+const ground={grass:'#405c37',path:'#a08d66',plaza:'#857e67',water:'#365d69',rock:'#6e7167',flowers:'#796984'};
+const q=id=>document.getElementById(id);
+const world=window.MyrrenWorld;
+const map=q('map'), ctx=map.getContext('2d');
+const pixels=q('pixels'), pixelCtx=pixels.getContext('2d');
+const preview=q('preview').getContext('2d');
+const atlases=[[96,32],[144,128]].map(([width,height])=>Object.assign(document.createElement('canvas'),{width,height}));
+const back=document.createElement('canvas');
+back.width=back.height=800;
+const bg=back.getContext('2d');
+for(let y=0;y<800;y+=8)for(let x=0;x<800;x+=8){
+ const wx=x*2+8, wy=y*2+8;
+ const kind=world.craterWall(wx,wy)?'rock':world.inWater(wx,wy)?'water':world.pathKind(wx,wy);
+ bg.fillStyle=ground[kind];bg.fillRect(x,y,8,8);
+}
+let objects=structuredClone(initialObjects), tiles={}, selected=-1;
+let gesture=null, spriteGesture=null, busy=true;
+const past=[],future=[];
+const visibility={};
+const status=message=>{q('message').textContent=message;q('spriteMessage').textContent=message};
+function project(){
+ return {format:'myrren-editor-1',objects,tiles,sheets:atlases.map(c=>c.toDataURL('image/png'))};
+}
+function snapshot(){return JSON.stringify(project())}
+function record(before){
+ if(snapshot()===before)return;
+ past.push(before);if(past.length>35)past.shift();future.length=0;
+}
+async function sheetImage(url,canvas){
+ const image=new Image();image.src=url;await image.decode();
+ if(image.width!==canvas.width||image.height!==canvas.height)throw Error('Sheet must be '+canvas.width+' × '+canvas.height+' px.');
+ return image;
+}
+function applyImage(canvas,image){
+ const g=canvas.getContext('2d');g.clearRect(0,0,canvas.width,canvas.height);g.drawImage(image,0,0);
+}
+async function restore(data){
+ const images=await Promise.all(data.sheets.map((s,i)=>sheetImage(s,atlases[i])));
+ images.forEach((image,i)=>applyImage(atlases[i],image));
+ objects=data.objects;tiles=data.tiles;selected=-1;drawMap();drawSprite();
+}
+async function history(from,to){
+ if(busy||gesture||spriteGesture||!from.length)return;
+ busy=true;
+ try{const current=snapshot();await restore(JSON.parse(from.at(-1)));from.pop();to.push(current)}
+ catch(error){status(error.message)}
+ finally{busy=false}
+}
+q('undo').onclick=()=>history(past,future);
+q('redo').onclick=()=>history(future,past);
+for(const layer of Object.keys(types)){
+ q('layer').add(new Option(layer));
+ const label=document.createElement('label'), toggle=document.createElement('input');
+ toggle.type='checkbox';toggle.checked=true;visibility[layer]=toggle;
+ toggle.onchange=drawMap;label.append(toggle,layer);q('visibility').append(label);
+}
+function options(){q('asset').replaceChildren(...types[q('layer').value].map(kind=>new Option(kind)))}
+q('layer').onchange=options;options();
+function drawMap(){
+ ctx.drawImage(back,0,0);
+ for(const [key,kind] of Object.entries(tiles)){
+  const [x,y]=key.split(',').map(Number);ctx.fillStyle=ground[kind];ctx.fillRect(x*8,y*8,8,8);
+ }
+ ctx.strokeStyle='#d8e6c220';ctx.strokeRect(50,50,700,700);
+ objects.forEach((item,index)=>{
+  if(!visibility[item.layer].checked)return;
+  const x=item.x/2,y=item.y/2;
+  ctx.fillStyle=colors[item.layer];
+  if(item.layer==='Buildings'){ctx.fillRect(x-item.w/4,y-9,item.w/2,14);ctx.fillStyle='#292119';ctx.font='10px system-ui';ctx.textAlign='center';ctx.fillText(item.k,x,y+1)}
+  else{ctx.beginPath();ctx.arc(x,y,item.layer==='Trees'?3.5:2.4,0,Math.PI*2);ctx.fill()}
+  if(index===selected){ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.strokeRect(x-7,y-7,14,14)}
+ });
+ const item=objects[selected];
+ q('selection').textContent=item?item.layer+' · '+item.k:'No selection';
+ for(const [id,key] of [['coordX','x'],['coordY','y']]){
+  q(id).disabled=!item;q(id).value=item?Math.round(item[key]):'';
+ }
+ q('remove').disabled=!item;
+}
+function position(event,canvas){
+ const rect=canvas.getBoundingClientRect();return [(event.clientX-rect.left)/rect.width,(event.clientY-rect.top)/rect.height];
+}
+const clamp=value=>Math.max(0,Math.min(1599,value));
+function mapPoint(event){return position(event,map).map(value=>clamp(value*1600))}
+function snap(value){return clamp(q('snap').checked?Math.round(value/16)*16:Math.round(value))}
+function paintMap(event){
+ const [x,y]=mapPoint(event);
+ if(gesture.mode==='Terrain'||gesture.mode==='Clear terrain'){
+  const tileX=Math.floor(x/16),tileY=Math.floor(y/16);
+  const [lastX,lastY]=gesture.last||[tileX,tileY];
+  const steps=Math.max(1,Math.abs(tileX-lastX),Math.abs(tileY-lastY));
+  for(let i=0;i<=steps;i++){
+   const key=Math.round(lastX+(tileX-lastX)*i/steps)+','+Math.round(lastY+(tileY-lastY)*i/steps);
+   if(gesture.mode==='Terrain')tiles[key]=q('tile').value;else delete tiles[key];
+  }
+  gesture.last=[tileX,tileY];
+ }else if(objects[selected]){
+  const [startX,startY]=gesture.start;
+  if(gesture.moved||Math.hypot(x-startX,y-startY)>2){
+   gesture.moved=true;
+   const [offsetX,offsetY]=gesture.offset;
+   Object.assign(objects[selected],{x:snap(x+offsetX),y:snap(y+offsetY)});
+  }
+ }
+ drawMap();
+}
+map.onpointerdown=event=>{
+ if(busy||gesture||event.button!==0)return;
+ const [x,y]=mapPoint(event), mode=q('tool').value;
+ gesture={mode,before:snapshot(),id:event.pointerId,start:[x,y],offset:[0,0]};
+ map.setPointerCapture(event.pointerId);
+ if(mode==='Move'){
+  selected=-1;let closest=Infinity;
+  objects.forEach((item,index)=>{
+   if(!visibility[item.layer].checked)return;
+   const dx=Math.abs(item.x-x),dy=Math.abs(item.y-y),distance=Math.hypot(dx,dy);
+   const hit=item.layer==='Buildings'?dx<=item.w/2&&y>=item.y-18&&y<=item.y+10:distance<14;
+   if(hit&&distance<closest){selected=index;closest=distance}
+  });
+  const item=objects[selected];if(item)gesture.offset=[item.x-x,item.y-y];
+ }else if(mode==='Place'){
+  const layer=q('layer').value,k=q('asset').value;
+  const item={layer,k,x:snap(x),y:snap(y)};
+  if(layer==='Buildings'){item.id=k;item.w=initialObjects.find(o=>o.layer===layer&&o.k===k).w;if(k==='arms')item.open=true}
+  visibility[layer].checked=true;selected=objects.push(item)-1;
+ }
+ paintMap(event);
+};
+map.onpointermove=event=>{if(gesture?.id===event.pointerId)paintMap(event)};
+function finishMap(event){if(gesture?.id!==event.pointerId)return;record(gesture.before);gesture=null}
+map.onpointerup=map.onpointercancel=map.onlostpointercapture=finishMap;
+q('zoom').onchange=()=>{map.style.width=q('zoom').value};
+q('remove').onclick=()=>{if(busy||selected<0)return;const before=snapshot();objects.splice(selected,1);selected=-1;record(before);drawMap()};
+for(const [id,key] of [['coordX','x'],['coordY','y']])q(id).onchange=()=>{
+ if(busy||!objects[selected])return;
+ const before=snapshot(), value=q(id).valueAsNumber;
+ if(Number.isFinite(value))objects[selected][key]=clamp(Math.round(value));
+ record(before);drawMap();
+};
+function tab(sprite){
+ q('spritePanel').hidden=!sprite;q('worldPanel').hidden=sprite;
+ q('mapTab').setAttribute('aria-pressed',String(!sprite));q('spriteTab').setAttribute('aria-pressed',String(sprite));
+}
+q('mapTab').onclick=()=>tab(false);q('spriteTab').onclick=()=>tab(true);
+function spriteRegion(animated){
+ const sheet=+q('sheet').value,direction=q('direction').selectedIndex;
+ const frame=animated?Math.floor(performance.now()/110)%6:q('frame').selectedIndex;
+ return {canvas:atlases[sheet],x:sheet?frame*24:direction*24,y:sheet?direction*32:0};
+}
+function renderRegion(context,animated,scale){
+ const {canvas,x,y}=spriteRegion(animated);
+ context.clearRect(0,0,24*scale,32*scale);context.imageSmoothingEnabled=false;
+ context.drawImage(canvas,x,y,24,32,0,0,24*scale,32*scale);
+}
+function drawSprite(){renderRegion(pixelCtx,false,1)}
+function updateFrames(){
+ q('frame').replaceChildren(...Array.from({length:+q('sheet').value?6:1},(_,i)=>new Option(String(i+1))));drawSprite();
+}
+q('sheet').onchange=updateFrames;q('direction').onchange=q('frame').onchange=drawSprite;
+setInterval(()=>{if(!q('spritePanel').hidden)renderRegion(preview,true,4)},110);
+function paintPixel(event){
+ const [px,py]=position(event,pixels), mode=q('brush').value;
+ if(px<0||py<0||px>=1||py>=1)return;
+ const {canvas,x,y}=spriteRegion(false);
+ const g=canvas.getContext('2d'), sx=x+Math.floor(px*24),sy=y+Math.floor(py*32);
+ if(mode==='Erase'){g.clearRect(sx,sy,1,1);return}
+ const rgb=q('ink').value.match(/[\da-f]{2}/gi).map(value=>parseInt(value,16));
+ if(mode==='Paint'){g.fillStyle=q('ink').value;g.fillRect(sx,sy,1,1);return}
+ const sample=g.getImageData(sx,sy,1,1).data;
+ if(!sample[3])return;
+ if(mode==='Sample'){q('ink').value='#'+Array.from(sample.slice(0,3),v=>v.toString(16).padStart(2,'0')).join('');return}
+ const image=g.getImageData(0,0,canvas.width,canvas.height);
+ for(let i=0;i<image.data.length;i+=4){
+  if(sample.every((value,channel)=>image.data[i+channel]===value))image.data.set(rgb,i);
+ }
+ g.putImageData(image,0,0);
+}
+pixels.onpointerdown=event=>{
+ if(busy||spriteGesture||event.button!==0)return;
+ spriteGesture={id:event.pointerId,before:snapshot()};
+ pixels.setPointerCapture(event.pointerId);paintPixel(event);drawSprite();
+};
+pixels.onpointermove=event=>{
+ if(spriteGesture?.id!==event.pointerId||!['Paint','Erase'].includes(q('brush').value))return;
+ paintPixel(event);drawSprite();
+};
+function finishSprite(event){if(spriteGesture?.id!==event.pointerId)return;record(spriteGesture.before);spriteGesture=null}
+pixels.onpointerup=pixels.onpointercancel=pixels.onlostpointercapture=finishSprite;
+function download(blob,name){
+ const url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download=name;document.body.append(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+function exportProject(){if(!busy)download(new Blob([snapshot()],{type:'application/json'}),'myrren-project.json')}
+q('save').onclick=q('saveSprite').onclick=exportProject;
+q('exportPng').onclick=()=>{
+ if(busy)return;
+ const index=+q('sheet').value;
+ atlases[index].toBlob(blob=>{if(blob)download(blob,'myrren-'+(index?'walk':'idle')+'.png')});
+};
+q('importPng').onclick=()=>q('png').click();
+q('png').onchange=async()=>{
+ const file=q('png').files[0];q('png').value='';if(!file||busy)return;
+ busy=true;
+ const canvas=atlases[+q('sheet').value],url=URL.createObjectURL(file);
+ try{const before=snapshot();applyImage(canvas,await sheetImage(url,canvas));record(before);drawSprite();status('PNG imported')}
+ catch(error){status(error.message)}
+ finally{URL.revokeObjectURL(url);busy=false}
+};
+q('open').onclick=()=>q('file').click();
+q('file').onchange=async()=>{
+ const file=q('file').files[0];q('file').value='';if(!file||busy)return;
+ busy=true;
+ try{
+  const data=JSON.parse(await file.text());
+  const validObject=o=>o&&Object.hasOwn(types,o.layer)&&types[o.layer].includes(o.k)&&[o.x,o.y].every(v=>Number.isFinite(v)&&v>=0&&v<1600)&&(o.layer!=='Buildings'||(Number.isFinite(o.w)&&o.w>0&&o.w<=1600));
+  const validTile=([key,kind])=>/^(\d{1,2}),(\d{1,2})$/.test(key)&&Object.hasOwn(ground,kind);
+  if(data?.format!=='myrren-editor-1'||!Array.isArray(data.objects)||!data.objects.every(validObject)||!data.tiles||Array.isArray(data.tiles)||typeof data.tiles!=='object'||!Object.entries(data.tiles).every(validTile)||!Array.isArray(data.sheets)||data.sheets.length!==2||!data.sheets.every(s=>typeof s==='string'&&s.startsWith('data:image/png;base64,')))throw Error('Choose a valid Myrren editor project.');
+  const before=snapshot();await restore(data);record(before);status('Project opened');
+ }catch(error){status(error.message)}
+ finally{busy=false}
+};
+drawMap();updateFrames();
+Promise.all(initialSheets.map((src,i)=>sheetImage(src,atlases[i]))).then(images=>{
+ images.forEach((image,i)=>applyImage(atlases[i],image));busy=false;drawSprite();status('World loaded');
+}).catch(error=>status(error.message));
+</script></html>
