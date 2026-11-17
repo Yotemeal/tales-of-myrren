@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // From a checkout of the editor branch: node tools/preview-myrren.mjs myrren-project.json
 import { createServer } from 'node:http';
-import { readFile, realpath, rename, unlink, writeFile } from 'node:fs/promises';
+import { readFile, readdir, realpath, rename, unlink, writeFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const publicFolder = await realpath(fileURLToPath(new URL('../public/', import.meta.url)));
@@ -14,6 +15,7 @@ const types = {
   Enemies: ['slime', 'goblin', 'boar', 'wolf', 'bear', 'cave', 'abear'],
   Props: ['flowers', 'rock', 'fence', 'lamp']
 };
+const defaultBounds={width:1600,height:1600,rx:305,ry:235,spawnX:800,spawnY:844};
 const tileTypes = ['grass', 'path', 'plaza', 'water', 'rock', 'flowers'];
 const treeSpecies=['pine','birch','oak','willow','maple','ironbark'];
 const assetFolder = '/assets/myrren-v19f/';
@@ -30,7 +32,7 @@ function validate(data) {
       !Array.isArray(data.sheets) || ![2, 5].includes(data.sheets.length)) {
     throw Error('Use a project JSON exported by Myrren Editor.');
   }
-  const bounds = data.bounds ?? { width:1600, height:1600, rx:305, ry:235, spawnX:800, spawnY:844 };
+  const bounds = data.bounds ?? defaultBounds;
   const limits = [['width',1600,3200,16],['height',1600,3200,16],['rx',180,480,1],['ry',150,400,1],
     ['spawnX',108,bounds.width-109,1],['spawnY',108,bounds.height-109,1]];
   if (!limits.every(([key,min,max,step]) => Number.isInteger(bounds[key]) && bounds[key]>=min &&
@@ -86,107 +88,6 @@ function validate(data) {
   return { objects, tiles: data.tiles, sheets, regionTiles, rules, bounds:Object.fromEntries(limits.map(([key])=>[key,bounds[key]])) };
 }
 
-function replaceOnce(source, marker, replacement) {
-  const index = source.indexOf(marker);
-  if (index < 0 || source.indexOf(marker, index + marker.length) >= 0) {
-    throw Error('The preview adapter needs updating for this game build. Anchor: ' + marker);
-  }
-  return source.slice(0, index) + replacement + source.slice(index + marker.length);
-}
-
-function patchWorld(source, project) {
-  const buildings = project.objects.filter(item => item.layer === 'Buildings');
-  source = replaceOnce(source, 'const bridges=[];', `
-const previewBounds=${JSON.stringify(project.bounds)};
-const previewBuildings=${JSON.stringify(buildings)};
-const previewTiles=${JSON.stringify(project.tiles)};
-const regionTiles=${JSON.stringify(project.regionTiles)};
-const corruptedRegions=${JSON.stringify(project.rules.map(rule=>rule.corrupted===true))};
-const previewBiome=(x,y)=>corruptedRegions[regionTiles[Math.floor(x/16)+','+Math.floor(y/16)]]?'corrupted':null;
-const previewTile=(x,y)=>previewTiles[Math.floor(x/16)+','+Math.floor(y/16)];
-const smithy=buildings.find(b=>b.open);
-const editedSmithy=previewBuildings.find(b=>b.k===smithy.id);
-const smithyShift={x:editedSmithy.x-smithy.x,y:editedSmithy.y-smithy.y};
-for(const building of buildings){
- const edited=previewBuildings.find(item=>item.k===building.id);
- building.x=edited.x;
- building.y=edited.y;
-}
-const bridges=[];`);
-  source = replaceOnce(source, 'function inWater(x,y){return waterDistance(x,y)<0||craterWall(x,y)}', `
-function inWater(x,y){
- const tile=previewTile(x,y);
- return tile ? tile==='water'||tile==='rock' : waterDistance(x,y)<0||craterWall(x,y);
-}`);
-  source = replaceOnce(source, 'const paths=buildings.map', `for(const station of stations){station.x+=smithyShift.x;station.y+=smithyShift.y}
-const paths=buildings.map`);
-  source = replaceOnce(source, 'if(waterDistance(xx,yy)<margin)return false;', 'if(previewTile(xx,yy) ? inWater(xx,yy) : waterDistance(xx,yy)<margin)return false;');
-  source = replaceOnce(source, 'const r=Math.hypot((x-CX)/305,(y-CY)/235);', 'const r=Math.hypot((x-CX)/previewBounds.rx,(y-CY)/previewBounds.ry);');
-  source = replaceOnce(source, 'y>CY+172;', 'y>CY+previewBounds.ry-63;');
-  source = replaceOnce(source, 'Math.hypot((x-CX)/305,(y-CY)/235)<.895', 'Math.hypot((x-CX)/previewBounds.rx,(y-CY)/previewBounds.ry)<.895');
-  source = replaceOnce(source, 'nx<1492&&ny>108&&ny<1492', 'nx<previewBounds.width-108&&ny>108&&ny<previewBounds.height-108');
-  source = replaceOnce(source, 'return {x:800,y:840};', 'return {x:previewBounds.spawnX,y:previewBounds.spawnY};');
-  return replaceOnce(source, 'Object.freeze({lake,buildings,', 'Object.freeze({previewBounds,previewTile,previewBiome,lake,buildings,');
-}
-
-function patchGame(source, project) {
-  source = replaceOnce(source, 'WW=1600,WH=1600', 'WW=MyrrenWorld.previewBounds.width,WH=MyrrenWorld.previewBounds.height');
-  source = replaceOnce(source, 'x:CX,y:CY+44};', 'x:MyrrenWorld.previewBounds.spawnX,y:MyrrenWorld.previewBounds.spawnY};');
-  source = replaceOnce(source, 'save.x=CX;save.y=CY+44;', 'save.x=MyrrenWorld.previewBounds.spawnX;save.y=MyrrenWorld.previewBounds.spawnY;');
-  source = replaceOnce(source, '(wx+8-CX)/305,(wy+8-CY)/235', '(wx+8-CX)/VILLAGE.previewBounds.rx,(wy+8-CY)/VILLAGE.previewBounds.ry');
-  source = replaceOnce(source, '(305+wobble),gy=CY+Math.sin(a)*(235+wobble*.7)', '(VILLAGE.previewBounds.rx+wobble),gy=CY+Math.sin(a)*(VILLAGE.previewBounds.ry+wobble*.7)');
-  source = replaceOnce(source, 'if(gy>CY+172&&', 'if(gy>CY+VILLAGE.previewBounds.ry-63&&');
-  const generated = regionObjects(project);
-  const placements = [...project.objects, ...generated];
-  const nodes = placements.filter(item => ['Trees','Ores','Fishing'].includes(item.layer));
-  const enemies = placements.filter(item => item.layer === 'Enemies');
-  source = source.replaceAll('n.back=now+rint(nt.rt[0],nt.rt[1])*1000;',
-    'n.back=now+(n.respawn??rint(nt.rt[0],nt.rt[1]))*1000;');
-  source = replaceOnce(source, 'm.back=now+12000;', 'm.back=now+(m.respawn??12)*1000;');
-  const props = project.objects.filter(item => item.layer === 'Props');
-  source = replaceOnce(source, 'establishOuterOreTrail();', `nodes.splice(0,nodes.length,...${JSON.stringify(nodes)}.map(item=>({...item,back:0})));
-mons.splice(0,mons.length,...${JSON.stringify(enemies)}.map(({k,x,y,respawn})=>({
- t:k,x,y,respawn,hx:x,hy:y,hp:MT[k].hp,state:'idle',back:0,cd:0,w:rnd()*3,wx:x,wy:y,face:1,lunge:-9999
-}))); `);
-  source = replaceOnce(source, 'const SOLID=DECOR.filter', `
-const previewProps=${JSON.stringify(props)};
-for(const prop of previewProps)if(prop.k==='fence')DECOR.push(['fence',prop.x,prop.y,24]);
-const SOLID=DECOR.filter`);
-  source = replaceOnce(source, 'const native=MyrrenEnvironment.terrain(ctx,tx,ty,x,y,d<-18?', `
-    const edited=VILLAGE.previewTile(wx+8,wy+8);
-    if(edited){
-      const tileKind=edited==='rock'||edited==='flowers'?'grass':edited;
-      const surface=edited==='rock'?'stone':tileKind==='grass'?VILLAGE.previewBiome(wx+8,wy+8)||tileKind:tileKind;
-      const neighbors=[[0,-1,1],[0,1,2],[-1,0,4],[1,0,8]];
-      const tileEdges=neighbors.reduce((bits,[dx,dy,bit])=>bits|((VILLAGE.previewTile(wx+8+dx*T,wy+8+dy*T)||pathAt(tx+dx,ty+dy))===edited?0:bit),0);
-      const painted=MyrrenEnvironment.terrain(ctx,tx,ty,x,y,tileKind,now,tileEdges,surface);
-      if(edited==='rock'&&!painted)R(x,y,16,16,'#6e7167');
-      if(edited==='flowers')previewFlower(x+7,y+12);
-      continue;
-    }
-    if(kind==='grass'&&d>24&&VILLAGE.previewBiome(wx+8,wy+8)){
-      MyrrenEnvironment.terrain(ctx,tx,ty,x,y,kind,now,0,'corrupted');
-      continue;
-    }
-    const native=MyrrenEnvironment.terrain(ctx,tx,ty,x,y,d<-18?`);
-  source = replaceOnce(source, 'function drawOutdoor(cx,cy,now){', `
-function previewFlower(x,y){
- R(x,y-4,1,5,'#648540');R(x-1,y-5,3,2,'#d0a3aa');R(x,y-6,1,4,'#d0a3aa');
-}
-function drawOutdoor(cx,cy,now){`);
-  return replaceOnce(source, '  for(const station of VILLAGE.stations)list.push', `
-  for(const prop of previewProps){
-    if(prop.k==='fence')continue;
-    list.push({y:prop.y,f:()=>{
-      const x=Math.round(prop.x-cx),y=Math.round(prop.y-cy);
-      if(prop.k==='flowers')previewFlower(x,y);
-      if(prop.k==='rock'){R(x-5,y-5,10,5,'#6e7167');R(x-3,y-7,6,3,'#999b83')}
-      if(prop.k==='lamp'){R(x,y-14,2,14,'#705438');R(x-2,y-17,6,6,'#e9c881')}
-    }});
-  }
-  for(const station of VILLAGE.stations)list.push`);
-}
-
 const projectPath = resolve(process.argv[2] || 'myrren-project.json');
 const editorSource = await readFile(new URL('./myrren-editor.html', import.meta.url), 'utf8');
 function editorDefaults() {
@@ -205,9 +106,38 @@ try {
   projectText = JSON.stringify(editorDefaults());
 }
 const source = name => readFile(resolve(publicFolder, name), 'utf8');
-const [worldSource, gameSource, indexSource, environmentSource] = await Promise.all([
-  source('myrren-world.js'), source('myrren-game.js'), source('index.html'), source('myrren-environment.js')
-]);
+const bladeAtlas='/swords-forged-v1.png';
+const assetRoots=['assets/resources/v32','assets/resources/v34','assets/terrain','assets/myrren-v19f'];
+async function gameAssets(){
+ const assets=[];
+ for(const folder of assetRoots){
+  const entries=await readdir(resolve(publicFolder,folder),{withFileTypes:true}).catch(error=>{
+   if(error.code==='ENOENT')return [];
+   throw error;
+  });
+  for(const file of entries){
+   if(!file.isFile()||!/^[a-z0-9_-]+\.png$/i.test(file.name))continue;
+   const path='/'+folder+'/'+file.name;
+   const bytes=await readFile(resolve(publicFolder,folder,file.name));
+   if(bytes.length<33||bytes.toString('hex',0,8)!=='89504e470d0a1a0a')continue;
+   assets.push({path,hash:createHash('sha256').update(bytes).digest('hex'),width:bytes.readUInt32BE(16),height:bytes.readUInt32BE(20)});
+  }
+ }
+ const blades=await readFile(resolve(publicFolder,bladeAtlas.slice(1))).catch(()=>null);
+ if(blades?.length>=33&&blades.toString('hex',0,8)==='89504e470d0a1a0a')
+  assets.push({path:bladeAtlas,hash:createHash('sha256').update(blades).digest('hex'),width:blades.readUInt32BE(16),height:blades.readUInt32BE(20)});
+ const [entry,version]=await Promise.all([source('index.html'),source('myrren-preview-config.js').catch(()=>null)]);
+ const issues=[];
+ if(!version?.includes('MyrrenPlaytest API v1')||!entry.includes('src="/myrren-preview-config.js"'))
+  issues.push('This checkout is missing the Myrren Playtest API v1 entry point.');
+ for(const [index,path] of atlasPaths.entries()){
+  const item=assets.find(asset=>asset.path===path);
+  const [width,height]=[[96,32],[144,128],[336,144],[384,864],[384,1008]][index];
+  if(!item||item.width!==width||item.height!==height)issues.push(path.split('/').pop()+' needs a '+width+' × '+height+' PNG.');
+ }
+ return {version:1,issues,assets:assets.sort((a,b)=>a.path.localeCompare(b.path))};
+}
+
 function walkable(project, x, y) {
   const {width,height,rx,ry}=project.bounds;
   if(x<108||y<108||x>width-109||y>height-109)return false;
@@ -239,92 +169,27 @@ function regionObjects(project) {
   }
   return placements;
 }
-function buildPreview(project, editorOrigin=null) {
-  const world = patchWorld(worldSource, project);
-  const {spawnX:x,spawnY:y}=project.bounds;
-  if(!walkable(project,x,y))throw Error('Choose a walkable player spawn.');
-  let game=patchGame(gameSource, project);
-  if(editorOrigin){
-    game=replaceOnce(game,"cv.addEventListener('pointerdown',e=>{",`
-const editorOrigin=${JSON.stringify(editorOrigin)};
-let inspectEnabled=false,inspectTarget=null;
-function inspectObject(wx,wy,now){
- const hits=[];
- const add=(data,left,right,top,bottom)=>{
-  if(wx>=left&&wx<=right&&wy>=top&&wy<=bottom)hits.push({...data,hit:[left,top,right,bottom]});
- };
- for(const n of nodes){
-  const nt=NT[n.k],fishing=n.k.startsWith('spot');
-  const size=TREEK.includes(n.k)?MyrrenEnvironment.approvedTreeSize(n,now):null;
-  const half=size?Math.ceil(size.width/2):fishing?16:15;
-  const top=size?size.height-4:fishing?18:17;
-  add({layer:n.layer,k:n.k,name:nt.name,x:n.x,y:n.y,collision:null,reach:nt.reach?30:22,
-   phase:now<n.back?'Depleted':nt.skill==='mining'?oreVisualStage(n,now):'Active',
-   rangeX:n.x,rangeY:n.y-(fishing?0:2),
-   remaining:Math.max(0,n.back-now),respawn:n.respawn??nt.rt},
-   n.x-half,n.x+half,n.y-top,n.y+(fishing?10:6));
- }
- for(const m of mons){
-  add({layer:'Enemies',k:m.t,name:MT[m.t].name||m.t,x:m.x,y:m.y,homeX:m.hx,homeY:m.hy,
-   collision:null,reach:meleeReach(),rangeX:m.x,rangeY:m.y-4,phase:m.state,remaining:m.state==='dead'?Math.max(0,m.back-now):0,respawn:m.respawn??12},
-   m.x-18,m.x+18,m.y-29,m.y+8);
- }
- for(const b of BLD){
-  const half=b.w/2+3;
-  add({layer:'Buildings',k:b.id,name:SHOPS[b.id]?.name||b.id,x:b.x,y:b.y,
-   collision:b.open?[b.x-half,b.y-14,b.x+half,b.y]:null,door:b.open?[b.x-7,b.y-4,b.x+7,b.y+1]:null,reach:null,phase:b.open?'Open-air service':'Service building'},
-   b.x-half,b.x+half,b.y-88,b.y+8);
- }
- for(const s of VILLAGE.stations){
-  const b=BLD.find(item=>item.id==='arms');
-  add({layer:'Buildings',k:'arms',name:s.kind,x:s.x,y:s.y,homeX:b.x,homeY:b.y,collision:null,reach:38,phase:'Smithy station'},
-   s.x-20,s.x+20,s.y-(s.kind==='furnace'?57:25),s.y+5);
- }
- return hits.sort((a,b)=>Math.hypot(wx-a.x,wy-a.y)-Math.hypot(wx-b.x,wy-b.y))[0]||null;
-}
-function drawInspector(cx,cy){
- if(!inspectEnabled||!inspectTarget||inside)return;
- const target=inspectTarget;
- const monster=target.layer==='Enemies'&&mons.find(m=>m.t===target.k&&m.hx===target.homeX&&m.hy===target.homeY);
- const dx=(monster?monster.x-target.x:0)-cx,dy=(monster?monster.y-target.y:0)-cy;
- const outline=(rect,color)=>{
-  if(!rect)return;
-  const [l,t,r,b]=rect;
-  ctx.strokeStyle=color;ctx.strokeRect(l+dx,t+dy,r-l,b-t);
- };
- ctx.save();ctx.lineWidth=1;
- outline(target.hit,'#ffe18b');outline(target.collision,'#ff8078');outline(target.door,'#a4eea1');
- if(target.reach!=null){
-  ctx.setLineDash([2,2]);ctx.strokeStyle='#91dbf2';ctx.beginPath();
-  ctx.arc((target.rangeX??target.x)+dx,(target.rangeY??target.y)+dy,target.reach,0,Math.PI*2);ctx.stroke();
- }
- ctx.restore();
-}
-window.addEventListener('message',event=>{
- if(event.source!==parent||event.origin!==editorOrigin||event.data?.type!=='myrren-inspector-mode')return;
- inspectEnabled=event.data.enabled===true;inspectTarget=null;
-});
-
-cv.addEventListener('pointerdown',e=>{`);
-    game=replaceOnce(game,'const [wx,wy]=toWorld(e.clientX,e.clientY),now=performance.now();',`const [wx,wy]=toWorld(e.clientX,e.clientY),now=performance.now();
-  if(inspectEnabled){
-    inspectTarget=inside?null:inspectObject(wx,wy,now);
-    parent.postMessage({type:'myrren-inspector-result',object:inspectTarget},editorOrigin);
-    return;
-  }`);
-    game=replaceOnce(game,'  if(marker){','  drawInspector(cx,cy);\n  if(marker){');
-    game=replaceOnce(game,'function persist(force){','function persist(force){return;');
-    game=replaceOnce(game,'if(!loadLocalProgress()){finalizeSave();save.inv.coins=30}',
-      "finalizeSave();save.inv.coins=30;save.bag.push('bronze_sword','bronze_pick','bronze_axe');");
-    game=replaceOnce(game,'bootLoad();','finishLoad(); if(window.MyrrenKezV2Atlas?.ready)start(); else window.addEventListener("myrren-kez-v2-ready",start,{once:true});');
-  }
-  return new Map([
-    ['/myrren-environment.js', replaceOnce(environmentSource, "const continuousTrail=world?.pathDistance&&(kind==='path'||kind==='grass');", "const continuousTrail=world?.pathDistance&&!world.previewTile?.(tx*16+8,ty*16+8)&&(kind==='path'||kind==='grass');")],
-    ['/myrren-world.js', world],
-    ['/myrren-game.js', game],
-    ['/index.html', replaceOnce(indexSource, '<title>Tales of Myrren</title>', '<title>Myrren Project Preview</title>')],
-    ...project.sheets.map((sheet,index) => [atlasPaths[index],sheet])
-  ]);
+const kits={
+ fresh:{levels:{},bag:['bronze_sword','bronze_pick','bronze_axe'],weapon:null,food:0},
+ miner:{levels:{mining:80},bag:['bronze_sword','bronze_axe'],weapon:'bronze_pick',food:6},
+ fighter:{levels:{melee:70},bag:['bronze_pick','bronze_axe'],weapon:'starsteel_sword',food:18}
+};
+function buildPreview(project,editorOrigin=null,kit='fresh') {
+ const {spawnX:x,spawnY:y}=project.bounds;
+ if(!walkable(project,x,y))throw Error('Choose a walkable player spawn.');
+ if(!Object.hasOwn(kits,kit))throw Error('Unknown playtest loadout.');
+ const placements=[...project.objects,...regionObjects(project)];
+ const rules=project.rules;
+ const config={version:1,editorOrigin,kit:kits[kit],bounds:project.bounds,tiles:project.tiles,
+  corrupted:Object.keys(project.regionTiles).filter(key=>rules[project.regionTiles[key]].corrupted===true),
+  buildings:placements.filter(item=>item.layer==='Buildings'),
+  nodes:placements.filter(item=>['Trees','Ores','Fishing'].includes(item.layer)),
+  enemies:placements.filter(item=>item.layer==='Enemies'),
+  props:placements.filter(item=>item.layer==='Props')};
+ return new Map([
+  ['/myrren-preview-config.js','window.MyrrenPlaytest='+JSON.stringify(config)+';'],
+  ...project.sheets.map((sheet,index)=>[atlasPaths[index],sheet])
+ ]);
 }
 let overrides = buildPreview(validate(JSON.parse(projectText)));
 let saving = false;
@@ -357,8 +222,12 @@ async function saveProject(request, response, playtest) {
     let next;
     try {
       const data=JSON.parse(text);
-      if(playtest)data.bounds={...data.bounds,spawnX:data.playtestX,spawnY:data.playtestY};
-      next=buildPreview(validate(data),playtest?request.headers.origin:null);
+      if(playtest){
+        const {issues}=await gameAssets();
+        if(issues.length)throw Error(issues.join(' '));
+      }
+      if(playtest)data.bounds={...(data.bounds??defaultBounds),spawnX:data.playtestX,spawnY:data.playtestY};
+      next=buildPreview(validate(data),playtest?request.headers.origin:null,playtest?data.playtestKit??'fresh':'fresh');
     }
     catch (error) {
       response.writeHead(422, security).end(error.message);
@@ -431,6 +300,24 @@ const server = createServer(async (request, response) => {
   }
   if (parsed.pathname === '/editor/project.json') {
     response.writeHead(200, { ...security, 'Content-Type': 'application/json' }).end(projectText);
+    return;
+  }
+  if(parsed.pathname==='/editor/game-assets'){
+    try{
+      const manifest=await gameAssets();
+      response.writeHead(200,{...security,'Content-Type':'application/json'}).end(JSON.stringify(manifest));
+    }catch(error){
+      if(!response.headersSent)response.writeHead(503,security);
+      response.end('Could not read game assets: '+error.message);
+    }
+    return;
+  }
+  if(parsed.pathname.startsWith('/editor/asset-file/')){
+    const path=parsed.pathname.slice('/editor/asset-file'.length);
+    if((path!==bladeAtlas&&!assetRoots.some(folder=>path.startsWith('/'+folder+'/')))||!/^\/[a-z0-9/_-]+\.png$/i.test(path)){
+      response.writeHead(404,security).end();return;
+    }
+    await serveGame(new URL(path,parsed.origin),response,new Map());
     return;
   }
   await serveGame(parsed,response,overrides);

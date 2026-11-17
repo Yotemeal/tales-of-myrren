@@ -256,7 +256,7 @@
       const connected=15^((edge&1)|((edge&2)<<1)|((edge&4)<<1)|((edge&8)>>2));
       const variant=(h>>>8)%8;
       const world=window.MyrrenWorld;
-      const continuousTrail=world?.pathDistance&&(kind==='path'||kind==='grass');
+      const continuousTrail=world?.pathDistance&&!world.previewTile?.(tx*16+8,ty*16+8)&&(kind==='path'||kind==='grass');
       const index=kind==='water'?16+variant%4
         :kind==='path'&&!continuousTrail?24+connected
         :kind==='plaza'||ground==='dirt'||(kind==='path'&&world?.inVillage(tx*16+8,ty*16+8))?8+variant%4

@@ -1,6 +1,7 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=98;
+window.MyrrenBuild=99;
+const playtest=window.MyrrenWorld.preview;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -246,7 +247,7 @@ function monsterWarningConfig(mt){
 const MR={slime:.09,goblin:.10,boar:.12,wolf:.13,bear:.11,cave:.12,abear:.12};
 for(const k in MT)MT[k].max=Math.max(1,Math.round(hpAt(MT[k].lv)*(MR[k]||.12)));
 /* ---------- world ---------- */
-const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=90,EDGE=100;
+const T=16,WW=MyrrenWorld.previewBounds.width,WH=MyrrenWorld.previewBounds.height,CX=800,CY=800,SPD=90,EDGE=100;
 const VILLAGE=MyrrenWorld;
 const BLD=VILLAGE.buildings.map(b=>({...b}));
 const LAMPS=[[CX-116,CY+12],[CX+116,CY+12],[CX-82,CY+108],[CX+82,CY+108]];
@@ -260,6 +261,8 @@ const CAMPFIRE=Object.freeze(legacyFire
   ?{x:CX+176,y:CY-90}:{x:CX+64,y:CY+50});
 // A maintained camp: keep only essential community fixtures.
 const DECOR=[['board',CX-8,CY-72],['provisions',CX-185,CY-111],['provisions',CX+175,CY-112]];
+const previewProps=playtest?.props??[];
+for(const prop of previewProps)if(prop.k==='fence')DECOR.push(['fence',prop.x,prop.y,24]);
 const SOLID=DECOR.filter(d=>d[0]==='fence').map(d=>d[4]==='v'?{x0:d[1]-3,x1:d[1]+3,y0:d[2]-d[3]-2,y1:d[2]+1}:{x0:d[1]-2,x1:d[1]+d[3]+2,y0:d[2]-3,y1:d[2]+2});
 const BOARD={x:CX-8,y:CY-72};
 const TRADER={x:CX-142,y:CY-38,id:'cart'};
@@ -325,6 +328,12 @@ function establishOuterOreTrail(){
   return true;
 }
 establishOuterOreTrail();
+if(playtest){
+ nodes.splice(0,nodes.length,...playtest.nodes.map(item=>({...item,back:0})));
+ mons.splice(0,mons.length,...playtest.enemies.map(({k,x,y,respawn})=>({
+  t:k,x,y,respawn,hx:x,hy:y,hp:MT[k].hp,state:'idle',back:0,cd:0,w:rnd()*3,wx:x,wy:y,face:1,lunge:-9999
+ })));
+}
 
 
 /* ---------- save ---------- */
@@ -338,7 +347,7 @@ function parseSavedProgress(raw){
     return o&&typeof o==='object'&&!Array.isArray(o)&&o.xp&&typeof o.xp==='object'&&!Array.isArray(o.xp)?o:null;
   }catch(e){return null}
 }
-let save={notes:{},bank:{},packOrder:[],bankOrder:[],jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0,forging:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0,forging:0},x:CX,y:CY+44};
+let save={notes:{},bank:{},packOrder:[],bankOrder:[],jobs:[],tokens:0,perks:{},dye:null,name:'',xp:{melee:0,woodcutting:0,mining:0,forging:0},inv:{coins:0,logs:0,oak:0,copper:0,iron:0,bread:0,pie:0,stew:0},eq:emptyEq(),bag:[],pets:{woodcutting:0,fishing:0,mining:0,forging:0},x:VILLAGE.previewBounds.spawnX,y:VILLAGE.previewBounds.spawnY};
 let fresh=true,saveTs=0;
 function migrateArmourSave(source){
  const id=k=>typeof k==='string'&&/^leather_(helm|body|gloves|legs|boots|shield)$/.test(k)?k.replace('leather_','bronze_'):k;
@@ -350,7 +359,7 @@ function migrateArmourSave(source){
 }
 function applySave(o){
   o=migrateArmourSave(o);
-  save.jobs=[];save.tokens=0;save.perks={};save.dye=null;save.xp={};save.inv={};save.eq=emptyEq();save.bag=[];save.pets={woodcutting:0,fishing:0,mining:0,forging:0};save.name='';save.x=CX;save.y=CY+44;
+  save.jobs=[];save.tokens=0;save.perks={};save.dye=null;save.xp={};save.inv={};save.eq=emptyEq();save.bag=[];save.pets={woodcutting:0,fishing:0,mining:0,forging:0};save.name='';save.x=VILLAGE.previewBounds.spawnX;save.y=VILLAGE.previewBounds.spawnY;
   {
     if(o.xp)Object.assign(save.xp,o.xp);
     if((+o.v||0)<3){
@@ -397,7 +406,14 @@ function loadLocalProgress(){
   if(best){applySave(best);return true}
   return false;
 }
-if(!loadLocalProgress()){finalizeSave();save.inv.coins=30}
+if(playtest?.editorOrigin){
+ finalizeSave();save.inv.coins=30;
+ const kit=playtest.kit;
+ for(const [skill,level] of Object.entries(kit.levels))save.xp[skill]=xpTable[level];
+ save.bag.push(...kit.bag.filter(id=>DEFS[id]));
+ if(DEFS[kit.weapon])save.eq.weapon=kit.weapon;
+ save.inv.bread=kit.food;
+}else if(!loadLocalProgress()){finalizeSave();save.inv.coins=30}
 let lastSnapshotTs=0;
 function nextSnapshotTimestamp(now,stored,issued){return Math.max(now,stored+1,issued+1)}
 function snap(){const px=me.deathAt!=null?CX:inside?me.ox:me.x,py=me.deathAt!=null?CY+40:inside?me.oy:me.y;save.x=Math.round(px);save.y=Math.round(py);lastSnapshotTs=nextSnapshotTimestamp(Date.now(),saveTs,lastSnapshotTs);return{v:3,ts:lastSnapshotTs,name:save.name,xp:save.xp,inv:save.inv,eq:save.eq,bag:save.bag,pets:save.pets,notes:save.notes,bank:save.bank,packOrder:save.packOrder,bankOrder:save.bankOrder,jobs:save.jobs,tokens:save.tokens,perks:save.perks,dye:save.dye,x:save.x,y:save.y}}
@@ -540,6 +556,7 @@ function markSaveConflict(){
   toast('Character updated in another tab. Reload this tab to continue safely.');
 }
 function persist(force){
+  if(playtest?.editorOrigin)return;
   if(saveConflict)return;
   try{
     // Compare with the latest shared save BEFORE issuing a new timestamp.
@@ -2052,9 +2069,72 @@ function toWorld(cx,cy){
   const r=cv.getBoundingClientRect();
   return [(cx-r.left)*cv.width/r.width+Math.round(cam.x),(cy-r.top)*cv.height/r.height+Math.round(cam.y)];
 }
+let inspectEnabled=false,inspectTarget=null;
+function inspectObject(wx,wy,now){
+ const hits=[];
+ const add=(data,left,right,top,bottom)=>{
+  if(wx>=left&&wx<=right&&wy>=top&&wy<=bottom)hits.push({...data,hit:[left,top,right,bottom]});
+ };
+ for(const n of nodes){
+  const nt=NT[n.k],fishing=n.k.startsWith('spot');
+  const size=TREEK.includes(n.k)?MyrrenEnvironment.approvedTreeSize(n,now):null;
+  const half=size?Math.ceil(size.width/2):fishing?16:15;
+  const top=size?size.height-4:fishing?18:17;
+  add({layer:n.layer,k:n.k,name:nt.name,x:n.x,y:n.y,collision:null,reach:nt.reach?30:22,
+   phase:now<n.back?'Depleted':nt.skill==='mining'?oreVisualStage(n,now):'Active',
+   rangeX:n.x,rangeY:n.y-(fishing?0:2),
+   remaining:Math.max(0,n.back-now),respawn:n.respawn??nt.rt},
+   n.x-half,n.x+half,n.y-top,n.y+(fishing?10:6));
+ }
+ for(const m of mons){
+  add({layer:'Enemies',k:m.t,name:MT[m.t].name||m.t,x:m.x,y:m.y,homeX:m.hx,homeY:m.hy,
+   collision:null,reach:meleeReach(),rangeX:m.x,rangeY:m.y-4,phase:m.state,remaining:m.state==='dead'?Math.max(0,m.back-now):0,respawn:m.respawn??12},
+   m.x-18,m.x+18,m.y-29,m.y+8);
+ }
+ for(const b of BLD){
+  const half=b.w/2+3;
+  add({layer:'Buildings',k:b.id,name:SHOPS[b.id]?.name||b.id,x:b.x,y:b.y,
+   collision:b.open?[b.x-half,b.y-14,b.x+half,b.y]:null,door:b.open?[b.x-7,b.y-4,b.x+7,b.y+1]:null,reach:null,phase:b.open?'Open-air service':'Service building'},
+   b.x-half,b.x+half,b.y-88,b.y+8);
+ }
+ for(const s of VILLAGE.stations){
+  const b=BLD.find(item=>item.id==='arms');
+  add({layer:'Buildings',k:'arms',name:s.kind,x:s.x,y:s.y,homeX:b.x,homeY:b.y,collision:null,reach:38,phase:'Smithy station'},
+   s.x-20,s.x+20,s.y-(s.kind==='furnace'?57:25),s.y+5);
+ }
+ return hits.sort((a,b)=>Math.hypot(wx-a.x,wy-a.y)-Math.hypot(wx-b.x,wy-b.y))[0]||null;
+}
+function drawInspector(cx,cy){
+ if(!inspectEnabled||!inspectTarget||inside)return;
+ const target=inspectTarget;
+ const monster=target.layer==='Enemies'&&mons.find(m=>m.t===target.k&&m.hx===target.homeX&&m.hy===target.homeY);
+ const dx=(monster?monster.x-target.x:0)-cx,dy=(monster?monster.y-target.y:0)-cy;
+ const outline=(rect,color)=>{
+  if(!rect)return;
+  const [l,t,r,b]=rect;
+  ctx.strokeStyle=color;ctx.strokeRect(l+dx,t+dy,r-l,b-t);
+ };
+ ctx.save();ctx.lineWidth=1;
+ outline(target.hit,'#ffe18b');outline(target.collision,'#ff8078');outline(target.door,'#a4eea1');
+ if(target.reach!=null){
+  ctx.setLineDash([2,2]);ctx.strokeStyle='#91dbf2';ctx.beginPath();
+  ctx.arc((target.rangeX??target.x)+dx,(target.rangeY??target.y)+dy,target.reach,0,Math.PI*2);ctx.stroke();
+ }
+ ctx.restore();
+}
+if(playtest?.editorOrigin)window.addEventListener('message',event=>{
+ if(event.source!==parent||event.origin!==playtest.editorOrigin||event.data?.type!=='myrren-inspector-mode')return;
+ inspectEnabled=event.data.enabled===true;inspectTarget=null;
+});
+
 cv.addEventListener('pointerdown',e=>{
   if(!started||e.isPrimary===false)return;
   const [wx,wy]=toWorld(e.clientX,e.clientY),now=performance.now();
+  if(inspectEnabled){
+    inspectTarget=inside?null:inspectObject(wx,wy,now);
+    parent.postMessage({type:'myrren-inspector-result',object:inspectTarget},playtest.editorOrigin);
+    return;
+  }
   if(inside){
     if(Math.hypot(wx-88,wy-44)<22||(wx>30&&wx<146&&wy>40&&wy<68)){if(Math.hypot(me.x-88,me.y-62)<44)useAction();else say('Walk up to the counter first.')}
     return;
@@ -2129,7 +2209,7 @@ function consumeOreVein(n,nt,now){
     n.oreLeft=nt.vein;
   n.oreLeft--;
   if(n.oreLeft>0)return false;
-  n.back=now+rint(nt.rt[0],nt.rt[1])*1000;
+  n.back=now+(n.respawn??rint(nt.rt[0],nt.rt[1]))*1000;
   return true;
 }
 
@@ -2412,7 +2492,7 @@ function resolveBossRewards(mt,entries,coinPool,random=Math.random){
 function combatKillXp(mt){return Math.max(1,Math.round(mt.hp*mt.xpm))}
 function killMon(m,now){
   if(m.state==='dead')return;
-  const mt=MT[m.t];m.state='dead';m.warn=null;m.back=now+12000;m.dieAt=now;
+  const mt=MT[m.t];m.state='dead';m.warn=null;m.back=now+(m.respawn??12)*1000;m.dieAt=now;
   decals.push({x:m.x,y:m.y,t:now,c:m.t==='slime'?'#e86a86':'#a82418'});
   const c=rint(mt.coins[0],mt.coins[1]);
   const group=mt.boss?resolveBossRewards(mt,
@@ -2496,7 +2576,7 @@ function doAction(dt,now){
             act=null;
           }
         }else if(Math.random()<nt.dep){
-          n.back=now+rint(nt.rt[0],nt.rt[1])*1000;
+          n.back=now+(n.respawn??rint(nt.rt[0],nt.rt[1]))*1000;
           if(nt.skill==='woodcutting')n.fellAt=now;
           act=null;
         }
@@ -3713,6 +3793,9 @@ function drawInterior(cx,cy,now){
   for(const e of list)e.f();
   label('Exit',X(88),Y(112),'#ffe14a');
 }
+function previewFlower(x,y){
+ R(x,y-4,1,5,'#648540');R(x-1,y-5,3,2,'#d0a3aa');R(x,y-6,1,4,'#d0a3aa');
+}
 function drawOutdoor(cx,cy,now){
   const t0=Math.max(0,Math.floor(cx/T)),t1=Math.min(WW/T-1,Math.floor((cx+cv.width)/T)),u0=Math.max(0,Math.floor(cy/T)),u1=Math.min(WH/T-1,Math.floor((cy+cv.height)/T));
   const pathAt=(tx,ty)=>VILLAGE.pathKind(tx*T+8,ty*T+8);
@@ -3724,11 +3807,26 @@ function drawOutdoor(cx,cy,now){
 
     // Cleared, lived-in crater floor: compacted earth, ash, and recovering growth.
     // Townsfolk maintain the basin; no uninterrupted dark-green lawn.
-    const basin=Math.hypot((wx+8-CX)/305,(wy+8-CY)/235);
+    const basin=Math.hypot((wx+8-CX)/VILLAGE.previewBounds.rx,(wy+8-CY)/VILLAGE.previewBounds.ry);
     const grit=H2(tx+731,ty-391)%17;
     const ground=kind==='grass'&&d>25
       ?(basin>.83&&basin<1.18&&grit<12?(grit<5?'stone':'gravel'):basin<.84?'dirt':kind)
       :kind;
+    const edited=VILLAGE.previewTile(wx+8,wy+8);
+    if(edited){
+      const tileKind=edited==='rock'||edited==='flowers'?'grass':edited;
+      const surface=edited==='rock'?'stone':tileKind==='grass'?VILLAGE.previewBiome(wx+8,wy+8)||tileKind:tileKind;
+      const neighbors=[[0,-1,1],[0,1,2],[-1,0,4],[1,0,8]];
+      const tileEdges=neighbors.reduce((bits,[dx,dy,bit])=>bits|((VILLAGE.previewTile(wx+8+dx*T,wy+8+dy*T)||pathAt(tx+dx,ty+dy))===edited?0:bit),0);
+      const painted=MyrrenEnvironment.terrain(ctx,tx,ty,x,y,tileKind,now,tileEdges,surface);
+      if(edited==='rock'&&!painted)R(x,y,16,16,'#6e7167');
+      if(edited==='flowers')previewFlower(x+7,y+12);
+      continue;
+    }
+    if(kind==='grass'&&d>24&&VILLAGE.previewBiome(wx+8,wy+8)){
+      MyrrenEnvironment.terrain(ctx,tx,ty,x,y,kind,now,0,'corrupted');
+      continue;
+    }
     const native=MyrrenEnvironment.terrain(ctx,tx,ty,x,y,d<-18?'water':kind,now,edge,ground);
     if(!native&&basin<.84&&kind==='grass'){
       const grain=H2(tx+93,ty-71)%13;
@@ -3829,8 +3927,8 @@ function drawOutdoor(cx,cy,now){
   for(let i=0;i<112;i++){
     const a=i*Math.PI*2/112;
     const wobble=Math.sin(i*2.31)*7+Math.cos(i*.71)*5;
-    const gx=CX+Math.cos(a)*(305+wobble),gy=CY+Math.sin(a)*(235+wobble*.7);
-    if(gy>CY+172&&Math.abs(gx-CX)<65)continue; // collapsed southern breach
+    const gx=CX+Math.cos(a)*(VILLAGE.previewBounds.rx+wobble),gy=CY+Math.sin(a)*(VILLAGE.previewBounds.ry+wobble*.7);
+    if(gy>CY+VILLAGE.previewBounds.ry-63&&Math.abs(gx-CX)<65)continue; // collapsed southern breach
     if(!vis(gx,gy))continue;
     list.push({y:gy,f:()=>{
       const x=Math.round(gx-cx),y=Math.round(gy-cy),k=(i*17)%13;
@@ -3919,6 +4017,15 @@ function drawOutdoor(cx,cy,now){
   // remain usable as small canvas trade pitches instead of extra houses.
   // The travelling merchant replaces all permanent starter shops.
   if(vis(TRADER.x,TRADER.y))list.push({y:TRADER.y,f:()=>drawTraderCart(Math.round(TRADER.x-cx),Math.round(TRADER.y-cy),now)});
+  for(const prop of previewProps){
+    if(prop.k==='fence')continue;
+    list.push({y:prop.y,f:()=>{
+      const x=Math.round(prop.x-cx),y=Math.round(prop.y-cy);
+      if(prop.k==='flowers')previewFlower(x,y);
+      if(prop.k==='rock'){R(x-5,y-5,10,5,'#6e7167');R(x-3,y-7,6,3,'#999b83')}
+      if(prop.k==='lamp'){R(x,y-14,2,14,'#705438');R(x-2,y-17,6,6,'#e9c881')}
+    }});
+  }
   for(const station of VILLAGE.stations)list.push({y:station.y,f:()=>{
     const x=Math.round(station.x-cx),y=Math.round(station.y-cy);
     const art=station.kind==='furnace'?'open_furnace':station.kind==='anvil'?'blacksmith_anvil':null;
@@ -3993,6 +4100,7 @@ function frame(now){
     ctx.fillStyle=outdoorVignette;ctx.fillRect(0,0,gw,gh);
   }
 
+  drawInspector(cx,cy);
   if(marker){
     const age=now-marker.t;
     if(age<600){const x=Math.round(marker.x-cx),y=Math.round(marker.y-cy),s=age<200?3:2;R(x-s,y-1,s*2+1,2,marker.c);R(x-1,y-s,2,s*2+1,marker.c)}else marker=null;
@@ -4072,6 +4180,10 @@ window.addEventListener('storage',event=>{
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden){stopSmithing('',false);stopCooking('',false);if(started)persist(true)}});
 window.addEventListener('pagehide',()=>{stopSmithing('',false);stopCooking('',false);if(started)persist(true)});
-bootLoad();
+if(playtest?.editorOrigin){
+ finishLoad();
+ if(window.MyrrenKezV2Atlas?.ready)start();
+ else window.addEventListener('myrren-kez-v2-ready',start,{once:true});
+}else bootLoad();
 requestAnimationFrame(frame);
 })();

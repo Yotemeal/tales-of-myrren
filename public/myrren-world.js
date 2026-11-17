@@ -2,6 +2,12 @@
 (() => {
 'use strict';
 const CX=800,CY=800;
+const preview=window.MyrrenPlaytest?.version===1?window.MyrrenPlaytest:null;
+const previewBounds=preview?.bounds??{width:1600,height:1600,rx:305,ry:235,spawnX:800,spawnY:844};
+const previewKey=(x,y)=>Math.floor(x/16)+','+Math.floor(y/16);
+const previewTile=(x,y)=>preview?.tiles[previewKey(x,y)];
+const corrupted=new Set(preview?.corrupted);
+const previewBiome=(x,y)=>corrupted.has(previewKey(x,y))?'corrupted':null;
 const lake={x:1250,y:1055,rx:161,ry:108};
 const buildings=[
 {id:'axe',x:660,y:712,w:56},
@@ -26,13 +32,25 @@ function waterDistance(x,y){const l=lakeR(x,y);return (l.r-l.f)*108}
 function onBridge(x,y){return false}
 // Rockfall ring surrounding the Camp, with one clear opening to the south.
 function craterWall(x,y){
- const r=Math.hypot((x-CX)/305,(y-CY)/235);
+ const r=Math.hypot((x-CX)/previewBounds.rx,(y-CY)/previewBounds.ry);
  // A collapsed section of the southern rim forms the sole entrance.
- const southGate=Math.abs(x-CX)<55&&y>CY+172;
+ const southGate=Math.abs(x-CX)<55&&y>CY+previewBounds.ry-63;
  return !southGate&&r>.895&&r<1.085;
 }
-function inWater(x,y){return waterDistance(x,y)<0||craterWall(x,y)}
-function inVillage(x,y){return Math.hypot((x-CX)/305,(y-CY)/235)<.895}
+function inWater(x,y){
+ const tile=previewTile(x,y);
+ return tile?tile==='water'||tile==='rock':waterDistance(x,y)<0||craterWall(x,y);
+}
+function inVillage(x,y){return Math.hypot((x-CX)/previewBounds.rx,(y-CY)/previewBounds.ry)<.895}
+if(preview){
+ const smithy=buildings.find(b=>b.open);
+ const edited=preview.buildings.find(b=>b.k===smithy.id);
+ for(const station of stations){station.x+=edited.x-smithy.x;station.y+=edited.y-smithy.y}
+ for(const building of buildings){
+  const position=preview.buildings.find(b=>b.k===building.id);
+  building.x=position.x;building.y=position.y;
+ }
+}
 const paths=buildings.map(b=>[[800,830],[b.x,b.y+7]]);
 paths.push([[800,830],[800,1180]],[[800,1180],[800,1450]]);
 // A narrow fork off the existing southern Camp route leads towards the outer
@@ -40,7 +58,7 @@ paths.push([[800,830],[800,1180]],[[800,1180],[800,1450]]);
 paths.push([[800,1350],[620,1430]],[[620,1430],[520,1470]]);
 function bridgeApproach(x,y){return false}
 function dryFootprint(x,y,halfWidth,top,bottom=3,margin=8){
- for(let yy=y-top;yy<=y+bottom;yy+=6)for(let xx=x-halfWidth;xx<=x+halfWidth;xx+=6)if(waterDistance(xx,yy)<margin)return false;
+ for(let yy=y-top;yy<=y+bottom;yy+=6)for(let xx=x-halfWidth;xx<=x+halfWidth;xx+=6)if(previewTile(xx,yy)?inWater(xx,yy):waterDistance(xx,yy)<margin)return false;
  return true;
 }
 function pathDistance(x,y){
@@ -55,8 +73,8 @@ function pathKind(x,y){
 }
 function safePosition(x,y,blocked=()=>false){
  if(!inWater(x,y)&&!blocked(x,y))return {x,y};
- for(let r=4;r<=160;r+=4)for(let i=0;i<32;i++){const a=i*Math.PI/16,nx=x+Math.cos(a)*r,ny=y+Math.sin(a)*r;if(nx>108&&nx<1492&&ny>108&&ny<1492&&!inWater(nx,ny)&&!blocked(nx,ny))return {x:nx,y:ny}}
- return {x:800,y:840};
+ for(let r=4;r<=160;r+=4)for(let i=0;i<32;i++){const a=i*Math.PI/16,nx=x+Math.cos(a)*r,ny=y+Math.sin(a)*r;if(nx>108&&nx<previewBounds.width-108&&ny>108&&ny<previewBounds.height-108&&!inWater(nx,ny)&&!blocked(nx,ny))return {x:nx,y:ny}}
+ return preview?{x:previewBounds.spawnX,y:previewBounds.spawnY}:{x:800,y:840};
 }
 function fishingPosition(a){
  const f=lakeF(a),sx=lake.x+Math.cos(a)*lake.rx*f,sy=lake.y+Math.sin(a)*lake.ry*f;
@@ -67,5 +85,5 @@ function fishingPosition(a){
  return {x:sx+dx*(offset-12),y:sy+dy*(offset-12)};
 }
 
-window.MyrrenWorld=Object.freeze({lake,buildings,bridge,bridges,river,stations,lakeF,lakeR,riverF,riverHalfWidth,riverDistance,waterDistance,onBridge,inWater,craterWall,inVillage,pathKind,pathDistance,bridgeApproach,dryFootprint,safePosition,fishingPosition,segmentDistance});
+window.MyrrenWorld=Object.freeze({preview,previewBounds,previewTile,previewBiome,lake,buildings,bridge,bridges,river,stations,lakeF,lakeR,riverF,riverHalfWidth,riverDistance,waterDistance,onBridge,inWater,craterWall,inVillage,pathKind,pathDistance,bridgeApproach,dryFootprint,safePosition,fishingPosition,segmentDistance});
 })();
