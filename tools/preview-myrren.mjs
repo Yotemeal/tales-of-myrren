@@ -15,6 +15,7 @@ const types = {
   Props: ['flowers', 'rock', 'fence', 'lamp']
 };
 const tileTypes = ['grass', 'path', 'plaza', 'water', 'rock', 'flowers'];
+const treeSpecies=['pine','birch','oak','willow','maple','ironbark'];
 const assetFolder = '/assets/myrren-v19f/';
 const atlasPaths = ['myrren_idle_4dir_native.png', 'myrren_walk_4x6_native.png', 'myrren_punch_4dir_native.png', 'myrren_punch_stride_4dir_native.png', 'myrren_sword_body_4dir.png'].map(name => assetFolder + name);
 const security = {
@@ -39,7 +40,10 @@ function validate(data) {
         ![item.x, item.y].every((value,index) => Number.isFinite(value) && value >= 0 && value < (index ? bounds.height : bounds.width))) {
       throw Error('Project contains an invalid map object.');
     }
-    return { layer: item.layer, k: item.k, x: item.x, y: item.y };
+    const {layer,k,x,y,previewTree,previewVariant}=item;
+    if((previewTree!==undefined&&(layer!=='Trees'||!treeSpecies.includes(previewTree)))||
+       (previewVariant!==undefined&&(layer!=='Trees'||!['a','b'].includes(previewVariant))))throw Error('Invalid tree artwork selection.');
+    return {layer,k,x,y,previewTree,previewVariant};
   });
   for (const kind of types.Buildings) {
     if (objects.filter(item => item.layer === 'Buildings' && item.k === kind).length !== 1) {
@@ -140,7 +144,7 @@ function patchGame(source, project) {
     'n.back=now+(n.respawn??rint(nt.rt[0],nt.rt[1]))*1000;');
   source = replaceOnce(source, 'm.back=now+12000;', 'm.back=now+(m.respawn??12)*1000;');
   const props = project.objects.filter(item => item.layer === 'Props');
-  source = replaceOnce(source, 'establishOuterOreTrail();', `nodes.splice(0,nodes.length,...${JSON.stringify(nodes)}.map(({k,x,y,respawn})=>({k,x,y,respawn,back:0})));
+  source = replaceOnce(source, 'establishOuterOreTrail();', `nodes.splice(0,nodes.length,...${JSON.stringify(nodes)}.map(item=>({...item,back:0})));
 mons.splice(0,mons.length,...${JSON.stringify(enemies)}.map(({k,x,y,respawn})=>({
  t:k,x,y,respawn,hx:x,hy:y,hp:MT[k].hp,state:'idle',back:0,cd:0,w:rnd()*3,wx:x,wy:y,face:1,lunge:-9999
 }))); `);
@@ -235,12 +239,80 @@ function regionObjects(project) {
   }
   return placements;
 }
-function buildPreview(project, playtest=false) {
+function buildPreview(project, editorOrigin=null) {
   const world = patchWorld(worldSource, project);
   const {spawnX:x,spawnY:y}=project.bounds;
   if(!walkable(project,x,y))throw Error('Choose a walkable player spawn.');
   let game=patchGame(gameSource, project);
-  if(playtest){
+  if(editorOrigin){
+    game=replaceOnce(game,"cv.addEventListener('pointerdown',e=>{",`
+const editorOrigin=${JSON.stringify(editorOrigin)};
+let inspectEnabled=false,inspectTarget=null;
+function inspectObject(wx,wy,now){
+ const hits=[];
+ const add=(data,left,right,top,bottom)=>{
+  if(wx>=left&&wx<=right&&wy>=top&&wy<=bottom)hits.push({...data,hit:[left,top,right,bottom]});
+ };
+ for(const n of nodes){
+  const nt=NT[n.k],fishing=n.k.startsWith('spot');
+  const size=TREEK.includes(n.k)?MyrrenEnvironment.approvedTreeSize(n,now):null;
+  const half=size?Math.ceil(size.width/2):fishing?16:15;
+  const top=size?size.height-4:fishing?18:17;
+  add({layer:n.layer,k:n.k,name:nt.name,x:n.x,y:n.y,collision:null,reach:nt.reach?30:22,
+   phase:now<n.back?'Depleted':nt.skill==='mining'?oreVisualStage(n,now):'Active',
+   rangeX:n.x,rangeY:n.y-(fishing?0:2),
+   remaining:Math.max(0,n.back-now),respawn:n.respawn??nt.rt},
+   n.x-half,n.x+half,n.y-top,n.y+(fishing?10:6));
+ }
+ for(const m of mons){
+  add({layer:'Enemies',k:m.t,name:MT[m.t].name||m.t,x:m.x,y:m.y,homeX:m.hx,homeY:m.hy,
+   collision:null,reach:meleeReach(),rangeX:m.x,rangeY:m.y-4,phase:m.state,remaining:m.state==='dead'?Math.max(0,m.back-now):0,respawn:m.respawn??12},
+   m.x-18,m.x+18,m.y-29,m.y+8);
+ }
+ for(const b of BLD){
+  const half=b.w/2+3;
+  add({layer:'Buildings',k:b.id,name:SHOPS[b.id]?.name||b.id,x:b.x,y:b.y,
+   collision:b.open?[b.x-half,b.y-14,b.x+half,b.y]:null,door:b.open?[b.x-7,b.y-4,b.x+7,b.y+1]:null,reach:null,phase:b.open?'Open-air service':'Service building'},
+   b.x-half,b.x+half,b.y-88,b.y+8);
+ }
+ for(const s of VILLAGE.stations){
+  const b=BLD.find(item=>item.id==='arms');
+  add({layer:'Buildings',k:'arms',name:s.kind,x:s.x,y:s.y,homeX:b.x,homeY:b.y,collision:null,reach:38,phase:'Smithy station'},
+   s.x-20,s.x+20,s.y-(s.kind==='furnace'?57:25),s.y+5);
+ }
+ return hits.sort((a,b)=>Math.hypot(wx-a.x,wy-a.y)-Math.hypot(wx-b.x,wy-b.y))[0]||null;
+}
+function drawInspector(cx,cy){
+ if(!inspectEnabled||!inspectTarget||inside)return;
+ const target=inspectTarget;
+ const monster=target.layer==='Enemies'&&mons.find(m=>m.t===target.k&&m.hx===target.homeX&&m.hy===target.homeY);
+ const dx=(monster?monster.x-target.x:0)-cx,dy=(monster?monster.y-target.y:0)-cy;
+ const outline=(rect,color)=>{
+  if(!rect)return;
+  const [l,t,r,b]=rect;
+  ctx.strokeStyle=color;ctx.strokeRect(l+dx,t+dy,r-l,b-t);
+ };
+ ctx.save();ctx.lineWidth=1;
+ outline(target.hit,'#ffe18b');outline(target.collision,'#ff8078');outline(target.door,'#a4eea1');
+ if(target.reach!=null){
+  ctx.setLineDash([2,2]);ctx.strokeStyle='#91dbf2';ctx.beginPath();
+  ctx.arc((target.rangeX??target.x)+dx,(target.rangeY??target.y)+dy,target.reach,0,Math.PI*2);ctx.stroke();
+ }
+ ctx.restore();
+}
+window.addEventListener('message',event=>{
+ if(event.source!==parent||event.origin!==editorOrigin||event.data?.type!=='myrren-inspector-mode')return;
+ inspectEnabled=event.data.enabled===true;inspectTarget=null;
+});
+
+cv.addEventListener('pointerdown',e=>{`);
+    game=replaceOnce(game,'const [wx,wy]=toWorld(e.clientX,e.clientY),now=performance.now();',`const [wx,wy]=toWorld(e.clientX,e.clientY),now=performance.now();
+  if(inspectEnabled){
+    inspectTarget=inside?null:inspectObject(wx,wy,now);
+    parent.postMessage({type:'myrren-inspector-result',object:inspectTarget},editorOrigin);
+    return;
+  }`);
+    game=replaceOnce(game,'  if(marker){','  drawInspector(cx,cy);\n  if(marker){');
     game=replaceOnce(game,'function persist(force){','function persist(force){return;');
     game=replaceOnce(game,'if(!loadLocalProgress()){finalizeSave();save.inv.coins=30}',
       "finalizeSave();save.inv.coins=30;save.bag.push('bronze_sword','bronze_pick','bronze_axe');");
@@ -286,7 +358,7 @@ async function saveProject(request, response, playtest) {
     try {
       const data=JSON.parse(text);
       if(playtest)data.bounds={...data.bounds,spawnX:data.playtestX,spawnY:data.playtestY};
-      next=buildPreview(validate(data),playtest);
+      next=buildPreview(validate(data),playtest?request.headers.origin:null);
     }
     catch (error) {
       response.writeHead(422, security).end(error.message);
