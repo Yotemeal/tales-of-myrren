@@ -23,35 +23,35 @@
   "assets": {
     "copper": {
       "path": "public/assets/resources/v32/ore_copper.png",
-      "sha256": "d94e28f74da16977ed822060a5bed491d01b50a776d04bbdf9822daf6c274b20"
+      "sha256": "9f70037e10c4ef74b13feeb5345e699aefe25ea0a2026bb06e95eb34d1d775c5"
     },
     "tin": {
       "path": "public/assets/resources/v32/ore_tin.png",
-      "sha256": "3289474fb162da488302995ca277c34e75cb0d965b1f8072c24752bf59b9e87b"
+      "sha256": "0e612f437d5682f80b650f499f1721dbf1e90e5472c305205d0cbadadeefe026"
     },
     "iron": {
       "path": "public/assets/resources/v32/ore_iron.png",
-      "sha256": "4dbe7f0a06bd9d3d03c33f330d279a75afbf1ae903e12b1adf368d87824cf812"
+      "sha256": "f6ca4b0b64a16329ab95a0228db7462c1d6434accf8d237fbe50ea79a45b5f22"
     },
     "coal": {
       "path": "public/assets/resources/v32/ore_coal.png",
-      "sha256": "36c912039055398782a37bbf2fbbe0f00199265227d5215d7e59e2d74b9c7316"
+      "sha256": "e6d413c34bcfc163cb36c26aab5e3547e5e7c5d9ad6298639c0263b1e40b8be8"
     },
     "black_iron": {
       "path": "public/assets/resources/v32/ore_black_iron.png",
-      "sha256": "6289fc2a8376b9344e10681f3ea06e9cb0400fb42876527934b25a8585ed39d8"
+      "sha256": "d1dc400ace06418150e3c7853db209a9b7be1f4b47268792ea871cf3b390b4e3"
     },
     "chromium": {
       "path": "public/assets/resources/v32/ore_chromium.png",
-      "sha256": "6d6bde09107e95b5fa95085cc5ee49763988e9edb91c112687da2d1799c788d3"
+      "sha256": "1fed9a02466719836ca98eb7349e56242727755d76fc2f8f0a77dc5bfbe7f2fc"
     },
     "iridium": {
       "path": "public/assets/resources/v32/ore_iridium.png",
-      "sha256": "8a0dcf7908af929409a417aa169f3e3bb30d461b0629ad00c337b6c442cac410"
+      "sha256": "c6e31c2eaede9cc3d409b44b26e4aee2bfd87423614d158e70c84f43b212a45b"
     },
     "myrrenite": {
       "path": "public/assets/resources/v32/ore_myrrenite.png",
-      "sha256": "debc0955dc41cc353bd4d34e0b3be71f1feb7f4f90eb65b3912837d3029e5d64"
+      "sha256": "cc97ef5ebd93ff84f888089b0c48c47e3ca61ad3835dda6ac29b65e3e59a9e11"
     }
   },
   "depleted_art": "public/assets/resources/v32/ore_{material}_depleted.png",

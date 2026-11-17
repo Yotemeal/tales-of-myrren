@@ -24,35 +24,35 @@
   "assets": {
     "copper": {
       "path": "public/assets/resources/v32/ore_copper_depleted.png",
-      "sha256": "0e53a29a099d1673710dbec021bd46f692be5feb450c0dacf4f1e3ccedc9ff57"
+      "sha256": "f766dfbae416775860ccd6044b6b4e154f4c846f0b49572dcf051a7a3f10cb08"
     },
     "tin": {
       "path": "public/assets/resources/v32/ore_tin_depleted.png",
-      "sha256": "8f241c5089c06e3eb6adb4af4c58b0e12e2859ae4eae67152499ff747694df70"
+      "sha256": "94e209cdc762f23a4def14082f0d718908d08dc930fdff9e64595b89480918d3"
     },
     "iron": {
       "path": "public/assets/resources/v32/ore_iron_depleted.png",
-      "sha256": "e229220c5bf47eda4e6f2c30be28e1c277ce9c85f94746d09b7fbe734b8fe81d"
+      "sha256": "8975b28f2a1be62919c50b087a21c81b1aab6b7461367f502e90ff38c88a71aa"
     },
     "coal": {
       "path": "public/assets/resources/v32/ore_coal_depleted.png",
-      "sha256": "133699eb2894b2e89e1a2af76e1ce96d67530c9a54699ac6e6a5f6519d059f35"
+      "sha256": "6f44f3b25a9e79ecd37b127bc87a5bde84085f78677a35f30114427561dc1911"
     },
     "black_iron": {
       "path": "public/assets/resources/v32/ore_black_iron_depleted.png",
-      "sha256": "17c086034b08af88e91b18b884a988bc5cce1cbc87dc6862a42a74fc666126ca"
+      "sha256": "6a381e933402baa19ab13e51a669dfe924d255e5ccdf1ea2de01a48a21b3e5e9"
     },
     "chromium": {
       "path": "public/assets/resources/v32/ore_chromium_depleted.png",
-      "sha256": "495ceab8cc354bff7a22dac02bf2f65b4cab109af44f47b97b0febd8c9074dc8"
+      "sha256": "ed14e5b0a0625a0562343025b2b09a4319f2eb6e4cee94ad4f7e2d2b484d1b2b"
     },
     "iridium": {
       "path": "public/assets/resources/v32/ore_iridium_depleted.png",
-      "sha256": "d477df81690d452ec996758b5c6fded30c5bee621dbfaad2afd7abf70fcd01ca"
+      "sha256": "8588ce9856a6802f71129ee8d8f60aba0e96be0a9331e4213c51e7c01727f82d"
     },
     "myrrenite": {
       "path": "public/assets/resources/v32/ore_myrrenite_depleted.png",
-      "sha256": "d0abc811cbc1dd077378eacba074d91f2df8c7f41d7c6d952a957b5adff5fa53"
+      "sha256": "1f110da93e5ce2480bde538da84a088fee4fbef89d0677faaba737813a24ea43"
     }
   }
 }
