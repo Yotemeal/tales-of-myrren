@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Myrren Editor
+Comment=Edit and playtest Tales of Myrren maps
+Exec=myrren-editor
+Icon=myrren-editor
+Type=Application
+Categories=Game;Development;
+Terminal=true

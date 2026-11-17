@@ -4031,7 +4031,7 @@ function drawOutdoor(cx,cy,now){
     const art=station.kind==='furnace'?'open_furnace':station.kind==='anvil'?'blacksmith_anvil':null;
     if(!art||!window.MyrrenCampProps?.draw(ctx,art,x,y,now))
       MyrrenEnvironment.smithyPart(ctx,station.kind,x,y,now);
-    if(Math.hypot(me.x-station.x,me.y-station.y)<43)label(station.kind==='furnace'?'Smelt ingots':station.kind==='anvil'?'Forge equipment':'Blacksmith supplies',x,y-(station.kind==='furnace'?59:29),'#e5d9af');
+    if(!playtest?.mapRender&&Math.hypot(me.x-station.x,me.y-station.y)<43)label(station.kind==='furnace'?'Smelt ingots':station.kind==='anvil'?'Forge equipment':'Blacksmith supplies',x,y-(station.kind==='furnace'?59:29),'#e5d9af');
   }});
   for(const [lx,ly] of LAMPS)if(vis(lx,ly))list.push({y:ly,f:()=>drawLamp(Math.round(lx-cx),Math.round(ly-cy),now)});
   for(const [kind,dx,dy,a,b2] of DECOR)if(vis(dx,dy)&&VILLAGE.dryFootprint(dx+(kind==='fence'&&b2!=='v'?a/2:0),dy,kind==='fence'?(b2==='v'?4:a/2+3):kind==='stall'?23:19,kind==='fence'&&b2==='v'?a+16:kind==='fence'?17:53,5,10))list.push({y:dy,f:()=>drawDecor(kind,Math.round(dx-cx),Math.round(dy-cy),a,b2,now)});
@@ -4180,10 +4180,32 @@ window.addEventListener('storage',event=>{
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden){stopSmithing('',false);stopCooking('',false);if(started)persist(true)}});
 window.addEventListener('pagehide',()=>{stopSmithing('',false);stopCooking('',false);if(started)persist(true)});
+async function renderEditorMap(){
+  try{
+    cv.width=WW;cv.height=WH;
+    const draw=()=>{
+      ctx.imageSmoothingEnabled=false;
+      ctx.fillStyle='#0d0b08';ctx.fillRect(0,0,WW,WH);
+      drawOutdoor(0,0,0);
+    };
+    // The first pass requests the exact resource stages that this map uses.
+    draw();
+    await MyrrenEnvironment.loadMapArt();
+    draw();
+    cv.toBlob(blob=>parent.postMessage({type:'myrren-native-map',blob},playtest.editorOrigin),'image/png');
+  }catch(error){
+    parent.postMessage({type:'myrren-native-map',error:error.message},playtest.editorOrigin);
+  }
+}
+if(playtest?.mapRender){
+  if(document.readyState==='complete')renderEditorMap();
+  else window.addEventListener('load',renderEditorMap,{once:true});
+}else{
 if(playtest?.editorOrigin){
  finishLoad();
  if(window.MyrrenKezV2Atlas?.ready)start();
  else window.addEventListener('myrren-kez-v2-ready',start,{once:true});
 }else bootLoad();
 requestAnimationFrame(frame);
+}
 })();

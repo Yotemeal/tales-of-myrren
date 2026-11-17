@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 // From a checkout of the editor branch: node tools/preview-myrren.mjs myrren-project.json
+import { spawn } from 'node:child_process';
+import { appUpdatesEnabled,checkAppUpdate,installAppUpdate } from './app-updates.mjs';
 import { createServer } from 'node:http';
 import { readFile, readdir, realpath, rename, unlink, writeFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
@@ -174,13 +176,13 @@ const kits={
  miner:{levels:{mining:80},bag:['bronze_sword','bronze_axe'],weapon:'bronze_pick',food:6},
  fighter:{levels:{melee:70},bag:['bronze_pick','bronze_axe'],weapon:'starsteel_sword',food:18}
 };
-function buildPreview(project,editorOrigin=null,kit='fresh') {
+function buildPreview(project,editorOrigin=null,kit='fresh',mapRender=false) {
  const {spawnX:x,spawnY:y}=project.bounds;
- if(!walkable(project,x,y))throw Error('Choose a walkable player spawn.');
+ if(!mapRender&&!walkable(project,x,y))throw Error('Choose a walkable player spawn.');
  if(!Object.hasOwn(kits,kit))throw Error('Unknown playtest loadout.');
  const placements=[...project.objects,...regionObjects(project)];
  const rules=project.rules;
- const config={version:1,editorOrigin,kit:kits[kit],bounds:project.bounds,tiles:project.tiles,
+ const config={version:1,editorOrigin,mapRender,kit:kits[kit],bounds:project.bounds,tiles:project.tiles,
   corrupted:Object.keys(project.regionTiles).filter(key=>rules[project.regionTiles[key]].corrupted===true),
   buildings:placements.filter(item=>item.layer==='Buildings'),
   nodes:placements.filter(item=>['Trees','Ores','Fishing'].includes(item.layer)),
@@ -193,8 +195,10 @@ function buildPreview(project,editorOrigin=null,kit='fresh') {
 }
 let overrides = buildPreview(validate(JSON.parse(projectText)));
 let saving = false;
+let renderConfig=null;
 
-async function saveProject(request, response, playtest) {
+async function saveProject(request, response, mode) {
+  const playtest=mode==='playtest',render=mode==='render';
   if (request.headers.origin !== 'http://' + request.headers.host ||
       request.headers['content-type'] !== 'application/json') {
     response.writeHead(403, security).end('Open the local editor to save.');
@@ -222,15 +226,20 @@ async function saveProject(request, response, playtest) {
     let next;
     try {
       const data=JSON.parse(text);
-      if(playtest){
+      if(playtest||render){
         const {issues}=await gameAssets();
         if(issues.length)throw Error(issues.join(' '));
       }
       if(playtest)data.bounds={...(data.bounds??defaultBounds),spawnX:data.playtestX,spawnY:data.playtestY};
-      next=buildPreview(validate(data),playtest?request.headers.origin:null,playtest?data.playtestKit??'fresh':'fresh');
+      next=buildPreview(validate(data),playtest||render?request.headers.origin:null,playtest?data.playtestKit??'fresh':'fresh',render);
     }
     catch (error) {
       response.writeHead(422, security).end(error.message);
+      return;
+    }
+    if(render){
+      renderConfig=next.get('/myrren-preview-config.js');
+      response.writeHead(204,security).end();
       return;
     }
     if(playtest){
@@ -287,15 +296,37 @@ const server = createServer(async (request, response) => {
     return;
   }
   const parsed = new URL(request.url, 'http://localhost');
-  if (request.method === 'POST' && ['/editor/project.json','/editor/playtest'].includes(parsed.pathname)) {
-    await saveProject(request, response, parsed.pathname==='/editor/playtest');
+  if (request.method === 'POST' && ['/editor/project.json','/editor/playtest','/editor/render'].includes(parsed.pathname)) {
+    await saveProject(request,response,parsed.pathname.split('/').pop());
+    return;
+  }
+  if(request.method==='POST'&&['/editor/app-update/check','/editor/app-update/install'].includes(parsed.pathname)){
+    if(request.headers.origin!=='http://'+request.headers.host||!appUpdatesEnabled){
+      response.writeHead(403,security).end();return;
+    }
+    try{
+      const state=await (parsed.pathname.endsWith('/install')?installAppUpdate():checkAppUpdate());
+      response.writeHead(200,{...security,'Content-Type':'application/json'}).end(JSON.stringify(state));
+    }catch(error){response.writeHead(503,security).end(error.message)}
     return;
   }
   if (request.method !== 'GET') { response.writeHead(405, security).end(); return; }
   if (parsed.pathname === '/editor') {
     const frame='http://127.0.0.1:'+draftServer.address().port;
-    const policy=security['Content-Security-Policy']+'; frame-src '+frame;
-    response.writeHead(200, { ...security, 'Content-Security-Policy':policy, 'Content-Type': mime['.html'] }).end(editorSource);
+    const policy=security['Content-Security-Policy']+"; frame-src 'self' "+frame;
+    response.writeHead(200, { ...security, 'Content-Security-Policy':policy, 'Content-Type': mime['.html'] }).end(appUpdatesEnabled?editorSource.replace('id="checkAppUpdate" hidden','id="checkAppUpdate"'):editorSource);
+    return;
+  }
+  if(parsed.pathname==='/editor/render-view'){
+    if(!renderConfig){response.writeHead(404,security).end();return}
+    const html=(await source('index.html')).replace('/myrren-preview-config.js','/editor/render-config.js');
+    const policy=security['Content-Security-Policy'].replace("frame-ancestors 'none'","frame-ancestors 'self'");
+    response.writeHead(200,{...security,'Content-Security-Policy':policy,'Content-Type':mime['.html']}).end(html);
+    return;
+  }
+  if(parsed.pathname==='/editor/render-config.js'){
+    if(!renderConfig){response.writeHead(404,security).end();return}
+    response.writeHead(200,{...security,'Content-Type':mime['.js']}).end(renderConfig);
     return;
   }
   if (parsed.pathname === '/editor/project.json') {
@@ -324,6 +355,11 @@ const server = createServer(async (request, response) => {
 });
 await new Promise(resolve=>draftServer.listen(0,'127.0.0.1',resolve));
 server.listen(0, '127.0.0.1', () => {
-  console.log('Open http://127.0.0.1:' + server.address().port + '/editor for the editor and local game.');
+  const url='http://127.0.0.1:'+server.address().port+'/editor';
+  console.log('Open '+url+' for the editor and local game.');
+  if(process.env.MYRREN_OPEN_BROWSER==='1'){
+    const browser=spawn('xdg-open',[url],{stdio:'ignore'});
+    browser.on('error',()=>console.log('Open the editor address above in your browser.'));
+  }
   console.log('Saves go to ' + projectPath + '. Press Ctrl+C to stop.');
 });

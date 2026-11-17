@@ -1,0 +1,20 @@
+#!/bin/sh
+set -eu
+appdir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+data_dir=${XDG_DATA_HOME:-"$HOME/.local/share"}/myrren-editor
+mkdir -p -- "$data_dir"
+root=$appdir/usr/share/myrren
+revision=$(cat "$appdir/usr/share/myrren-revision")
+if [ -f "$data_dir/current" ]; then
+ candidate=$(cat "$data_dir/current")
+ case "$candidate" in
+   ''|*[!a-f0-9]*) ;;
+   *)
+     if [ "${#candidate}" -eq 40 ] && [ -f "$data_dir/versions/$candidate/tools/preview-myrren.mjs" ]; then
+       root=$data_dir/versions/$candidate
+       revision=$candidate
+     fi ;;
+ esac
+fi
+export MYRREN_APP_HOME="$data_dir" MYRREN_APP_REVISION="$revision" MYRREN_OPEN_BROWSER=1
+exec "$appdir/usr/bin/node" "$root/tools/preview-myrren.mjs" "${1:-$data_dir/myrren-project.json}"

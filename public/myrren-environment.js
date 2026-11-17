@@ -489,5 +489,9 @@
     if(Math.sin(phase*1.4)>.88){r(x+2,y-7,3,2,'#c8d7b7');r(x+3,y-8,1,1,'#e0e6c4');r(x-4,y-5,2,1,'#c0d4bd')}
   }
 
-  window.MyrrenEnvironment=Object.freeze({tree,approvedTreeSpecies,approvedTreeVariant,approvedTreeSize,rock,fern,building,terrain,nativeTerrainReady,prop,square,brook,bridge,smithyFloor,smithyPart,waterTile,fishing,cacheSize:()=>cache.size});
+  function loadMapArt(){
+    return Promise.allSettled([approvedTreeAtlas,terrainAtlas,...Array.from(resourceImages.values(),entry=>entry.img)]
+      .map(image=>image.decode()));
+  }
+  window.MyrrenEnvironment=Object.freeze({loadMapArt,tree,approvedTreeSpecies,approvedTreeVariant,approvedTreeSize,rock,fern,building,terrain,nativeTerrainReady,prop,square,brook,bridge,smithyFloor,smithyPart,waterTile,fishing,cacheSize:()=>cache.size});
 })();
