@@ -30,7 +30,7 @@
   function ineligibleReason(o, now) {
     if (!o || !Number.isFinite(now)) return 'invalid frame';
     // Multiplayer action code 0 means no held tool, represented as ''.
-    if (!(o.tool === 'fist' || native.canDrawSword?.(o, now) || (!o.isMe && o.tool === ''))) return 'tool: ' + String(o.tool);
+    if (!(o.tool === 'fist' || o.tool === 'axe' || o.tool === 'pick' || native.canDrawSword?.(o, now) || (!o.isMe && o.tool === ''))) return 'tool: ' + String(o.tool);
     if (!Array.isArray(o.g) || o.g.length !== 6) return 'unknown equipment state';
     if (o.g.some(v => v !== 0)) return 'equipped armour/shield';
     if (!owns(o, 'deathAt') || !owns(o, 'hurtAt')) return 'unresolved player state';

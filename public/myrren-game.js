@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=98;
+window.MyrrenBuild=99;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -377,6 +377,10 @@ function applySave(o){
     }
     for(const old of ['axe','pick','net','rod']){const id=save.eq[old];delete save.eq[old];if(id&&DEFS[id])save.bag.push(id)}
     for(const s of SLOTS)if(save.eq[s]&&!DEFS[save.eq[s]])save.eq[s]=null;
+    if(DEFS[save.eq.weapon]?.kind==='axe'&&save.eq.shield){
+      save.bag.push(save.eq.shield);
+      save.eq.shield=null;
+    }
   }
   save.notes=storedCounts(o.notes);save.bank=storedCounts(o.bank);
   save.packOrder=Array.isArray(o.packOrder)?o.packOrder.slice(0,10000):[];save.bankOrder=Array.isArray(o.bankOrder)?o.bankOrder.slice(0,10000):[];
@@ -652,10 +656,18 @@ let tab='',sel=null,shopCat='weapons',lastTab='gear';
 let outdoorShop=null;
 const curShop=()=>inside?SHOPS[inside.id]:outdoorShop&&Math.hypot(me.x-outdoorShop.x,me.y-outdoorShop.y)<110?SHOPS[outdoorShop.id]:null;
 function onGearChange(){if(act?.kind==='node')act=null;blocked.clear();try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur()}catch(e){}refreshHeld();persist();renderModal();uiHud();refreshActionButtons();sendPresence()}
+function shieldConflict(d){
+  return d.slot==='shield'&&eqDef('weapon')?.kind==='axe';
+}
 function equipFromBag(idx){
   const id=save.bag[idx],d=DEFS[id];if(!d)return;
   if(!usable(d)){say('You need '+NAMES[d.skill]+' '+d.req+' to use that.','warn');return}
-  const old=save.eq[d.slot];save.eq[d.slot]=id;save.bag.splice(idx,1);if(old)save.bag.push(old);
+  if(shieldConflict(d)){say('Unequip your two-handed axe first.','warn');return}
+  const shield=d.kind==='axe'?save.eq.shield:null;
+  const old=save.eq[d.slot];
+  if(shield&&!canFitInventory({},old?1:0)){say('Make room in your pack for your shield first.','warn');return}
+  save.eq[d.slot]=id;save.bag.splice(idx,1);if(old)save.bag.push(old);
+  if(shield){save.bag.push(shield);save.eq.shield=null;}
   sel={src:'eq',key:d.slot};say('You equip the '+d.name.toLowerCase()+'.');onGearChange();
 }
 function unequip(slot){
@@ -687,9 +699,9 @@ function buyItem(id){
   const d=DEFS[id];
   if(owned(id)){say('You already have that.','warn');return}
   if(save.inv.coins<d.price){say('You cannot afford that.','warn');return}
-  if((save.eq[d.slot]||!usable(d))&&!canFitInventory({},1)){say('Your pack is full.','warn');return}
+  if((save.eq[d.slot]||!usable(d)||shieldConflict(d)||(d.kind==='axe'&&save.eq.shield))&&!canFitInventory({},1)){say('Your pack is full.','warn');return}
   save.inv.coins-=d.price;
-  if(!save.eq[d.slot]&&usable(d)){save.eq[d.slot]=id;say('You buy and equip the '+d.name.toLowerCase()+'.','gold')}
+  if(!save.eq[d.slot]&&usable(d)&&!shieldConflict(d)&&!(d.kind==='axe'&&save.eq.shield)){save.eq[d.slot]=id;say('You buy and equip the '+d.name.toLowerCase()+'.','gold')}
   else{save.bag.push(id);say('You buy the '+d.name.toLowerCase()+'.','gold')}
   onGearChange();
 }
@@ -1582,7 +1594,7 @@ function forge(kind,batch=false){
   const key='ing_'+r.id;
   if(lvlFor(save.xp.forging)<forgeReq(r,kind)){if(!batch)say('You need '+NAMES.forging+' '+forgeReq(r,kind)+' to forge with that.','warn');return false}
   if((save.inv[key]||0)<cost){if(!batch)say('You need '+cost+' '+ITEMS[key].name.toLowerCase()+'s.','warn');return false}
-  const equip=!batch&&!save.eq[d.slot]&&usable(d);
+  const equip=!batch&&!save.eq[d.slot]&&usable(d)&&!shieldConflict(d)&&!(d.kind==='axe'&&save.eq.shield);
   if(!canFitInventory({[key]:-cost},equip?0:1)){if(!batch)say('Your pack is full.','warn');return false}
   markProduction('forge');save.inv[key]-=cost;
   if(equip){save.eq[d.slot]=id;say('You forge and equip a '+d.name.toLowerCase()+'.','gold')}
@@ -2470,7 +2482,7 @@ function doAction(dt,now){
         if(slot==='rod'){if(!(save.inv.bait>0)){say('You are out of bait. Buy more at the fishing shop.','warn');act=null;return}save.inv.bait--;if(tab)renderModal()}
         a.casted=true;a.cast0=now;n.fishCastAt=now;startSwing(now);
       }
-    }else if(!a.swung&&a.t>=a.iv-.2){a.swung=true;startSwing(now)}
+    }else if(!a.swung&&a.t>=a.iv-.2){a.swung=true;startSwing(now);if(d.kind==='axe')me.chopTarget={x:n.x,y:n.y,at:now}}
     if(a.t>=a.iv){
           a.t-=a.iv;a.swung=false;
       if(fishing){a.casted=false;a.t=-.9}
@@ -2786,6 +2798,18 @@ function swingAng(age){
   if(age<90)return lerp(-.35,-1.5,age/90);
   if(age<200)return lerp(-1.5,1.0,(age-90)/110);
   return lerp(1.0,-.35,(age-200)/120);
+}
+// [milliseconds, forward reach, hand lift, tool angle]. Contact matches
+// the existing gather tick, 200 ms after the swing starts.
+const gatheringPoses={
+  axe:[[0,0,0,-.35],[105,-3,4,-1.45],[155,-2,3,-1.0],[200,5,0,1.15],[345,5,0,1.15],[435,1,1,.82],[560,0,0,-.35]],
+  pick:[[0,0,0,-.35],[100,-1,4,-.85],[155,0,3,-.55],[200,2,-3,1.68],[224,2,-3,1.68],[320,0,0,-.35]]
+};
+function gatheringPose(tool,age){
+  const poses=gatheringPoses[tool];
+  const end=poses.findIndex(p=>p[0]>age),a=poses[end-1],b=poses[end];
+  const t=(age-a[0])/(b[0]-a[0]);
+  return {reach:lerp(a[1],b[1],t),lift:lerp(a[2],b[2],t),angle:lerp(a[3],b[3],t)};
 }
 function drawTool(kind,mat,hx,hy,f,ang,size=1){
   if(kind==='sword'&&window.MyrrenSwords?.draw(ctx,mat,hx,hy,f,ang,size))return;
@@ -3213,6 +3237,38 @@ function drawKezV2(x,y,o,now){
     :-.35;
   const paintHeld=()=>{
     if(!holding||deathAge>=0||window.MyrrenV19BGameplayPreview?.drawsSword?.(state,now))return;
+    const axe=o.tool==='axe';
+    if(age>=0&&(axe?age<560:o.tool==='pick'&&attacking)){
+      const pose=gatheringPose(o.tool,age);
+      const handSide=direction==='back'?-1:direction==='front'?1:facing;
+      let gripX=hx+handSide*pose.reach,gripY=hy-pose.lift;
+      const target=o.isMe&&axe&&me.chopTarget?.at===o.swingAt?me.chopTarget:null;
+      if(target){
+        const lock=age<200?clamp((age-145)/55,0,1):1-clamp((age-345)/90,0,1);
+        // Match the middle of the axe head to the near edge of the trunk.
+        const dx=target.x-me.x,dy=target.y-me.y;
+        const side=Math.sign(dx),trunkX=x+dx-side*Math.min(4,Math.abs(dx));
+        const headX=(4*Math.cos(pose.angle)+5*Math.sin(pose.angle))*1.02*handSide;
+        const headY=(4*Math.sin(pose.angle)-5*Math.cos(pose.angle))*1.02;
+        gripX=lerp(gripX,trunkX-headX,lock);
+        gripY=lerp(gripY,y+dy-11-headY,lock);
+      }
+      const gx=Math.round(gripX),gy=Math.round(gripY);
+      const sleeve=o.g?.[1]&&gear?.colorsFor?.(o.g[1],o.dye)?.[1]||'#62603d';
+      const armX=Math.round(hx-handSide*2),armY=hy-2;
+      const steps=Math.max(1,Math.abs(gx-armX),Math.abs(gy-armY));
+      for(let i=0;i<steps;i++){
+        R(Math.round(lerp(armX,gx,i/steps))-1,Math.round(lerp(armY,gy,i/steps))-1,2,2,sleeve);
+      }
+      drawTool(o.tool,o.mat,gx,gy,handSide,pose.angle,.6);
+      R(gx-1,gy-1,2,2,handColor);
+      if(axe){
+        const supportX=gx+Math.round(handSide*(Math.cos(pose.angle)+2*Math.sin(pose.angle))*1.02);
+        const supportY=gy+Math.round((Math.sin(pose.angle)-2*Math.cos(pose.angle))*1.02);
+        R(supportX-1,supportY-1,2,2,handColor);
+      }
+      return;
+    }
     drawTool(o.tool,o.mat,hx,hy,facing,heldAngle,.6);
     // Two-pixel fingers cover the sword grip without showing a floating hilt.
     if(direction!=='back')R(hx-1,hy-1,2,2,handColor);
