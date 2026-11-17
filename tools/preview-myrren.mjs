@@ -16,7 +16,7 @@ const types = {
 };
 const tileTypes = ['grass', 'path', 'plaza', 'water', 'rock', 'flowers'];
 const assetFolder = '/assets/myrren-v19f/';
-const atlasPaths = ['myrren_idle_4dir_native.png', 'myrren_walk_4x6_native.png'].map(name => assetFolder + name);
+const atlasPaths = ['myrren_idle_4dir_native.png', 'myrren_walk_4x6_native.png', 'myrren_punch_4dir_native.png', 'myrren_punch_stride_4dir_native.png', 'myrren_sword_body_4dir.png'].map(name => assetFolder + name);
 const security = {
   'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; form-action 'none'; base-uri 'none'",
   'Cache-Control': 'no-store',
@@ -26,12 +26,17 @@ const security = {
 function validate(data) {
   if (data?.format !== 'myrren-editor-1' || !Array.isArray(data.objects) || data.objects.length > 10000 ||
       !data.tiles || typeof data.tiles !== 'object' || Array.isArray(data.tiles) ||
-      !Array.isArray(data.sheets) || data.sheets.length !== 2) {
+      !Array.isArray(data.sheets) || ![2, 5].includes(data.sheets.length)) {
     throw Error('Use a project JSON exported by Myrren Editor.');
   }
+  const bounds = data.bounds ?? { width:1600, height:1600, rx:305, ry:235, spawnX:800, spawnY:844 };
+  const limits = [['width',1600,3200,16],['height',1600,3200,16],['rx',180,480,1],['ry',150,400,1],
+    ['spawnX',108,bounds.width-109,1],['spawnY',108,bounds.height-109,1]];
+  if (!limits.every(([key,min,max,step]) => Number.isInteger(bounds[key]) && bounds[key]>=min &&
+      bounds[key]<=max && bounds[key]%step===0)) throw Error('Invalid world or camp size or spawn position.');
   const objects = data.objects.map(item => {
     if (!item || !Object.hasOwn(types, item.layer) || !types[item.layer].includes(item.k) ||
-        ![item.x, item.y].every(value => Number.isFinite(value) && value >= 0 && value < 1600)) {
+        ![item.x, item.y].every((value,index) => Number.isFinite(value) && value >= 0 && value < (index ? bounds.height : bounds.width))) {
       throw Error('Project contains an invalid map object.');
     }
     return { layer: item.layer, k: item.k, x: item.x, y: item.y };
@@ -42,21 +47,22 @@ function validate(data) {
     }
   }
   for (const [key, kind] of Object.entries(data.tiles)) {
-    if (!/^(0|[1-9]\d?),(0|[1-9]\d?)$/.test(key) || !tileTypes.includes(kind)) {
+    if (!/^(0|[1-9]\d{0,2}),(0|[1-9]\d{0,2})$/.test(key) || !tileTypes.includes(kind) ||
+        !key.split(',').every((value,index) => Number(value)*16 < (index ? bounds.height : bounds.width))) {
       throw Error('Project contains an invalid terrain tile.');
     }
   }
   const sheets = data.sheets.map((value, index) => {
     const match = typeof value === 'string' && /^data:image\/png;base64,([A-Za-z0-9+/]+=*)$/.exec(value);
     const png = match && Buffer.from(match[1], 'base64');
-    const [width, height] = index ? [144, 128] : [96, 32];
+    const [width, height] = [[96,32],[144,128],[336,144],[384,864],[384,1008]][index];
     if (!png || png.length < 33 || png.toString('hex', 0, 8) !== '89504e470d0a1a0a' ||
         png.toString('ascii', 12, 16) !== 'IHDR' || png.readUInt32BE(16) !== width || png.readUInt32BE(20) !== height) {
       throw Error('Invalid sprite sheet. Expected a ' + width + ' × ' + height + ' PNG.');
     }
     return png;
   });
-  return { objects, tiles: data.tiles, sheets };
+  return { objects, tiles: data.tiles, sheets, bounds:Object.fromEntries(limits.map(([key])=>[key,bounds[key]])) };
 }
 
 function replaceOnce(source, marker, replacement) {
@@ -70,6 +76,7 @@ function replaceOnce(source, marker, replacement) {
 function patchWorld(source, project) {
   const buildings = project.objects.filter(item => item.layer === 'Buildings');
   source = replaceOnce(source, 'const bridges=[];', `
+const previewBounds=${JSON.stringify(project.bounds)};
 const previewBuildings=${JSON.stringify(buildings)};
 const previewTiles=${JSON.stringify(project.tiles)};
 const previewTile=(x,y)=>previewTiles[Math.floor(x/16)+','+Math.floor(y/16)];
@@ -90,10 +97,21 @@ function inWater(x,y){
   source = replaceOnce(source, 'const paths=buildings.map', `for(const station of stations){station.x+=smithyShift.x;station.y+=smithyShift.y}
 const paths=buildings.map`);
   source = replaceOnce(source, 'if(waterDistance(xx,yy)<margin)return false;', 'if(previewTile(xx,yy) ? inWater(xx,yy) : waterDistance(xx,yy)<margin)return false;');
-  return replaceOnce(source, 'Object.freeze({lake,buildings,', 'Object.freeze({previewTile,lake,buildings,');
+  source = replaceOnce(source, 'const r=Math.hypot((x-CX)/305,(y-CY)/235);', 'const r=Math.hypot((x-CX)/previewBounds.rx,(y-CY)/previewBounds.ry);');
+  source = replaceOnce(source, 'y>CY+172;', 'y>CY+previewBounds.ry-63;');
+  source = replaceOnce(source, 'Math.hypot((x-CX)/305,(y-CY)/235)<.895', 'Math.hypot((x-CX)/previewBounds.rx,(y-CY)/previewBounds.ry)<.895');
+  source = replaceOnce(source, 'nx<1492&&ny>108&&ny<1492', 'nx<previewBounds.width-108&&ny>108&&ny<previewBounds.height-108');
+  source = replaceOnce(source, 'return {x:800,y:840};', 'return {x:previewBounds.spawnX,y:previewBounds.spawnY};');
+  return replaceOnce(source, 'Object.freeze({lake,buildings,', 'Object.freeze({previewBounds,previewTile,lake,buildings,');
 }
 
 function patchGame(source, project) {
+  source = replaceOnce(source, 'WW=1600,WH=1600', 'WW=MyrrenWorld.previewBounds.width,WH=MyrrenWorld.previewBounds.height');
+  source = replaceOnce(source, 'x:CX,y:CY+44};', 'x:MyrrenWorld.previewBounds.spawnX,y:MyrrenWorld.previewBounds.spawnY};');
+  source = replaceOnce(source, 'save.x=CX;save.y=CY+44;', 'save.x=MyrrenWorld.previewBounds.spawnX;save.y=MyrrenWorld.previewBounds.spawnY;');
+  source = replaceOnce(source, '(wx+8-CX)/305,(wy+8-CY)/235', '(wx+8-CX)/VILLAGE.previewBounds.rx,(wy+8-CY)/VILLAGE.previewBounds.ry');
+  source = replaceOnce(source, '(305+wobble),gy=CY+Math.sin(a)*(235+wobble*.7)', '(VILLAGE.previewBounds.rx+wobble),gy=CY+Math.sin(a)*(VILLAGE.previewBounds.ry+wobble*.7)');
+  source = replaceOnce(source, 'if(gy>CY+172&&', 'if(gy>CY+VILLAGE.previewBounds.ry-63&&');
   const nodes = project.objects.filter(item => ['Trees','Ores','Fishing'].includes(item.layer));
   const enemies = project.objects.filter(item => item.layer === 'Enemies');
   const props = project.objects.filter(item => item.layer === 'Props');
@@ -158,12 +176,23 @@ const [worldSource, gameSource, indexSource, environmentSource] = await Promise.
   source('myrren-world.js'), source('myrren-game.js'), source('index.html'), source('myrren-environment.js')
 ]);
 function buildPreview(project) {
+  const world = patchWorld(worldSource, project);
+  const {spawnX:x,spawnY:y,rx,ry}=project.bounds;
+  const tile=project.tiles[Math.floor(x/16)+','+Math.floor(y/16)];
+  const lakeRadius=Math.hypot((x-1250)/161,(y-1055)/108);
+  const angle=Math.atan2((y-1055)/108,(x-1250)/161);
+  const lakeEdge=1+.12*Math.sin(2*angle+.65)+.065*Math.sin(3*angle-1.1)+.035*Math.cos(5*angle+.4);
+  const campRadius=Math.hypot((x-800)/rx,(y-800)/ry);
+  const wall=campRadius>.895&&campRadius<1.085&&!(Math.abs(x-800)<55&&y>800+ry-63);
+  const blocked=project.objects.some(o=>o.layer==='Buildings'&&o.k!=='arms'&&Math.abs(x-o.x)<({axe:56,pick:56,food:56,fish:54}[o.k])/2+3&&y>o.y-14&&y<o.y||
+    o.layer==='Props'&&o.k==='fence'&&x>o.x-2&&x<o.x+26&&y>o.y-3&&y<o.y+2);
+  if ((tile ? tile==='water'||tile==='rock' : lakeRadius<lakeEdge||wall) || blocked) throw Error('Choose a walkable player spawn.');
   return new Map([
     ['/myrren-environment.js', replaceOnce(environmentSource, "const continuousTrail=world?.pathDistance&&(kind==='path'||kind==='grass');", "const continuousTrail=world?.pathDistance&&!world.previewTile?.(tx*16+8,ty*16+8)&&(kind==='path'||kind==='grass');")],
-    ['/myrren-world.js', patchWorld(worldSource, project)],
+    ['/myrren-world.js', world],
     ['/myrren-game.js', patchGame(gameSource, project)],
     ['/index.html', replaceOnce(indexSource, '<title>Tales of Myrren</title>', '<title>Myrren Project Preview</title>')],
-    ...atlasPaths.map((path, index) => [path, project.sheets[index]])
+    ...project.sheets.map((sheet,index) => [atlasPaths[index],sheet])
   ]);
 }
 let overrides = buildPreview(validate(JSON.parse(projectText)));
