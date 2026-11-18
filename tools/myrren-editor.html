@@ -793,12 +793,25 @@ function baseTerrain(x,y,dimensions,paths){
  const plaza=radius<.895&&((x-800)/185)**2+((y-830)/66)**2<1;
  return wall?'rock':distance<0?'water':distance<24?'grass':plaza?'plaza':paths.some(([a,b])=>world.segmentDistance(x,y,a,b)<13)?'path':'grass';
 }
+const chunkPixels=640, dirtyChunks=new Set(), collisionChunks=new Set();
+function markPaintChunk(tx,ty){
+ for(const [dx,dy] of [[0,0],[-1,0],[1,0],[0,-1],[0,1]]){
+  const x=(tx+dx)*16,y=(ty+dy)*16;
+  if(x>=0&&y>=0&&x<bounds.width&&y<bounds.height)
+   dirtyChunks.add(Math.floor(x/chunkPixels)+','+Math.floor(y/chunkPixels));
+ }
+}
 function refreshTerrain(){
+ if(terrainDirty){
+ nativePatch=null;
  map.width=bounds.width;back.width=collisionMap.width=bounds.width/2;
  map.height=bounds.height;back.height=collisionMap.height=bounds.height/2;
  scaleMap();
+ collisionDirty=true;
+ }
  const paths=mapPaths(objects);
- for(let y=0;y<back.height;y+=8)for(let x=0;x<back.width;x+=8){
+ const paint=(left,top,right,bottom)=>{
+ for(let y=top;y<bottom;y+=8)for(let x=left;x<right;x+=8){
   const wx=x*2+8,wy=y*2+8,tile=tileAt(wx,wy);
   const kind=tile||baseTerrain(wx,wy,bounds,paths);
   const region=regions.rules[regions.tiles[(x/8)+','+(y/8)]];
@@ -818,21 +831,33 @@ function refreshTerrain(){
   if(kind==='flowers'){bg.fillStyle='#d0a3aa';bg.fillRect(x+3,y+3,2,2)}
  }
  }
- terrainDirty=false;collisionDirty=true;
+ };
+ if(terrainDirty)paint(0,0,back.width,back.height);
+ else for(const key of dirtyChunks){paint(...chunkRect(key));collisionChunks.add(key)}
+ if(!terrainDirty&&nativePatch)for(const key of dirtyChunks)nativePatch.add(key);
+ dirtyChunks.clear();terrainDirty=false;
+}
+function chunkRect(key){
+ const [cx,cy]=key.split(',').map(Number),size=chunkPixels/2;
+ return [cx*size,cy*size,Math.min(back.width,(cx+1)*size),Math.min(back.height,(cy+1)*size)];
 }
 function drawCollision(){
- if(collisionDirty){
-  blocked.clearRect(0,0,back.width,back.height);
+ function paint(left,top,right,bottom){
+  blocked.save();blocked.beginPath();blocked.rect(left,top,right-left,bottom-top);blocked.clip();
+  blocked.clearRect(left,top,right-left,bottom-top);
   blocked.fillStyle='#f45b6170';
-  for(let y=0;y<back.height;y+=4)for(let x=0;x<back.width;x+=4){
+  for(let y=top;y<bottom;y+=4)for(let x=left;x<right;x+=4){
    if(terrainBlocked(x*2+4,y*2+4))blocked.fillRect(x,y,4,4);
   }
   for(const o of objects){
    if(o.layer==='Buildings'&&!o.open)blocked.fillRect(o.x/2-o.w/4-1.5,o.y/2-7,o.w/2+3,7);
    if(o.layer==='Props'&&o.k==='fence')blocked.fillRect(o.x/2-1,o.y/2-1.5,14,2.5);
   }
-  collisionDirty=false;
+  blocked.restore();
  }
+ if(collisionDirty)paint(0,0,back.width,back.height);
+ else for(const key of collisionChunks)paint(...chunkRect(key));
+ collisionDirty=false;collisionChunks.clear();
  ctx.drawImage(collisionMap,0,0);
 }
 function syncBounds(){
@@ -1316,7 +1341,7 @@ function options(){q('asset').replaceChildren(...types[q('layer').value].map(kin
 q('asset').onchange=drawResourcePreview;
 q('layer').onchange=options;options();
 function drawMap(){
- if(terrainDirty)refreshTerrain();
+ if(terrainDirty||dirtyChunks.size)refreshTerrain();
  ctx.setTransform(2,0,0,2,0,0);
  ctx.clearRect(0,0,back.width,back.height);
  ctx.imageSmoothingEnabled=false;
@@ -1405,6 +1430,7 @@ function paintMap(event){
    for(let dy=-radius;dy<=radius;dy++)for(let dx=-radius;dx<=radius;dx++){
     const tx=x+dx,ty=y+dy;
     if(tx<0||ty<0||tx*16>=bounds.width||ty*16>=bounds.height)continue;
+    markPaintChunk(tx,ty);
     const key=tx+','+ty;
     if(gesture.mode==='Paint region')regions.tiles[key]=regionIndex();
     else if(gesture.mode==='Clear region')delete regions.tiles[key];
@@ -1414,7 +1440,7 @@ function paintMap(event){
     }else tiles[key]=q('tile').value;
    }
   }
-  gesture.last=[tileX,tileY];terrainDirty=true;
+  gesture.last=[tileX,tileY];
  }else if(objects[selected]){
   const [startX,startY]=gesture.start;
   if(gesture.moved||Math.hypot(x-startX,y-startY)>2){
@@ -2006,6 +2032,7 @@ async function appUpdate(action){
 q('checkAppUpdate').onclick=()=>appUpdate('check');
 q('installAppUpdate').onclick=()=>appUpdate('install');
 
+let nativePatch=null;
 let nativeArt=null,nativeKey=null,nativeRequest=null,nativeTimer=null;
 const nativeMode=()=>localEditor&&q('mapArt').value==='game';
 function scaleMap(){
@@ -2022,13 +2049,25 @@ function scheduleNativeMap(){
 }
 async function requestNativeMap(key){
  if(nativeRequest||!nativeMode())return;
- const job={key};nativeRequest=job;
+ const project=JSON.parse(key);
+ const structure=JSON.stringify([project.objects,project.bounds,project.regions.rules]);
+ const chunks=nativeArt?.dataset.structure===structure&&nativePatch&&[...nativePatch].map(chunkRect);
+ let rect=null;
+ if(chunks?.length&&nativeArt){
+  const xs=chunks.map(r=>r[0]),ys=chunks.map(r=>r[1]);
+  // Include the footprint and canopy of scenery affected across a section edge.
+  const margin=192,x=Math.max(0,2*Math.min(...xs)-margin),y=Math.max(0,2*Math.min(...ys)-margin);
+  const right=Math.min(project.bounds.width,2*Math.max(...chunks.map(r=>r[2]))+margin);
+  const bottom=Math.min(project.bounds.height,2*Math.max(...chunks.map(r=>r[3]))+margin);
+  rect=[x,y,right-x,bottom-y];
+ }
+ const job={key,rect,structure};nativeRequest=job;nativePatch=new Set();
  q('mapRenderStatus').textContent='Rendering game artwork…';
  try{
   const response=await fetch('/editor/render',{method:'POST',headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({...JSON.parse(key),format:'myrren-editor-1',sheets:initialSheets})});
+   body:JSON.stringify({...project,format:'myrren-editor-1',sheets:initialSheets})});
   if(!response.ok)throw Error(await response.text());
-  q('mapRenderer').src='/editor/render-view?run='+Date.now();
+  q('mapRenderer').src='/editor/render-view?run='+Date.now()+(rect?'&rect='+rect.join(','):'');
   job.timeout=setTimeout(()=>finishNative(job,'Game renderer did not respond.'),30000);
  }catch(error){finishNative(job,error.message)}
 }
@@ -2036,7 +2075,7 @@ function finishNative(job,error){
  if(nativeRequest!==job)return;
  clearTimeout(job.timeout);nativeRequest=null;
  if(error){
-  nativeKey=job.key;
+  nativePatch=null;nativeKey=job.key;
   q('mapRenderStatus').textContent=error+' Showing simplified artwork if no game render is available.';
  }else q('mapRenderStatus').textContent='Game artwork ready.';
  drawMap();
@@ -2049,7 +2088,15 @@ window.addEventListener('message',async event=>{
  try{
   const art=new Image();art.src=url;await art.decode();
   if(nativeRequest!==job)return;
-  nativeArt=art;nativeKey=job.key;finishNative(job);
+  if(job.rect){
+   const [x,y,w,h]=job.rect;
+   if(art.width!==w||art.height!==h)throw Error('Unexpected map section size.');
+   nativeArt.getContext('2d').drawImage(art,x,y);
+  }else{
+   nativeArt=document.createElement('canvas');nativeArt.width=art.width;nativeArt.height=art.height;
+   nativeArt.getContext('2d').drawImage(art,0,0);
+  }
+  nativeArt.dataset.structure=job.structure;nativeKey=job.key;finishNative(job);
  }catch(error){finishNative(job,error.message)}
  finally{URL.revokeObjectURL(url)}
 });

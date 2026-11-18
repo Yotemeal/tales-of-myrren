@@ -3796,11 +3796,15 @@ function drawInterior(cx,cy,now){
 function previewFlower(x,y){
  R(x,y-4,1,5,'#648540');R(x-1,y-5,3,2,'#d0a3aa');R(x,y-6,1,4,'#d0a3aa');
 }
-function drawOutdoor(cx,cy,now){
-  const t0=Math.max(0,Math.floor(cx/T)),t1=Math.min(WW/T-1,Math.floor((cx+cv.width)/T)),u0=Math.max(0,Math.floor(cy/T)),u1=Math.min(WH/T-1,Math.floor((cy+cv.height)/T));
-  const pathAt=(tx,ty)=>VILLAGE.pathKind(tx*T+8,ty*T+8);
-  for(let ty=u0;ty<=u1;ty++)for(let tx=t0;tx<=t1;tx++){
-    const wx=tx*T,wy=ty*T,x=Math.round(wx-cx),y=Math.round(wy-cy);
+// Static terrain geometry is shared across frames. Dynamic art still draws at frame time.
+const chunkTiles=40,terrainChunks=new Map();
+function terrainInfo(tx,ty){
+ const key=Math.floor(tx/chunkTiles)+','+Math.floor(ty/chunkTiles);
+ let chunk=terrainChunks.get(key);
+ if(!chunk){chunk=[];terrainChunks.set(key,chunk)}
+ const index=(ty%chunkTiles)*chunkTiles+tx%chunkTiles;
+ if(chunk[index])return chunk[index];
+ const wx=tx*T,wy=ty*T,pathAt=(x,y)=>VILLAGE.pathKind(x*T+8,y*T+8);
     const boundary=tx<EDGE/T||ty<EDGE/T||tx>=WW/T-EDGE/T||ty>=WH/T-EDGE/T;
     const d=VILLAGE.waterDistance(wx+8,wy+8),kind=boundary?'boundary':pathAt(tx,ty);
     const edge=kind==='path'||kind==='plaza'?(pathAt(tx,ty-1)==='grass'?1:0)|(pathAt(tx,ty+1)==='grass'?2:0)|(pathAt(tx-1,ty)==='grass'?4:0)|(pathAt(tx+1,ty)==='grass'?8:0):0;
@@ -3812,6 +3816,32 @@ function drawOutdoor(cx,cy,now){
     const ground=kind==='grass'&&d>25
       ?(basin>.83&&basin<1.18&&grit<12?(grit<5?'stone':'gravel'):basin<.84?'dirt':kind)
       :kind;
+ return chunk[index]={d,kind,edge,basin,grit,ground};
+}
+let previousChunkWindow='';
+function prepareTerrain(t0,t1,u0,u1){
+ const left=Math.floor(t0/chunkTiles)-1,right=Math.floor(t1/chunkTiles)+1;
+ const top=Math.floor(u0/chunkTiles)-1,bottom=Math.floor(u1/chunkTiles)+1;
+ const key=[left,right,top,bottom].join(',');
+ if(key!==previousChunkWindow){
+  previousChunkWindow=key;
+  for(const id of terrainChunks.keys()){
+   const [x,y]=id.split(',').map(Number);
+   if(x<left||x>right||y<top||y>bottom)terrainChunks.delete(id);
+  }
+ }
+ // Warm one tile beyond each viewport edge before it scrolls into view.
+ const x0=Math.max(0,t0-1),x1=Math.min(WW/T-1,t1+1),y0=Math.max(0,u0-1),y1=Math.min(WH/T-1,u1+1);
+ for(let x=x0;x<=x1;x++){terrainInfo(x,y0);terrainInfo(x,y1)}
+ for(let y=y0+1;y<y1;y++){terrainInfo(x0,y);terrainInfo(x1,y)}
+}
+function drawOutdoor(cx,cy,now){
+  const t0=Math.max(0,Math.floor(cx/T)),t1=Math.min(WW/T-1,Math.floor((cx+cv.width)/T)),u0=Math.max(0,Math.floor(cy/T)),u1=Math.min(WH/T-1,Math.floor((cy+cv.height)/T));
+  prepareTerrain(t0,t1,u0,u1);
+  const pathAt=(tx,ty)=>VILLAGE.pathKind(tx*T+8,ty*T+8);
+  for(let ty=u0;ty<=u1;ty++)for(let tx=t0;tx<=t1;tx++){
+    const wx=tx*T,wy=ty*T,x=Math.round(wx-cx),y=Math.round(wy-cy);
+    const {d,kind,edge,basin,grit,ground}=terrainInfo(tx,ty);
     const edited=VILLAGE.previewTile(wx+8,wy+8);
     if(edited){
       const tileKind=edited==='rock'||edited==='flowers'?'grass':edited;
@@ -4182,11 +4212,14 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){stopSmithi
 window.addEventListener('pagehide',()=>{stopSmithing('',false);stopCooking('',false);if(started)persist(true)});
 async function renderEditorMap(){
   try{
-    cv.width=WW;cv.height=WH;
+    const rect=new URLSearchParams(location.search).get('rect')?.split(',').map(Number);
+    const [x,y,w,h]=rect||[0,0,WW,WH];
+    if(![x,y,w,h].every(Number.isInteger)||x<0||y<0||w<=0||h<=0||x+w>WW||y+h>WH)throw Error('Invalid map section');
+    cv.width=w;cv.height=h;
     const draw=()=>{
       ctx.imageSmoothingEnabled=false;
       ctx.fillStyle='#0d0b08';ctx.fillRect(0,0,WW,WH);
-      drawOutdoor(0,0,0);
+      drawOutdoor(x,y,0);
     };
     // The first pass requests the exact resource stages that this map uses.
     draw();
