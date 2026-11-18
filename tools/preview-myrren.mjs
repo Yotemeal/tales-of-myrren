@@ -35,7 +35,7 @@ function validate(data,{allowIncomplete=false}={}) {
     throw Error('Use a project JSON exported by Myrren Editor.');
   }
   const bounds = data.bounds ?? defaultBounds;
-  const limits = [['width',1600,3200,16],['height',1600,3200,16],['rx',180,480,1],['ry',150,400,1],
+  const limits = [['width',1600,6400,16],['height',1600,6400,16],['rx',180,480,1],['ry',150,400,1],
     ['spawnX',108,bounds.width-109,1],['spawnY',108,bounds.height-109,1]];
   if (!limits.every(([key,min,max,step]) => Number.isInteger(bounds[key]) && bounds[key]>=min &&
       bounds[key]<=max && bounds[key]%step===0)) throw Error('Invalid world or camp size or spawn position.');

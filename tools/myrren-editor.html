@@ -79,9 +79,12 @@
 <label><input id="snap" type="checkbox"> Snap to 16 px</label>
 <label><input id="collision" type="checkbox"> Collision overlay</label>
 <details><summary>World and starting camp</summary>
-<p>Resize from the north-west corner. Existing coordinates stay in place.</p>
-<label>World width <input id="worldWidth" type="number" min="1600" max="3200" step="16"></label>
-<label>World height <input id="worldHeight" type="number" min="1600" max="3200" step="16"></label>
+<p id="chunkSize"></p>
+<button id="addEast" type="button">Add chunk column east →</button>
+<button id="addSouth" type="button">Add chunk row south ↓</button>
+<p>Each click extends that edge by 640 pixels (40 tiles). Use Undo to remove the last expansion.</p>
+<label>World width <input id="worldWidth" type="number" min="1600" max="6400" step="16"></label>
+<label>World height <input id="worldHeight" type="number" min="1600" max="6400" step="16"></label>
 <label>Camp radius X <input id="campX" type="number" min="180" max="480"></label>
 <label>Camp radius Y <input id="campY" type="number" min="150" max="400"></label>
 <button id="applyBounds" type="button">Apply size</button>
@@ -765,7 +768,7 @@ let bounds={...defaults};
 let objects=structuredClone(initialObjects),tiles={},selected=-1;
 let terrainDirty=true,collisionDirty=true;
 function validBounds(value){
- return value&&[['width',1600,3200,16],['height',1600,3200,16],['rx',180,480,1],['ry',150,400,1],['spawnX',108,value.width-109,1],['spawnY',108,value.height-109,1]].every(([key,min,max,step])=>Number.isInteger(value[key])&&value[key]>=min&&value[key]<=max&&value[key]%step===0);
+ return value&&[['width',1600,6400,16],['height',1600,6400,16],['rx',180,480,1],['ry',150,400,1],['spawnX',108,value.width-109,1],['spawnY',108,value.height-109,1]].every(([key,min,max,step])=>Number.isInteger(value[key])&&value[key]>=min&&value[key]<=max&&value[key]%step===0);
 }
 function campWall(x,y){
  const radius=Math.hypot((x-800)/bounds.rx,(y-800)/bounds.ry);
@@ -861,6 +864,9 @@ function drawCollision(){
  ctx.drawImage(collisionMap,0,0);
 }
 function syncBounds(){
+ q('chunkSize').textContent=bounds.width+' × '+bounds.height+' pixels · '+bounds.width/16+' × '+bounds.height/16+' tiles (maximum 6,400 pixels per side)';
+ q('addEast').disabled=bounds.width+chunkPixels>6400;
+ q('addSouth').disabled=bounds.height+chunkPixels>6400;
  for(const [id,key] of [['worldWidth','width'],['worldHeight','height'],['campX','rx'],['campY','ry']])q(id).value=bounds[key];
 }
 let gesture=null, spriteGesture=null, busy=true;
@@ -1405,16 +1411,18 @@ function mapPoint(event){return position(event,map).map((value,index)=>{const si
 function snap(value,size){return clamp(q('snap').checked?Math.round(value/16)*16:Math.round(value),size)}
 q('collision').onchange=drawMap;
 q('setSpawn').onclick=()=>{q('tool').value='Set spawn'};
-q('applyBounds').onclick=()=>{
+function resizeWorld(next){
  if(busy||gesture)return;
- const next={...bounds,width:q('worldWidth').valueAsNumber,height:q('worldHeight').valueAsNumber,rx:q('campX').valueAsNumber,ry:q('campY').valueAsNumber};
- if(!validBounds(next)){status('Use world dimensions from 1600 to 3200 in multiples of 16 and camp radii within the displayed ranges.');return}
+ if(!validBounds(next)){status('Use world dimensions from 1600 to 6400 in multiples of 16 and camp radii within the displayed ranges.');return}
  if(objects.some(o=>o.x>=next.width||o.y>=next.height)||Object.keys({...tiles,...regions.tiles}).some(key=>{const [x,y]=key.split(',').map(Number);return x*16>=next.width||y*16>=next.height})){
   status('Move objects or clear terrain outside the proposed world before shrinking.');return;
  }
  const before=snapshot();bounds=next;terrainDirty=true;
- record(before);drawMap();status('World and camp size applied');
-};
+ record(before);syncBounds();drawMap();status('World size is now '+bounds.width+' × '+bounds.height+' pixels.');
+}
+q('addEast').onclick=()=>resizeWorld({...bounds,width:bounds.width+chunkPixels});
+q('addSouth').onclick=()=>resizeWorld({...bounds,height:bounds.height+chunkPixels});
+q('applyBounds').onclick=()=>resizeWorld({...bounds,width:q('worldWidth').valueAsNumber,height:q('worldHeight').valueAsNumber,rx:q('campX').valueAsNumber,ry:q('campY').valueAsNumber});
 function paintMap(event){
  const [x,y]=mapPoint(event);
  if(gesture.mode==='Select section'||gesture.mode==='Scatter assets'){
@@ -1926,7 +1934,7 @@ function checkProject(data,allowCheckpoints=true){
  const presets=data.playtestPresets;
  if(presets!==undefined&&(!allowCheckpoints||!Array.isArray(presets)||presets.length>12||!presets.every(preset=>
   preset&&typeof preset.name==='string'&&preset.name.trim()&&preset.name.length<=40&&playtestKits.includes(preset.kit)&&
-  [preset.x,preset.y].every(value=>Number.isInteger(value)&&value>=108&&value<3200))))throw Error('Invalid playtest presets.');
+  [preset.x,preset.y].every(value=>Number.isInteger(value)&&value>=108&&value<6400))))throw Error('Invalid playtest presets.');
  const stampData=data.stamps;
  if(stampData!==undefined){
   if(!allowCheckpoints||!Array.isArray(stampData)||stampData.length>12)throw Error('Invalid map stamps.');
@@ -1934,7 +1942,7 @@ function checkProject(data,allowCheckpoints=true){
    const within=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&x>=0&&y>=0&&x<stamp.width&&y<stamp.height;
    const tileEntry=(entry,valid)=>Array.isArray(entry)&&entry.length===3&&within(entry[0],entry[1])&&entry[0]%16===0&&entry[1]%16===0&&valid(entry[2]);
    if(!stamp||typeof stamp.name!=='string'||!stamp.name.trim()||stamp.name.length>40||
-    ![stamp.width,stamp.height].every(n=>Number.isInteger(n)&&n>=16&&n<=3200&&n%16===0)||
+    ![stamp.width,stamp.height].every(n=>Number.isInteger(n)&&n>=16&&n<=6400&&n%16===0)||
     !Array.isArray(stamp.objects)||stamp.objects.length>10000||!stamp.objects.every(o=>o&&validObject({...o,x:0,y:0})&&within(o.x,o.y))||
     !Array.isArray(stamp.terrain)||stamp.terrain.length>40000||!stamp.terrain.every(entry=>tileEntry(entry,value=>Object.hasOwn(ground,value)))||
     !Array.isArray(stamp.biomes)||stamp.biomes.length>40000||!stamp.biomes.every(entry=>tileEntry(entry,value=>typeof value==='string'&&value.length<=30)))

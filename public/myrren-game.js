@@ -3923,7 +3923,7 @@ function drawOutdoor(cx,cy,now){
   const forestEdge=[];
   const forestStep=44;
   for(let side=0;side<4;side++){
-    for(let i=0;i<=Math.ceil(WW/forestStep);i++){
+    for(let i=0;i<=Math.ceil((side<2?WW:WH)/forestStep);i++){
       const t=i*forestStep;
       for(let layer=0;layer<2;layer++){
         const wobble=((i*37+side*19+layer*13)%13)-6;
