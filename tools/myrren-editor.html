@@ -8,6 +8,7 @@
 .playtestViewport{min-width:0;min-height:0;overflow:auto;display:flex;justify-content:safe center;align-items:safe center}#playtestFrame{flex:none;background:#141b17}#playtestFrame[data-mode="portrait"]{width:393px;height:852px}#playtestFrame[data-mode="landscape"]{width:852px;height:393px}#playtestPanel[open]{grid-template-rows:auto auto minmax(0,1fr)}#inspectDetails{padding:0 14px 8px;margin:0;white-space:pre-wrap;color:#ded9c8}#treeArtwork label,#stampPanel label{display:flex;margin:5px 0}#resourcePreview{display:flex;gap:4px;margin:6px 0;flex-wrap:wrap}#resourcePreview figure{margin:0;text-align:center}#resourcePreview canvas{width:65px;height:auto;background:#384635}#releasePanel{padding:16px}#releasePanel nav{padding:0 0 12px}#releasePanel figure{margin:0;min-width:0}#releasePanel canvas{max-width:100%;height:auto;background:#303a31;image-rendering:pixelated}#releasePanel figcaption{margin:6px 0}.reviewGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .quickStart{margin:10px 12px 0;padding:12px 16px;background:#243329;border:1px solid #425746;border-radius:8px}.quickStart summary{font-weight:650;cursor:pointer}.quickStart ol{margin:8px 0;padding-left:24px}.quickStart li+li{margin-top:5px}.quickStart small{display:block}#gameAssets{margin:10px 12px;padding:12px 16px;background:#243329;border:1px solid #425746;border-radius:8px}#gameAssets nav{padding:8px 0}#assetChanges{max-height:160px;overflow:auto;padding-left:22px}#assetImage{display:block;max-width:min(100%,480px);max-height:260px;object-fit:contain;image-rendering:pixelated;background:#19251e}#gameAssets p{margin:6px 0}#presetSettings{border:1px solid #415746;border-radius:7px;padding:8px}#presetSettings label{display:flex;margin-block:5px}.primaryAction{background:#c4dda8;color:#19271b;border-color:#c4dda8;font-weight:650}
 #spritePanel .sprite-workspace{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}#spritePanel .sprite-workspace figure{min-width:0}.referencePanel{grid-column:2;grid-row:1 / span 2;min-width:0}.referencePanel nav{padding:6px 0;gap:6px}.pixelViewport,#referenceViewport{overflow:auto;max-height:60vh;border:1px solid #526556;background:#1b251f}#pixelCanvasWrap,#referenceInner{position:relative;width:max-content;line-height:0}#pixels,#referenceImage{display:block;max-width:none!important;image-rendering:pixelated;background:repeating-conic-gradient(#364238 0% 25%,#263128 0% 50%) 0 0/16px 16px}#referenceMarker{position:absolute;outline:2px solid #fff;box-shadow:0 0 0 3px #212f23;pointer-events:none}#referenceSwatch{width:24px;height:24px;display:inline-block;border:1px solid #869888;border-radius:3px}#referenceCode{width:8ch}#recoveryStatus{color:#c5d7ba}#spritePanel .previewFigure{grid-column:1;grid-row:2}
+.stage.is-panning,.stage.is-panning #map{cursor:grabbing;user-select:none}
 </style>
 <header><h1>Myrren Editor</h1><button id="mapTab" aria-pressed="true">World map</button><button id="spriteTab" aria-pressed="false">Character</button><button id="undo">Undo</button><button id="redo">Redo</button><button id="checkAppUpdate" hidden type="button">Check for upgrade</button><button id="installAppUpdate" hidden type="button">Upgrade from GitHub</button><small id="appUpdateStatus" role="status"></small><button id="recoverDraft" hidden type="button">Restore recovery draft</button><small id="recoveryStatus" role="status"></small><button id="releaseTab" aria-pressed="false">Release review</button><button id="saveLocal" hidden>Save to local game</button><a id="playLocal" href="/" target="myrren-playtest" hidden style="color:#dbc186">Open local game</a></header>
 <dialog id="playtestPanel"><nav>
@@ -19,7 +20,7 @@
 <div class="playtestViewport"><iframe id="playtestFrame" title="Myrren playtest"></iframe></div></dialog>
 <section id="worldPanel">
 <details class="quickStart" open><summary>Start here</summary>
-<ol><li><strong>Move something.</strong> Choose Move, then drag a tree, ore or building on the map. Undo is at the top.</li>
+<ol><li><strong>Move something.</strong> Choose Move, then drag a tree, ore or building on the map. Hold the scroll wheel down and drag to pan.</li>
 <li><strong>Try it in the game.</strong> Select Playtest from here, then click a walkable point. Use the Playtest setup to pick a loadout.</li>
 <li><strong>Keep your work.</strong> Select Save to local game, or export a project file to reopen later.</li></ol>
 <small id="offlineHint">Open through the local preview server to playtest or refresh artwork from the checkout.</small></details>
@@ -30,7 +31,7 @@
 <small>Replacement is undoable. Refreshing alone leaves editable sheets intact.</small></details>
 <nav><button id="playFrom" class="primaryAction" hidden>Playtest from here</button><button id="validateMap">Validate map</button><button id="open">Open project</button><button id="save">Export project</button><label>Map artwork <select id="mapArt"><option value="overview">Simplified overview</option><option value="game">Game artwork</option></select></label><label>Scale <select id="zoom"><option value="fit">Fit map</option><option value="100">1:1 native</option><option value="200">2× gameplay</option><option value="300">3×</option></select></label><button id="refreshMapArt" type="button" hidden>Refresh map artwork</button><small id="mapRenderStatus" role="status"></small><small id="message" role="status"></small></nav>
 <iframe id="mapRenderer" title="Map artwork renderer" hidden></iframe>
-<main><div class="stage"><canvas width="800" height="800" id="map" aria-label="Myrren world map"></canvas></div>
+<main><div class="stage"><canvas width="800" height="800" id="map" aria-label="Myrren world map. Hold the middle mouse button and drag to pan."></canvas></div>
 <aside><label>Tool <select id="tool"><option>Move</option><option>Place</option><option>Terrain</option><option>Clear terrain</option><option>Smart path</option><option>Paint region</option><option>Clear region</option><option>Set spawn</option><option>Scatter assets</option><option>Select section</option><option>Place stamp</option></select></label>
 <label>Layer <select id="layer"></select></label><label>Asset <select id="asset"></select></label><label>Terrain <select id="tile"><option>grass</option><option>path</option><option>plaza</option><option>water</option><option>rock</option><option>flowers</option></select></label>
 <div id="treeArtwork" hidden><label>Tree species <select id="treeSpecies"><option value="">By resource type</option></select></label>
@@ -1425,8 +1426,34 @@ function paintMap(event){
  }
  drawMap();
 }
+const mapStage=map.parentElement;
+let mapPan=null;
+mapStage.addEventListener('pointerdown',event=>{
+ if(event.button!==1||gesture||mapPan)return;
+ event.preventDefault();
+ mapPan={id:event.pointerId,x:event.clientX,y:event.clientY,left:mapStage.scrollLeft,top:mapStage.scrollTop};
+ mapStage.setPointerCapture(event.pointerId);
+ mapStage.classList.add('is-panning');
+});
+mapStage.addEventListener('pointermove',event=>{
+ if(mapPan?.id!==event.pointerId)return;
+ if(!(event.buttons&4)){finishMapPan(event);return}
+ mapStage.scrollLeft=mapPan.left+mapPan.x-event.clientX;
+ mapStage.scrollTop=mapPan.top+mapPan.y-event.clientY;
+});
+function finishMapPan(event){
+ if(mapPan?.id!==event.pointerId)return;
+ mapPan=null;
+ mapStage.classList.remove('is-panning');
+ if(mapStage.hasPointerCapture(event.pointerId))mapStage.releasePointerCapture(event.pointerId);
+}
+for(const type of ['pointerup','pointercancel','lostpointercapture']){
+ mapStage.addEventListener(type,finishMapPan);
+}
+mapStage.addEventListener('auxclick',event=>{if(event.button===1)event.preventDefault()});
+
 map.onpointerdown=event=>{
- if(busy||gesture||event.button!==0)return;
+ if(mapPan||busy||gesture||event.button!==0)return;
  const [x,y]=mapPoint(event), mode=q('tool').value;
  if(playtestPicking){
   playtestPicking=false;
