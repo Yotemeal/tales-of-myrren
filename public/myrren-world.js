@@ -1,6 +1,7 @@
 /* Shared village geometry: rendering and collision use the same water field. */
 (() => {
 'use strict';
+const starterRegion=Object.freeze({width:3200,height:3200});
 const CX=800,CY=800;
 const lake={x:1250,y:1055,rx:161,ry:108};
 const buildings=[
@@ -55,7 +56,7 @@ function pathKind(x,y){
 }
 function safePosition(x,y,blocked=()=>false){
  if(!inWater(x,y)&&!blocked(x,y))return {x,y};
- for(let r=4;r<=160;r+=4)for(let i=0;i<32;i++){const a=i*Math.PI/16,nx=x+Math.cos(a)*r,ny=y+Math.sin(a)*r;if(nx>108&&nx<1492&&ny>108&&ny<1492&&!inWater(nx,ny)&&!blocked(nx,ny))return {x:nx,y:ny}}
+ for(let r=4;r<=160;r+=4)for(let i=0;i<32;i++){const a=i*Math.PI/16,nx=x+Math.cos(a)*r,ny=y+Math.sin(a)*r;if(nx>108&&nx<starterRegion.width-108&&ny>108&&ny<starterRegion.height-108&&!inWater(nx,ny)&&!blocked(nx,ny))return {x:nx,y:ny}}
  return {x:800,y:840};
 }
 function fishingPosition(a){
@@ -67,5 +68,5 @@ function fishingPosition(a){
  return {x:sx+dx*(offset-12),y:sy+dy*(offset-12)};
 }
 
-window.MyrrenWorld=Object.freeze({lake,buildings,bridge,bridges,river,stations,lakeF,lakeR,riverF,riverHalfWidth,riverDistance,waterDistance,onBridge,inWater,craterWall,inVillage,pathKind,pathDistance,bridgeApproach,dryFootprint,safePosition,fishingPosition,segmentDistance});
+window.MyrrenWorld=Object.freeze({starterRegion,lake,buildings,bridge,bridges,river,stations,lakeF,lakeR,riverF,riverHalfWidth,riverDistance,waterDistance,onBridge,inWater,craterWall,inVillage,pathKind,pathDistance,bridgeApproach,dryFootprint,safePosition,fishingPosition,segmentDistance});
 })();
