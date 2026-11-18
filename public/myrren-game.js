@@ -246,7 +246,7 @@ function monsterWarningConfig(mt){
 const MR={slime:.09,goblin:.10,boar:.12,wolf:.13,bear:.11,cave:.12,abear:.12};
 for(const k in MT)MT[k].max=Math.max(1,Math.round(hpAt(MT[k].lv)*(MR[k]||.12)));
 /* ---------- world ---------- */
-const T=16,WW=1600,WH=1600,CX=800,CY=800,SPD=90,EDGE=100;
+const T=16,WW=MyrrenWorld.starterRegion.width,WH=MyrrenWorld.starterRegion.height,CX=800,CY=800,SPD=90,EDGE=100;
 const VILLAGE=MyrrenWorld;
 const BLD=VILLAGE.buildings.map(b=>({...b}));
 const LAMPS=[[CX-116,CY+12],[CX+116,CY+12],[CX-82,CY+108],[CX+82,CY+108]];
@@ -282,7 +282,9 @@ function spot(minCamp,minGap,x0,y0,x1,y1){
   }
   return null;
 }
-const nodes=[],mons=[],BOX=[EDGE+30,EDGE+30,WW-EDGE-30,WH-EDGE-30];
+// Preserve the seeded starter encounters when the playable region expands.
+const starterHabitatSize=1600;
+const nodes=[],mons=[],BOX=[EDGE+30,EDGE+30,starterHabitatSize-EDGE-30,starterHabitatSize-EDGE-30];
 function addNodes(k,n,minCamp){for(let i=0;i<n;i++){
   // Keep all harvestable trees in the outer woodland, away from the crater
   // and its Camp, so the impact cliffs remain fully visible.
@@ -290,7 +292,7 @@ function addNodes(k,n,minCamp){for(let i=0;i<n;i++){
   if(TREEK.includes(k)){
     for(let attempt=0;attempt<240;attempt++){
       const x=BOX[0]+rnd()*(BOX[2]-BOX[0]),y=BOX[1]+rnd()*(BOX[3]-BOX[1]);
-      const border=Math.min(x-EDGE,y-EDGE,WW-EDGE-x,WH-EDGE-y);
+      const border=Math.min(x-EDGE,y-EDGE,starterHabitatSize-EDGE-x,starterHabitatSize-EDGE-y);
       if(border>205||Math.hypot((x-CX)/540,(y-CY)/445)<1.15)continue;
       if(VILLAGE.waterDistance(x,y)<85||placed.some(p=>Math.abs(p[0]-x)<24&&Math.abs(p[1]-y)<24))continue;
       placed.push([x,y]);s=[x,y];break;
