@@ -1431,15 +1431,17 @@ let mapPan=null;
 mapStage.addEventListener('pointerdown',event=>{
  if(event.button!==1||gesture||mapPan)return;
  event.preventDefault();
- mapPan={id:event.pointerId,x:event.clientX,y:event.clientY,left:mapStage.scrollLeft,top:mapStage.scrollTop};
+ mapPan={id:event.pointerId,x:event.clientX,y:event.clientY};
  mapStage.setPointerCapture(event.pointerId);
  mapStage.classList.add('is-panning');
 });
 mapStage.addEventListener('pointermove',event=>{
  if(mapPan?.id!==event.pointerId)return;
  if(!(event.buttons&4)){finishMapPan(event);return}
- mapStage.scrollLeft=mapPan.left+mapPan.x-event.clientX;
- mapStage.scrollTop=mapPan.top+mapPan.y-event.clientY;
+ mapStage.scrollLeft+=mapPan.x-event.clientX;
+ mapStage.scrollTop+=mapPan.y-event.clientY;
+ mapPan.x=event.clientX;
+ mapPan.y=event.clientY;
 });
 function finishMapPan(event){
  if(mapPan?.id!==event.pointerId)return;
@@ -1450,6 +1452,7 @@ function finishMapPan(event){
 for(const type of ['pointerup','pointercancel','lostpointercapture']){
  mapStage.addEventListener(type,finishMapPan);
 }
+window.addEventListener('blur',()=>{if(mapPan)finishMapPan({pointerId:mapPan.id})});
 mapStage.addEventListener('auxclick',event=>{if(event.button===1)event.preventDefault()});
 
 map.onpointerdown=event=>{
@@ -1994,8 +1997,9 @@ async function appUpdate(action){
   if(!response.ok)throw Error(await response.text()||'App update unavailable.');
   const state=await response.json();
   install.hidden=!state.available;
-  output.textContent=state.available?'An upgrade is available. Save your draft, then select Upgrade from GitHub.'
-   :state.restartNeeded?'Upgrade ready. Save your draft, close the app and reopen the AppImage.':'You’re on the latest editor version.';
+  const version=state.latest.slice(0,7);
+  output.textContent=state.available?'Update '+version+' is available. Select Upgrade from GitHub to download it.'
+   :state.restartNeeded?'Update '+version+' is ready. Save your draft, stop the running editor and reopen the AppImage.':'Editor '+version+' is up to date.';
  }catch(error){output.textContent=error.message}
  finally{check.disabled=install.disabled=false}
 }
