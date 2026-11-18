@@ -2464,7 +2464,11 @@ function doAction(dt,now){
     const gains={[nt.item]:1};
     if(fishing&&!a.casted&&slot==='rod')gains.bait=-1;
     if(!canFitInventory(gains)){say('Your pack is full.','warn');blocked.add(n);act=null;return}
+    const previousGatherTime=a.t;
     a.t+=dt;
+    if(nt.skill==='mining'&&previousGatherTime<a.iv-.55&&a.t>=a.iv-.55){
+      me.miningPoseAt=now-(a.t-a.iv+.55)*1000;
+    }
     if(fishing){
       if(!a.casted&&a.t>=0){
         if(slot==='rod'){if(!(save.inv.bait>0)){say('You are out of bait. Buy more at the fishing shop.','warn');act=null;return}save.inv.bait--;if(tab)renderModal()}
@@ -3182,6 +3186,9 @@ window.addEventListener('myrren-sword-actions-ready',()=>{if(tab)renderModal()})
 window.addEventListener('myrren-kez-v2-ready',()=>{if(tab==='gear')renderModal()});
 // Kez V2 is the authoritative player and remote-player render path.
 // Legacy renderers remain isolated for historical QA, never for live players.
+const eastMiningSheet=new Image();
+eastMiningSheet.src='assets/myrren-v19f/east_mining_waist.png';
+const eastMiningFrameEnds=[90,140,210,260,430,470,510,550,710,760,830,920,990];
 let missingKezLogged=false;
 function drawKezV2(x,y,o,now){
   const atlas=window.MyrrenKezV2Atlas;
@@ -3231,11 +3238,21 @@ function drawKezV2(x,y,o,now){
     ctx.translate(Math.round(x),Math.round(y));ctx.rotate(k*1.35);ctx.translate(-Math.round(x),-Math.round(y));
   }
   if(hurtAge>=0&&hurtAge<220)ctx.globalAlpha*=.65;
-  if(direction==='back'){paintHeld();paintPunch()}
-  gear?.draw(ctx,x,y,state,'under');
-  atlas.draw(ctx,x,y,state,now);
-  gear?.draw(ctx,x,y,state,'over');
-  if(direction!=='back'){paintHeld();paintPunch()}
+  const miningAge=now-(me.miningPoseAt??-Infinity);
+  const miningFrame=o.isMe&&o.tool==='pick'&&direction==='side'&&facing===1&&!o.moving
+    &&deathAge<0&&!o.g?.some(Boolean)&&window.MyrrenV19BGameplayPreview?.enabled
+    &&eastMiningSheet.naturalWidth===728&&miningAge>=0
+    ?eastMiningFrameEnds.findIndex(end=>miningAge<end):-1;
+  if(miningFrame>=0){
+    ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(eastMiningSheet,miningFrame*56,0,56,48,Math.round(x)-23,Math.round(y)-42,56,48);
+  }else{
+    if(direction==='back'){paintHeld();paintPunch()}
+    gear?.draw(ctx,x,y,state,'under');
+    atlas.draw(ctx,x,y,state,now);
+    gear?.draw(ctx,x,y,state,'over');
+    if(direction!=='back'){paintHeld();paintPunch()}
+  }
   ctx.restore();
   if(deathAge>=0)return true;
   label(o.name,x,y-32,o.col||'#ffffff');
