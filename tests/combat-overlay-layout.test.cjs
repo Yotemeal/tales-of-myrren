@@ -18,6 +18,8 @@ const createGame=require('./game-runtime.cjs');
   assert(bars.length>1,'crowded wounded monsters retain useful secondary health bars');
   assert.equal(bars[0].m,focus,'the current target receives first screen-space priority');
   assert.equal(bars[0].showBar,true,'focused target keeps a bar even when healthy');
+  const playerBounds={x:g.me.x-cx-16,y:g.me.y-cy-44,w:32,h:47};
+  assert(bars.every(b=>!g.combatRectOverlaps(playerBounds,b.rect)),'monster name and bar clear the player');
   assert(bars[0].name.includes(g.MT.slime.name),'focused target keeps its identity label');
   assert(bars.slice(1).every(b=>!b.name),'secondary names disappear in a crowd');
   for(let i=0;i<bars.length;i++)for(let j=0;j<i;j++)

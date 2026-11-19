@@ -5,6 +5,9 @@ const assert=require('node:assert/strict'),createGame=require('./game-runtime.cj
  const x=t.me.x,y=t.me.y;t.keys.arrowright=true;
  for(let i=0;i<20;i++)t.update(.05,1000+i*50);t.keys.arrowright=false;
  assert(Math.abs(t.me.x-x-90)<.001,'cardinal movement should cover 90 pixels per simulation second');assert.equal(t.me.y,y);
+ assert(Math.abs(t.me.strideMs-1000)<.001,'full-speed feet follow distance travelled');
+ const planted=t.me.strideMs;t.update(.05,2050);
+ assert.equal(t.me.strideMs,planted,'idle time cannot advance planted feet');
  t.adoptSave(fixture);const a=t.me.x,b=t.me.y;t.keys.arrowright=true;t.keys.arrowdown=true;
  for(let i=0;i<20;i++)t.update(.05,3000+i*50);t.keys.arrowright=false;t.keys.arrowdown=false;
  assert(Math.abs(Math.hypot(t.me.x-a,t.me.y-b)-90)<.001,'diagonals must not move faster');

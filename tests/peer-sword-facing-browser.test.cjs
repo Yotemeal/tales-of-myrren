@@ -82,6 +82,17 @@ const {chromium} = require('playwright');
       }}]});
     });
     await viewer.waitForFunction(() => seen.some(o => o.dv==='u' && o.age<320));
+    await viewer.evaluate(() => {
+      const pr={x:800,y:844,n:'Player0',a:3,tt:2,s:82,g:[0,0,0,0,2,0]};
+      const send=state=>receive({peers:[{peer:'other',kind:'viewer',presence:state}]});
+      send({...pr,hits:0,down:false});
+      window.seen=[];
+      send({...pr,hits:1,down:true});
+      window.revive=()=>send({...pr,hits:1,down:false,x:808});
+    });
+    await viewer.waitForFunction(()=>seen.some(o=>o.deathAt!=null&&o.hurtAt>=0));
+    await viewer.evaluate(()=>{seen.length=0;revive()});
+    await viewer.waitForFunction(()=>seen.some(o=>o.deathAt==null&&o.hurtAt<0&&!o.moving));
     console.log('PASS: equipped remote sword strikes retained all four standing facings.');
   } finally {
     await browser?.close();

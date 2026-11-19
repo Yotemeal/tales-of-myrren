@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=99;
+window.MyrrenBuild=100;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -1951,7 +1951,7 @@ function refreshActionButtons(){
 }
 
 /* ---------- multiplayer ---------- */
-let room=null,lastSent='';
+let room=null,lastSent='',hurtCount=0;
 function ingest(change){
   const seen=new Set(),now=performance.now();
   for(const p of change.peers){
@@ -1967,6 +1967,16 @@ function ingest(change){
     else if(dx)o.face=dx>0?1:-1;
     if(pr.dv==='d'||pr.dv==='s'||pr.dv==='u')o.dv=pr.dv;
     else if(dx||dy)o.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s';
+    // Event counters travel between clients. Animation clocks are local.
+    if(Number.isSafeInteger(pr.hits)&&pr.hits>=0){
+      if(o.hits!=null&&o.hits!==pr.hits)o.hurtAt=now;
+      o.hits=pr.hits;
+    }
+    if(pr.down===true){
+      if(o.deathAt==null)o.deathAt=now;
+    }else if(o.deathAt!=null){
+      o.x=x;o.y=y;o.deathAt=null;o.hurtAt=-99999;o.swingAt=-99999;
+    }
     o.tx=x;o.ty=y;
     o.n=String(pr.n||'Wanderer').replace(/[^\w .-]/g,'').slice(0,14)||'Wanderer';
     o.tl=clamp(pr.tl|0,1,100);o.dye=(Number.isInteger(pr.dy)&&pr.dy>=0&&pr.dy<4)?pr.dy:null;
@@ -1991,7 +2001,7 @@ function ingest(change){
 function sendPresence(){
   if(!room||!started)return;
   const now=performance.now(),holding=now<me.hold&&me.tool;
-  const p={x:Math.round(inside?me.ox:me.x),y:Math.round(inside?me.oy:me.y),dv:me.dv,f:me.face,n:save.name,tl:lvlFor(save.xp.melee),h:me.hue,e:waveN,s:me.swings,a:holding?CODE_KIND.indexOf(me.tool):0,tt:me.mat,g:gearArr(),dy:save.dye};
+  const p={x:Math.round(inside?me.ox:me.x),y:Math.round(inside?me.oy:me.y),dv:me.dv,f:me.face,down:me.deathAt!=null,hits:hurtCount,n:save.name,tl:lvlFor(save.xp.melee),h:me.hue,e:waveN,s:me.swings,a:holding?CODE_KIND.indexOf(me.tool):0,tt:me.mat,g:gearArr(),dy:save.dye};
   const s=JSON.stringify(p);if(s===lastSent)return;lastSent=s;
   room.presence(p).catch(()=>{});
 }
@@ -2540,7 +2550,7 @@ function damagePlayerFromMonster(m,mt,now){
   const L=lvlFor(save.xp.melee),D=defTotal();
   let dmg=Math.random()<clamp(.75+(mt.lv-L)*.008-D*.0012,.35,.9)?rint(1,mt.max):0;
   if(dmg>0)dmg=Math.max(1,Math.round(dmg*(1-defRed())));
-  me.hp-=dmg;if(dmg>0)me.hurtAt=performance.now();splat(me.x,me.y-18,dmg);uiHud();
+  me.hp-=dmg;if(dmg>0){me.hurtAt=performance.now();hurtCount++}splat(me.x,me.y-18,dmg);uiHud();
   if(dmg>0&&me.hp>0&&me.hp<=hpMax()*.25&&foodCount()>0)say('You are low on health. Tap the food button to eat.','warn');
   if(me.hp<=0)die();
 }
@@ -2599,7 +2609,12 @@ function update(dt,now){
       }
     }
   }
-  if(manual)me.moving=Math.hypot(me.x-pxv,me.y-pyv)>.001;
+  if(manual){
+    const distance=Math.hypot(me.x-pxv,me.y-pyv);
+    me.moving=distance>.001;
+    // Match the six-frame stride to actual travel after collision resolution.
+    me.strideMs=(me.strideMs||0)+Math.min(distance,SPD*dt)*1000/SPD;
+  }
   smithingTick();smithingProgress();cookTick();cookingProgress();
   // Evaluate attack after gamepad input, joystick movement and collision
   // resolution. The first pressed frame now uses the correct controller state
@@ -2651,7 +2666,7 @@ function update(dt,now){
       if(d>1){m.x+=dx/d*10*dt;m.y+=dy/d*10*dt;if(Math.abs(dx)>.4)m.face=dx>0?1:-1}
     }
   }
-  peers.forEach(o=>{const k=Math.min(1,dt*9);o.x+=(o.tx-o.x)*k;o.y+=(o.ty-o.y)*k});
+  peers.forEach(o=>{const k=Math.min(1,dt*9);const dx=(o.tx-o.x)*k,dy=(o.ty-o.y)*k;o.x+=dx;o.y+=dy;o.strideMs=(o.strideMs||0)+Math.hypot(dx,dy)*1000/SPD});
   petsUpdate(dt,now);
   for(let i=fx.length-1;i>=0;i--){const p=fx[i];if(now-p.t>520){fx.splice(i,1);continue}p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=70*dt}
   for(let i=decals.length-1;i>=0;i--)if(now-decals[i].t>25000)decals.splice(i,1);
@@ -2711,13 +2726,24 @@ function bar(x,y,p){R(x-9,y-1,18,5,'#1d120a');R(x-8,y,16,3,'#4a1410');R(x-8,y,Ma
 function combatRectOverlaps(a,b,gap=2){
   return a.x<b.x+b.w+gap&&a.x+a.w+gap>b.x&&a.y<b.y+b.h+gap&&a.y+a.h+gap>b.y;
 }
+function combatPlayerBounds(cx,cy){
+  const bounds=[];
+  function add(x,y,name){
+    const width=Math.max(32,(name||'Wanderer').length*7);
+    bounds.push({x:x-cx-width/2,y:y-cy-44,w:width,h:47});
+  }
+  add(me.x,me.y,save.name);
+  for(const o of peers.values())if(Math.abs(o.x-cx-cv.width/2)<cv.width/2+60&&Math.abs(o.y-cy-cv.height/2)<cv.height/2+60)add(o.x,o.y,o.n);
+  return bounds;
+}
 function layoutMonsterOverlays(cx,cy,now){
   const visible=mons.filter(m=>m.state!=='dead'&&m.x>=cx-30&&m.x<=cx+cv.width+30&&m.y>=cy-40&&m.y<=cy+cv.height+15);
+  if(!visible.length)return [];
   const focus=me.tgt&&now<me.tgtUntil&&visible.includes(me.tgt)?me.tgt:null;
   const nearby=visible.filter(m=>Math.hypot(m.x-me.x,m.y-me.y)<70).length;
   const ordered=focus?[focus,...visible.filter(m=>m!==focus)]:visible.slice();
   if(ordered.length>1)ordered.splice(focus?1:0,ordered.length-(focus?1:0),...ordered.slice(focus?1:0).sort((a,b)=>Math.hypot(a.x-me.x,a.y-me.y)-Math.hypot(b.x-me.x,b.y-me.y)));
-  const placed=[];
+  const placed=[],players=combatPlayerBounds(cx,cy);
   for(const m of ordered){
     if(placed.length>=10)break;
     const mt=MT[m.t],selected=m===focus,near=Math.hypot(m.x-me.x,m.y-me.y)<70;
@@ -2727,11 +2753,11 @@ function layoutMonsterOverlays(cx,cy,now){
     const w=Math.min(Math.max(showName?Math.ceil(name.length*6.5)+8:24,24),Math.max(24,cv.width-6));
     const x=clamp(Math.round(m.x-cx),Math.ceil(w/2)+2,Math.floor(cv.width-w/2)-2);
     const top=m.y-cy-({goblin:27,wolf:20,boar:18,bear:30,cave:30,abear:30}[m.t]||15);
-    for(const lift of [0,12,24,36,48]){
+    for(const lift of [0,12,24,36,48,60,72,84,96]){
       const y=Math.round(top-lift);
       const rect={x:Math.round(x-w/2),y:y-(showName?17:2),w,h:showName?(showBar?24:17):8};
       if(rect.y<2||rect.y+rect.h>cv.height-2)continue;
-      if(placed.some(p=>combatRectOverlaps(rect,p.rect)))continue;
+      if(players.some(p=>combatRectOverlaps(rect,p))||placed.some(p=>combatRectOverlaps(rect,p.rect)))continue;
       placed.push({m,x,y,name,showBar,rect});break;
     }
   }
@@ -2746,8 +2772,9 @@ function drawMonsterOverlays(overlays){
 // Keep new hits legible even when several monsters or damage numbers overlap.
 // Reposition labels in screen space only; draw calls never affect simulation.
 function layoutDamagePopups(now,cx,cy,overlays=[]){
-  const occupied=overlays.map(p=>p.rect||p),out=[];
-  const shifts=[0,16,-16,32,-32];
+  if(!splats.length)return [];
+  const occupied=[...combatPlayerBounds(cx,cy),...overlays.map(p=>p.rect||p)],out=[];
+  const shifts=[0,16,-16,32,-32,48,-48,64,-64];
   for(let i=splats.length-1;i>=0;i--){
     const s=splats[i],age=now-s.t;
     if(age>=DAMAGE_POPUP_MS){splats.splice(i,1);continue}
@@ -3707,7 +3734,7 @@ function drawInterior(cx,cy,now){
   for(const pt of pets)list.push({y:pt.y,f:()=>drawPet(pt,X(pt.x),Y(pt.y),now)});
   list.push({y:me.y,f:()=>{
     const sx=X(me.x),sy=Y(me.y);
-    drawPerson(sx,sy,{dv:me.dv,f:me.face,moving:me.moving,hue:me.hue,isMe:1,name:save.name||'Wanderer',col:'#ffe14a',tool:me.tool,mat:me.mat,hold:me.hold,swingAt:me.swing,waving:performance.now()<me.wave,g:gearArr(),dye:save.dye},now);
+    drawPerson(sx,sy,{dv:me.dv,f:me.face,moving:me.moving,strideMs:me.strideMs,hue:me.hue,isMe:1,name:save.name||'Wanderer',col:'#ffe14a',tool:me.tool,mat:me.mat,hold:me.hold,swingAt:me.swing,waving:performance.now()<me.wave,g:gearArr(),dye:save.dye},now);
   }});
   list.sort((a,b)=>a.y-b.y);
   for(const e of list)e.f();
@@ -3937,11 +3964,11 @@ function drawOutdoor(cx,cy,now){
       R(fx2-4,fy-6-fl,8,7+fl,'#df733a');R(fx2-2,fy-9-fl,4,7+fl,'#ffd15d');
     }
   }});
-  peers.forEach(o=>{if(vis(o.x,o.y))list.push({y:o.y,f:()=>drawPerson(Math.round(o.x-cx),Math.round(o.y-cy),{dv:o.dv||'d',f:o.face,moving:Math.hypot(o.tx-o.x,o.ty-o.y)>1,hue:o.h,name:o.n,col:'#ffffff',tool:o.tool,mat:o.mat,hold:o.hold,swingAt:o.swingAt,waving:now<o.until,g:o.g,dye:o.dye},now)})});
+  peers.forEach(o=>{if(vis(o.x,o.y))list.push({y:o.y,f:()=>drawPerson(Math.round(o.x-cx),Math.round(o.y-cy),{dv:o.dv||'d',f:o.face,strideMs:o.strideMs,moving:Math.hypot(o.tx-o.x,o.ty-o.y)>1,hue:o.h,name:o.n,col:'#ffffff',tool:o.tool,mat:o.mat,hold:o.hold,swingAt:o.swingAt,deathAt:o.deathAt,hurtAt:o.hurtAt,waving:now<o.until,g:o.g,dye:o.dye},now)})});
   for(const pt of pets)list.push({y:pt.y,f:()=>drawPet(pt,Math.round(pt.x-cx),Math.round(pt.y-cy),now)});
   if(started)list.push({y:me.y,f:()=>{
     const sx=Math.round(me.x-cx),sy=Math.round(me.y-cy);
-    drawPerson(sx,sy,{dv:me.dv,f:me.face,moving:me.moving,hue:me.hue,isMe:1,name:save.name||'Wanderer',col:'#ffe14a',tool:me.tool,mat:me.mat,hold:me.hold,swingAt:me.swing,waving:now<me.wave,g:gearArr(),dye:save.dye},now);
+    drawPerson(sx,sy,{dv:me.dv,f:me.face,moving:me.moving,strideMs:me.strideMs,hue:me.hue,isMe:1,name:save.name||'Wanderer',col:'#ffe14a',tool:me.tool,mat:me.mat,hold:me.hold,swingAt:me.swing,waving:now<me.wave,g:gearArr(),dye:save.dye},now);
     if(me.hp<hpMax())bar(sx,sy-39,me.hp/hpMax());
     drawFishFx(cx,cy,now);
   }});

@@ -33,7 +33,7 @@
   }
   const swordBody = new Image();
   const blades = new Image();
-  swordBody.src = URL_BASE + 'myrren_sword_body_polished.png';
+  swordBody.src = URL_BASE + 'myrren_sword_body_polished.png?rev=2';
   blades.src = URL_BASE + 'sword_blades.png';
   const bladeColumns = [2, 3, 4, 5, 7, 6, 8];
   const rightSword = [[11,27,38],[20,26,32],[25,26,-38],[25,26,-100],[27,26,-115],[27,26,-94],[20,26,-81],[16,29,-68]];
@@ -148,7 +148,7 @@
     const name = direction(o);
     const row = DIRECTIONS.indexOf(name);
     const moving = Boolean(o.moving);
-    const phase = Number.isFinite(now) ? now : 0;
+    const phase = Number.isFinite(o.strideMs) ? o.strideMs : Number.isFinite(now) ? now : 0;
     const frame = moving ? ((Math.floor(phase / FRAME_MS) % 6) + 6) % 6 : 0;
     return { direction: name, row, frame, moving };
   }
