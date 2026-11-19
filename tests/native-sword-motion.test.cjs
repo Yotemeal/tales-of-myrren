@@ -63,16 +63,22 @@ test('authored sword poses keep the stride pixels and the other six blades intac
     assert.deepEqual(after.getImageData(0,row*36+31,384,5).data,
       before.getImageData(0,row*36+31,384,5).data);
   }
-  const oldBlades = await pixels('swords-forged-v1.png');
-  const newBlades = await pixels(base+'sword_blades.png');
-  assert.deepEqual(newBlades.getImageData(32,0,192,32).data, oldBlades.getImageData(32,0,192,32).data);
-  const gear = await pixels(base+'chest_shield_native.png');
+  // The V2 sword art is deliberately no longer a rescaled copy of the seven
+  // nearly identical forged-sword silhouettes. A separate test locks the
+  // unique shapes, glove socket and absence of floating/antialiased pixels.
+  const newBlades = await pixels(base+'sword_blades_v2.png');
+  assert.equal(newBlades.canvas.width,224);
+  assert.equal(newBlades.canvas.height,32);
+  const gear = await pixels(base+'chest_shield_v2.png');
+  assert.equal(gear.canvas.width,128);
+  assert.equal(gear.canvas.height,560);
   for (let band = 0; band < 35; band++) {
     for (let cell = 0; cell < 8; cell++) {
-      const data = gear.getImageData(cell*8,band*8,8,8).data;
+      const data = gear.getImageData(cell*16,band*16,16,16).data;
       const alpha = data.filter((_,index) => index%4 === 3);
       assert(alpha.includes(255) && alpha.includes(0));
       assert(alpha.every(a => a===0 || a===255));
     }
   }
 });
+

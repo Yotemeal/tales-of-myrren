@@ -136,15 +136,16 @@
    return Number.isInteger(n)&&Object.prototype.hasOwnProperty.call(METALS,n)?n:0;
   });
  }
- // Eight 8px cells per row: four breastplates followed by four offhand shields.
+ // Eight 16px cells per row: four fitted breastplates and four offhand shields.
+ // These are authored per-tier silhouettes at native scale, not 8px recolours.
  // Each metal has its base palette followed by the four existing dye palettes.
  const fittedLayers=typeof Image==='function'?new Image():null;
- if(fittedLayers)fittedLayers.src='/assets/myrren-v19f/chest_shield_native.png';
+ if(fittedLayers)fittedLayers.src='/assets/myrren-v19f/chest_shield_v2.png?rev=1';
  function paintNative(ctx,row,part,x,y,mat,dye){
-  if(fittedLayers?.naturalWidth!==64)return;
+  if(fittedLayers?.naturalWidth!==128||fittedLayers.naturalHeight!==560)return;
   const finish=Number.isInteger(dye)&&dye>=0&&dye<4?dye+1:0;
   const band=ORDER.indexOf(mat)*5+finish;
-  if(band>=0)ctx.drawImage(fittedLayers,(row+4*part)*8,band*8,8,8,x,y,8,8);
+  if(band>=0)ctx.drawImage(fittedLayers,(row+4*part)*16,band*16,16,16,x,y,16,16);
  }
  function nativeLayers(ctx,x,y,o,part){
   const atlas=window.MyrrenV19BAtlas;
@@ -154,8 +155,7 @@
   const bob=moving?[0,0,1,0,0,1][frame]:0;
   const anchorX=Math.round(x)+lean,anchorY=Math.round(y)+drop+bob;
   if(part==='plate'&&o.g[1]){
-   const dx=side?(direction==='right'?-1:-4):-4;
-   paintNative(ctx,row,0,anchorX+dx,anchorY-11,o.g[1],o.dye);
+   paintNative(ctx,row,0,anchorX-8,anchorY-15,o.g[1],o.dye);
   }
   if(part==='shield'&&o.g[4]){
    // Front sword occupies screen left. Turning away reverses the offhand.
@@ -174,7 +174,7 @@
     else if(moving)dy=(front?[-6,-6,-6,-6,-4,-4]:[-6,-4,-4,-6,-6,-6])[frame];
     else dy=-5;
    }
-   paintNative(ctx,row,1,Math.round(x)+dx-gripX,Math.round(y)+dy-3,o.g[4],o.dye);
+   paintNative(ctx,row,1,Math.round(x)+dx-gripX-4,Math.round(y)+dy-7,o.g[4],o.dye);
   }
  }
  function draw(ctx,x,y,o,phase='over'){
@@ -309,3 +309,4 @@
  }
  window.MyrrenKezV2Equipment={draw,nativeLayers,clean,palette:METALS,colorsFor,order:ORDER};
 })();
+

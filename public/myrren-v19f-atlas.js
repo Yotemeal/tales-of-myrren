@@ -34,7 +34,7 @@
   const swordBody = new Image();
   const blades = new Image();
   swordBody.src = URL_BASE + 'myrren_sword_body_polished.png?rev=2';
-  blades.src = URL_BASE + 'sword_blades.png';
+  blades.src = URL_BASE + 'sword_blades_v2.png?rev=1';
   const bladeColumns = [2, 3, 4, 5, 7, 6, 8];
   const rightSword = [[11,27,38],[20,26,32],[25,26,-38],[25,26,-100],[27,26,-115],[27,26,-94],[20,26,-81],[16,29,-68]];
   const frontSword = [[10,27,15],[12,25,22],[13,27,78],[13,27,151],[13,28,165],[13,28,138],[12,26,76],[10,29,25]];
@@ -196,3 +196,4 @@
     entry.image.src = entry.path;
   }
 })();
+
