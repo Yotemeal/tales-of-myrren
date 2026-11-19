@@ -136,6 +136,47 @@
    return Number.isInteger(n)&&Object.prototype.hasOwnProperty.call(METALS,n)?n:0;
   });
  }
+ // Eight 8px cells per row: four breastplates followed by four offhand shields.
+ // Each metal has its base palette followed by the four existing dye palettes.
+ const fittedLayers=typeof Image==='function'?new Image():null;
+ if(fittedLayers)fittedLayers.src='/assets/myrren-v19f/chest_shield_native.png';
+ function paintNative(ctx,row,part,x,y,mat,dye){
+  if(fittedLayers?.naturalWidth!==64)return;
+  const finish=Number.isInteger(dye)&&dye>=0&&dye<4?dye+1:0;
+  const band=ORDER.indexOf(mat)*5+finish;
+  if(band>=0)ctx.drawImage(fittedLayers,(row+4*part)*8,band*8,8,8,x,y,8,8);
+ }
+ function nativeLayers(ctx,x,y,o,part){
+  const atlas=window.MyrrenV19BAtlas;
+  const {direction,row,frame,moving}=atlas.pose(o,o.now);
+  const {lean,drop,attackFrame}=atlas.equipmentPose(o);
+  const side=direction==='left'||direction==='right';
+  const bob=moving?[0,0,1,0,0,1][frame]:0;
+  const anchorX=Math.round(x)+lean,anchorY=Math.round(y)+drop+bob;
+  if(part==='plate'&&o.g[1]){
+   const dx=side?(direction==='right'?-1:-4):-4;
+   paintNative(ctx,row,0,anchorX+dx,anchorY-11,o.g[1],o.dye);
+  }
+  if(part==='shield'&&o.g[4]){
+   // Front sword occupies screen left. Turning away reverses the offhand.
+   const gripX=side?1:3;
+   const attacking=attackFrame>=0;
+   let dx,dy;
+   if(side){
+    const facing=direction==='right'?1:-1;
+    const swing=moving?[0,1,1,0,-1,-1][frame]:0;
+    dx=lean+facing*(5+swing);
+    dy=-6+drop+bob;
+   }else{
+    const front=direction==='front';
+    dx=front?(attacking?7:6):-8;
+    if(attacking)dy=attackFrame===0||attackFrame===7?-5:-6;
+    else if(moving)dy=(front?[-6,-6,-6,-6,-4,-4]:[-6,-4,-4,-6,-6,-6])[frame];
+    else dy=-5;
+   }
+   paintNative(ctx,row,1,Math.round(x)+dx-gripX,Math.round(y)+dy-3,o.g[4],o.dye);
+  }
+ }
  function draw(ctx,x,y,o,phase='over'){
   const gear=clean(o.g);
   if(!gear.some(Boolean))return;
@@ -157,6 +198,10 @@
   const shield=(behind)=>{
    const mat=gear[4],p=colorsFor(mat,o.dye);if(!p)return;
    const rear=face==='back',side=face==='side';
+   if(native){
+    if(behind===(side||rear))nativeLayers(ctx,x,y,o,'shield');
+    return;
+   }
    if(behind!==side)return;
    const sx=side?(o.f<0?5:-7):rear?6:-9;
    const sy=-10+bob,w=side?2:rear?4:5,h=8;
@@ -188,7 +233,9 @@
     px(-3+delta,-3,2,1,p[3]);px(1-delta,-3,2,1,p[3]);
    }
   }
-  if(gear[1]){
+  if(native&&gear[1]){
+   if(!window.MyrrenV19BAtlas.canDrawSword(o))nativeLayers(ctx,x,y,o,'plate');
+  }else if(gear[1]){
    const mat=gear[1],p=colorsFor(mat,o.dye);
    px(-5,-10+bob,10,7,p[0]);px(-4,-9+bob,8,5,p[1]);
    px(-4,-9+bob,8,1,p[2]);px(-4,-4+bob,8,1,p[3]);
@@ -260,5 +307,5 @@
   }
   shield(false);
  }
- window.MyrrenKezV2Equipment={draw,clean,palette:METALS,colorsFor,order:ORDER};
+ window.MyrrenKezV2Equipment={draw,nativeLayers,clean,palette:METALS,colorsFor,order:ORDER};
 })();

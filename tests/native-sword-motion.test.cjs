@@ -47,3 +47,32 @@ test('equipped V19F players keep the native body and stride through contact and 
     }
   }
 });
+
+test('authored sword poses keep the stride pixels and the other six blades intact', async () => {
+  const {loadImage} = require('@napi-rs/canvas');
+  async function pixels(file) {
+    const im = await loadImage('public/' + file);
+    const c = createCanvas(im.width, im.height).getContext('2d');
+    c.drawImage(im, 0, 0);
+    return c;
+  }
+  const base = 'assets/myrren-v19f/';
+  const before = await pixels(base+'myrren_sword_body_4dir.png');
+  const after = await pixels(base+'myrren_sword_body_polished.png');
+  for (let row = 0; row < 28; row++) {
+    assert.deepEqual(after.getImageData(0,row*36+31,384,5).data,
+      before.getImageData(0,row*36+31,384,5).data);
+  }
+  const oldBlades = await pixels('swords-forged-v1.png');
+  const newBlades = await pixels(base+'sword_blades.png');
+  assert.deepEqual(newBlades.getImageData(32,0,192,32).data, oldBlades.getImageData(32,0,192,32).data);
+  const gear = await pixels(base+'chest_shield_native.png');
+  for (let band = 0; band < 35; band++) {
+    for (let cell = 0; cell < 8; cell++) {
+      const data = gear.getImageData(cell*8,band*8,8,8).data;
+      const alpha = data.filter((_,index) => index%4 === 3);
+      assert(alpha.includes(255) && alpha.includes(0));
+      assert(alpha.every(a => a===0 || a===255));
+    }
+  }
+});
