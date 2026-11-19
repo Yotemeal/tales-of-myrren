@@ -1,6 +1,6 @@
 (()=>{
 // Keep this build number in sync with the public/index.html script URL.
-window.MyrrenBuild=98;
+window.MyrrenBuild=99;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -1061,17 +1061,12 @@ function rGear(){
        c.clearRect(0,0,canvas.width,canvas.height);
        c.save();c.scale(scale,scale);
        c.fillStyle='rgba(34,29,25,.18)';c.fillRect(10,38,12,2);
-       const equipped={...portraitPose,g:gearArr(),dye:save.dye,now};
-       window.MyrrenKezV2Equipment?.draw(c,16,39,equipped,'under');
-       // The equipment screen bypasses the in-world renderer. Preserve the
-       // approved native base for a completely unequipped portrait as well.
-       const barePortrait=!equipped.g.some(Boolean)&&!eqDef('weapon')
-         &&window.MyrrenV19BGameplayPreview?.enabled&&window.MyrrenV19BAtlas?.ready;
-       if(barePortrait)
-         window.MyrrenV19BAtlas.draw(c,16,38,{dv:'d',f:1,moving:false},now);
-       else
-         window.MyrrenKezV2Atlas.draw(c,16,39,equipped,now);
-       window.MyrrenKezV2Equipment?.draw(c,16,39,equipped,'over');
+       const weapon=activeDef('weapon');
+       const equipped={...portraitPose,g:gearArr(),dye:save.dye,now,
+         tool:weapon?.kind||'fist',mat:weapon?.mat,deathAt:null,hurtAt:-99999};
+       window.MyrrenKezV2Equipment?.draw(c,16,38,equipped,'under');
+       window.MyrrenKezV2Atlas.draw(c,16,38,equipped,now);
+       window.MyrrenKezV2Equipment?.draw(c,16,38,equipped,'over');
        c.restore();
      }
      requestAnimationFrame(paintPortrait);
@@ -2600,6 +2595,7 @@ function update(dt,now){
       }
     }
   }
+  if(manual)me.moving=Math.hypot(me.x-pxv,me.y-pyv)>.001;
   smithingTick();smithingProgress();cookTick();cookingProgress();
   // Evaluate attack after gamepad input, joystick movement and collision
   // resolution. The first pressed frame now uses the correct controller state

@@ -141,11 +141,16 @@
   if(!gear.some(Boolean))return;
   const face=o.dv==='u'?'back':o.dv==='s'?'side':'front';
   const walk=!!o.moving,step=walk?Math.floor((o.now||0)/130)%4:0;
-  const bob=walk&&(step===1||step===3)?-1:0;
+  const native=window.MyrrenV19BAtlas?.version==='V19F'
+    &&window.MyrrenV19BGameplayPreview?.enabled&&window.MyrrenV19BAtlas.ready;
+  const stride=native?window.MyrrenV19BAtlas.pose(o,o.now).frame:step;
+  const bob=native?(walk&&(stride===1||stride===4)?-1:0):walk&&(step===1||step===3)?-1:0;
   const baseX=Math.round(x),baseY=Math.round(y);
+  const edge=v=>native?Math.round(v*32/27):v;
   const px=(dx,dy,w,h,c)=>{
    if(!c||w<=0||h<=0)return;
-   ctx.fillStyle=c;ctx.fillRect(baseX+dx,baseY+dy,w,h);
+   ctx.fillStyle=c;ctx.fillRect(baseX+edge(dx),baseY+edge(dy),
+     edge(dx+w)-edge(dx),edge(dy+h)-edge(dy));
   };
   // Shield on the offhand: slim silhouette behind side-facing characters,
   // fuller in front/back, aligned with the torso and never the face.
@@ -175,7 +180,7 @@
   }
   if(gear[2]){
    const mat=gear[2],p=colorsFor(mat,o.dye);
-   const delta=walk?(step===1?1:step===3?-1:0):0;
+   const delta=native?(walk?[0,1,1,0,-1,-1][stride]:0):walk?(step===1?1:step===3?-1:0):0;
    px(-4+delta,-5,4,4,p[0]);px(0-delta,-5,4,4,p[0]);
    px(-3+delta,-4,2,3,p[1]);px(1-delta,-4,2,3,p[1]);
    px(-3+delta,-4,1,2,p[2]);px(1-delta,-4,1,2,p[3]);

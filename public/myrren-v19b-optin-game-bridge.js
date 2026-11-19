@@ -29,6 +29,10 @@
   };
   function ineligibleReason(o, now) {
     if (!o || !Number.isFinite(now)) return 'invalid frame';
+    // V19F supplies the body beneath world-space gear and hurt/death effects.
+    // Historical V19B preview pages only contain the unarmed walk atlas.
+    if (native.version === 'V19F' && Array.isArray(o.g) && o.g.length === 6
+        && ['fist', '', 'sword', 'axe', 'pick', 'rod', 'net'].includes(o.tool)) return '';
     // Multiplayer action code 0 means no held tool, represented as ''.
     if (!(o.tool === 'fist' || native.canDrawSword?.(o, now) || (!o.isMe && o.tool === ''))) return 'tool: ' + String(o.tool);
     if (!Array.isArray(o.g) || o.g.length !== 6) return 'unknown equipment state';

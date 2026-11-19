@@ -26,7 +26,8 @@
     movingPunchReady = movingPunch.naturalWidth === 384 && movingPunch.naturalHeight === 864;
   };
   movingPunch.src = URL_BASE + 'myrren_punch_stride_4dir_native.png?rev=pants1';
-  const movingPunchEnds = [55, 85, 110, 120, 220, 225, 270, 320];
+  // The hit resolves at 110 ms. Each moving pose gets at least two 60 Hz refreshes.
+  const strideAttackEnds = [35, 75, 110, 145, 190, 230, 275, 320];
   function canDrawPunch() {
     return punchReady;
   }
@@ -35,12 +36,9 @@
   swordBody.src = URL_BASE + 'myrren_sword_body_4dir.png';
   blades.src = '/swords-forged-v1.png';
   const bladeColumns = [2, 3, 4, 5, 7, 6, 8];
-  const rightSword = [[11,27,22],[20,26,-62],[25,26,-78],[25,26,-78],
-    [27,26,-88],[27,26,-88],[20,26,-70],[17,28,-68]];
-  const frontSword = [[10,27,15],[12,25,15],[13,27,165],[13,27,165],
-    [13,28,165],[13,28,165],[12,26,165],[10,29,15]];
-  const rearSword = [[26,28,-32],[26,24,-36],[25,24,-21],[25,24,-12],
-    [25,22,-5],[25,22,-5],[26,24,-17],[26,28,-32]];
+  const rightSword = [[11,27,38],[20,26,16],[25,26,-38],[25,26,-77],[27,26,-99],[27,26,-94],[20,26,-81],[16,29,-68]];
+  const frontSword = [[10,27,15],[12,25,22],[13,27,78],[13,27,151],[13,28,165],[13,28,138],[12,26,76],[10,29,25]];
+  const rearSword = [[27,28,-32],[26,25,-48],[25,24,-33],[25,24,-12],[25,22,-5],[25,22,-5],[26,25,-17],[25,29,-32]];
   const swordGuards = [[[11,28,15],[11,28,15],[11,29,15],[11,29,15],[11,28,15],[11,28,15],[11,28,15]],[[17,28,68],[13,29,68],[12,27,68],[12,27,68],[12,27,68],[16,28,68],[14,28,68]],[[16,28,-68],[16,28,-68],[17,28,-68],[17,27,-68],[17,28,-68],[15,28,-68],[17,28,-68]],[[24,28,-32],[24,28,-32],[24,28,-32],[24,28,-32],[24,28,-32],[24,29,-32],[24,29,-32]]];
   function canDrawSword(o) {
     return o?.tool === 'sword'
@@ -51,7 +49,7 @@
   function drawSword(ctx, x, y, o, now, age) {
     const {row, frame: step, moving} = pose(o, now);
     const attacking = age >= 0 && age < 320;
-    const frame = attacking ? movingPunchEnds.findIndex(end => age < end) : 0;
+    const frame = attacking ? strideAttackEnds.findIndex(end => age < end) : 0;
     const sy = attacking ? (moving ? 4 + row * 6 + step : row) * 36 : moving ? row * 32 : 0;
     const sx = attacking ? frame * 48 : (moving ? step : row) * 24;
     const [gx, gy, angle] = attacking
@@ -78,6 +76,11 @@
     ctx.imageSmoothingEnabled = false;
     if (row === 3) paintBlade();
     ctx.drawImage(body, sx, sy, width, height, insetX, insetY, width, height);
+    if (row === 3 && attacking && frame !== 7) {
+      // The rear sleeve occludes the hilt. Show fingertips at its distal edge.
+      ctx.fillStyle = '#ce855c';
+      ctx.fillRect(hx, gy, 2, 1);
+    }
     if (row !== 3) {
       paintBlade();
       ctx.drawImage(body, sx + hx - insetX - 1, sy + gy - insetY - 1, 3, 3, hx - 1, gy - 1, 3, 3);
@@ -127,11 +130,11 @@
   function draw(ctx, x, y, o = {}, now = 0) {
     if (status !== 'ready') return false;
     const attackAge = now - (o.swingAt ?? -99999);
-    if (o.tool === 'sword') return canDrawSword(o, now) && drawSword(ctx, x, y, o, now, attackAge);
-    if (canDrawPunch(o) && attackAge >= 0 && attackAge < 320) {
+    if (canDrawSword(o)) return drawSword(ctx, x, y, o, now, attackAge);
+    if ((o.tool === 'fist' || !o.tool) && canDrawPunch(o) && attackAge >= 0 && attackAge < 320) {
       const moving = Boolean(o.moving) && movingPunchReady;
       const frame = moving
-        ? movingPunchEnds.findIndex(end => attackAge < end)
+        ? strideAttackEnds.findIndex(end => attackAge < end)
         : punchEnds.findIndex(end => attackAge < end) + 1;
       ctx.save();
       ctx.imageSmoothingEnabled = false;
@@ -142,7 +145,7 @@
       ctx.restore();
       return true;
     }
-    const p = pose(attackAge >= 0 && attackAge < 320 ? {...o, moving: false} : o, now);
+    const p = pose(o, now);
     const sprite = p.moving ? assets.walk.image : assets.idle.image;
     const sx = (p.moving ? p.frame : p.row) * CELL_W;
     const sy = p.moving ? p.row * CELL_H : 0;

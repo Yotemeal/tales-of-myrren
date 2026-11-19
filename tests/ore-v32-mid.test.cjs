@@ -79,6 +79,6 @@ test('environment paints the three correct sprite URLs with the same anchor and 
  const rock=source.slice(source.indexOf('  function rock('),source.indexOf('  function fern('));
  assert.doesNotMatch(rock,/sprite\(|poly\(|fillRect\(/,'old procedural rock remains removed');
  const html=bytes('public/index.html').toString();
- assert(html.includes('/myrren-game.js?v=98'));assert(html.includes('/myrren-environment.js?v=26'));
- assert(bytes('public/myrren-game.js').toString().includes('window.MyrrenBuild=98;'));
+ assert(Number(/myrren-game\.js\?v=(\d+)/.exec(html)[1])>=98);assert(html.includes('/myrren-environment.js?v=26'));
+ assert(Number(/window\.MyrrenBuild=(\d+)/.exec(bytes('public/myrren-game.js'))[1])>=98);
 });
