@@ -1962,7 +1962,11 @@ function ingest(change){
     let o=peers.get(p.peer);
     const x=clamp(pr.x,0,WW),y=clamp(pr.y,0,WH);
     if(!o){o={x,y,tx:x,ty:y,n:'',tl:3,h:200,e:null,until:0,face:1,tool:'',mat:2,hold:0,swingAt:-9999,s:null,g:[0,0,0,0,0]};peers.set(p.peer,o)}
-    if(x!==o.tx)o.face=x>o.tx?1:-1;
+    const dx=x-o.tx,dy=y-o.ty;
+    if(pr.f===1||pr.f===-1)o.face=pr.f;
+    else if(dx)o.face=dx>0?1:-1;
+    if(pr.dv==='d'||pr.dv==='s'||pr.dv==='u')o.dv=pr.dv;
+    else if(dx||dy)o.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s';
     o.tx=x;o.ty=y;
     o.n=String(pr.n||'Wanderer').replace(/[^\w .-]/g,'').slice(0,14)||'Wanderer';
     o.tl=clamp(pr.tl|0,1,100);o.dye=(Number.isInteger(pr.dy)&&pr.dy>=0&&pr.dy<4)?pr.dy:null;
@@ -1987,7 +1991,7 @@ function ingest(change){
 function sendPresence(){
   if(!room||!started)return;
   const now=performance.now(),holding=now<me.hold&&me.tool;
-  const p={x:Math.round(inside?me.ox:me.x),y:Math.round(inside?me.oy:me.y),n:save.name,tl:lvlFor(save.xp.melee),h:me.hue,e:waveN,s:me.swings,a:holding?CODE_KIND.indexOf(me.tool):0,tt:me.mat,g:gearArr(),dy:save.dye};
+  const p={x:Math.round(inside?me.ox:me.x),y:Math.round(inside?me.oy:me.y),dv:me.dv,f:me.face,n:save.name,tl:lvlFor(save.xp.melee),h:me.hue,e:waveN,s:me.swings,a:holding?CODE_KIND.indexOf(me.tool):0,tt:me.mat,g:gearArr(),dy:save.dye};
   const s=JSON.stringify(p);if(s===lastSent)return;lastSent=s;
   room.presence(p).catch(()=>{});
 }
@@ -3933,7 +3937,7 @@ function drawOutdoor(cx,cy,now){
       R(fx2-4,fy-6-fl,8,7+fl,'#df733a');R(fx2-2,fy-9-fl,4,7+fl,'#ffd15d');
     }
   }});
-  peers.forEach(o=>{if(vis(o.x,o.y))list.push({y:o.y,f:()=>drawPerson(Math.round(o.x-cx),Math.round(o.y-cy),{dv:(()=>{const dx=o.tx-o.x,dy=o.ty-o.y;if(Math.hypot(dx,dy)>1)o.dv=Math.abs(dy)>Math.abs(dx)*1.1?(dy>0?'d':'u'):'s';return o.dv||'d'})(),f:o.face,moving:Math.hypot(o.tx-o.x,o.ty-o.y)>1,hue:o.h,name:o.n,col:'#ffffff',tool:o.tool,mat:o.mat,hold:o.hold,swingAt:o.swingAt,waving:now<o.until,g:o.g,dye:o.dye},now)})});
+  peers.forEach(o=>{if(vis(o.x,o.y))list.push({y:o.y,f:()=>drawPerson(Math.round(o.x-cx),Math.round(o.y-cy),{dv:o.dv||'d',f:o.face,moving:Math.hypot(o.tx-o.x,o.ty-o.y)>1,hue:o.h,name:o.n,col:'#ffffff',tool:o.tool,mat:o.mat,hold:o.hold,swingAt:o.swingAt,waving:now<o.until,g:o.g,dye:o.dye},now)})});
   for(const pt of pets)list.push({y:pt.y,f:()=>drawPet(pt,Math.round(pt.x-cx),Math.round(pt.y-cy),now)});
   if(started)list.push({y:me.y,f:()=>{
     const sx=Math.round(me.x-cx),sy=Math.round(me.y-cy);
